@@ -335,6 +335,11 @@ function makeClaude(tid) {
           try { r = await sb.from("docs").upsert({ team_id: tid, coll: c, id, data }, { onConflict: "team_id,coll,id" }).select("updated_at").single(); } catch (e) { throw dbError(e); }
           if (r.error) throw dbError(r.error);
           put(c, id, clone(data), ts(r.data && r.data.updated_at), true); emit(c, id); afterWrite(c);
+          // 설정에서 팀 이름을 바꾸면 초대 화면과 팀 고르기에 보이는 이름도 맞춘다
+          if (c === "team" && id === "settings" && data && String(data.teamName || "").trim() && state.team && data.teamName.trim() !== state.team.name && (state.role === "owner" || state.role === "admin")) {
+            const name = data.teamName.trim().slice(0, 40);
+            sb.from("teams").update({ name }).eq("id", tid).then(({ error }) => { if (!error) state.team.name = name; });
+          }
         },
         async update(patch) {
           let r;
