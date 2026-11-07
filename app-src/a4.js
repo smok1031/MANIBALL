@@ -2,8 +2,8 @@
 /* ---------- 운영진 홈 ---------- */
 function viewOpHome() {
   if (!S.players.length) return `<div class="card"><div class="empty"><b>팀을 시작해 볼까요?</b>선수 명단을 붙여 넣으면 한 번에 등록돼요. 그다음 일정을 올리면 팀원들이 참석 투표를 할 수 있어요.</div>
-    <button class="btn primary big" data-act="bulkOpen">명단 붙여 넣어 한 번에 등록</button><a class="btn block" href="#player-new">한 명씩 등록하기</a>
-    ${S.settings.teamName ? "" : `<a class="btn block" href="#config">팀 이름과 규칙 정하기</a>`}<button class="btn block o" data-act="loadSample">예시 데이터로 둘러보기</button></div>`;
+    <button class="btn primary big" data-act="bulkOpen">명단 붙여 넣어 한 번에 등록</button>
+    ${S.settings.teamName ? "" : `<a class="btn block" href="#config">팀 이름과 규칙 정하기</a>`}</div>`;
   const parts = [];
   const n = todoCount();
   parts.push(`<a class="card soft" href="#todo" style="flex-direction:row;align-items:center;gap:10px;border-radius:16px;padding:12px 14px"><span class="num" style="font-size:30px;line-height:1">${n}</span><span class="grow" style="font-weight:700">${n ? "오늘 처리할 일이 있어요" : "오늘 처리할 일이 없어요"}</span>${ICON.chev}</a>`);
