@@ -59,13 +59,47 @@ async function startApp() {
 
 /* ---------- 로그인 ---------- */
 let sb = null;
+/* ---------- 카카오 로그인: 이메일 동의 없이 ID 토큰으로 로그인 ----------
+   Supabase의 기본 카카오 연결은 이메일 동의항목을 항상 요청해서, 비즈 앱이 아니면 KOE205가 난다.
+   그래서 카카오 OpenID Connect로 ID 토큰을 받아 Supabase에 넘긴다 (닉네임, 프로필 사진만 요청). */
+const KAKAO_KEY = "e5c9ffdb309018215f5fcbc89eddb201"; // REST API 키 (공개되는 값, 비밀 아님)
+const KK = "kei-web-kakao";
+const rand = () => Array.from(crypto.getRandomValues(new Uint8Array(24)), b => b.toString(16).padStart(2, "0")).join("");
+async function sha256hex(t) { const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t)); return Array.from(new Uint8Array(d), b => b.toString(16).padStart(2, "0")).join(""); }
+async function kakaoStart() {
+  const st = { state: rand(), nonce: rand() };
+  try { sessionStorage.setItem(KK, JSON.stringify(st)); } catch (e) { /* 아래에서 실패 안내 */ }
+  const q = new URLSearchParams({ client_id: KAKAO_KEY, redirect_uri: APP_URL, response_type: "code", scope: "openid profile_nickname profile_image", state: st.state, nonce: await sha256hex(st.nonce) });
+  location.assign("https://kauth.kakao.com/oauth/authorize?" + q);
+}
+function kakaoPending() {
+  let st = null; try { st = JSON.parse(sessionStorage.getItem(KK) || "null"); } catch (e) { st = null; }
+  return st && qs.get("state") === st.state ? st : null;
+}
+async function kakaoFinish(st) {
+  try { sessionStorage.removeItem(KK); } catch (e) { /* 없어도 된다 */ }
+  if (qs.get("error")) throw new Error(qs.get("error_description") || qs.get("error"));
+  const r = await fetch("https://kauth.kakao.com/oauth/token", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
+    body: new URLSearchParams({ grant_type: "authorization_code", client_id: KAKAO_KEY, redirect_uri: APP_URL, code: qs.get("code") || "" }) });
+  const tok = await r.json().catch(() => ({}));
+  if (!r.ok || !tok.id_token) throw new Error(tok.error_code || tok.error || "token " + r.status);
+  const { data, error } = await sb.auth.signInWithIdToken({ provider: "kakao", token: tok.id_token, access_token: tok.access_token, nonce: st.nonce });
+  if (error) throw error;
+  return data.session;
+}
+
 async function boot() {
-  sb = createClient(URL_, KEY_, { auth: { flowType: "pkce", persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
-  const urlErr = qs.get("error_description") || qs.get("error") || "";
+  const kakao = kakaoPending();
+  sb = createClient(URL_, KEY_, { auth: { flowType: "pkce", persistSession: true, autoRefreshToken: true, detectSessionInUrl: !kakao } });
+  let urlErr = kakao ? "" : qs.get("error_description") || qs.get("error") || "";
   const jc = (qs.get("join") || "").trim();
   if (jc) store.set(LS.join, jc);
   let session = null;
-  try { ({ data: { session } } = await sb.auth.getSession()); } catch (e) { session = null; }
+  if (kakao) {
+    screen("loading", `<div class="loading">카카오 로그인 중입니다</div>`);
+    try { session = await kakaoFinish(kakao); } catch (e) { session = null; urlErr = String((e && e.message) || "kakao"); }
+  }
+  if (!session) { try { ({ data: { session } } = await sb.auth.getSession()); } catch (e) { session = null; } }
   if (location.search) history.replaceState(null, "", APP_URL + location.hash);
   sb.auth.onAuthStateChange((ev, s) => {
     if (ev === "SIGNED_OUT") { location.replace(APP_URL); return; }
@@ -380,8 +414,7 @@ const ACTS = {
   retry: () => afterLogin(),
   kakao: async t => {
     t.disabled = true;
-    const { error } = await sb.auth.signInWithOAuth({ provider: "kakao", options: { redirectTo: APP_URL } });
-    if (error) { t.disabled = false; note("카카오 로그인을 시작하지 못했어요. 잠시 후 다시 시도해 주세요."); }
+    try { await kakaoStart(); } catch (e) { t.disabled = false; note("카카오 로그인을 시작하지 못했어요. 잠시 후 다시 시도해 주세요."); }
   },
   logout: async () => { try { await sb.auth.signOut(); } catch (e) { /* 아래에서 처음 화면으로 */ } store.set(LS.team, null); location.replace(APP_URL); },
   pick: t => enterTeam(t.dataset.id),
