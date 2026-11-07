@@ -61,7 +61,7 @@ async function startApp() {
 let sb = null;
 /* ---------- 카카오 로그인: 이메일 동의 없이 ID 토큰으로 로그인 ----------
    Supabase의 기본 카카오 연결은 이메일 동의항목을 항상 요청해서, 비즈 앱이 아니면 KOE205가 난다.
-   그래서 카카오 OpenID Connect로 ID 토큰을 받아 Supabase에 넘긴다 (닉네임, 프로필 사진만 요청). */
+   그래서 카카오 OpenID Connect로 ID 토큰을 받아 Supabase에 넘긴다 (닉네임만 요청). */
 const KAKAO_KEY = "e5c9ffdb309018215f5fcbc89eddb201"; // REST API 키 (공개되는 값, 비밀 아님)
 const KK = "kei-web-kakao";
 const rand = () => Array.from(crypto.getRandomValues(new Uint8Array(24)), b => b.toString(16).padStart(2, "0")).join("");
@@ -69,7 +69,7 @@ async function sha256hex(t) { const d = await crypto.subtle.digest("SHA-256", ne
 async function kakaoStart() {
   const st = { state: rand(), nonce: rand() };
   try { sessionStorage.setItem(KK, JSON.stringify(st)); } catch (e) { /* 아래에서 실패 안내 */ }
-  const q = new URLSearchParams({ client_id: KAKAO_KEY, redirect_uri: APP_URL, response_type: "code", scope: "openid profile_nickname profile_image", state: st.state, nonce: await sha256hex(st.nonce) });
+  const q = new URLSearchParams({ client_id: KAKAO_KEY, redirect_uri: APP_URL, response_type: "code", scope: "openid profile_nickname", state: st.state, nonce: await sha256hex(st.nonce) });
   location.assign("https://kauth.kakao.com/oauth/authorize?" + q);
 }
 function kakaoPending() {
