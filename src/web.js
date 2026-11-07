@@ -42,7 +42,7 @@ const KAKAO_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="curr
 let appLoading = null;
 function loadApp() {
   if (!appLoading) appLoading = new Promise((res, rej) => {
-    const s = document.createElement("script"); s.src = BASE + "app.js";
+    const s = document.createElement("script"); s.src = BASE + "app.js?v=" + __APP_VER__;
     s.onload = res; s.onerror = () => rej(new Error("app.js"));
     document.body.appendChild(s);
   });
