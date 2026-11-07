@@ -46,7 +46,7 @@ const FORMATIONS = {
   }
 };
 const QUARTERS = { "11": 4, futsal: 8 };
-const DEFAULT_SETTINGS = () => ({ teamName: "", fee: 30000, cap: 14, checkBefore: 10, lateCancelH: 3, account: "", shareLink: "", sample: false, finePresets: [{ id: "late", label: "지각", amount: 5000 }, { id: "noshow", label: "무단 불참", amount: 10000 }], guestFee: 10000, dutyItems: [{ id: "ball", label: "공", what: "공과 펌프" }, { id: "bib", label: "조끼", what: "조끼, 끝나고 빨아 오기" }, { id: "water", label: "물", what: "생수" }] });
+const DEFAULT_SETTINGS = () => ({ teamName: "", fee: 30000, cap: 14, checkBefore: 10, lateCancelH: 3, account: "", shareLink: "", sample: false, finePresets: [{ id: "late", label: "지각", amount: 5000 }, { id: "noshow", label: "무단 불참", amount: 10000 }], guestFee: 10000 });
 
 /* ---------- state ---------- */
 let S = { settings: DEFAULT_SETTINGS(), players: [], dues: {}, fines: [], events: {}, rsvp: {}, mydues: {}, payreq: {}, notices: [], tally: {}, uvote: {}, guestreq: {} };
@@ -63,7 +63,7 @@ const CORE = ["team", "players", "contacts", "events", "dues", "fines"];
 const COLLS = CORE.concat(["rsvp", "mydues", "payreq", "notices", "tally", "uvote", "guestreq"]);
 //   notices/<id>      공지와 설문 (운영진이 씀, 모두 읽음)
 //   tally/<key>       MOM, 설문, 읽음 집계 (운영진 앱이 맞춰 둠, 모두 읽음)
-//   uvote/<userId>    본인 MOM 표, 설문 응답, 읽음, 당번 확인 (본인이 씀, 운영진과 본인만 읽음)
+//   uvote/<userId>    본인 MOM 표, 설문 응답, 읽음 (본인이 씀, 운영진과 본인만 읽음)
 //   guestreq/<userId> 게스트 요청 (본인이 씀, 운영진과 본인만 읽음)
 const R = {}; COLLS.forEach(c => R[c] = {});
 const Store = { mode: "loading", db: null, dl: null, user: null, me: null, role: "owner", canWrite: true, canVote: true, canMoney: true, isOwner: true, pending: new Map(), inflight: new Map(), settled: new Map(), timers: {}, got: new Set(), confirmed: new Set(), subs: [], err: false, offline: false };
@@ -655,7 +655,7 @@ function myGuestReqs(eid) {
   return Object.keys(items).map(k => ({ key: k, ...items[k] })).filter(g => isObj(g) && g.eid === eid);
 }
 
-/* ---------- 새 기능: 본인 표 (MOM, 설문, 읽음, 당번 확인) ---------- */
+/* ---------- 새 기능: 본인 표 (MOM, 설문, 읽음) ---------- */
 const myUid = () => Store.preview ? (uidsOf(myPid())[0] || "") : (Store.me || "");
 function myUvote() { const u = myUid(); return (u && S.uvote[u]) || {}; }
 
@@ -692,44 +692,6 @@ function pollTally(n) {
 }
 const seenCount = n => (S.tally["seen-" + n.id] || {}).n || 0;
 function pollVoters(n, opt) { return Object.keys(S.uvote).filter(u => ((S.uvote[u] || {}).poll || {})[n.id] === opt).map(u => claimOf(u) ? pname(claimOf(u)) : "팀원"); }
-
-/* ---------- 당번 ---------- */
-function dutyItems() { return (Array.isArray(S.settings.dutyItems) ? S.settings.dutyItems : []).filter(d => d && d.id && d.label); }
-let DUTYC = null;
-function dutyAll() {
-  if (DUTYC && DUTYC.ref === S.events && DUTYC.p === S.players && DUTYC.s === S.settings) return DUTYC.map;
-  const items = dutyItems(); const act = activePlayers(); const map = {};
-  const queues = items.map((it, k) => {
-    const order = (S.settings.dutyOrder && S.settings.dutyOrder[it.id]) || [];
-    const base = order.filter(pid => act.some(p => p.id === pid)).concat(act.map(p => p.id).filter(pid => !order.includes(pid)));
-    const shift = base.length ? Math.floor(k * base.length / Math.max(items.length, 1)) % base.length : 0;
-    return order.length ? base : base.slice(shift).concat(base.slice(0, shift));
-  });
-  eventsSorted().forEach(e => {
-    const conf = roster(e).ids; const used = new Set(); map[e.id] = {};
-    items.forEach((it, k) => {
-      const pass = ((e.dutyPass || {})[it.id]) || [];
-      const q = queues[k]; const i = q.findIndex(pid => conf.has(pid) && !pass.includes(pid) && !used.has(pid));
-      if (i < 0) { map[e.id][it.id] = ""; return; }
-      const pid = q[i]; used.add(pid); map[e.id][it.id] = pid; q.splice(i, 1); q.push(pid);
-    });
-  });
-  DUTYC = { ref: S.events, p: S.players, s: S.settings, map }; return map;
-}
-const dutyOf = e => (e && dutyAll()[e.id]) || {};
-function myDuty(e) { const pid = myPid(); if (!pid || !e) return []; const d = dutyOf(e); return dutyItems().filter(it => d[it.id] === pid); }
-function dutyNext(e, itemId, n) {
-  // 지금 기준 다음 순서 (다가오는 일정 기준, 참석 여부와 상관없이 줄 순서)
-  const items = dutyItems(); const k = items.findIndex(x => x.id === itemId); const act = activePlayers().map(p => p.id);
-  const cur = dutyOf(e)[itemId]; const order = (S.settings.dutyOrder && S.settings.dutyOrder[itemId]) || [];
-  const base = order.filter(pid => act.includes(pid)).concat(act.filter(pid => !order.includes(pid)));
-  const shift = base.length && !order.length ? Math.floor(k * base.length / Math.max(items.length, 1)) % base.length : 0;
-  const q = base.slice(shift).concat(base.slice(0, shift));
-  // 지난 배정 반영: 최근에 한 사람은 뒤로
-  const last = {}; eventsSorted().forEach((ev, idx) => { const pid = dutyOf(ev)[itemId]; if (pid) last[pid] = idx; });
-  const sorted = q.slice().sort((a, b) => (last[a] ?? -1) - (last[b] ?? -1) || q.indexOf(a) - q.indexOf(b));
-  return sorted.filter(pid => pid !== cur).slice(0, n || 3);
-}
 
 /* ---------- 팀 나누기 ---------- */
 function rng(seed) { let x = (seed * 2654435761 >>> 0) || 1; return () => { x ^= x << 13; x >>>= 0; x ^= x >> 17; x ^= x << 5; x >>>= 0; return x / 4294967296; }; }
@@ -807,7 +769,6 @@ function inboxItems() {
     const P = myPlan(e, pid);
     const tPast = [e.updatedAt || "", nowIso()].filter(Boolean).sort()[0];
     if (P && P.any && P.conf) out.push({ cat: "line", tag: "라인", ic: "tile", t: tPast, title: "라인업이 나왔어요", body: `${fmtDate(e.date)}: ${P.rows.map(r => `${r.k + 1}Q ${qText(r)}`).join(", ")}`, href: "#lineup-" + e.id });
-    myDuty(e).forEach(it => out.push({ cat: "line", tag: "당번", ic: "soft", t: tPast, title: `${it.label} 당번이에요`, body: `${fmtDate(e.date)} ${evTitle(e)}, ${it.what || ""}`, href: "#home" }));
   });
   eventsSorted().filter(e => momOpen(e) && cameTo(e, pid) && !(uv.mom || {})[e.id]).forEach(e => out.push({ cat: "line", tag: "MOM", ic: "ink", t: eventStart(e).toISOString(), title: "MOM 투표가 열렸어요", body: `${fmtDate(e.date)} ${evTitle(e)}, 내일 정오 마감`, href: "#mom-" + e.id }));
   myFines(pid).filter(f => !f.paid).forEach(f => out.push({ cat: "money", tag: "벌금", ic: "soft", t: (f.date || "") + "T12:00:00", title: "벌금이 부과됐어요", body: `${f.date ? Number(f.date.slice(5, 7)) + "월 " + Number(f.date.slice(8, 10)) + "일 " : ""}${f.reason || "벌금"} ${won(f.amount)}. 본인만 볼 수 있어요.`, href: "#money" }));
@@ -878,7 +839,7 @@ function backbar(href, sub, title, right) {
 }
 function tabOf(v) {
   if (v === "home" || v === "todo" || v === "config" || v === "notice" || v === "inbox" || v === "mypos" || v === "claim" || v.startsWith("mom-")) return "home";
-  if (v === "schedule" || v === "duty" || /^(event|lineup|split)-/.test(v)) return "schedule";
+  if (v === "schedule" || /^(event|lineup|split)-/.test(v)) return "schedule";
   if (v === "players" || v.startsWith("player-")) return "players";
   return v;
 }
@@ -927,7 +888,6 @@ function render() {
   else if (v === "notice") html = viewNotice();
   else if (v === "inbox") html = viewInbox();
   else if (v === "todo") html = viewTodo();
-  else if (v === "duty") html = viewDuty();
   else html = isOpView() ? viewOpHome() : viewMemberHome();
   if (Store.mode === "local" && !window.__DEMO) html = `<div class="note">이 화면에서는 데이터가 이 기기의 브라우저에만 저장됩니다. 설정에서 백업 파일을 만들어 두세요.</div>` + html;
   if (window.__DEMO) html = `<div class="preview"><b>${window.__DEMO === "op" ? "운영진" : "팀원"} 화면 미리보기</b>예요. 예시 데이터라 눌러 봐도 실제 팀에는 저장되지 않아요.${window.__WEB ? ` <a class="linkbtn" href="?demo=${window.__DEMO === "op" ? "member" : "op"}">${window.__DEMO === "op" ? "팀원" : "운영진"} 화면 보기</a>` : ""}</div>` + html;
@@ -1013,8 +973,6 @@ function viewMemberHome() {
       ${st ? voteGroup(next, st) : ""}${st ? myLatePicker(next, st) : ""}${st ? myStatusLine(next, st) : ""}
       ${pid ? `<a href="#lineup-${next.id}" style="text-decoration:none;color:inherit">${planTiles(next, pid)}</a>` : ""}
     </section>`);
-    if (pid) myDuty(next).forEach(it => { const ok = ((myUvote().duty || {})[next.id] || {})[it.id];
-      parts.push(ok ? `<div class="small muted" role="status" style="padding:0 4px">${esc(it.label)} 당번 확인 완료. 못 가게 되면 불참으로 바꾸면 다음 사람에게 넘어가요.</div>` : `<div class="card soft" style="flex-direction:row;align-items:center;gap:10px;border-radius:16px"><div class="grow"><div style="font-weight:700;font-size:14px">이번 경기 ${esc(it.label)} 당번이에요</div><div class="small">${esc(it.what || "")}</div></div><button class="btn" data-act="dutyOk" data-eid="${next.id}" data-item="${esc(it.id)}">확인</button></div>`); });
     const pend = pid ? upcoming.slice(1).filter(e => { const s2 = myState(e); return s2 && !s2.s; }) : [];
     if (pend.length) parts.push(`<section class="card flat"><div class="lh"><span class="lab">아직 응답 안 한 일정</span></div><div class="list">${pend.slice(0, 4).map(e => `<a class="li" href="#event-${e.id}"><span class="num" style="font-size:22px;width:56px">${esc(shortDate(e))}</span><span class="grow ell"><b>${esc(evTitle(e))}</b> <span class="small muted">${esc(e.time || "")}</span></span><span class="mark">미응답</span></a>`).join("")}</div></section>`);
   } else parts.push(`<div class="card"><span class="lab">다음 일정</span><div class="small muted">예정된 일정이 없어요.</div></div>`);
@@ -1246,9 +1204,8 @@ function viewMyPos() {
 
 /* ---------- 운영진 홈 ---------- */
 function viewOpHome() {
-  if (!S.players.length) return `<div class="card"><div class="empty"><b>팀을 시작해 볼까요?</b>선수 명단을 붙여 넣으면 한 번에 등록돼요. 그다음 일정을 올리면 팀원들이 참석 투표를 할 수 있어요.</div>
-    <button class="btn primary big" data-act="bulkOpen">명단 붙여 넣어 한 번에 등록</button>
-    ${S.settings.teamName ? "" : `<a class="btn block" href="#config">팀 이름과 규칙 정하기</a>`}</div>`;
+  if (!S.players.length) return `<div class="card"><div class="empty"><b>팀을 시작해 볼까요?</b>먼저 팀 이름과 정원, 회비, 벌금 규칙을 정하고, 선수 명단을 붙여 넣어 한 번에 등록하세요. 그다음 일정을 올리면 팀원들이 참석 투표를 할 수 있어요.</div>
+    <a class="btn primary big" href="#config">팀 이름과 규칙 정하기</a><button class="btn block" data-act="bulkOpen">명단 붙여 넣어 한 번에 등록</button></div>`;
   const parts = [];
   const n = todoCount();
   parts.push(`<a class="card soft" href="#todo" style="flex-direction:row;align-items:center;gap:10px;border-radius:16px;padding:12px 14px"><span class="num" style="font-size:30px;line-height:1">${n}</span><span class="grow" style="font-weight:700">${n ? "오늘 처리할 일이 있어요" : "오늘 처리할 일이 없어요"}</span>${ICON.chev}</a>`);
@@ -1307,8 +1264,7 @@ function viewOpSched() {
     return `<a class="evcard ${next && e.id === next.id ? "hot" : ""}" href="#event-${e.id}"><div class="datebox"><div class="m">${d.getMonth() + 1}월</div><div class="d">${d.getDate()}</div><div class="w">${WD[d.getDay()]}요일</div></div>
       <div class="grow" style="display:flex;flex-direction:column;gap:2px"><div class="row" style="gap:6px"><span class="chip ${k[1]}">${k[0]}</span><span class="tiny muted">${esc(FORMAT_KO[e.format] || "")}</span></div><b class="ell">${esc(evTitle(e))}</b><span class="tiny muted ell">${[e.time, e.place].filter(Boolean).map(esc).join(", ") || "&nbsp;"}</span></div>
       <div style="text-align:right;flex:none">${hasScore(e) ? `<div class="num" style="font-size:24px;color:${r === "W" ? "var(--clay)" : r === "L" ? "var(--muted)" : "var(--ink)"}">${e.score.us} : ${e.score.them}</div><div class="tiny muted">${{ W: "승", D: "무", L: "패" }[r]}</div>` : `<div class="num" style="font-size:20px">${c.all}${c.capAll === Infinity ? "" : "/" + c.capAll}</div><div class="tiny muted">${c.wait ? `대기 ${c.wait}` : "명 확정"}</div>`}</div></a>`; }).join("")
-    : `<div class="card"><div class="empty"><b>${up ? "다가오는 일정이 없어요" : "지난 일정이 없어요"}</b>${up ? "위 버튼으로 경기나 훈련을 올리세요." : "날짜가 지난 일정이 여기 쌓여요."}</div></div>`}
-  <a class="card" href="#duty" style="flex-direction:row;align-items:center"><span class="grow"><span class="lab">장비 당번</span><div class="small muted">${dutyItems().map(d => esc(d.label)).join(", ") || "당번 항목 없음"} 순번 보기</div></span>${ICON.chev}</a>`;
+    : `<div class="card"><div class="empty"><b>${up ? "다가오는 일정이 없어요" : "지난 일정이 없어요"}</b>${up ? "위 버튼으로 경기나 훈련을 올리세요." : "날짜가 지난 일정이 여기 쌓여요."}</div></div>`}`;
 }
 
 /* ---------- 운영진 일정 상세 ---------- */
@@ -1319,7 +1275,6 @@ function viewOpEvent(e) {
   const body = ui.evTab === "att" ? opAtt(e) : ui.evTab === "lineup" ? opLineup(e) : ui.evTab === "check" ? opCheck(e) : opRec(e);
   const links = [];
   if (isScrim(e)) links.push(`<a class="btn" href="#split-${e.id}">팀 나누기${e.teamsAt ? " (확정)" : ""}</a>`);
-  if (dutyItems().length) links.push(`<a class="btn" href="#duty" data-act="dutyFor" data-eid="${e.id}">당번</a>`);
   if (S.tally["mom-" + e.id] || momOpen(e)) links.push(`<a class="btn" href="#mom-${e.id}">MOM</a>`);
   return `${backbar("#schedule", "운영진", titles[ui.evTab], `<button class="btn" data-act="shareEvent" data-id="${e.id}">공유</button><button class="btn" data-act="editEvent" data-id="${e.id}">수정</button>`)}
   <section class="stack" style="gap:4px;padding:0 4px"><div class="date-l">${esc(bigDate(e))}</div><div class="small muted">${evSub(e)}${Number(e.fieldFee) ? `, 구장비 ${won(e.fieldFee)}` : ""}</div></section>
@@ -1492,7 +1447,6 @@ function viewConfig() {
   const me = myPid() ? `<section class="card" style="flex-direction:row;align-items:center;gap:10px"><div class="grow"><span class="lab">내 선수</span><div><b>${esc(pname(myPid()))}</b> 선수로 연결돼 있어요.</div></div><button class="btn" data-act="unclaim">연결 해제</button></section>` : "";
   const view = `<section class="card"><button class="switch" role="switch" aria-checked="${!!prefs().big}" data-act="toggleBig"><span class="grow" style="font-size:14px;font-weight:700">큰 글씨로 보기</span><span class="tr" aria-hidden="true"><i></i></span></button></section>`;
   if (!Store.canWrite) return `${backbar("#home", "", "설정")}${roleCard}${me}${view}`;
-  const items = dutyItems();
   return `${backbar("#home", "", "설정")}${roleCard}${me}
   <form class="card" id="cfgForm" style="gap:12px"><span class="lab">팀 정보와 규칙</span>
     <label class="field" style="margin:0">팀 이름<input name="teamName" value="${esc(s.teamName)}" placeholder="예: KEI FC" maxlength="30"></label>
@@ -1504,9 +1458,6 @@ function viewConfig() {
     <div class="field" style="margin:0">벌금 종류<span class="h">'지각', '불참', '직전 취소'라는 말이 들어가면 현장 출석에서 자동으로 붙어요</span></div>
     <div id="presetRows">${s.finePresets.map(p => presetRow(p)).join("")}</div>
     <button type="button" class="btn" data-act="addPreset" style="align-self:flex-start">+ 벌금 종류 추가</button>
-    <div class="field" style="margin:0">장비 당번<span class="h">당번 이름과 챙길 것. 참석 확정 인원 중에서 순서대로 돌아가요</span></div>
-    <div id="dutyRows">${items.map(d => dutyRow(d)).join("")}</div>
-    <button type="button" class="btn" data-act="addDuty" style="align-self:flex-start">+ 당번 추가</button>
     <button class="btn primary big" type="submit">저장</button></form>
   ${view}
   <section class="card"><span class="lab">백업</span><div class="small muted">${Store.mode === "db" ? "데이터는 이 링크에 저장돼 운영진과 팀원 모두에게 이어져요. 가끔 백업 파일을 받아 두세요." : "지금은 이 기기의 브라우저에만 저장돼요. 백업 파일을 꼭 받아 두세요."}</div>
@@ -1514,7 +1465,6 @@ function viewConfig() {
   <section class="card o"><span class="lab">초기화</span><div class="small muted">선수, 일정, 회비, 벌금 기록을 모두 지워요. 되돌릴 수 없고, ${window.__WEB ? "팀장만" : "링크 소유자만"} 할 수 있어요.</div><button class="btn dark block" data-act="resetAll">모든 데이터 지우기</button></section>`;
 }
 function presetRow(p) { return `<div class="presets" data-pid="${esc(p.id)}"><input class="inp" aria-label="벌금 이름" name="pl" value="${esc(p.label)}" placeholder="벌금 이름"><input class="inp" aria-label="금액" name="pa" inputmode="numeric" value="${esc(p.amount)}" placeholder="금액"><button type="button" class="iconbtn" data-act="delPreset" aria-label="삭제" style="width:40px;height:40px;border-radius:12px">&times;</button></div>`; }
-function dutyRow(d) { return `<div class="presets duty" data-did="${esc(d.id)}" style="grid-template-columns:90px 1fr 40px"><input class="inp" aria-label="당번 이름" name="dl" value="${esc(d.label)}" placeholder="예: 공"><input class="inp" aria-label="챙길 것" name="dw" value="${esc(d.what || "")}" placeholder="예: 공 5개와 펌프"><button type="button" class="iconbtn" data-act="delPreset" aria-label="삭제" style="width:40px;height:40px;border-radius:12px">&times;</button></div>`; }
 
 
 /* ---------- 게스트 (운영진 참석 탭) ---------- */
@@ -1611,7 +1561,7 @@ function noticeSheet(n) {
 /* ---------- 알림함 ---------- */
 function viewInbox() {
   const items = inboxItems(); const off = prefs().inboxOff || {};
-  const cats = [["vote", "투표 마감 전 알림"], ["line", "라인업, 당번, MOM"], ["money", "내 벌금과 회비"], ["notice", "공지와 설문"]];
+  const cats = [["vote", "투표 마감 전 알림"], ["line", "라인업, MOM"], ["money", "내 벌금과 회비"], ["notice", "공지와 설문"]];
   return `${backbar("#home", "", "알림함", `<button class="btn" data-act="inboxRead">모두 읽음</button>`)}
   ${items.length ? `<div class="card" style="padding:0;overflow:hidden;gap:0">${items.map(i => `<a class="ibx ${i.unread ? "unread" : ""}" href="${esc(i.href)}" style="text-decoration:none;color:var(--ink)"><span class="ic ${i.ic}" aria-hidden="true">${esc(i.tag)}</span><div class="grow"><div class="row" style="gap:6px;align-items:baseline"><span class="grow" style="font-weight:${i.unread ? 700 : 600};font-size:14px">${esc(i.title)}</span><span class="tiny muted" style="flex:none">${esc(relTime(i.t))}</span></div><div class="small muted">${esc(i.body)}</div></div>${i.unread ? `<span class="dotu" aria-label="안 읽음"></span>` : ""}</a>`).join("")}</div>` : `<div class="card"><div class="empty"><b>새 알림이 없어요</b>투표 마감, 라인업, 벌금, 공지가 생기면 여기에 모여요.</div></div>`}
   <section class="card" style="gap:2px"><span class="lab" style="margin-bottom:4px">어떤 알림을 받을까요</span>${cats.map(([k, l]) => `<button class="switch" role="switch" aria-checked="${!off[k]}" data-act="inboxToggle" data-k="${k}"><span class="grow" style="font-size:14px;font-weight:600">${l}</span><span class="tr" aria-hidden="true"><i></i></span></button>`).join("")}
@@ -1678,26 +1628,6 @@ function viewSplit(e) {
   ${op ? (T.saved ? `<section class="card"><div role="status" style="font-weight:700;color:var(--clay)">확정했어요. 팀원 일정 화면에 바로 보여요.</div><button class="btn primary block" data-act="teamShare" data-eid="${e.id}">단톡방 공유 문구</button><button class="btn block" data-act="teamUnconfirm" data-eid="${e.id}">다시 고치기</button></section>` : `<button class="btn primary big" data-act="teamConfirm" data-eid="${e.id}">이대로 확정하고 공유</button>`) : `<div class="hint center">${T.saved ? "운영진이 확정한 팀이에요." : "아직 운영진이 팀을 확정하지 않았어요."}</div>`}`}`;
 }
 function teamText(e) { const conf = roster(e).confirmed; const T = teamsOf(e).t; return [`[${S.settings.teamName || "우리 팀"}] ${fmtDate(e.date)} ${evTitle(e)} 팀`, `조끼팀: ${conf.filter(p => T[p.id] === "A").map(p => p.name).join(", ")}`, `일반팀: ${conf.filter(p => T[p.id] === "B").map(p => p.name).join(", ")}`].join("\n"); }
-
-/* ---------- 당번 ---------- */
-function viewDuty() {
-  const items = dutyItems(); const op = isOpView();
-  const up = eventsSorted().filter(e => !started(e)); const e = (ui.dutyEid && S.events[ui.dutyEid] && !started(S.events[ui.dutyEid])) ? S.events[ui.dutyEid] : up[0];
-  const head = backbar(e ? "#event-" + e.id : "#schedule", "참석자 중에서 순서대로 돌아가요", "당번");
-  if (!items.length) return head + `<div class="card"><div class="empty"><b>당번 항목이 없어요</b>${op ? "설정에서 공, 조끼, 물 같은 당번을 추가하세요." : ""}</div>${op ? `<a class="btn block" href="#config">설정으로</a>` : ""}</div>`;
-  if (!e) return head + `<div class="card"><div class="empty"><b>다가오는 일정이 없어요</b>일정이 올라오면 참석 확정 인원 중에서 당번이 정해져요.</div></div>`;
-  const d = dutyOf(e); const icons = ["ink", "clay", ""];
-  const okBy = (pid, itemId) => { const us = uidsOf(pid); return us.some(u => (((S.uvote[u] || {}).duty || {})[e.id] || {})[itemId]); };
-  return `${head}
-  ${up.length > 1 ? `<div class="seg" role="group" aria-label="일정 고르기">${up.slice(0, 4).map(x => `<button data-act="dutyFor" data-eid="${x.id}" aria-pressed="${x.id === e.id}">${esc(shortDate(x))}</button>`).join("")}</div>` : ""}
-  <section class="rule"><span class="lab">이번 경기</span><div class="date-l" style="font-size:44px">${esc(bigDate(e))}</div><div class="small muted">${esc(evTitle(e))}${e.place ? ", " + esc(e.place) : ""}</div></section>
-  ${items.map((it, k) => { const pid = d[it.id]; const nexts = dutyNext(e, it.id, 3);
-    return `<section class="card ${k === 1 ? "hot" : ""}" style="gap:10px"><div class="row" style="gap:12px"><span class="ibx" style="padding:0;border:0;background:none"><span class="ic ${icons[k % 3]}" style="width:44px;height:44px;border-radius:14px;font-size:14px">${esc(it.label.slice(0, 2))}</span></span>
-      <div class="grow"><div class="lab" style="color:var(--muted)">${esc(it.label)} 당번</div><div class="hl" style="font-size:22px">${pid ? esc(pname(pid)) : "아직 없음"}</div><div class="small muted">${esc(it.what || "")}${pid && okBy(pid, it.id) ? ", 본인 확인함" : ""}</div></div>
-      ${op && pid ? `<button class="btn" data-act="dutyPass" data-eid="${e.id}" data-item="${esc(it.id)}" aria-label="${esc(it.label)} 당번 ${esc(pname(pid))}에서 다음 사람으로 넘기기">넘기기</button>` : ""}</div>
-      <div class="tiny muted"><b>다음 순서</b> <span style="color:var(--ink)">${nexts.map(x => esc(pname(x))).join(", ") || "없음"}</span></div></section>`; }).join("")}
-  <div class="card soft" style="border-radius:16px;font-size:13px;font-weight:500">당번은 그날 참석이 확정된 사람 중에서만 정해요. 불참으로 바꾸면 다음 사람에게 자동으로 넘어가고, 다음 경기에 다시 1순위가 돼요.</div>`;
-}
 
 /* ---------- 가운데 투표 버튼 ---------- */
 function voteSheet() {
@@ -2263,8 +2193,8 @@ document.addEventListener("submit", ev => {
   if (ev.target.id === "pf") { ev.preventDefault(); savePlayerForm(ev.target); return; }
   if (ev.target.id !== "cfgForm") return;
   ev.preventDefault(); if (!Store.canWrite) return; const f = ev.target;
-  const presets = Array.from(f.querySelectorAll(".presets:not(.duty)")).map(r => ({ id: r.dataset.pid, label: r.querySelector('[name="pl"]').value.trim(), amount: Number(digits(r.querySelector('[name="pa"]').value)) || 0 })).filter(p => p.label);
-  setDoc("team/settings", { ...S.settings, teamName: f.elements["teamName"].value.trim(), cap: Number(digits(f.elements["cap"].value)) || 0, checkBefore: Number(digits(f.elements["checkBefore"].value)) || 0, lateCancelH: Number(digits(f.elements["lateCancelH"].value)) || 0, fee: Number(digits(f.elements["fee"].value)) || 0, account: f.elements["account"].value.trim(), shareLink: f.elements["shareLink"].value.trim(), finePresets: presets, guestFee: Number(digits(f.elements["guestFee"].value)) || 0, dutyItems: Array.from(f.querySelectorAll(".presets.duty")).map(r => ({ id: r.dataset.did, label: r.querySelector('[name="dl"]').value.trim(), what: r.querySelector('[name="dw"]').value.trim() })).filter(d => d.label) });
+  const presets = Array.from(f.querySelectorAll(".presets")).map(r => ({ id: r.dataset.pid, label: r.querySelector('[name="pl"]').value.trim(), amount: Number(digits(r.querySelector('[name="pa"]').value)) || 0 })).filter(p => p.label);
+  setDoc("team/settings", { ...S.settings, teamName: f.elements["teamName"].value.trim(), cap: Number(digits(f.elements["cap"].value)) || 0, checkBefore: Number(digits(f.elements["checkBefore"].value)) || 0, lateCancelH: Number(digits(f.elements["lateCancelH"].value)) || 0, fee: Number(digits(f.elements["fee"].value)) || 0, account: f.elements["account"].value.trim(), shareLink: f.elements["shareLink"].value.trim(), finePresets: presets, guestFee: Number(digits(f.elements["guestFee"].value)) || 0 });
   render(); toast("설정을 저장했습니다");
 });
 document.addEventListener("keydown", ev => { if (ev.key === "Escape" && $("#sheetroot").innerHTML) closeSheet(); });
@@ -2332,9 +2262,6 @@ Object.assign(ACT, {
   claimConfirm: () => { const pid = ui.claimPick; if (!pid || !playerById(pid)) return; patchDoc("rsvp/" + Store.me, { pid, claimAt: nowIso(), reqName: "" }); ui.claimPick = ""; location.hash = "home"; render(); toast(`${pname(pid)} 선수로 연결했어요. 이제 바로 투표할 수 있어요`); },
   posSel: t => { const k = t.dataset.k, v = t.dataset.v; ui.posSel[k] = v === "없음" ? "" : v; if (ui.posSel.p1 && ui.posSel.p1 === ui.posSel.p2) ui.posSel.p2 = ""; render(); },
   posSend: () => { const p = playerById(myPid()); if (!p || !ui.posSel || !ui.posSel.p1) return; const sub = ui.posSel.p2 && ui.posSel.p2 !== ui.posSel.p1 ? ui.posSel.p2 : ""; patchDoc("rsvp/" + Store.me, { pid: p.id, posReq: { pid: p.id, pos1: ui.posSel.p1, pos2: sub, at: nowIso(), status: "req" } }); render(); toast("포지션 변경을 요청했어요. 운영진이 확인하면 바뀌어요"); },
-  dutyOk: t => { uvPatch({ duty: { [t.dataset.eid]: { [t.dataset.item]: true } } }); render(); toast("확인했어요. 못 가게 되면 불참으로 바꿔 주세요"); },
-  dutyFor: t => { ui.dutyEid = t.dataset.eid; if (currentView() === "duty") render(); },
-  dutyPass: t => { const e = S.events[t.dataset.eid]; if (!e) return; const it = t.dataset.item; const cur = dutyOf(e)[it]; if (!cur) return; const arr = (((e.dutyPass || {})[it]) || []).concat([cur]); evPatch(e.id, { dutyPass: { [it]: arr } }); render(); const nw = dutyOf(S.events[e.id] || e)[it]; toast(nw ? `${pname(cur)} 대신 ${pname(nw)} 선수가 맡아요` : "넘길 사람이 없어요"); },
   guestOpen: t => { const e = S.events[t.dataset.eid] || curEvent(); if (e) guestSheet(e); },
   guestOk: t => {
     const u = t.dataset.u, k = t.dataset.k; const g = S.guestreq[u] && S.guestreq[u].items && S.guestreq[u].items[k]; if (!g) return; const e = S.events[g.eid]; if (!e) return;
@@ -2382,10 +2309,9 @@ Object.assign(ACT, {
   peRest: t => { t.setAttribute("aria-checked", String(t.getAttribute("aria-checked") !== "true")); },
   peDel: t => { const p = playerById(t.dataset.id); if (!p) return; confirmSheet("선수 삭제", `${p.name} 선수를 삭제할까요? 지난 기록에는 '삭제된 선수'로 표시돼요. 그만둔 선수라면 삭제 대신 휴면으로 두는 것을 권해요.`, "삭제", () => { delDoc("players/" + p.id); if (p.phone) delDoc("contacts/" + p.id); location.hash = "players"; toast("삭제했어요"); }); },
   unlink: t => { patchDoc("rsvp/" + t.dataset.u, { pid: "" }); render(); toast("계정 연결을 해제했어요"); },
-  addDuty: () => { const box = $("#dutyRows"); box.insertAdjacentHTML("beforeend", dutyRow({ id: uid(), label: "", what: "" })); box.lastElementChild.querySelector("input").focus(); },
 });
-["voteSheet", "evQ", "mlQ", "goEvTab", "rptTab", "claimPick", "posSel", "inboxToggle", "momPick", "dutyFor", "teamShare", "pePos", "peRest", "noticeEdit"].forEach(a => READ_ACTS.add(a));
-["claimConfirm", "posSend", "dutyOk", "guestOpen", "pollVote", "inboxRead", "momSend"].forEach(a => VOTE_ACTS.add(a));
+["voteSheet", "evQ", "mlQ", "goEvTab", "rptTab", "claimPick", "posSel", "inboxToggle", "momPick", "teamShare", "pePos", "peRest", "noticeEdit"].forEach(a => READ_ACTS.add(a));
+["claimConfirm", "posSend", "guestOpen", "pollVote", "inboxRead", "momSend"].forEach(a => VOTE_ACTS.add(a));
 /* 화면을 그린 뒤 할 일: 공지를 열면 읽음으로 표시 */
 function afterRender(v) {
   if (v === "notice" && Store.canVote && !Store.preview && Store.me && S.notices.length) {
@@ -2431,8 +2357,7 @@ function makeDemo() {
   const t0 = parseD(todayStr()); const day = k => { const d = new Date(t0); d.setDate(d.getDate() + k); return ymd(d); };
   const iso = (k, hh, mm) => { const d = new Date(t0); d.setDate(d.getDate() + k); d.setHours(hh, mm || 0, 0, 0); return d.toISOString(); };
   D.team.settings = { ...DEFAULT_SETTINGS(), teamName: "KEI FC", cap: 14, fee: 20000, checkBefore: 10, lateCancelH: 24, account: "[예시 은행 계좌번호]", guestFee: 10000,
-    finePresets: [{ id: "late", label: "지각", amount: 2000 }, { id: "noshow", label: "무단 불참", amount: 10000 }, { id: "cancel", label: "직전 취소", amount: 6000 }],
-    dutyItems: [{ id: "ball", label: "공", what: "공 5개와 펌프" }, { id: "bib", label: "조끼", what: "조끼 14벌, 끝나고 빨아 오기" }, { id: "water", label: "물", what: "생수 2L 6병" }] };
+    finePresets: [{ id: "late", label: "지각", amount: 2000 }, { id: "noshow", label: "무단 불참", amount: 10000 }, { id: "cancel", label: "직전 취소", amount: 6000 }] };
   const core = ["정성목", "김성우", "김영효", "조수현", "이세영", "용호연", "김동욱", "권기현", "황종민", "이동환", "김준엽", "이진우", "류영준", "송정의"].map(n => byName[n]);
   const ev = (k, o, yes, extra) => { const att = {}, attAt = {}; yes.forEach((pid, i) => { att[pid] = "yes"; attAt[pid] = iso(Math.min(k - 5, -1), 9, i); }); const eid = "de" + (k < 0 ? "m" + (-k) : "p" + k) + (o.tag || ""); D.events[eid] = { id: eid, format: "11", time: "20:00", place: "보라매 축구장", ...o, date: day(k), att, attAt, ...(extra || {}) }; delete D.events[eid].tag; return eid; };
   const chk = (yes, over) => Object.assign(Object.fromEntries(yes.map(p => [p, "in"])), over || {});
