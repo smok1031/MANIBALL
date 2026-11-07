@@ -20,8 +20,7 @@ function makeDemo() {
   const t0 = parseD(todayStr()); const day = k => { const d = new Date(t0); d.setDate(d.getDate() + k); return ymd(d); };
   const iso = (k, hh, mm) => { const d = new Date(t0); d.setDate(d.getDate() + k); d.setHours(hh, mm || 0, 0, 0); return d.toISOString(); };
   D.team.settings = { ...DEFAULT_SETTINGS(), teamName: "KEI FC", cap: 14, fee: 20000, checkBefore: 10, lateCancelH: 24, account: "[예시 은행 계좌번호]", guestFee: 10000,
-    finePresets: [{ id: "late", label: "지각", amount: 2000 }, { id: "noshow", label: "무단 불참", amount: 10000 }, { id: "cancel", label: "직전 취소", amount: 6000 }],
-    dutyItems: [{ id: "ball", label: "공", what: "공 5개와 펌프" }, { id: "bib", label: "조끼", what: "조끼 14벌, 끝나고 빨아 오기" }, { id: "water", label: "물", what: "생수 2L 6병" }] };
+    finePresets: [{ id: "late", label: "지각", amount: 2000 }, { id: "noshow", label: "무단 불참", amount: 10000 }, { id: "cancel", label: "직전 취소", amount: 6000 }] };
   const core = ["정성목", "김성우", "김영효", "조수현", "이세영", "용호연", "김동욱", "권기현", "황종민", "이동환", "김준엽", "이진우", "류영준", "송정의"].map(n => byName[n]);
   const ev = (k, o, yes, extra) => { const att = {}, attAt = {}; yes.forEach((pid, i) => { att[pid] = "yes"; attAt[pid] = iso(Math.min(k - 5, -1), 9, i); }); const eid = "de" + (k < 0 ? "m" + (-k) : "p" + k) + (o.tag || ""); D.events[eid] = { id: eid, format: "11", time: "20:00", place: "보라매 축구장", ...o, date: day(k), att, attAt, ...(extra || {}) }; delete D.events[eid].tag; return eid; };
   const chk = (yes, over) => Object.assign(Object.fromEntries(yes.map(p => [p, "in"])), over || {});

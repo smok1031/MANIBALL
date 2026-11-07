@@ -24,7 +24,7 @@ function backbar(href, sub, title, right) {
 }
 function tabOf(v) {
   if (v === "home" || v === "todo" || v === "config" || v === "notice" || v === "inbox" || v === "mypos" || v === "claim" || v.startsWith("mom-")) return "home";
-  if (v === "schedule" || v === "duty" || /^(event|lineup|split)-/.test(v)) return "schedule";
+  if (v === "schedule" || /^(event|lineup|split)-/.test(v)) return "schedule";
   if (v === "players" || v.startsWith("player-")) return "players";
   return v;
 }
@@ -73,7 +73,6 @@ function render() {
   else if (v === "notice") html = viewNotice();
   else if (v === "inbox") html = viewInbox();
   else if (v === "todo") html = viewTodo();
-  else if (v === "duty") html = viewDuty();
   else html = isOpView() ? viewOpHome() : viewMemberHome();
   if (Store.mode === "local" && !window.__DEMO) html = `<div class="note">이 화면에서는 데이터가 이 기기의 브라우저에만 저장됩니다. 설정에서 백업 파일을 만들어 두세요.</div>` + html;
   if (window.__DEMO) html = `<div class="preview"><b>팀원 화면 미리보기</b>예요. 예시 데이터라 눌러 봐도 실제 팀에는 저장되지 않아요.</div>` + html;
@@ -159,8 +158,6 @@ function viewMemberHome() {
       ${st ? voteGroup(next, st) : ""}${st ? myLatePicker(next, st) : ""}${st ? myStatusLine(next, st) : ""}
       ${pid ? `<a href="#lineup-${next.id}" style="text-decoration:none;color:inherit">${planTiles(next, pid)}</a>` : ""}
     </section>`);
-    if (pid) myDuty(next).forEach(it => { const ok = ((myUvote().duty || {})[next.id] || {})[it.id];
-      parts.push(ok ? `<div class="small muted" role="status" style="padding:0 4px">${esc(it.label)} 당번 확인 완료. 못 가게 되면 불참으로 바꾸면 다음 사람에게 넘어가요.</div>` : `<div class="card soft" style="flex-direction:row;align-items:center;gap:10px;border-radius:16px"><div class="grow"><div style="font-weight:700;font-size:14px">이번 경기 ${esc(it.label)} 당번이에요</div><div class="small">${esc(it.what || "")}</div></div><button class="btn" data-act="dutyOk" data-eid="${next.id}" data-item="${esc(it.id)}">확인</button></div>`); });
     const pend = pid ? upcoming.slice(1).filter(e => { const s2 = myState(e); return s2 && !s2.s; }) : [];
     if (pend.length) parts.push(`<section class="card flat"><div class="lh"><span class="lab">아직 응답 안 한 일정</span></div><div class="list">${pend.slice(0, 4).map(e => `<a class="li" href="#event-${e.id}"><span class="num" style="font-size:22px;width:56px">${esc(shortDate(e))}</span><span class="grow ell"><b>${esc(evTitle(e))}</b> <span class="small muted">${esc(e.time || "")}</span></span><span class="mark">미응답</span></a>`).join("")}</div></section>`);
   } else parts.push(`<div class="card"><span class="lab">다음 일정</span><div class="small muted">예정된 일정이 없어요.</div></div>`);

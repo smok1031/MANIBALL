@@ -46,7 +46,7 @@ const FORMATIONS = {
   }
 };
 const QUARTERS = { "11": 4, futsal: 8 };
-const DEFAULT_SETTINGS = () => ({ teamName: "", fee: 30000, cap: 14, checkBefore: 10, lateCancelH: 3, account: "", shareLink: "", sample: false, finePresets: [{ id: "late", label: "지각", amount: 5000 }, { id: "noshow", label: "무단 불참", amount: 10000 }], guestFee: 10000, dutyItems: [{ id: "ball", label: "공", what: "공과 펌프" }, { id: "bib", label: "조끼", what: "조끼, 끝나고 빨아 오기" }, { id: "water", label: "물", what: "생수" }] });
+const DEFAULT_SETTINGS = () => ({ teamName: "", fee: 30000, cap: 14, checkBefore: 10, lateCancelH: 3, account: "", shareLink: "", sample: false, finePresets: [{ id: "late", label: "지각", amount: 5000 }, { id: "noshow", label: "무단 불참", amount: 10000 }], guestFee: 10000 });
 
 /* ---------- state ---------- */
 let S = { settings: DEFAULT_SETTINGS(), players: [], dues: {}, fines: [], events: {}, rsvp: {}, mydues: {}, payreq: {}, notices: [], tally: {}, uvote: {}, guestreq: {} };
@@ -63,7 +63,7 @@ const CORE = ["team", "players", "contacts", "events", "dues", "fines"];
 const COLLS = CORE.concat(["rsvp", "mydues", "payreq", "notices", "tally", "uvote", "guestreq"]);
 //   notices/<id>      공지와 설문 (운영진이 씀, 모두 읽음)
 //   tally/<key>       MOM, 설문, 읽음 집계 (운영진 앱이 맞춰 둠, 모두 읽음)
-//   uvote/<userId>    본인 MOM 표, 설문 응답, 읽음, 당번 확인 (본인이 씀, 운영진과 본인만 읽음)
+//   uvote/<userId>    본인 MOM 표, 설문 응답, 읽음 (본인이 씀, 운영진과 본인만 읽음)
 //   guestreq/<userId> 게스트 요청 (본인이 씀, 운영진과 본인만 읽음)
 const R = {}; COLLS.forEach(c => R[c] = {});
 const Store = { mode: "loading", db: null, dl: null, user: null, me: null, role: "owner", canWrite: true, canVote: true, canMoney: true, isOwner: true, pending: new Map(), inflight: new Map(), settled: new Map(), timers: {}, got: new Set(), confirmed: new Set(), subs: [], err: false, offline: false };

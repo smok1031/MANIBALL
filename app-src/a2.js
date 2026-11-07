@@ -262,7 +262,7 @@ function myGuestReqs(eid) {
   return Object.keys(items).map(k => ({ key: k, ...items[k] })).filter(g => isObj(g) && g.eid === eid);
 }
 
-/* ---------- 새 기능: 본인 표 (MOM, 설문, 읽음, 당번 확인) ---------- */
+/* ---------- 새 기능: 본인 표 (MOM, 설문, 읽음) ---------- */
 const myUid = () => Store.preview ? (uidsOf(myPid())[0] || "") : (Store.me || "");
 function myUvote() { const u = myUid(); return (u && S.uvote[u]) || {}; }
 
@@ -299,44 +299,6 @@ function pollTally(n) {
 }
 const seenCount = n => (S.tally["seen-" + n.id] || {}).n || 0;
 function pollVoters(n, opt) { return Object.keys(S.uvote).filter(u => ((S.uvote[u] || {}).poll || {})[n.id] === opt).map(u => claimOf(u) ? pname(claimOf(u)) : "팀원"); }
-
-/* ---------- 당번 ---------- */
-function dutyItems() { return (Array.isArray(S.settings.dutyItems) ? S.settings.dutyItems : []).filter(d => d && d.id && d.label); }
-let DUTYC = null;
-function dutyAll() {
-  if (DUTYC && DUTYC.ref === S.events && DUTYC.p === S.players && DUTYC.s === S.settings) return DUTYC.map;
-  const items = dutyItems(); const act = activePlayers(); const map = {};
-  const queues = items.map((it, k) => {
-    const order = (S.settings.dutyOrder && S.settings.dutyOrder[it.id]) || [];
-    const base = order.filter(pid => act.some(p => p.id === pid)).concat(act.map(p => p.id).filter(pid => !order.includes(pid)));
-    const shift = base.length ? Math.floor(k * base.length / Math.max(items.length, 1)) % base.length : 0;
-    return order.length ? base : base.slice(shift).concat(base.slice(0, shift));
-  });
-  eventsSorted().forEach(e => {
-    const conf = roster(e).ids; const used = new Set(); map[e.id] = {};
-    items.forEach((it, k) => {
-      const pass = ((e.dutyPass || {})[it.id]) || [];
-      const q = queues[k]; const i = q.findIndex(pid => conf.has(pid) && !pass.includes(pid) && !used.has(pid));
-      if (i < 0) { map[e.id][it.id] = ""; return; }
-      const pid = q[i]; used.add(pid); map[e.id][it.id] = pid; q.splice(i, 1); q.push(pid);
-    });
-  });
-  DUTYC = { ref: S.events, p: S.players, s: S.settings, map }; return map;
-}
-const dutyOf = e => (e && dutyAll()[e.id]) || {};
-function myDuty(e) { const pid = myPid(); if (!pid || !e) return []; const d = dutyOf(e); return dutyItems().filter(it => d[it.id] === pid); }
-function dutyNext(e, itemId, n) {
-  // 지금 기준 다음 순서 (다가오는 일정 기준, 참석 여부와 상관없이 줄 순서)
-  const items = dutyItems(); const k = items.findIndex(x => x.id === itemId); const act = activePlayers().map(p => p.id);
-  const cur = dutyOf(e)[itemId]; const order = (S.settings.dutyOrder && S.settings.dutyOrder[itemId]) || [];
-  const base = order.filter(pid => act.includes(pid)).concat(act.filter(pid => !order.includes(pid)));
-  const shift = base.length && !order.length ? Math.floor(k * base.length / Math.max(items.length, 1)) % base.length : 0;
-  const q = base.slice(shift).concat(base.slice(0, shift));
-  // 지난 배정 반영: 최근에 한 사람은 뒤로
-  const last = {}; eventsSorted().forEach((ev, idx) => { const pid = dutyOf(ev)[itemId]; if (pid) last[pid] = idx; });
-  const sorted = q.slice().sort((a, b) => (last[a] ?? -1) - (last[b] ?? -1) || q.indexOf(a) - q.indexOf(b));
-  return sorted.filter(pid => pid !== cur).slice(0, n || 3);
-}
 
 /* ---------- 팀 나누기 ---------- */
 function rng(seed) { let x = (seed * 2654435761 >>> 0) || 1; return () => { x ^= x << 13; x >>>= 0; x ^= x >> 17; x ^= x << 5; x >>>= 0; return x / 4294967296; }; }
@@ -414,7 +376,6 @@ function inboxItems() {
     const P = myPlan(e, pid);
     const tPast = [e.updatedAt || "", nowIso()].filter(Boolean).sort()[0];
     if (P && P.any && P.conf) out.push({ cat: "line", tag: "라인", ic: "tile", t: tPast, title: "라인업이 나왔어요", body: `${fmtDate(e.date)}: ${P.rows.map(r => `${r.k + 1}Q ${qText(r)}`).join(", ")}`, href: "#lineup-" + e.id });
-    myDuty(e).forEach(it => out.push({ cat: "line", tag: "당번", ic: "soft", t: tPast, title: `${it.label} 당번이에요`, body: `${fmtDate(e.date)} ${evTitle(e)}, ${it.what || ""}`, href: "#home" }));
   });
   eventsSorted().filter(e => momOpen(e) && cameTo(e, pid) && !(uv.mom || {})[e.id]).forEach(e => out.push({ cat: "line", tag: "MOM", ic: "ink", t: eventStart(e).toISOString(), title: "MOM 투표가 열렸어요", body: `${fmtDate(e.date)} ${evTitle(e)}, 내일 정오 마감`, href: "#mom-" + e.id }));
   myFines(pid).filter(f => !f.paid).forEach(f => out.push({ cat: "money", tag: "벌금", ic: "soft", t: (f.date || "") + "T12:00:00", title: "벌금이 부과됐어요", body: `${f.date ? Number(f.date.slice(5, 7)) + "월 " + Number(f.date.slice(8, 10)) + "일 " : ""}${f.reason || "벌금"} ${won(f.amount)}. 본인만 볼 수 있어요.`, href: "#money" }));

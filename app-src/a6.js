@@ -269,8 +269,8 @@ document.addEventListener("submit", ev => {
   if (ev.target.id === "pf") { ev.preventDefault(); savePlayerForm(ev.target); return; }
   if (ev.target.id !== "cfgForm") return;
   ev.preventDefault(); if (!Store.canWrite) return; const f = ev.target;
-  const presets = Array.from(f.querySelectorAll(".presets:not(.duty)")).map(r => ({ id: r.dataset.pid, label: r.querySelector('[name="pl"]').value.trim(), amount: Number(digits(r.querySelector('[name="pa"]').value)) || 0 })).filter(p => p.label);
-  setDoc("team/settings", { ...S.settings, teamName: f.elements["teamName"].value.trim(), cap: Number(digits(f.elements["cap"].value)) || 0, checkBefore: Number(digits(f.elements["checkBefore"].value)) || 0, lateCancelH: Number(digits(f.elements["lateCancelH"].value)) || 0, fee: Number(digits(f.elements["fee"].value)) || 0, account: f.elements["account"].value.trim(), shareLink: f.elements["shareLink"].value.trim(), finePresets: presets, guestFee: Number(digits(f.elements["guestFee"].value)) || 0, dutyItems: Array.from(f.querySelectorAll(".presets.duty")).map(r => ({ id: r.dataset.did, label: r.querySelector('[name="dl"]').value.trim(), what: r.querySelector('[name="dw"]').value.trim() })).filter(d => d.label) });
+  const presets = Array.from(f.querySelectorAll(".presets")).map(r => ({ id: r.dataset.pid, label: r.querySelector('[name="pl"]').value.trim(), amount: Number(digits(r.querySelector('[name="pa"]').value)) || 0 })).filter(p => p.label);
+  setDoc("team/settings", { ...S.settings, teamName: f.elements["teamName"].value.trim(), cap: Number(digits(f.elements["cap"].value)) || 0, checkBefore: Number(digits(f.elements["checkBefore"].value)) || 0, lateCancelH: Number(digits(f.elements["lateCancelH"].value)) || 0, fee: Number(digits(f.elements["fee"].value)) || 0, account: f.elements["account"].value.trim(), shareLink: f.elements["shareLink"].value.trim(), finePresets: presets, guestFee: Number(digits(f.elements["guestFee"].value)) || 0 });
   render(); toast("설정을 저장했습니다");
 });
 document.addEventListener("keydown", ev => { if (ev.key === "Escape" && $("#sheetroot").innerHTML) closeSheet(); });
@@ -338,9 +338,6 @@ Object.assign(ACT, {
   claimConfirm: () => { const pid = ui.claimPick; if (!pid || !playerById(pid)) return; patchDoc("rsvp/" + Store.me, { pid, claimAt: nowIso(), reqName: "" }); ui.claimPick = ""; location.hash = "home"; render(); toast(`${pname(pid)} 선수로 연결했어요. 이제 바로 투표할 수 있어요`); },
   posSel: t => { const k = t.dataset.k, v = t.dataset.v; ui.posSel[k] = v === "없음" ? "" : v; if (ui.posSel.p1 && ui.posSel.p1 === ui.posSel.p2) ui.posSel.p2 = ""; render(); },
   posSend: () => { const p = playerById(myPid()); if (!p || !ui.posSel || !ui.posSel.p1) return; const sub = ui.posSel.p2 && ui.posSel.p2 !== ui.posSel.p1 ? ui.posSel.p2 : ""; patchDoc("rsvp/" + Store.me, { pid: p.id, posReq: { pid: p.id, pos1: ui.posSel.p1, pos2: sub, at: nowIso(), status: "req" } }); render(); toast("포지션 변경을 요청했어요. 운영진이 확인하면 바뀌어요"); },
-  dutyOk: t => { uvPatch({ duty: { [t.dataset.eid]: { [t.dataset.item]: true } } }); render(); toast("확인했어요. 못 가게 되면 불참으로 바꿔 주세요"); },
-  dutyFor: t => { ui.dutyEid = t.dataset.eid; if (currentView() === "duty") render(); },
-  dutyPass: t => { const e = S.events[t.dataset.eid]; if (!e) return; const it = t.dataset.item; const cur = dutyOf(e)[it]; if (!cur) return; const arr = (((e.dutyPass || {})[it]) || []).concat([cur]); evPatch(e.id, { dutyPass: { [it]: arr } }); render(); const nw = dutyOf(S.events[e.id] || e)[it]; toast(nw ? `${pname(cur)} 대신 ${pname(nw)} 선수가 맡아요` : "넘길 사람이 없어요"); },
   guestOpen: t => { const e = S.events[t.dataset.eid] || curEvent(); if (e) guestSheet(e); },
   guestOk: t => {
     const u = t.dataset.u, k = t.dataset.k; const g = S.guestreq[u] && S.guestreq[u].items && S.guestreq[u].items[k]; if (!g) return; const e = S.events[g.eid]; if (!e) return;
@@ -388,10 +385,9 @@ Object.assign(ACT, {
   peRest: t => { t.setAttribute("aria-checked", String(t.getAttribute("aria-checked") !== "true")); },
   peDel: t => { const p = playerById(t.dataset.id); if (!p) return; confirmSheet("선수 삭제", `${p.name} 선수를 삭제할까요? 지난 기록에는 '삭제된 선수'로 표시돼요. 그만둔 선수라면 삭제 대신 휴면으로 두는 것을 권해요.`, "삭제", () => { delDoc("players/" + p.id); if (p.phone) delDoc("contacts/" + p.id); location.hash = "players"; toast("삭제했어요"); }); },
   unlink: t => { patchDoc("rsvp/" + t.dataset.u, { pid: "" }); render(); toast("계정 연결을 해제했어요"); },
-  addDuty: () => { const box = $("#dutyRows"); box.insertAdjacentHTML("beforeend", dutyRow({ id: uid(), label: "", what: "" })); box.lastElementChild.querySelector("input").focus(); },
 });
-["voteSheet", "evQ", "mlQ", "goEvTab", "rptTab", "claimPick", "posSel", "inboxToggle", "momPick", "dutyFor", "teamShare", "pePos", "peRest", "noticeEdit"].forEach(a => READ_ACTS.add(a));
-["claimConfirm", "posSend", "dutyOk", "guestOpen", "pollVote", "inboxRead", "momSend"].forEach(a => VOTE_ACTS.add(a));
+["voteSheet", "evQ", "mlQ", "goEvTab", "rptTab", "claimPick", "posSel", "inboxToggle", "momPick", "teamShare", "pePos", "peRest", "noticeEdit"].forEach(a => READ_ACTS.add(a));
+["claimConfirm", "posSend", "guestOpen", "pollVote", "inboxRead", "momSend"].forEach(a => VOTE_ACTS.add(a));
 /* 화면을 그린 뒤 할 일: 공지를 열면 읽음으로 표시 */
 function afterRender(v) {
   if (v === "notice" && Store.canVote && !Store.preview && Store.me && S.notices.length) {

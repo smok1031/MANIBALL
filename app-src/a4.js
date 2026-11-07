@@ -1,9 +1,8 @@
 
 /* ---------- 운영진 홈 ---------- */
 function viewOpHome() {
-  if (!S.players.length) return `<div class="card"><div class="empty"><b>팀을 시작해 볼까요?</b>선수 명단을 붙여 넣으면 한 번에 등록돼요. 그다음 일정을 올리면 팀원들이 참석 투표를 할 수 있어요.</div>
-    <button class="btn primary big" data-act="bulkOpen">명단 붙여 넣어 한 번에 등록</button>
-    ${S.settings.teamName ? "" : `<a class="btn block" href="#config">팀 이름과 규칙 정하기</a>`}</div>`;
+  if (!S.players.length) return `<div class="card"><div class="empty"><b>팀을 시작해 볼까요?</b>먼저 팀 이름과 정원, 회비, 벌금 규칙을 정하고, 선수 명단을 붙여 넣어 한 번에 등록하세요. 그다음 일정을 올리면 팀원들이 참석 투표를 할 수 있어요.</div>
+    <a class="btn primary big" href="#config">팀 이름과 규칙 정하기</a><button class="btn block" data-act="bulkOpen">명단 붙여 넣어 한 번에 등록</button></div>`;
   const parts = [];
   const n = todoCount();
   parts.push(`<a class="card soft" href="#todo" style="flex-direction:row;align-items:center;gap:10px;border-radius:16px;padding:12px 14px"><span class="num" style="font-size:30px;line-height:1">${n}</span><span class="grow" style="font-weight:700">${n ? "오늘 처리할 일이 있어요" : "오늘 처리할 일이 없어요"}</span>${ICON.chev}</a>`);
@@ -62,8 +61,7 @@ function viewOpSched() {
     return `<a class="evcard ${next && e.id === next.id ? "hot" : ""}" href="#event-${e.id}"><div class="datebox"><div class="m">${d.getMonth() + 1}월</div><div class="d">${d.getDate()}</div><div class="w">${WD[d.getDay()]}요일</div></div>
       <div class="grow" style="display:flex;flex-direction:column;gap:2px"><div class="row" style="gap:6px"><span class="chip ${k[1]}">${k[0]}</span><span class="tiny muted">${esc(FORMAT_KO[e.format] || "")}</span></div><b class="ell">${esc(evTitle(e))}</b><span class="tiny muted ell">${[e.time, e.place].filter(Boolean).map(esc).join(", ") || "&nbsp;"}</span></div>
       <div style="text-align:right;flex:none">${hasScore(e) ? `<div class="num" style="font-size:24px;color:${r === "W" ? "var(--clay)" : r === "L" ? "var(--muted)" : "var(--ink)"}">${e.score.us} : ${e.score.them}</div><div class="tiny muted">${{ W: "승", D: "무", L: "패" }[r]}</div>` : `<div class="num" style="font-size:20px">${c.all}${c.capAll === Infinity ? "" : "/" + c.capAll}</div><div class="tiny muted">${c.wait ? `대기 ${c.wait}` : "명 확정"}</div>`}</div></a>`; }).join("")
-    : `<div class="card"><div class="empty"><b>${up ? "다가오는 일정이 없어요" : "지난 일정이 없어요"}</b>${up ? "위 버튼으로 경기나 훈련을 올리세요." : "날짜가 지난 일정이 여기 쌓여요."}</div></div>`}
-  <a class="card" href="#duty" style="flex-direction:row;align-items:center"><span class="grow"><span class="lab">장비 당번</span><div class="small muted">${dutyItems().map(d => esc(d.label)).join(", ") || "당번 항목 없음"} 순번 보기</div></span>${ICON.chev}</a>`;
+    : `<div class="card"><div class="empty"><b>${up ? "다가오는 일정이 없어요" : "지난 일정이 없어요"}</b>${up ? "위 버튼으로 경기나 훈련을 올리세요." : "날짜가 지난 일정이 여기 쌓여요."}</div></div>`}`;
 }
 
 /* ---------- 운영진 일정 상세 ---------- */
@@ -74,7 +72,6 @@ function viewOpEvent(e) {
   const body = ui.evTab === "att" ? opAtt(e) : ui.evTab === "lineup" ? opLineup(e) : ui.evTab === "check" ? opCheck(e) : opRec(e);
   const links = [];
   if (isScrim(e)) links.push(`<a class="btn" href="#split-${e.id}">팀 나누기${e.teamsAt ? " (확정)" : ""}</a>`);
-  if (dutyItems().length) links.push(`<a class="btn" href="#duty" data-act="dutyFor" data-eid="${e.id}">당번</a>`);
   if (S.tally["mom-" + e.id] || momOpen(e)) links.push(`<a class="btn" href="#mom-${e.id}">MOM</a>`);
   return `${backbar("#schedule", "운영진", titles[ui.evTab], `<button class="btn" data-act="shareEvent" data-id="${e.id}">공유</button><button class="btn" data-act="editEvent" data-id="${e.id}">수정</button>`)}
   <section class="stack" style="gap:4px;padding:0 4px"><div class="date-l">${esc(bigDate(e))}</div><div class="small muted">${evSub(e)}${Number(e.fieldFee) ? `, 구장비 ${won(e.fieldFee)}` : ""}</div></section>
@@ -247,7 +244,6 @@ function viewConfig() {
   const me = myPid() ? `<section class="card" style="flex-direction:row;align-items:center;gap:10px"><div class="grow"><span class="lab">내 선수</span><div><b>${esc(pname(myPid()))}</b> 선수로 연결돼 있어요.</div></div><button class="btn" data-act="unclaim">연결 해제</button></section>` : "";
   const view = `<section class="card"><button class="switch" role="switch" aria-checked="${!!prefs().big}" data-act="toggleBig"><span class="grow" style="font-size:14px;font-weight:700">큰 글씨로 보기</span><span class="tr" aria-hidden="true"><i></i></span></button></section>`;
   if (!Store.canWrite) return `${backbar("#home", "", "설정")}${roleCard}${me}${view}`;
-  const items = dutyItems();
   return `${backbar("#home", "", "설정")}${roleCard}${me}
   <form class="card" id="cfgForm" style="gap:12px"><span class="lab">팀 정보와 규칙</span>
     <label class="field" style="margin:0">팀 이름<input name="teamName" value="${esc(s.teamName)}" placeholder="예: KEI FC" maxlength="30"></label>
@@ -259,9 +255,6 @@ function viewConfig() {
     <div class="field" style="margin:0">벌금 종류<span class="h">'지각', '불참', '직전 취소'라는 말이 들어가면 현장 출석에서 자동으로 붙어요</span></div>
     <div id="presetRows">${s.finePresets.map(p => presetRow(p)).join("")}</div>
     <button type="button" class="btn" data-act="addPreset" style="align-self:flex-start">+ 벌금 종류 추가</button>
-    <div class="field" style="margin:0">장비 당번<span class="h">당번 이름과 챙길 것. 참석 확정 인원 중에서 순서대로 돌아가요</span></div>
-    <div id="dutyRows">${items.map(d => dutyRow(d)).join("")}</div>
-    <button type="button" class="btn" data-act="addDuty" style="align-self:flex-start">+ 당번 추가</button>
     <button class="btn primary big" type="submit">저장</button></form>
   ${view}
   <section class="card"><span class="lab">백업</span><div class="small muted">${Store.mode === "db" ? "데이터는 이 링크에 저장돼 운영진과 팀원 모두에게 이어져요. 가끔 백업 파일을 받아 두세요." : "지금은 이 기기의 브라우저에만 저장돼요. 백업 파일을 꼭 받아 두세요."}</div>
@@ -269,4 +262,3 @@ function viewConfig() {
   <section class="card o"><span class="lab">초기화</span><div class="small muted">선수, 일정, 회비, 벌금 기록을 모두 지워요. 되돌릴 수 없고, 링크 소유자만 할 수 있어요.</div><button class="btn dark block" data-act="resetAll">모든 데이터 지우기</button></section>`;
 }
 function presetRow(p) { return `<div class="presets" data-pid="${esc(p.id)}"><input class="inp" aria-label="벌금 이름" name="pl" value="${esc(p.label)}" placeholder="벌금 이름"><input class="inp" aria-label="금액" name="pa" inputmode="numeric" value="${esc(p.amount)}" placeholder="금액"><button type="button" class="iconbtn" data-act="delPreset" aria-label="삭제" style="width:40px;height:40px;border-radius:12px">&times;</button></div>`; }
-function dutyRow(d) { return `<div class="presets duty" data-did="${esc(d.id)}" style="grid-template-columns:90px 1fr 40px"><input class="inp" aria-label="당번 이름" name="dl" value="${esc(d.label)}" placeholder="예: 공"><input class="inp" aria-label="챙길 것" name="dw" value="${esc(d.what || "")}" placeholder="예: 공 5개와 펌프"><button type="button" class="iconbtn" data-act="delPreset" aria-label="삭제" style="width:40px;height:40px;border-radius:12px">&times;</button></div>`; }

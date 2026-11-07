@@ -93,7 +93,7 @@ function noticeSheet(n) {
 /* ---------- 알림함 ---------- */
 function viewInbox() {
   const items = inboxItems(); const off = prefs().inboxOff || {};
-  const cats = [["vote", "투표 마감 전 알림"], ["line", "라인업, 당번, MOM"], ["money", "내 벌금과 회비"], ["notice", "공지와 설문"]];
+  const cats = [["vote", "투표 마감 전 알림"], ["line", "라인업, MOM"], ["money", "내 벌금과 회비"], ["notice", "공지와 설문"]];
   return `${backbar("#home", "", "알림함", `<button class="btn" data-act="inboxRead">모두 읽음</button>`)}
   ${items.length ? `<div class="card" style="padding:0;overflow:hidden;gap:0">${items.map(i => `<a class="ibx ${i.unread ? "unread" : ""}" href="${esc(i.href)}" style="text-decoration:none;color:var(--ink)"><span class="ic ${i.ic}" aria-hidden="true">${esc(i.tag)}</span><div class="grow"><div class="row" style="gap:6px;align-items:baseline"><span class="grow" style="font-weight:${i.unread ? 700 : 600};font-size:14px">${esc(i.title)}</span><span class="tiny muted" style="flex:none">${esc(relTime(i.t))}</span></div><div class="small muted">${esc(i.body)}</div></div>${i.unread ? `<span class="dotu" aria-label="안 읽음"></span>` : ""}</a>`).join("")}</div>` : `<div class="card"><div class="empty"><b>새 알림이 없어요</b>투표 마감, 라인업, 벌금, 공지가 생기면 여기에 모여요.</div></div>`}
   <section class="card" style="gap:2px"><span class="lab" style="margin-bottom:4px">어떤 알림을 받을까요</span>${cats.map(([k, l]) => `<button class="switch" role="switch" aria-checked="${!off[k]}" data-act="inboxToggle" data-k="${k}"><span class="grow" style="font-size:14px;font-weight:600">${l}</span><span class="tr" aria-hidden="true"><i></i></span></button>`).join("")}
@@ -160,26 +160,6 @@ function viewSplit(e) {
   ${op ? (T.saved ? `<section class="card"><div role="status" style="font-weight:700;color:var(--clay)">확정했어요. 팀원 일정 화면에 바로 보여요.</div><button class="btn primary block" data-act="teamShare" data-eid="${e.id}">단톡방 공유 문구</button><button class="btn block" data-act="teamUnconfirm" data-eid="${e.id}">다시 고치기</button></section>` : `<button class="btn primary big" data-act="teamConfirm" data-eid="${e.id}">이대로 확정하고 공유</button>`) : `<div class="hint center">${T.saved ? "운영진이 확정한 팀이에요." : "아직 운영진이 팀을 확정하지 않았어요."}</div>`}`}`;
 }
 function teamText(e) { const conf = roster(e).confirmed; const T = teamsOf(e).t; return [`[${S.settings.teamName || "우리 팀"}] ${fmtDate(e.date)} ${evTitle(e)} 팀`, `조끼팀: ${conf.filter(p => T[p.id] === "A").map(p => p.name).join(", ")}`, `일반팀: ${conf.filter(p => T[p.id] === "B").map(p => p.name).join(", ")}`].join("\n"); }
-
-/* ---------- 당번 ---------- */
-function viewDuty() {
-  const items = dutyItems(); const op = isOpView();
-  const up = eventsSorted().filter(e => !started(e)); const e = (ui.dutyEid && S.events[ui.dutyEid] && !started(S.events[ui.dutyEid])) ? S.events[ui.dutyEid] : up[0];
-  const head = backbar(e ? "#event-" + e.id : "#schedule", "참석자 중에서 순서대로 돌아가요", "당번");
-  if (!items.length) return head + `<div class="card"><div class="empty"><b>당번 항목이 없어요</b>${op ? "설정에서 공, 조끼, 물 같은 당번을 추가하세요." : ""}</div>${op ? `<a class="btn block" href="#config">설정으로</a>` : ""}</div>`;
-  if (!e) return head + `<div class="card"><div class="empty"><b>다가오는 일정이 없어요</b>일정이 올라오면 참석 확정 인원 중에서 당번이 정해져요.</div></div>`;
-  const d = dutyOf(e); const icons = ["ink", "clay", ""];
-  const okBy = (pid, itemId) => { const us = uidsOf(pid); return us.some(u => (((S.uvote[u] || {}).duty || {})[e.id] || {})[itemId]); };
-  return `${head}
-  ${up.length > 1 ? `<div class="seg" role="group" aria-label="일정 고르기">${up.slice(0, 4).map(x => `<button data-act="dutyFor" data-eid="${x.id}" aria-pressed="${x.id === e.id}">${esc(shortDate(x))}</button>`).join("")}</div>` : ""}
-  <section class="rule"><span class="lab">이번 경기</span><div class="date-l" style="font-size:44px">${esc(bigDate(e))}</div><div class="small muted">${esc(evTitle(e))}${e.place ? ", " + esc(e.place) : ""}</div></section>
-  ${items.map((it, k) => { const pid = d[it.id]; const nexts = dutyNext(e, it.id, 3);
-    return `<section class="card ${k === 1 ? "hot" : ""}" style="gap:10px"><div class="row" style="gap:12px"><span class="ibx" style="padding:0;border:0;background:none"><span class="ic ${icons[k % 3]}" style="width:44px;height:44px;border-radius:14px;font-size:14px">${esc(it.label.slice(0, 2))}</span></span>
-      <div class="grow"><div class="lab" style="color:var(--muted)">${esc(it.label)} 당번</div><div class="hl" style="font-size:22px">${pid ? esc(pname(pid)) : "아직 없음"}</div><div class="small muted">${esc(it.what || "")}${pid && okBy(pid, it.id) ? ", 본인 확인함" : ""}</div></div>
-      ${op && pid ? `<button class="btn" data-act="dutyPass" data-eid="${e.id}" data-item="${esc(it.id)}" aria-label="${esc(it.label)} 당번 ${esc(pname(pid))}에서 다음 사람으로 넘기기">넘기기</button>` : ""}</div>
-      <div class="tiny muted"><b>다음 순서</b> <span style="color:var(--ink)">${nexts.map(x => esc(pname(x))).join(", ") || "없음"}</span></div></section>`; }).join("")}
-  <div class="card soft" style="border-radius:16px;font-size:13px;font-weight:500">당번은 그날 참석이 확정된 사람 중에서만 정해요. 불참으로 바꾸면 다음 사람에게 자동으로 넘어가고, 다음 경기에 다시 1순위가 돼요.</div>`;
-}
 
 /* ---------- 가운데 투표 버튼 ---------- */
 function voteSheet() {
