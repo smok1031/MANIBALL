@@ -309,67 +309,59 @@
       "y": 11323,
       "is_interactive": true
     },
-    "RecordAdminExport.dc.html": {
-      "h": 844,
-      "title": "운영진 기록 3-4 엑셀로 내보내기",
+    "RecordAdminMatch.dc.html": {
+      "h": 1420,
+      "title": "운영진 기록 3-4 경기만 보기",
       "w": 390,
       "x": 6433,
       "y": 11323,
       "is_interactive": true
     },
-    "RecordAdminMatch.dc.html": {
+    "RecordAdminScrim.dc.html": {
       "h": 1420,
-      "title": "운영진 기록 3-5 경기만 보기",
+      "title": "운영진 기록 3-5 내전만 보기",
       "w": 390,
       "x": 6903,
       "y": 11323,
       "is_interactive": true
     },
-    "RecordAdminScrim.dc.html": {
-      "h": 1420,
-      "title": "운영진 기록 3-6 내전만 보기",
+    "RecordAdminResult.dc.html": {
+      "h": 1640,
+      "title": "운영진 기록 3-6 결과 입력",
       "w": 390,
       "x": 7373,
       "y": 11323,
       "is_interactive": true
     },
-    "RecordAdminResult.dc.html": {
-      "h": 1640,
-      "title": "운영진 기록 3-7 결과 입력",
+    "RecordAdminVoting.dc.html": {
+      "h": 1480,
+      "title": "운영진 기록 3-7 결과 저장 뒤",
       "w": 390,
       "x": 7843,
       "y": 11323,
       "is_interactive": true
     },
-    "RecordAdminVoting.dc.html": {
-      "h": 1480,
-      "title": "운영진 기록 3-8 결과 저장 뒤",
+    "RecordAdminEditScrim.dc.html": {
+      "h": 1500,
+      "title": "운영진 기록 3-8 내전 결과 수정",
       "w": 390,
       "x": 8313,
       "y": 11323,
       "is_interactive": true
     },
-    "RecordAdminEditScrim.dc.html": {
-      "h": 1500,
-      "title": "운영진 기록 3-9 내전 결과 수정",
+    "RecordAdminEditGame.dc.html": {
+      "h": 1680,
+      "title": "운영진 기록 3-9 경기 결과 수정",
       "w": 390,
       "x": 8783,
       "y": 11323,
       "is_interactive": true
     },
-    "RecordAdminEditGame.dc.html": {
-      "h": 1680,
-      "title": "운영진 기록 3-10 경기 결과 수정",
-      "w": 390,
-      "x": 9253,
-      "y": 11323,
-      "is_interactive": true
-    },
     "RecordAdminEditDraw.dc.html": {
       "h": 1560,
-      "title": "운영진 기록 3-11 무승부 경기 결과 수정",
+      "title": "운영진 기록 3-10 무승부 경기 결과 수정",
       "w": 390,
-      "x": 9723,
+      "x": 9253,
       "y": 11323,
       "is_interactive": true
     }
@@ -490,7 +482,6 @@
     "RecordMemberMissed.dc.html",
     "RecordAdminSeason.dc.html",
     "RecordAdminPlayers.dc.html",
-    "RecordAdminExport.dc.html",
     "RecordAdminMatch.dc.html",
     "RecordAdminScrim.dc.html",
     "RecordAdminResult.dc.html",

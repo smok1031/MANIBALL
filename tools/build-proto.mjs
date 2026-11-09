@@ -8,12 +8,12 @@ const OUT = new URL("../public/v2/app/", import.meta.url);
 mkdirSync(OUT, { recursive: true });
 
 // 화면 위에 덮이는 시트처럼 한 화면 높이에 고정해야 하는 것
-const FIXED = new Set(["AdminRemind", "AdminRemindLocked", "AdminOpenNow", "RecordMemberSeason", "RecordAdminSeason", "RecordAdminExport"]);
+const FIXED = new Set(["AdminRemind", "AdminRemindLocked", "AdminOpenNow", "RecordMemberSeason", "RecordAdminSeason"]);
 
 const GROUPS = [
   ["팀 만들기", ["TeamSplit", "InviteMessage", "InviteRoster"]],
   ["운영진", ["HomeAdmin", "ScheduleAdmin", "AdminRemind", "AdminRemindLocked", "AdminLineup", "AdminCheckIn", "AdminSquad", "AdminOpenNow", "AdminCreate", "AdminEdit"]],
-  ["운영진 기록", ["RecordAdmin", "RecordAdminSeason", "RecordAdminPlayers", "RecordAdminExport", "RecordAdminMatch", "RecordAdminScrim", "RecordAdminResult", "RecordAdminVoting", "RecordAdminEditScrim", "RecordAdminEditGame", "RecordAdminEditDraw"]],
+  ["운영진 기록", ["RecordAdmin", "RecordAdminSeason", "RecordAdminPlayers", "RecordAdminMatch", "RecordAdminScrim", "RecordAdminResult", "RecordAdminVoting", "RecordAdminEditScrim", "RecordAdminEditGame", "RecordAdminEditDraw"]],
   ["팀원", ["Home5", "Home5Late", "Home5Absent", "ScheduleMember", "ScheduleMemberAttend", "ScheduleMemberLate", "ScheduleMemberAbsent", "ScheduleMemberChange", "ScheduleMemberCalendar"]],
   ["팀원 기록", ["RecordMember", "RecordMemberSeason", "RecordMemberMatch", "RecordMemberScrim", "RecordMemberPending", "RecordMemberScrimView", "RecordMemberGame", "RecordMemberMissed"]],
 ];
