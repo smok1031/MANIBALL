@@ -11,11 +11,12 @@ mkdirSync(OUT, { recursive: true });
 
 const GROUPS = [
   ["팀 만들기", ["TeamSplit", "InviteMessage", "InviteRoster"]],
+  ["팀원 가입 (초대 링크로 들어왔을 때)", ["JoinInvite", "JoinProfile", "JoinRules"]],
   ["운영진 홈", ["HomeAdmin", "NotifyAdmin", "NoticeAdmin", "NoticeAdminWrite"]],
   ["운영진 일정", ["ScheduleAdmin", "AdminRemind", "AdminRemindLocked", "AdminLineup", "AdminFormation", "AdminRestTable", "AdminLineupShare", "AdminCheckIn", "AdminGuestAdd", "AdminCheckInDone", "AdminSquad", "AdminOpenNow", "AdminOpenNowDeadline", "AdminCreate", "AdminCreateDate", "AdminCreateDeadline", "AdminEdit", "AdminEditDate", "AdminEditDeadline", "AdminDeleteConfirm"]],
   ["운영진 기록", ["RecordAdmin", "RecordAdminSeason", "RecordAdminPlayers", "RecordAdminMatch", "RecordAdminScrim", "RecordAdminResult", "RecordAdminVoting", "RecordAdminEditScrim", "RecordAdminEditGame", "RecordAdminEditDraw"]],
   ["운영진 회비", ["DuesAdmin", "DuesAdminSettings", "DuesAdminConfirmed", "DuesAdminRemind", "DuesAdminReminded", "DuesAdminLedger", "DuesAdminSpend", "DuesAdminUpload", "DuesAdminMatched", "DuesAdminApplied"]],
-  ["운영진 선수", ["PlayersAdmin", "PlayersAdminInvite", "PlayersAdminRules", "PlayersAdminDetail", "PlayersAdminPromote", "PlayersAdminPromoted", "PlayersAdminRemove", "PlayersAdminRemoved"]],
+  ["운영진 선수", ["PlayersAdmin", "PlayersAdminInvite", "PlayersAdminRules", "PlayersAdminDetail", "PlayersAdminPromote", "PlayersAdminPromoted", "PlayersAdminRemove", "PlayersAdminRemoved", "PlayersAdminUniform"]],
   ["팀원 홈", ["Home5", "Home5Late", "Home5Absent", "NotifyMember"]],
   ["팀원 일정", ["ScheduleMember", "ScheduleMemberAttend", "ScheduleMemberLate", "ScheduleMemberAbsent", "ScheduleMemberChange", "ScheduleMemberCalendar", "ScheduleMemberRoster"]],
   ["팀원 기록", ["RecordMember", "RecordMemberSeason", "RecordMemberMatch", "RecordMemberScrim", "RecordMemberPending", "RecordMemberScrimView", "RecordMemberGame", "RecordMemberMissed"]],

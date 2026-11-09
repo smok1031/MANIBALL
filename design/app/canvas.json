@@ -10,12 +10,44 @@
       "x": 6903,
       "y": 9677
     },
+    "AdminCheckInDone.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "운영진 일정 2-10 출석 마감 뒤",
+      "w": 390,
+      "x": 9723,
+      "y": 9677
+    },
     "AdminCreate.dc.html": {
       "h": 1160,
       "is_interactive": true,
       "title": "운영진 일정 2-7 일정 만들기",
       "w": 390,
       "x": 8313,
+      "y": 9677
+    },
+    "AdminCreateDate.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "운영진 일정 2-11 날짜 고르기 (만들기)",
+      "w": 390,
+      "x": 10193,
+      "y": 9677
+    },
+    "AdminCreateDeadline.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "운영진 일정 2-12 투표 마감 (만들기)",
+      "w": 390,
+      "x": 10663,
+      "y": 9677
+    },
+    "AdminDeleteConfirm.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "운영진 일정 2-15 일정 삭제",
+      "w": 390,
+      "x": 12073,
       "y": 9677
     },
     "AdminEdit.dc.html": {
@@ -26,6 +58,38 @@
       "x": 8783,
       "y": 9677
     },
+    "AdminEditDate.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "운영진 일정 2-13 날짜 고르기 (수정)",
+      "w": 390,
+      "x": 11133,
+      "y": 9677
+    },
+    "AdminEditDeadline.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "운영진 일정 2-14 투표 마감 (수정)",
+      "w": 390,
+      "x": 11603,
+      "y": 9677
+    },
+    "AdminFormation.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "운영진 일정 2-17 포메이션 고르기",
+      "w": 390,
+      "x": 13013,
+      "y": 9677
+    },
+    "AdminGuestAdd.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "운영진 일정 2-9 용병 추가",
+      "w": 390,
+      "x": 9253,
+      "y": 9677
+    },
     "AdminLineup.dc.html": {
       "h": 1240,
       "is_interactive": true,
@@ -34,12 +98,28 @@
       "x": 6433,
       "y": 9677
     },
+    "AdminLineupShare.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "운영진 일정 2-19 라인업 알리기",
+      "w": 390,
+      "x": 13953,
+      "y": 9677
+    },
     "AdminOpenNow.dc.html": {
       "h": 844,
       "is_interactive": true,
       "title": "운영진 일정 2-6 지금 열기",
       "w": 390,
       "x": 7843,
+      "y": 9677
+    },
+    "AdminOpenNowDeadline.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "운영진 일정 2-16 투표 마감 (지금 열기)",
+      "w": 390,
+      "x": 12543,
       "y": 9677
     },
     "AdminRemind.dc.html": {
@@ -57,6 +137,14 @@
       "w": 390,
       "x": 5963,
       "y": 9690
+    },
+    "AdminRestTable.dc.html": {
+      "h": 820,
+      "is_interactive": true,
+      "title": "운영진 일정 2-18 휴식표",
+      "w": 390,
+      "x": 13483,
+      "y": 9677
     },
     "AdminSquad.dc.html": {
       "h": 1340,
@@ -101,8 +189,120 @@
       "x": 0,
       "y": 0
     },
-    "Home5.dc.html": {
+    "DuesAdmin.dc.html": {
+      "h": 1780,
+      "is_interactive": true,
+      "title": "운영진 회비 4-1",
+      "w": 390,
+      "x": 5023,
+      "y": 13200
+    },
+    "DuesAdminApplied.dc.html": {
+      "h": 1400,
+      "is_interactive": true,
+      "title": "운영진 회비 4-10 반영한 뒤",
+      "w": 390,
+      "x": 9253,
+      "y": 13200
+    },
+    "DuesAdminConfirmed.dc.html": {
+      "h": 1520,
+      "is_interactive": true,
+      "title": "운영진 회비 4-3 입금 확인한 뒤",
+      "w": 390,
+      "x": 5963,
+      "y": 13200
+    },
+    "DuesAdminLedger.dc.html": {
+      "h": 1140,
+      "is_interactive": true,
+      "title": "운영진 회비 4-6 통장 내역",
+      "w": 390,
+      "x": 7373,
+      "y": 13200
+    },
+    "DuesAdminMatched.dc.html": {
+      "h": 1180,
+      "is_interactive": true,
+      "title": "운영진 회비 4-9 맞춰본 결과",
+      "w": 390,
+      "x": 8783,
+      "y": 13200
+    },
+    "DuesAdminRemind.dc.html": {
       "h": 844,
+      "is_interactive": true,
+      "title": "운영진 회비 4-4 회비 알림 보내기",
+      "w": 390,
+      "x": 6433,
+      "y": 13200
+    },
+    "DuesAdminReminded.dc.html": {
+      "h": 1840,
+      "is_interactive": true,
+      "title": "운영진 회비 4-5 알림 보낸 뒤",
+      "w": 390,
+      "x": 6903,
+      "y": 13200
+    },
+    "DuesAdminSettings.dc.html": {
+      "h": 1500,
+      "is_interactive": true,
+      "title": "운영진 회비 4-2 회비 설정",
+      "w": 390,
+      "x": 5493,
+      "y": 13200
+    },
+    "DuesAdminSpend.dc.html": {
+      "h": 1000,
+      "is_interactive": true,
+      "title": "운영진 회비 4-7 직접 기록",
+      "w": 390,
+      "x": 7843,
+      "y": 13200
+    },
+    "DuesAdminUpload.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "운영진 회비 4-8 거래내역 올리기",
+      "w": 390,
+      "x": 8313,
+      "y": 13200
+    },
+    "DuesMember.dc.html": {
+      "h": 1180,
+      "is_interactive": true,
+      "title": "팀원 회비 4-1",
+      "w": 390,
+      "x": -1522,
+      "y": 12200
+    },
+    "DuesMemberLedger.dc.html": {
+      "h": 1100,
+      "is_interactive": true,
+      "title": "팀원 회비 4-4 팀 통장 내역",
+      "w": 390,
+      "x": -112,
+      "y": 12200
+    },
+    "DuesMemberPay.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "팀원 회비 4-2 입금하기",
+      "w": 390,
+      "x": -1052,
+      "y": 12200
+    },
+    "DuesMemberSent.dc.html": {
+      "h": 1200,
+      "is_interactive": true,
+      "title": "팀원 회비 4-3 보냈어요 누른 뒤",
+      "w": 390,
+      "x": -582,
+      "y": 12200
+    },
+    "Home5.dc.html": {
+      "h": 974,
       "is_interactive": true,
       "title": "팀원 화면 1-1",
       "w": 390,
@@ -110,7 +310,7 @@
       "y": 8675
     },
     "Home5Absent.dc.html": {
-      "h": 844,
+      "h": 974,
       "is_interactive": true,
       "title": "팀원 화면 1-3 불참 눌렀을 때",
       "w": 390,
@@ -118,7 +318,7 @@
       "y": 8675
     },
     "Home5Late.dc.html": {
-      "h": 844,
+      "h": 974,
       "is_interactive": true,
       "title": "팀원 화면 1-2 늦참 눌렀을 때",
       "w": 390,
@@ -157,6 +357,142 @@
       "x": 0,
       "y": 1100
     },
+    "NoticeAdmin.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "운영진 화면 1-3 공지",
+      "w": 390,
+      "x": 5963,
+      "y": 8574
+    },
+    "NoticeAdminWrite.dc.html": {
+      "h": 1000,
+      "is_interactive": true,
+      "title": "운영진 화면 1-4 공지 쓰기",
+      "w": 390,
+      "x": 6433,
+      "y": 8574
+    },
+    "NotifyAdmin.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "운영진 화면 1-2 알림",
+      "w": 390,
+      "x": 5493,
+      "y": 8574
+    },
+    "NotifyMember.dc.html": {
+      "h": 820,
+      "is_interactive": true,
+      "title": "팀원 화면 1-4 알림",
+      "w": 390,
+      "x": -112,
+      "y": 8675
+    },
+    "PlayersAdmin.dc.html": {
+      "h": 2300,
+      "is_interactive": true,
+      "title": "운영진 선수 5-1",
+      "w": 390,
+      "x": 5023,
+      "y": 15300
+    },
+    "PlayersAdminDetail.dc.html": {
+      "h": 1380,
+      "is_interactive": true,
+      "title": "운영진 선수 5-4 선수 정보",
+      "w": 390,
+      "x": 6433,
+      "y": 15300
+    },
+    "PlayersAdminInvite.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "운영진 선수 5-2 팀원 초대하기",
+      "w": 390,
+      "x": 5493,
+      "y": 15300
+    },
+    "PlayersAdminPromote.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "운영진 선수 5-5 운영진 지정",
+      "w": 390,
+      "x": 6903,
+      "y": 15300
+    },
+    "PlayersAdminPromoted.dc.html": {
+      "h": 1440,
+      "is_interactive": true,
+      "title": "운영진 선수 5-6 지정한 뒤",
+      "w": 390,
+      "x": 7373,
+      "y": 15300
+    },
+    "PlayersAdminRemove.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "운영진 선수 5-7 팀에서 내보내기",
+      "w": 390,
+      "x": 7843,
+      "y": 15300
+    },
+    "PlayersAdminRemoved.dc.html": {
+      "h": 2280,
+      "is_interactive": true,
+      "title": "운영진 선수 5-8 내보낸 뒤",
+      "w": 390,
+      "x": 8313,
+      "y": 15300
+    },
+    "PlayersAdminRules.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "운영진 선수 5-3 팀 수칙 수정",
+      "w": 390,
+      "x": 5963,
+      "y": 15300
+    },
+    "PlayersMember.dc.html": {
+      "h": 1980,
+      "is_interactive": true,
+      "title": "팀원 선수 5-1",
+      "w": 390,
+      "x": -1522,
+      "y": 13700
+    },
+    "PlayersMemberEdit.dc.html": {
+      "h": 1080,
+      "is_interactive": true,
+      "title": "팀원 선수 5-3 프로필 수정",
+      "w": 390,
+      "x": -582,
+      "y": 13700
+    },
+    "PlayersMemberPosition.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "팀원 선수 5-4 포지션 변경 요청",
+      "w": 390,
+      "x": -112,
+      "y": 13700
+    },
+    "PlayersMemberProfile.dc.html": {
+      "h": 920,
+      "is_interactive": true,
+      "title": "팀원 선수 5-2 선수 정보",
+      "w": 390,
+      "x": -1052,
+      "y": 13700
+    },
+    "PlayersMemberRequested.dc.html": {
+      "h": 2060,
+      "is_interactive": true,
+      "title": "팀원 선수 5-5 요청 보낸 뒤",
+      "w": 390,
+      "x": 358,
+      "y": 13700
+    },
     "RecordAdmin.dc.html": {
       "h": 1420,
       "is_interactive": true,
@@ -165,12 +501,140 @@
       "x": 5023,
       "y": 11323
     },
+    "RecordAdminEditDraw.dc.html": {
+      "h": 1560,
+      "is_interactive": true,
+      "title": "운영진 기록 3-10 무승부 경기 결과 수정",
+      "w": 390,
+      "x": 9253,
+      "y": 11323
+    },
+    "RecordAdminEditGame.dc.html": {
+      "h": 1680,
+      "is_interactive": true,
+      "title": "운영진 기록 3-9 경기 결과 수정",
+      "w": 390,
+      "x": 8783,
+      "y": 11323
+    },
+    "RecordAdminEditScrim.dc.html": {
+      "h": 1500,
+      "is_interactive": true,
+      "title": "운영진 기록 3-8 내전 결과 수정",
+      "w": 390,
+      "x": 8313,
+      "y": 11323
+    },
+    "RecordAdminMatch.dc.html": {
+      "h": 1420,
+      "is_interactive": true,
+      "title": "운영진 기록 3-4 경기만 보기",
+      "w": 390,
+      "x": 6433,
+      "y": 11323
+    },
+    "RecordAdminPlayers.dc.html": {
+      "h": 1300,
+      "is_interactive": true,
+      "title": "운영진 기록 3-3 선수별",
+      "w": 390,
+      "x": 5963,
+      "y": 11323
+    },
+    "RecordAdminResult.dc.html": {
+      "h": 1640,
+      "is_interactive": true,
+      "title": "운영진 기록 3-6 결과 입력",
+      "w": 390,
+      "x": 7373,
+      "y": 11323
+    },
+    "RecordAdminScrim.dc.html": {
+      "h": 1420,
+      "is_interactive": true,
+      "title": "운영진 기록 3-5 내전만 보기",
+      "w": 390,
+      "x": 6903,
+      "y": 11323
+    },
+    "RecordAdminSeason.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "운영진 기록 3-2 시즌 고르기",
+      "w": 390,
+      "x": 5493,
+      "y": 11323
+    },
+    "RecordAdminVoting.dc.html": {
+      "h": 1480,
+      "is_interactive": true,
+      "title": "운영진 기록 3-7 결과 저장 뒤",
+      "w": 390,
+      "x": 7843,
+      "y": 11323
+    },
     "RecordMember.dc.html": {
       "h": 1240,
       "is_interactive": true,
       "title": "팀원 기록 3-1",
       "w": 390,
       "x": -1522,
+      "y": 10800
+    },
+    "RecordMemberGame.dc.html": {
+      "h": 1060,
+      "is_interactive": true,
+      "title": "팀원 기록 3-7 경기 보기",
+      "w": 390,
+      "x": 1298,
+      "y": 10800
+    },
+    "RecordMemberMatch.dc.html": {
+      "h": 1240,
+      "is_interactive": true,
+      "title": "팀원 기록 3-3 경기만 보기",
+      "w": 390,
+      "x": -582,
+      "y": 10800
+    },
+    "RecordMemberMissed.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "팀원 기록 3-8 불참한 경기 보기",
+      "w": 390,
+      "x": 1768,
+      "y": 10800
+    },
+    "RecordMemberPending.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "팀원 기록 3-5 결과 대기 경기",
+      "w": 390,
+      "x": 358,
+      "y": 10800
+    },
+    "RecordMemberScrim.dc.html": {
+      "h": 1240,
+      "is_interactive": true,
+      "title": "팀원 기록 3-4 내전만 보기",
+      "w": 390,
+      "x": -112,
+      "y": 10800
+    },
+    "RecordMemberScrimView.dc.html": {
+      "h": 1000,
+      "is_interactive": true,
+      "title": "팀원 기록 3-6 내전 보기",
+      "w": 390,
+      "x": 828,
+      "y": 10800
+    },
+    "RecordMemberSeason.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "팀원 기록 3-2 시즌 고르기",
+      "w": 390,
+      "x": -1052,
       "y": 10800
     },
     "ScheduleAdmin.dc.html": {
@@ -229,6 +693,14 @@
       "x": -582,
       "y": 9677
     },
+    "ScheduleMemberRoster.dc.html": {
+      "h": 980,
+      "is_interactive": true,
+      "title": "팀원 일정 2-7 참석 명단",
+      "w": 390,
+      "x": 1298,
+      "y": 9677
+    },
     "TeamSplit.dc.html": {
       "h": 1720,
       "is_interactive": true,
@@ -237,492 +709,36 @@
       "x": 0,
       "y": 6378
     },
-    "RecordMemberSeason.dc.html": {
+    "JoinInvite.dc.html": {
       "h": 844,
-      "title": "팀원 기록 3-2 시즌 고르기",
+      "title": "팀원 가입 1 초대 링크로 들어왔을 때",
       "w": 390,
-      "x": -1052,
-      "y": 10800,
+      "x": 1634,
+      "y": 6378,
       "is_interactive": true
     },
-    "RecordMemberMatch.dc.html": {
-      "h": 1240,
-      "title": "팀원 기록 3-3 경기만 보기",
+    "JoinProfile.dc.html": {
+      "h": 1340,
+      "title": "팀원 가입 2 카카오 로그인 뒤 선수 등록",
       "w": 390,
-      "x": -582,
-      "y": 10800,
+      "x": 2104,
+      "y": 6378,
       "is_interactive": true
     },
-    "RecordMemberScrim.dc.html": {
-      "h": 1240,
-      "title": "팀원 기록 3-4 내전만 보기",
-      "w": 390,
-      "x": -112,
-      "y": 10800,
-      "is_interactive": true
-    },
-    "RecordMemberPending.dc.html": {
-      "h": 844,
-      "title": "팀원 기록 3-5 결과 대기 경기",
-      "w": 390,
-      "x": 358,
-      "y": 10800,
-      "is_interactive": true
-    },
-    "RecordMemberScrimView.dc.html": {
-      "h": 1000,
-      "title": "팀원 기록 3-6 내전 보기",
-      "w": 390,
-      "x": 828,
-      "y": 10800,
-      "is_interactive": true
-    },
-    "RecordMemberGame.dc.html": {
+    "JoinRules.dc.html": {
       "h": 1060,
-      "title": "팀원 기록 3-7 경기 보기",
+      "title": "팀원 가입 3 팀 수칙 동의",
       "w": 390,
-      "x": 1298,
-      "y": 10800,
+      "x": 2574,
+      "y": 6378,
       "is_interactive": true
     },
-    "RecordMemberMissed.dc.html": {
-      "h": 900,
-      "title": "팀원 기록 3-8 불참한 경기 보기",
-      "w": 390,
-      "x": 1768,
-      "y": 10800,
-      "is_interactive": true
-    },
-    "RecordAdminSeason.dc.html": {
-      "h": 844,
-      "title": "운영진 기록 3-2 시즌 고르기",
-      "w": 390,
-      "x": 5493,
-      "y": 11323,
-      "is_interactive": true
-    },
-    "RecordAdminPlayers.dc.html": {
-      "h": 1300,
-      "title": "운영진 기록 3-3 선수별",
-      "w": 390,
-      "x": 5963,
-      "y": 11323,
-      "is_interactive": true
-    },
-    "RecordAdminMatch.dc.html": {
-      "h": 1420,
-      "title": "운영진 기록 3-4 경기만 보기",
-      "w": 390,
-      "x": 6433,
-      "y": 11323,
-      "is_interactive": true
-    },
-    "RecordAdminScrim.dc.html": {
-      "h": 1420,
-      "title": "운영진 기록 3-5 내전만 보기",
-      "w": 390,
-      "x": 6903,
-      "y": 11323,
-      "is_interactive": true
-    },
-    "RecordAdminResult.dc.html": {
-      "h": 1640,
-      "title": "운영진 기록 3-6 결과 입력",
-      "w": 390,
-      "x": 7373,
-      "y": 11323,
-      "is_interactive": true
-    },
-    "RecordAdminVoting.dc.html": {
-      "h": 1480,
-      "title": "운영진 기록 3-7 결과 저장 뒤",
-      "w": 390,
-      "x": 7843,
-      "y": 11323,
-      "is_interactive": true
-    },
-    "RecordAdminEditScrim.dc.html": {
-      "h": 1500,
-      "title": "운영진 기록 3-8 내전 결과 수정",
-      "w": 390,
-      "x": 8313,
-      "y": 11323,
-      "is_interactive": true
-    },
-    "RecordAdminEditGame.dc.html": {
-      "h": 1680,
-      "title": "운영진 기록 3-9 경기 결과 수정",
+    "PlayersAdminUniform.dc.html": {
+      "h": 1000,
+      "title": "운영진 선수 5-9 팀 유니폼",
       "w": 390,
       "x": 8783,
-      "y": 11323,
-      "is_interactive": true
-    },
-    "RecordAdminEditDraw.dc.html": {
-      "h": 1560,
-      "title": "운영진 기록 3-10 무승부 경기 결과 수정",
-      "w": 390,
-      "x": 9253,
-      "y": 11323,
-      "is_interactive": true
-    },
-    "DuesMember.dc.html": {
-      "h": 1180,
-      "title": "팀원 회비 4-1",
-      "w": 390,
-      "x": -1522,
-      "y": 12200,
-      "is_interactive": true
-    },
-    "DuesMemberPay.dc.html": {
-      "h": 844,
-      "title": "팀원 회비 4-2 입금하기",
-      "w": 390,
-      "x": -1052,
-      "y": 12200,
-      "is_interactive": true
-    },
-    "DuesMemberSent.dc.html": {
-      "h": 1200,
-      "title": "팀원 회비 4-3 보냈어요 누른 뒤",
-      "w": 390,
-      "x": -582,
-      "y": 12200,
-      "is_interactive": true
-    },
-    "DuesMemberLedger.dc.html": {
-      "h": 1100,
-      "title": "팀원 회비 4-4 팀 통장 내역",
-      "w": 390,
-      "x": -112,
-      "y": 12200,
-      "is_interactive": true
-    },
-    "DuesAdmin.dc.html": {
-      "h": 1780,
-      "title": "운영진 회비 4-1",
-      "w": 390,
-      "x": 5023,
-      "y": 13200,
-      "is_interactive": true
-    },
-    "DuesAdminSettings.dc.html": {
-      "h": 1500,
-      "title": "운영진 회비 4-2 회비 설정",
-      "w": 390,
-      "x": 5493,
-      "y": 13200,
-      "is_interactive": true
-    },
-    "DuesAdminConfirmed.dc.html": {
-      "h": 1520,
-      "title": "운영진 회비 4-3 입금 확인한 뒤",
-      "w": 390,
-      "x": 5963,
-      "y": 13200,
-      "is_interactive": true
-    },
-    "DuesAdminRemind.dc.html": {
-      "h": 844,
-      "title": "운영진 회비 4-4 회비 알림 보내기",
-      "w": 390,
-      "x": 6433,
-      "y": 13200,
-      "is_interactive": true
-    },
-    "DuesAdminReminded.dc.html": {
-      "h": 1840,
-      "title": "운영진 회비 4-5 알림 보낸 뒤",
-      "w": 390,
-      "x": 6903,
-      "y": 13200,
-      "is_interactive": true
-    },
-    "DuesAdminLedger.dc.html": {
-      "h": 1140,
-      "title": "운영진 회비 4-6 통장 내역",
-      "w": 390,
-      "x": 7373,
-      "y": 13200,
-      "is_interactive": true
-    },
-    "DuesAdminSpend.dc.html": {
-      "h": 1000,
-      "title": "운영진 회비 4-7 직접 기록",
-      "w": 390,
-      "x": 7843,
-      "y": 13200,
-      "is_interactive": true
-    },
-    "DuesAdminUpload.dc.html": {
-      "h": 900,
-      "title": "운영진 회비 4-8 거래내역 올리기",
-      "w": 390,
-      "x": 8313,
-      "y": 13200,
-      "is_interactive": true
-    },
-    "DuesAdminMatched.dc.html": {
-      "h": 1180,
-      "title": "운영진 회비 4-9 맞춰본 결과",
-      "w": 390,
-      "x": 8783,
-      "y": 13200,
-      "is_interactive": true
-    },
-    "DuesAdminApplied.dc.html": {
-      "h": 1400,
-      "title": "운영진 회비 4-10 반영한 뒤",
-      "w": 390,
-      "x": 9253,
-      "y": 13200,
-      "is_interactive": true
-    },
-    "PlayersMember.dc.html": {
-      "h": 1980,
-      "title": "팀원 선수 5-1",
-      "w": 390,
-      "x": -1522,
-      "y": 13700,
-      "is_interactive": true
-    },
-    "PlayersMemberProfile.dc.html": {
-      "h": 920,
-      "title": "팀원 선수 5-2 선수 정보",
-      "w": 390,
-      "x": -1052,
-      "y": 13700,
-      "is_interactive": true
-    },
-    "PlayersMemberEdit.dc.html": {
-      "h": 1080,
-      "title": "팀원 선수 5-3 프로필 수정",
-      "w": 390,
-      "x": -582,
-      "y": 13700,
-      "is_interactive": true
-    },
-    "PlayersMemberPosition.dc.html": {
-      "h": 900,
-      "title": "팀원 선수 5-4 포지션 변경 요청",
-      "w": 390,
-      "x": -112,
-      "y": 13700,
-      "is_interactive": true
-    },
-    "PlayersMemberRequested.dc.html": {
-      "h": 2060,
-      "title": "팀원 선수 5-5 요청 보낸 뒤",
-      "w": 390,
-      "x": 358,
-      "y": 13700,
-      "is_interactive": true
-    },
-    "PlayersMemberApply.dc.html": {
-      "h": 844,
-      "title": "팀원 선수 5-6 운영진 신청",
-      "w": 390,
-      "x": 828,
-      "y": 13700,
-      "is_interactive": true
-    },
-    "PlayersMemberApplied.dc.html": {
-      "h": 2040,
-      "title": "팀원 선수 5-7 신청한 뒤",
-      "w": 390,
-      "x": 1298,
-      "y": 13700,
-      "is_interactive": true
-    },
-    "PlayersAdmin.dc.html": {
-      "h": 2200,
-      "title": "운영진 선수 5-1",
-      "w": 390,
-      "x": 5023,
       "y": 15300,
-      "is_interactive": true
-    },
-    "PlayersAdminInvite.dc.html": {
-      "h": 844,
-      "title": "운영진 선수 5-2 팀원 초대하기",
-      "w": 390,
-      "x": 5493,
-      "y": 15300,
-      "is_interactive": true
-    },
-    "PlayersAdminRules.dc.html": {
-      "h": 844,
-      "title": "운영진 선수 5-3 팀 수칙 수정",
-      "w": 390,
-      "x": 5963,
-      "y": 15300,
-      "is_interactive": true
-    },
-    "PlayersAdminDetail.dc.html": {
-      "h": 1380,
-      "title": "운영진 선수 5-4 선수 정보",
-      "w": 390,
-      "x": 6433,
-      "y": 15300,
-      "is_interactive": true
-    },
-    "PlayersAdminPromote.dc.html": {
-      "h": 844,
-      "title": "운영진 선수 5-5 운영진 지정",
-      "w": 390,
-      "x": 6903,
-      "y": 15300,
-      "is_interactive": true
-    },
-    "PlayersAdminPromoted.dc.html": {
-      "h": 1440,
-      "title": "운영진 선수 5-6 지정한 뒤",
-      "w": 390,
-      "x": 7373,
-      "y": 15300,
-      "is_interactive": true
-    },
-    "PlayersAdminRemove.dc.html": {
-      "h": 844,
-      "title": "운영진 선수 5-7 팀에서 내보내기",
-      "w": 390,
-      "x": 7843,
-      "y": 15300,
-      "is_interactive": true
-    },
-    "PlayersAdminRemoved.dc.html": {
-      "h": 2180,
-      "title": "운영진 선수 5-8 내보낸 뒤",
-      "w": 390,
-      "x": 8313,
-      "y": 15300,
-      "is_interactive": true
-    },
-    "NotifyAdmin.dc.html": {
-      "h": 900,
-      "title": "운영진 화면 1-2 알림",
-      "w": 390,
-      "x": 5493,
-      "y": 8574,
-      "is_interactive": true
-    },
-    "NoticeAdmin.dc.html": {
-      "h": 900,
-      "title": "운영진 화면 1-3 공지",
-      "w": 390,
-      "x": 5963,
-      "y": 8574,
-      "is_interactive": true
-    },
-    "NoticeAdminWrite.dc.html": {
-      "h": 1000,
-      "title": "운영진 화면 1-4 공지 쓰기",
-      "w": 390,
-      "x": 6433,
-      "y": 8574,
-      "is_interactive": true
-    },
-    "NotifyMember.dc.html": {
-      "h": 820,
-      "title": "팀원 화면 1-4 알림",
-      "w": 390,
-      "x": -112,
-      "y": 8675,
-      "is_interactive": true
-    },
-    "ScheduleMemberRoster.dc.html": {
-      "h": 980,
-      "title": "팀원 일정 2-7 참석 명단",
-      "w": 390,
-      "x": 1298,
-      "y": 9677,
-      "is_interactive": true
-    },
-    "AdminGuestAdd.dc.html": {
-      "h": 844,
-      "title": "운영진 일정 2-9 용병 추가",
-      "w": 390,
-      "x": 9253,
-      "y": 9677,
-      "is_interactive": true
-    },
-    "AdminCheckInDone.dc.html": {
-      "h": 900,
-      "title": "운영진 일정 2-10 출석 마감 뒤",
-      "w": 390,
-      "x": 9723,
-      "y": 9677,
-      "is_interactive": true
-    },
-    "AdminCreateDate.dc.html": {
-      "h": 844,
-      "title": "운영진 일정 2-11 날짜 고르기 (만들기)",
-      "w": 390,
-      "x": 10193,
-      "y": 9677,
-      "is_interactive": true
-    },
-    "AdminCreateDeadline.dc.html": {
-      "h": 844,
-      "title": "운영진 일정 2-12 투표 마감 (만들기)",
-      "w": 390,
-      "x": 10663,
-      "y": 9677,
-      "is_interactive": true
-    },
-    "AdminEditDate.dc.html": {
-      "h": 844,
-      "title": "운영진 일정 2-13 날짜 고르기 (수정)",
-      "w": 390,
-      "x": 11133,
-      "y": 9677,
-      "is_interactive": true
-    },
-    "AdminEditDeadline.dc.html": {
-      "h": 844,
-      "title": "운영진 일정 2-14 투표 마감 (수정)",
-      "w": 390,
-      "x": 11603,
-      "y": 9677,
-      "is_interactive": true
-    },
-    "AdminDeleteConfirm.dc.html": {
-      "h": 844,
-      "title": "운영진 일정 2-15 일정 삭제",
-      "w": 390,
-      "x": 12073,
-      "y": 9677,
-      "is_interactive": true
-    },
-    "AdminOpenNowDeadline.dc.html": {
-      "h": 844,
-      "title": "운영진 일정 2-16 투표 마감 (지금 열기)",
-      "w": 390,
-      "x": 12543,
-      "y": 9677,
-      "is_interactive": true
-    },
-    "AdminFormation.dc.html": {
-      "h": 844,
-      "title": "운영진 일정 2-17 포메이션 고르기",
-      "w": 390,
-      "x": 13013,
-      "y": 9677,
-      "is_interactive": true
-    },
-    "AdminRestTable.dc.html": {
-      "h": 820,
-      "title": "운영진 일정 2-18 휴식표",
-      "w": 390,
-      "x": 13483,
-      "y": 9677,
-      "is_interactive": true
-    },
-    "AdminLineupShare.dc.html": {
-      "h": 844,
-      "title": "운영진 일정 2-19 라인업 알리기",
-      "w": 390,
-      "x": 13953,
-      "y": 9677,
       "is_interactive": true
     }
   },
@@ -868,8 +884,6 @@
     "PlayersMemberEdit.dc.html",
     "PlayersMemberPosition.dc.html",
     "PlayersMemberRequested.dc.html",
-    "PlayersMemberApply.dc.html",
-    "PlayersMemberApplied.dc.html",
     "PlayersAdmin.dc.html",
     "PlayersAdminInvite.dc.html",
     "PlayersAdminRules.dc.html",
@@ -893,7 +907,11 @@
     "AdminOpenNowDeadline.dc.html",
     "AdminFormation.dc.html",
     "AdminRestTable.dc.html",
-    "AdminLineupShare.dc.html"
+    "AdminLineupShare.dc.html",
+    "JoinInvite.dc.html",
+    "JoinProfile.dc.html",
+    "JoinRules.dc.html",
+    "PlayersAdminUniform.dc.html"
   ],
   "pages": [],
   "title": "매니볼 홈페이지 시안"

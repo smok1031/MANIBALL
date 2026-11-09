@@ -114,7 +114,32 @@
     else if (cur) cur.setAttribute("style", st(a));
     if (mine) a.setAttribute("style", mine);
     else if (curStyle) a.setAttribute("style", curStyle);
+    else { a.style.background = "#15803D"; a.style.color = "#FFFFFF"; a.style.border = "1px solid #15803D"; }
+    afterSelect(a, label);
     return true;
+  }
+
+  // 선수 등록과 유니폼 화면: 고른 값이 선수 카드 미리보기에 바로 보이게
+  function afterSelect(a, label) {
+    var sec = a.closest("section");
+    if (!sec) return;
+    var head = (sec.querySelector("span") || {}).textContent || "";
+    var all = function (sel, fn) { document.querySelectorAll(sel).forEach(fn); };
+    if (head.indexOf("1선호") === 0) all("[data-pos1]", function (x) { x.textContent = label; });
+    if (head.indexOf("2선호") === 0) all("[data-pos2]", function (x) {
+      x.textContent = label;
+      x.parentElement.style.display = label === "없음" ? "none" : "";
+    });
+    if (head.indexOf("등번호") === 0 && /^\d+$/.test(label)) {
+      all("[data-num]", function (x) { x.textContent = label; });
+      all("[data-numtext]", function (x) { x.textContent = label; });
+      var v = sec.querySelector("label span + span");
+      if (v && v.firstChild) v.firstChild.nodeValue = label;
+    }
+    if (head.indexOf("번호 색") === 0) {
+      var col = { "흰색": "#FFFFFF", "검정": "#111827", "노랑": "#F5B841" }[label];
+      if (col) all("[data-num]", function (x) { x.style.color = col; });
+    }
   }
 
   function monthStep(a, dir) {
@@ -129,7 +154,7 @@
   }
 
   var fileInput = null;
-  function pickPhoto(a) {
+  function pickPhoto(a, camera) {
     if (!fileInput) {
       fileInput = document.createElement("input");
       fileInput.type = "file";
@@ -141,10 +166,21 @@
       var f = fileInput.files && fileInput.files[0];
       if (!f) return;
       var url = URL.createObjectURL(f);
-      var av = a.parentElement.querySelector("span");
-      if (av) { av.textContent = ""; av.style.background = "center/cover no-repeat url(" + url + ")"; }
-      toast("사진을 바꿨어요");
+      var photo = document.querySelector("[data-photo]");
+      if (photo) {
+        // 유니폼 사진: 그림 대신 사진을 깔고 등번호는 그대로 위에 둔다
+        var svg = photo.querySelector("svg");
+        if (svg) svg.style.display = "none";
+        photo.style.background = "center/cover no-repeat url(" + url + ")";
+        toast("유니폼 사진을 바꿨어요. 저장하면 팀원 카드에 보여요");
+      } else {
+        var av = a.parentElement.querySelector("span");
+        if (av) { av.textContent = ""; av.style.background = "center/cover no-repeat url(" + url + ")"; }
+        toast("사진을 바꿨어요");
+      }
     };
+    fileInput.setAttribute("capture", "environment");
+    if (!camera) fileInput.removeAttribute("capture");
     fileInput.click();
   }
 
@@ -197,6 +233,7 @@
       return toast("새 링크를 만들었어요. 예전 링크는 막혔어요");
     }
     if (t === "사진 바꾸기") return pickPhoto(a);
+    if (t === "사진 고르기" || t === "사진 찍기") return pickPhoto(a, t === "사진 찍기");
     if (t === "모두 읽음") {
       var list = a.parentElement.nextElementSibling;
       if (list) list.querySelectorAll("a").forEach(function (r) {

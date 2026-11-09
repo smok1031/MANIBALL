@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>팀 유니폼</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0;background:#FFFFFF}
+a{color:#15803D}
+</style>
+</helmet>
+<div style="width: 100%; max-width: 480px; box-sizing: border-box; min-height: 844px; margin: 0 auto; font-family: 'Noto Sans KR', sans-serif; color: #111827; background: #F6F7F9; display: flex; flex-direction: column; position: relative; word-break: keep-all">
+  <header style="position: sticky; top: 0; z-index: 3; background: #FFFFFF; border-bottom: 1px solid #F3F4F6; height: 56px; padding: 0 8px; display: flex; align-items: center; gap: 4px">
+    <a href="PlayersAdmin.dc.html" aria-label="뒤로" style="width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <b style="flex: 1; font-size: 17px">팀 유니폼</b>
+    <span style="width: 44px"></span>
+  </header>
+  <div style="padding: 16px 16px 24px; display: flex; flex-direction: column; gap: 20px">
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px; align-items: center; gap: 14px; padding: 22px 16px">
+      <span data-photo="1" style="position: relative; width: 180px; height: 180px; border-radius: 16px; background: #EEF5F0; display: inline-flex; align-items: center; justify-content: center; flex: none; overflow: hidden"><svg width="154" height="154" viewBox="0 0 100 100" aria-hidden="true"><path d="M30 12 L40 8 Q50 17 60 8 L70 12 L93 27 L84 45 L74 40 L74 92 Q50 97 26 92 L26 40 L16 45 L7 27 Z" fill="#1E6B45"></path><path d="M40 8 Q50 21 60 8" fill="none" stroke="#F5B841" stroke-width="3"></path><path d="M7 27 L16 45 M93 27 L84 45" stroke="#F5B841" stroke-width="3"></path></svg><b data-num="1" style="position: absolute; left: 0; right: 0; top: 44%; text-align: center; color: #FFFFFF; font-size: 54px; font-weight: 900; line-height: 1; letter-spacing: -1px">7</b></span>
+      <span style="font-size: 13px; color: #6B7280; text-align: center; line-height: 1.5">팀원마다 자기 등번호가 들어가요<br>예시는 정성목 7번</span>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%"><a href="#" style="display: block; text-decoration: none; text-align: center; background: #F3F4F6; color: #111827; font-weight: 700; font-size: 15px; padding: 14px 0; border-radius: 14px; font-size: 14px; padding: 12px 0">사진 고르기</a><a href="#" style="display: block; text-decoration: none; text-align: center; background: #F3F4F6; color: #111827; font-weight: 700; font-size: 15px; padding: 14px 0; border-radius: 14px; font-size: 14px; padding: 12px 0">사진 찍기</a></div>
+    </div>
+    <section style="display: flex; flex-direction: column; gap: 10px"><span style="font-size: 13px; font-weight: 900; color: #6B7280; display: flex; justify-content: space-between">번호 색<span style="font-weight: 500"></span></span><div style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 14px; font-weight: 700"><a href="#" style="text-decoration: none; background: {{accent}}; color: #FFFFFF; border-radius: 999px; padding: 9px 14px">흰색</a><a href="#" style="text-decoration: none; background: #FFFFFF; border: 1px solid #E5E7EB; color: #111827; border-radius: 999px; padding: 9px 14px">검정</a><a href="#" style="text-decoration: none; background: #FFFFFF; border: 1px solid #E5E7EB; color: #111827; border-radius: 999px; padding: 9px 14px">노랑</a></div></section>
+    <div style="display: flex; gap: 10px; align-items: flex-start; background: #FFFFFF; border-radius: 14px; padding: 12px 14px; font-size: 13px; line-height: 1.5; color: #4B5563"><b style="flex: none; color: #111827">팁</b><span>번호가 없는 앞면 사진이 가장 잘 나와요. 사진을 안 올리면 팀 색 기본 유니폼으로 보여요.</span></div>
+    <p style="margin: 0; font-size: 13px; color: #6B7280; line-height: 1.5">팀원 홈 화면의 선수 카드와 가입할 때 선수 등록 화면에 쓰여요.</p>
+  </div>
+  <div style="position: sticky; bottom: 0; margin-top: auto; background: #FFFFFF; border-top: 1px solid #F3F4F6; padding: 12px 16px 28px; display: flex; flex-direction: column; gap: 8px">
+    <a href="PlayersAdmin.dc.html" style="display: block; text-decoration: none; text-align: center; background: {{accent}}; color: #FFFFFF; font-weight: 700; font-size: 16px; padding: 15px 0; border-radius: 14px">저장하기</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#15803D","options":["#15803D","#1E6B45","#2563EB","#111827"]},"$preview":{"width":390,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#15803D' };
+  }
+}
+</script>
+</body>
+</html>
