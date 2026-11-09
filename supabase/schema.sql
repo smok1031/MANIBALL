@@ -222,13 +222,37 @@ language sql security definer set search_path = public as $$
   update public.members set display_name = left(trim(p_name), 30) where team_id = p_team and user_id = auth.uid()
 $$;
 
+-- 관리자 신청: 팀원이 스스로 신청하고, 팀장만 수락하거나 거절한다 ----------------------
+alter table public.members add column if not exists admin_req timestamptz;
+
+create or replace function public.request_admin(p_team uuid) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if coalesce(public.team_role(p_team), '') <> 'member' then raise exception 'member_only'; end if;
+  update public.members set admin_req = now() where team_id = p_team and user_id = auth.uid();
+end $$;
+
+create or replace function public.cancel_admin_request(p_team uuid) returns void
+language sql security definer set search_path = public as $$
+  update public.members set admin_req = null where team_id = p_team and user_id = auth.uid()
+$$;
+
+create or replace function public.answer_admin_request(p_team uuid, p_user uuid, p_ok boolean) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if coalesce(public.team_role(p_team), '') <> 'owner' then raise exception 'owner_only'; end if;
+  update public.members set role = case when p_ok then 'admin' else role end, admin_req = null
+   where team_id = p_team and user_id = p_user and role = 'member' and admin_req is not null;
+  if not found then raise exception 'no_request'; end if;
+end $$;
+
 create or replace function public.set_member_role(p_team uuid, p_user uuid, p_role text) returns void
 language plpgsql security definer set search_path = public as $$
 begin
   if coalesce(public.team_role(p_team), '') <> 'owner' then raise exception 'owner_only'; end if;
   if p_user = auth.uid() then raise exception 'not_self'; end if;
   if p_role not in ('admin', 'member') then raise exception 'bad_role'; end if;
-  update public.members set role = p_role where team_id = p_team and user_id = p_user;
+  update public.members set role = p_role, admin_req = null where team_id = p_team and user_id = p_user;
 end $$;
 
 create or replace function public.remove_member(p_team uuid, p_user uuid) returns void
@@ -257,7 +281,8 @@ revoke all on function public.recount_tally(uuid) from public, anon, authenticat
 revoke all on function public.on_uvote_change() from public, anon, authenticated;
 grant execute on function public.create_team(text), public.join_team(text, text), public.team_by_code(text), public.set_my_name(uuid, text),
   public.set_member_role(uuid, uuid, text), public.remove_member(uuid, uuid), public.new_invite_code(uuid), public.doc_patch(uuid, text, text, jsonb),
-  public.team_role(uuid), public.is_member(uuid), public.is_admin(uuid), public.jsonb_deep_merge(jsonb, jsonb) to authenticated;
+  public.team_role(uuid), public.is_member(uuid), public.is_admin(uuid), public.jsonb_deep_merge(jsonb, jsonb),
+  public.request_admin(uuid), public.cancel_admin_request(uuid), public.answer_admin_request(uuid, uuid, boolean) to authenticated;
 -- 로그인 전 화면에서도 초대받은 팀 이름을 보여 준다 (코드를 아는 사람만)
 grant execute on function public.team_by_code(text) to anon;
 grant select, update (name) on public.teams to authenticated;

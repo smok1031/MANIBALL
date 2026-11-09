@@ -4,6 +4,7 @@ function viewOpHome() {
   if (!S.players.length) return `<div class="card"><div class="empty"><b>팀을 시작해 볼까요?</b>먼저 팀 이름과 정원, 회비, 벌금 규칙을 정하고, 선수 명단을 붙여 넣어 한 번에 등록하세요. 그다음 일정을 올리면 팀원들이 참석 투표를 할 수 있어요.</div>
     <a class="btn primary big" href="#config">팀 이름과 규칙 정하기</a><button class="btn block" data-act="bulkOpen">명단 붙여 넣어 한 번에 등록</button></div>`;
   const parts = [];
+  if (typeof window.webHomeCards === "function") { const w = window.webHomeCards(); if (w) parts.push(w); }
   const n = todoCount();
   parts.push(`<a class="card soft" href="#todo" style="flex-direction:row;align-items:center;gap:10px;border-radius:16px;padding:12px 14px"><span class="num" style="font-size:30px;line-height:1">${n}</span><span class="grow" style="font-weight:700">${n ? "오늘 처리할 일이 있어요" : "오늘 처리할 일이 없어요"}</span>${ICON.chev}</a>`);
   const next = eventsSorted().find(e => !started(e));

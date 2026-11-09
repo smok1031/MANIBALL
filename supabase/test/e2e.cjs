@@ -111,13 +111,23 @@ const tabs = p => p.locator("#tabs .in > *").allInnerTexts();
   const memTally = await c.evaluate(id => (R.tally["mom-" + id] || {}).n, momEvent);
   ok("member sees fresh tally right after voting", memTally === 1, memTally);
 
-  // 9) 팀장이 운영진 지정
+  // 9) 팀원이 관리자 신청 -> 팀장 홈에 알림 -> 팀장이 수락
+  await c.evaluate(() => { location.hash = "config"; }); await wait(500);
+  ok("member sees admin request button", (await c.locator('[data-web="adminReq"]').count()) === 1);
+  ok("member has no role select", (await c.locator("select[data-web-role]").count()) === 0);
+  await c.click('[data-web="adminReq"]'); await wait(300); await c.click("#okBtn"); await wait(1200);
+  ok("request saved", sql(`select admin_req is not null from public.members where team_id = '${tid}' and user_id = '${U.C}'`) === "t");
+  ok("member sees pending state", (await c.locator("#main").innerText()).includes("관리자 신청을 보냈어요"));
+  await c.screenshot({ path: SHOTS + "/e2e-member-request.png" });
   await a.reload(); await waitApp(a);
+  await a.evaluate(() => { location.hash = "home"; }); await wait(500);
+  ok("owner home shows request banner", (await a.locator("#main").innerText()).includes("관리자 신청이 왔어요"));
+  await a.screenshot({ path: SHOTS + "/e2e-owner-banner.png" });
   await a.evaluate(() => { location.hash = "config"; }); await wait(500);
-  const sel = a.locator(`select[data-web-role="${U.C}"]`);
-  ok("owner sees role select", (await sel.count()) === 1);
-  await sel.selectOption("admin"); await wait(1200);
-  ok("role changed", sql(`select role from public.members where team_id = '${tid}' and user_id = '${U.C}'`) === "admin");
+  await a.screenshot({ path: SHOTS + "/e2e-owner-requests.png", fullPage: true });
+  await a.click(`[data-web="adminOk"][data-u="${U.C}"]`); await wait(300); await a.click("#okBtn"); await wait(1200);
+  ok("role changed", sql(`select role || ':' || coalesce(admin_req::text, 'none') from public.members where team_id = '${tid}' and user_id = '${U.C}'`) === "admin:none");
+  ok("owner sees role select", (await a.locator(`select[data-web-role="${U.C}"]`).count()) === 1);
   await c.reload(); await waitApp(c);
   const ct2 = await tabs(c);
   ok("promoted member gets operator tabs", ct2.join(",").includes("선수"), ct2);

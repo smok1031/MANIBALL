@@ -205,7 +205,7 @@ function parseCode(v) {
 /* ---------- 팀 들어가기 ---------- */
 async function loadMembers() {
   const [{ data: mem, error }, { data: team, error: e2 }] = await Promise.all([
-    sb.from("members").select("user_id,role,display_name,joined_at").eq("team_id", state.tid).order("joined_at"),
+    sb.from("members").select("*").eq("team_id", state.tid).order("joined_at"),
     sb.from("teams").select("id,name,invite_code").eq("id", state.tid).maybeSingle(),
   ]);
   if (error || e2) throw error || e2;
@@ -232,7 +232,7 @@ function watchMembers(tid) {
     let role = "";
     try { role = await loadMembers(); } catch (e) { return; }
     if (role !== before) { location.reload(); return; }
-    if (typeof currentView === "function" && currentView() === "config" && typeof requestRender === "function") requestRender();
+    if (typeof requestRender === "function") requestRender();
   };
   sb.channel("members-" + tid)
     .on("postgres_changes", { event: "INSERT", schema: "public", table: "members", filter: "team_id=eq." + tid }, onChange)
@@ -378,28 +378,43 @@ function makeClaude(tid) {
 
 /* ---------- 설정 화면의 팀 카드 ---------- */
 const inviteLink = () => (state.team && state.team.invite_code ? APP_URL + "?join=" + state.team.invite_code : "");
+const pendingReqs = () => state.members.filter(m => m.role === "member" && m.admin_req).sort((a, b) => (a.admin_req < b.admin_req ? -1 : 1));
 window.webRoleCard = () => {
   const r = state.role, admin = r === "owner" || r === "admin", owner = r === "owner";
   const me = state.members.find(m => m.user_id === state.uid) || {};
   const real = (typeof Store !== "undefined" && Store.real) || {};
   const preview = typeof Store !== "undefined" && Store.preview;
   const linked = u => { try { const p = claimOf(u); return p ? pname(p) + " 선수" : "선수 연결 전"; } catch (e) { return ""; } };
+  const reqs = pendingReqs();
+  const reqBox = owner && reqs.length ? `<div class="acct" style="display:flex;flex-direction:column;gap:6px"><div style="font-weight:700">관리자 신청 ${reqs.length}건</div>
+    ${reqs.map(m => `<div class="mrow"><div class="grow"><div class="nm">${esc(m.display_name || "이름 없음")}</div><div class="tiny muted">${esc(linked(m.user_id))}</div></div><button class="btn sm primary" data-web="adminOk" data-u="${esc(m.user_id)}">수락</button><button class="btn sm muted" data-web="adminNo" data-u="${esc(m.user_id)}">거절</button></div>`).join("")}
+    <div class="hint">수락하면 운영진이 돼요. 운영진은 일정, 출석, 라인업, 기록, 회비, 벌금, 선수, 공지를 관리해요.</div></div>` : "";
+  const myReq = r === "member" ? (me.admin_req
+    ? `<div class="acct" style="display:flex;flex-direction:column;gap:8px"><div style="font-weight:700">관리자 신청을 보냈어요</div><div class="small muted">팀장이 수락하면 운영진 화면으로 바뀌어요.</div><button class="btn muted" data-web="adminCancel" style="align-self:flex-start">신청 취소</button></div>`
+    : `<div class="hint">본인 참석만 투표하고, 회비와 벌금은 본인 것만 봐요.</div><button class="btn block" data-web="adminReq">관리자 신청</button>`) : "";
+  const chip = m => m.role === "member" && m.admin_req ? `<span class="chip">신청 중</span>` : `<span class="chip${m.role === "member" ? "" : " clay"}">${esc(ROLE[m.role] || "")}</span>`;
   const rows = state.members.map(m => `<div class="mrow"><div class="grow"><div class="nm">${esc(m.display_name || "이름 없음")}${m.user_id === state.uid ? ` <span class="tiny muted">나</span>` : ""}</div><div class="tiny muted">${esc(linked(m.user_id))}</div></div>
-    ${owner && m.role !== "owner" ? `<select data-web-role="${esc(m.user_id)}" aria-label="${esc(m.display_name || "멤버")} 역할"><option value="admin"${m.role === "admin" ? " selected" : ""}>운영진</option><option value="member"${m.role === "member" ? " selected" : ""}>팀원</option></select><button class="btn sm muted" data-web="kick" data-u="${esc(m.user_id)}">내보내기</button>` : `<span class="chip${m.role === "member" ? "" : " clay"}">${esc(ROLE[m.role] || "")}</span>`}</div>`).join("");
+    ${owner && m.role !== "owner" ? `<select data-web-role="${esc(m.user_id)}" aria-label="${esc(m.display_name || "멤버")} 역할"><option value="admin"${m.role === "admin" ? " selected" : ""}>운영진</option><option value="member"${m.role === "member" ? " selected" : ""}>팀원</option></select><button class="btn sm muted" data-web="kick" data-u="${esc(m.user_id)}">내보내기</button>` : chip(m)}</div>`).join("");
   return `<section class="card" style="gap:10px"><div class="labrow"><span class="lab">팀과 권한</span><span class="chip${admin ? " clay" : ""}">나는 ${esc(ROLE[r] || "")}</span></div>
+    ${reqBox}
     <div class="field" style="margin:0">팀에서 쓰는 내 이름<div class="namerow"><input class="inp" id="webName" value="${esc(me.display_name || "")}" maxlength="30" aria-label="팀에서 쓰는 내 이름"><button class="btn" data-web="saveName">저장</button></div></div>
     ${admin ? `<div class="acct" style="display:flex;flex-direction:column;gap:8px"><div style="font-weight:700">초대 링크</div><div class="invite">${esc(inviteLink())}</div>
       <div class="btnrow"><button class="btn primary" data-web="invite">초대 문구 보기</button><button class="btn muted" data-web="newCode">새 링크 만들기</button></div>
-      <div class="hint">이 링크로 로그인한 사람은 팀원이 돼요. 링크가 엉뚱한 곳에 퍼졌다면 새 링크를 만들어 예전 링크를 막으세요.</div></div>
+      <div class="hint">이 링크로 들어온 사람은 모두 팀원이 돼요. 운영진이 필요하면 본인이 관리자 신청을 하고, 팀장이 수락해요. 링크가 엉뚱한 곳에 퍼졌다면 새 링크를 만들어 예전 링크를 막으세요.</div></div>
     <div><div class="labrow"><span class="lab">멤버 ${state.members.length}명</span></div>${rows}</div>
-    ${owner ? `<div class="hint">운영진은 일정, 출석, 라인업, 기록, 회비, 벌금, 선수, 공지를 관리해요. 팀원은 본인 참석만 투표하고 회비와 벌금은 본인 것만 봐요.</div>` : `<div class="hint">운영진 지정과 내보내기는 팀장만 할 수 있어요.</div>`}`
-    : `<div class="hint">본인 참석만 투표하고, 회비와 벌금은 본인 것만 봐요. 운영진이 필요하면 팀장에게 말해 주세요.</div>`}
+    ${owner ? `<div class="hint">운영진 지정과 해제, 내보내기는 팀장만 할 수 있어요. 목록에서 바로 바꿀 수도 있어요.</div>` : `<div class="hint">운영진 지정과 해제, 내보내기는 팀장만 할 수 있어요.</div>`}` : myReq}
     ${real.canWrite && !preview ? `<button class="btn block" data-act="previewMember">팀원 화면으로 보기</button>` : ""}
     <div class="btnrow"><button class="btn" data-web="switchTeam">다른 팀</button><button class="btn muted" data-web="logout">로그아웃</button></div></section>`;
 };
+// 팀장 홈 맨 위에 관리자 신청을 알린다
+window.webHomeCards = () => {
+  if (state.role !== "owner") return "";
+  const reqs = pendingReqs(); if (!reqs.length) return "";
+  return `<a class="card soft" href="#config" style="flex-direction:row;align-items:center;gap:10px;border-radius:16px;padding:12px 14px"><span class="num" style="font-size:30px;line-height:1">${reqs.length}</span><span class="grow"><b style="display:block">관리자 신청이 왔어요</b><span class="small muted">${esc(reqs.map(m => m.display_name || "이름 없음").join(", "))}</span></span>${typeof ICON !== "undefined" ? ICON.chev : ""}</a>`;
+};
 
 /* ---------- 버튼과 입력 ---------- */
-const rerender = () => { if (typeof currentView === "function" && currentView() === "config" && typeof render === "function") render(); };
+const rerender = () => { if (typeof render === "function" && state.screen === "app") render(); };
 const toastAny = m => (typeof toast === "function" && state.screen === "app" ? toast(m) : note(m));
 async function rpc(name, args, okMsg) {
   if (state.busy) return null;
@@ -411,7 +426,7 @@ async function rpc(name, args, okMsg) {
     return { data };
   } catch (e) {
     const m = String((e && e.message) || "");
-    toastAny(m.includes("bad_code") ? "초대 링크가 바뀌었거나 잘못됐어요. 운영진에게 새 링크를 받아 주세요." : m.includes("owner_only") ? "팀장만 할 수 있어요." : m.includes("not_self") ? "내 역할은 바꿀 수 없어요." : "처리하지 못했어요. 잠시 후 다시 시도해 주세요.");
+    toastAny(m.includes("bad_code") ? "초대 링크가 바뀌었거나 잘못됐어요. 운영진에게 새 링크를 받아 주세요." : m.includes("owner_only") ? "팀장만 할 수 있어요." : m.includes("not_self") ? "내 역할은 바꿀 수 없어요." : m.includes("member_only") ? "팀원만 신청할 수 있어요." : m.includes("no_request") ? "이미 처리된 신청이에요." : /function|schema cache/i.test(m) ? "서버 설정이 아직 반영되지 않았어요. 팀장에게 알려 주세요." : "처리하지 못했어요. 잠시 후 다시 시도해 주세요.");
     return null;
   } finally { state.busy = false; }
 }
@@ -437,6 +452,20 @@ const ACTS = {
     const r = await rpc("new_invite_code", { p_team: state.tid }, "새 초대 링크를 만들었어요");
     if (r) { await loadMembers().catch(() => {}); rerender(); }
   }),
+  adminReq: () => confirmSheet("관리자 신청", "팀장에게 운영진 권한을 신청할까요? 수락되면 일정, 출석, 회비 같은 팀 관리를 할 수 있어요.", "신청하기", async () => {
+    if (await rpc("request_admin", { p_team: state.tid }, "관리자 신청을 보냈어요")) { await loadMembers().catch(() => {}); rerender(); }
+  }),
+  adminCancel: async () => { if (await rpc("cancel_admin_request", { p_team: state.tid }, "신청을 취소했어요")) { await loadMembers().catch(() => {}); rerender(); } },
+  adminOk: t => {
+    const m = state.members.find(x => x.user_id === t.dataset.u); if (!m) return;
+    confirmSheet("관리자 신청 수락", `${m.display_name || "이 멤버"} 님을 운영진으로 바꿀까요? 나중에 멤버 목록에서 다시 팀원으로 바꿀 수 있어요.`, "수락", async () => {
+      if (await rpc("answer_admin_request", { p_team: state.tid, p_user: m.user_id, p_ok: true }, `${m.display_name || "멤버"} 님이 운영진이 됐어요`)) { await loadMembers().catch(() => {}); rerender(); }
+    });
+  },
+  adminNo: async t => {
+    const m = state.members.find(x => x.user_id === t.dataset.u); if (!m) return;
+    if (await rpc("answer_admin_request", { p_team: state.tid, p_user: m.user_id, p_ok: false }, "신청을 거절했어요")) { await loadMembers().catch(() => {}); rerender(); }
+  },
   kick: t => {
     const m = state.members.find(x => x.user_id === t.dataset.u); if (!m) return;
     confirmSheet("멤버 내보내기", `${m.display_name || "이 멤버"} 님을 팀에서 내보낼까요? 다시 들어오려면 초대 링크가 필요해요.`, "내보내기", async () => {

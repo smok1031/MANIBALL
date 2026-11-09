@@ -32,7 +32,7 @@ function renderChrome() {
   const name = String(S.settings.teamName || "").trim() || "팀 매니저";
   const pid = myPid(); const unread = pid ? unreadCount() : 0;
   const top = $("#top");
-  top.innerHTML = `<a class="teamname" href="#home">${esc(name)}</a>${isOpView() ? `<span class="chip soft rolechip">운영진</span>` : Store.preview ? `<span class="chip line rolechip">팀원 화면</span>` : ""}
+  top.innerHTML = `<a class="teamname" href="#home">${esc(name)}</a>${isOpView() ? `<span class="chip soft rolechip">${Store.role === "owner" && window.__WEB ? "팀장" : "운영진"}</span>` : Store.preview ? `<span class="chip line rolechip">팀원 화면</span>` : ""}
     <span class="sync" id="sync"><i></i><span>연결 중</span></span>
     ${pid ? `<a class="iconbtn" href="#inbox" aria-label="알림함${unread ? `, 새 알림 ${unread}개` : ""}">${ICON.bell}${unread ? `<span class="badge">${unread > 9 ? "9+" : unread}</span>` : ""}</a>` : ""}
     <a class="iconbtn" href="#config" aria-label="설정">${ICON.gear}</a>`;
