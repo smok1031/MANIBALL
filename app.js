@@ -847,7 +847,7 @@ function renderChrome() {
   const name = String(S.settings.teamName || "").trim() || "팀 매니저";
   const pid = myPid(); const unread = pid ? unreadCount() : 0;
   const top = $("#top");
-  top.innerHTML = `<a class="teamname" href="#home">${esc(name)}</a>${isOpView() ? `<span class="chip soft rolechip">운영진</span>` : Store.preview ? `<span class="chip line rolechip">팀원 화면</span>` : ""}
+  top.innerHTML = `<a class="teamname" href="#home">${esc(name)}</a>${isOpView() ? `<span class="chip soft rolechip">${Store.role === "owner" && window.__WEB ? "팀장" : "운영진"}</span>` : Store.preview ? `<span class="chip line rolechip">팀원 화면</span>` : ""}
     <span class="sync" id="sync"><i></i><span>연결 중</span></span>
     ${pid ? `<a class="iconbtn" href="#inbox" aria-label="알림함${unread ? `, 새 알림 ${unread}개` : ""}">${ICON.bell}${unread ? `<span class="badge">${unread > 9 ? "9+" : unread}</span>` : ""}</a>` : ""}
     <a class="iconbtn" href="#config" aria-label="설정">${ICON.gear}</a>`;
@@ -1207,6 +1207,7 @@ function viewOpHome() {
   if (!S.players.length) return `<div class="card"><div class="empty"><b>팀을 시작해 볼까요?</b>먼저 팀 이름과 정원, 회비, 벌금 규칙을 정하고, 선수 명단을 붙여 넣어 한 번에 등록하세요. 그다음 일정을 올리면 팀원들이 참석 투표를 할 수 있어요.</div>
     <a class="btn primary big" href="#config">팀 이름과 규칙 정하기</a><button class="btn block" data-act="bulkOpen">명단 붙여 넣어 한 번에 등록</button></div>`;
   const parts = [];
+  if (typeof window.webHomeCards === "function") { const w = window.webHomeCards(); if (w) parts.push(w); }
   const n = todoCount();
   parts.push(`<a class="card soft" href="#todo" style="flex-direction:row;align-items:center;gap:10px;border-radius:16px;padding:12px 14px"><span class="num" style="font-size:30px;line-height:1">${n}</span><span class="grow" style="font-weight:700">${n ? "오늘 처리할 일이 있어요" : "오늘 처리할 일이 없어요"}</span>${ICON.chev}</a>`);
   const next = eventsSorted().find(e => !started(e));
