@@ -2,6 +2,70 @@
   "v": 3,
   "attachments": {},
   "boards": {
+    "AdminCheckIn.dc.html": {
+      "h": 1180,
+      "is_interactive": true,
+      "title": "운영진 일정 2-4 현장 출석",
+      "w": 390,
+      "x": 6433,
+      "y": 9690
+    },
+    "AdminCreate.dc.html": {
+      "h": 1160,
+      "is_interactive": true,
+      "title": "운영진 일정 2-7 일정 만들기",
+      "w": 390,
+      "x": 7843,
+      "y": 9690
+    },
+    "AdminEdit.dc.html": {
+      "h": 1240,
+      "is_interactive": true,
+      "title": "운영진 일정 2-8 수정",
+      "w": 390,
+      "x": 8313,
+      "y": 9690
+    },
+    "AdminLineup.dc.html": {
+      "h": 1240,
+      "is_interactive": true,
+      "title": "운영진 일정 2-3 라인업 짜기",
+      "w": 390,
+      "x": 5963,
+      "y": 9690
+    },
+    "AdminOpenNow.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "운영진 일정 2-6 지금 열기",
+      "w": 390,
+      "x": 7373,
+      "y": 9690
+    },
+    "AdminRemind.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "운영진 일정 2-2 미응답 알리기",
+      "w": 390,
+      "x": 5493,
+      "y": 9690
+    },
+    "AdminRemindLocked.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "운영진 일정 2-2-1 미응답 알림 1시간 제한",
+      "w": 390,
+      "x": 5493,
+      "y": 10684
+    },
+    "AdminSquad.dc.html": {
+      "h": 1340,
+      "is_interactive": true,
+      "title": "운영진 일정 2-5 스쿼드 직접 고르기",
+      "w": 390,
+      "x": 6903,
+      "y": 9690
+    },
     "AppCheck.dc.html": {
       "h": 660,
       "title": "예시 화면 3 현장 출석과 벌금",
@@ -42,32 +106,32 @@
       "is_interactive": true,
       "title": "팀원 화면 1-1",
       "w": 390,
-      "x": -92,
-      "y": 8644
+      "x": -1522,
+      "y": 8675
     },
     "Home5Absent.dc.html": {
       "h": 844,
       "is_interactive": true,
       "title": "팀원 화면 1-3 불참 눌렀을 때",
       "w": 390,
-      "x": 848,
-      "y": 8644
+      "x": -582,
+      "y": 8675
     },
     "Home5Late.dc.html": {
       "h": 844,
       "is_interactive": true,
       "title": "팀원 화면 1-2 늦참 눌렀을 때",
       "w": 390,
-      "x": 378,
-      "y": 8644
+      "x": -1052,
+      "y": 8675
     },
     "HomeAdmin.dc.html": {
       "h": 980,
       "is_interactive": true,
       "title": "운영진 화면 1-1",
       "w": 390,
-      "x": 3071,
-      "y": 6102
+      "x": 5023,
+      "y": 8574
     },
     "InviteMessage.dc.html": {
       "h": 844,
@@ -98,56 +162,56 @@
       "is_interactive": true,
       "title": "운영진 일정 2-1",
       "w": 390,
-      "x": 3071,
-      "y": 7218
+      "x": 5023,
+      "y": 9690
     },
     "ScheduleMember.dc.html": {
       "h": 844,
       "is_interactive": true,
       "title": "팀원 일정 2-1",
       "w": 390,
-      "x": -92,
-      "y": 9646
+      "x": -1522,
+      "y": 9677
     },
     "ScheduleMemberAbsent.dc.html": {
       "h": 880,
       "is_interactive": true,
       "title": "팀원 일정 2-4 불참 눌렀을 때",
       "w": 390,
-      "x": 1318,
-      "y": 9646
+      "x": -112,
+      "y": 9677
     },
     "ScheduleMemberAttend.dc.html": {
       "h": 844,
       "is_interactive": true,
       "title": "팀원 일정 2-2 참석 눌렀을 때",
       "w": 390,
-      "x": 378,
-      "y": 9646
+      "x": -1052,
+      "y": 9677
     },
     "ScheduleMemberCalendar.dc.html": {
       "h": 844,
       "is_interactive": true,
       "title": "팀원 일정 2-6 달력으로 보기",
       "w": 390,
-      "x": 2258,
-      "y": 9646
+      "x": 828,
+      "y": 9677
     },
     "ScheduleMemberChange.dc.html": {
       "h": 880,
       "is_interactive": true,
       "title": "팀원 일정 2-5 바꾸기 눌렀을 때",
       "w": 390,
-      "x": 1788,
-      "y": 9646
+      "x": 358,
+      "y": 9677
     },
     "ScheduleMemberLate.dc.html": {
       "h": 960,
       "is_interactive": true,
       "title": "팀원 일정 2-3 늦참 눌렀을 때",
       "w": 390,
-      "x": 848,
-      "y": 9646
+      "x": -582,
+      "y": 9677
     },
     "TeamSplit.dc.html": {
       "h": 1720,
@@ -157,68 +221,20 @@
       "x": 0,
       "y": 6378
     },
-    "AdminRemind.dc.html": {
-      "h": 844,
-      "title": "운영진 일정 2-2 미응답 알리기",
+    "RecordAdmin.dc.html": {
+      "h": 1420,
+      "title": "운영진 기록 3-1",
       "w": 390,
-      "x": 3541,
-      "y": 7218,
+      "x": 5023,
+      "y": 11750,
       "is_interactive": true
     },
-    "AdminLineup.dc.html": {
+    "RecordMember.dc.html": {
       "h": 1240,
-      "title": "운영진 일정 2-3 라인업 짜기",
+      "title": "팀원 기록 3-1",
       "w": 390,
-      "x": 4011,
-      "y": 7218,
-      "is_interactive": true
-    },
-    "AdminCheckIn.dc.html": {
-      "h": 1180,
-      "title": "운영진 일정 2-4 현장 출석",
-      "w": 390,
-      "x": 4481,
-      "y": 7218,
-      "is_interactive": true
-    },
-    "AdminSquad.dc.html": {
-      "h": 1340,
-      "title": "운영진 일정 2-5 스쿼드 직접 고르기",
-      "w": 390,
-      "x": 4951,
-      "y": 7218,
-      "is_interactive": true
-    },
-    "AdminOpenNow.dc.html": {
-      "h": 844,
-      "title": "운영진 일정 2-6 지금 열기",
-      "w": 390,
-      "x": 5421,
-      "y": 7218,
-      "is_interactive": true
-    },
-    "AdminCreate.dc.html": {
-      "h": 1160,
-      "title": "운영진 일정 2-7 일정 만들기",
-      "w": 390,
-      "x": 5891,
-      "y": 7218,
-      "is_interactive": true
-    },
-    "AdminEdit.dc.html": {
-      "h": 1240,
-      "title": "운영진 일정 2-8 수정",
-      "w": 390,
-      "x": 6361,
-      "y": 7218,
-      "is_interactive": true
-    },
-    "AdminRemindLocked.dc.html": {
-      "h": 844,
-      "title": "운영진 일정 2-2-1 미응답 알림 1시간 제한",
-      "w": 390,
-      "x": 3541,
-      "y": 8212,
+      "x": -1522,
+      "y": 10800,
       "is_interactive": true
     }
   },
@@ -246,24 +262,24 @@
       "size": 24,
       "text": "",
       "w": 240,
-      "x": -355,
-      "y": 8586
+      "x": -1785,
+      "y": 8617
     },
     "note-qskc3w": {
       "kind": "title1",
       "maxW": 2740,
       "text": "메인 화면 \\[팀원\\] ",
       "w": 240,
-      "x": -127,
-      "y": 8375
+      "x": -1557,
+      "y": 8406
     },
     "tHome": {
       "kind": "title1",
       "maxW": 2740,
       "text": "메인 화면 \\[운영진\\] ",
       "w": 240,
-      "x": 3036,
-      "y": 5934
+      "x": 4988,
+      "y": 8406
     },
     "tInvite": {
       "kind": "title1",
@@ -326,7 +342,9 @@
     "AdminOpenNow.dc.html",
     "AdminCreate.dc.html",
     "AdminEdit.dc.html",
-    "AdminRemindLocked.dc.html"
+    "AdminRemindLocked.dc.html",
+    "RecordAdmin.dc.html",
+    "RecordMember.dc.html"
   ],
   "pages": [],
   "title": "매니볼 홈페이지 시안"

@@ -12,8 +12,8 @@ const FIXED = new Set(["AdminRemind", "AdminOpenNow"]);
 
 const GROUPS = [
   ["팀 만들기", ["TeamSplit", "InviteMessage", "InviteRoster"]],
-  ["운영진", ["HomeAdmin", "ScheduleAdmin", "AdminRemind", "AdminRemindLocked", "AdminLineup", "AdminCheckIn", "AdminSquad", "AdminOpenNow", "AdminCreate", "AdminEdit"]],
-  ["팀원", ["Home5", "Home5Late", "Home5Absent", "ScheduleMember", "ScheduleMemberAttend", "ScheduleMemberLate", "ScheduleMemberAbsent", "ScheduleMemberChange", "ScheduleMemberCalendar"]],
+  ["운영진", ["HomeAdmin", "ScheduleAdmin", "AdminRemind", "AdminRemindLocked", "AdminLineup", "AdminCheckIn", "AdminSquad", "AdminOpenNow", "AdminCreate", "AdminEdit", "RecordAdmin"]],
+  ["팀원", ["Home5", "Home5Late", "Home5Absent", "ScheduleMember", "ScheduleMemberAttend", "ScheduleMemberLate", "ScheduleMemberAbsent", "ScheduleMemberChange", "ScheduleMemberCalendar", "RecordMember"]],
 ];
 
 const titles = {};
