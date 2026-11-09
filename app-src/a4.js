@@ -114,14 +114,14 @@ function opLineup(e) {
   const scrim = !!L.side;
   let top = `<div class="forms" role="group" aria-label="포메이션">${Object.keys(L.forms).map(f => `<button data-act="formation" data-v="${f}" aria-pressed="${f === L.formation}">${f}</button>`).join("")}</div>`;
   if (scrim) {
-    const T = teamsOf(e).t; const nA = conf.filter(p => T[p.id] === "A").length, nB = conf.filter(p => T[p.id] === "B").length, nOut = conf.length - nA - nB;
+    const nA = sidePool(e, "A").length, nB = sidePool(e, "B").length, nOut = 0;
     const size = L.formation.split("|")[0];
     const sizes = Array.from(new Set(Object.keys(SCRIM_FORMS).map(k => k.split("|")[0])));
     top = `<div class="row between" style="gap:8px"><div class="small"><b>스쿼드</b> 조끼팀 ${nA}명, 일반팀 ${nB}명${nOut ? `, 안 고른 사람 ${nOut}명` : ""}</div><a class="btn sm" href="#split-${e.id}">스쿼드 고르기</a></div>
       ${sideSeg(e, L.side)}
       <div class="field" style="margin:0"><span class="flabel">${L.side === "A" ? "조끼팀" : "일반팀"} 한 번에 뛰는 인원</span><div class="forms" role="group" aria-label="인원">${sizes.map(n => `<button data-act="scrimN" data-v="${n}" aria-pressed="${n === size}">${n}인</button>`).join("")}</div></div>
       <div class="forms" role="group" aria-label="포메이션">${Object.keys(SCRIM_FORMS).filter(k => k.startsWith(size + "|")).map(f => `<button data-act="formation" data-v="${f}" aria-pressed="${f === L.formation}">${f.split("|")[1]}</button>`).join("")}</div>`;
-    if (!nA && !nB) return `<section class="card" style="gap:10px">${top}<div class="empty"><b>먼저 스쿼드를 골라 주세요</b>참석 확정 인원 중에서 조끼팀과 일반팀에 넣을 사람을 한 명씩 고르면, 팀마다 쿼터별 자리와 휴식을 짤 수 있어요.</div><a class="btn primary big" href="#split-${e.id}">스쿼드 고르기</a></section>`;
+    if (!nA && !nB) return `<section class="card" style="gap:10px">${top}<div class="empty"><b>먼저 스쿼드를 골라 주세요</b>팀 선수 중에서 조끼팀과 일반팀에 넣을 사람을 한 명씩 고르면, 팀마다 쿼터별 자리와 휴식을 짤 수 있어요.</div><a class="btn primary big" href="#split-${e.id}">스쿼드 고르기</a></section>`;
   }
   return `<section class="card" style="gap:10px">
     ${top}

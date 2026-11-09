@@ -115,7 +115,8 @@ const fineOn = key => ui.fineSel[key] !== false;
 
 /* 쿼터별 라인업 */
 // 내전: 운영진이 고른 쪽(조끼팀/일반팀)의 라인업을 다룬다. 팀원은 자기 팀이 먼저 보인다
-const sidePool = (e, side) => { const T = teamsOf(e).t; return roster(e).confirmed.filter(p => T[p.id] === side); };
+const squadBase = e => e && e.type === "scrim" ? S.players.filter(p => p.active !== false || (e.teams || {})[p.id]) : roster(e).confirmed;
+const sidePool = (e, side) => { const T = teamsOf(e).t; return squadBase(e).filter(p => T[p.id] === side); };
 function curSide(e) {
   if (!isScrim(e)) return null;
   if (ui.lineSideEv === e.id && (ui.lineSide === "A" || ui.lineSide === "B")) return ui.lineSide;
@@ -341,7 +342,7 @@ function autoTeams(e, seed) {
 function teamsOf(e) {
   const conf = roster(e).confirmed; const saved = (e && e.teams) || {};
   // 새 내전은 운영진이 한 명씩 고른다. 고르지 않은 사람은 스쿼드 밖
-  if (e && e.type === "scrim") { const t = {}; conf.forEach(p => { if (saved[p.id] === "A" || saved[p.id] === "B") t[p.id] = saved[p.id]; }); return { t, saved: !!e.teamsAt }; }
+  if (e && e.type === "scrim") { const t = {}; S.players.forEach(p => { if (saved[p.id] === "A" || saved[p.id] === "B") t[p.id] = saved[p.id]; }); return { t, saved: !!e.teamsAt }; }
   const has = conf.length && conf.every(p => saved[p.id] === "A" || saved[p.id] === "B");
   const t = has ? saved : Object.assign(autoTeams(e, 0), Object.fromEntries(Object.entries(saved).filter(([pid, v]) => conf.some(p => p.id === pid) && (v === "A" || v === "B"))));
   return { t, saved: !!(e && e.teamsAt) && has };

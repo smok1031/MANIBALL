@@ -219,7 +219,7 @@ function mLineup(e) {
   const teams = isScrim(e) && e.teamsAt ? teamsOf(e).t : null;
   const sideTabs = isScrim(e) ? sideSeg(e, L.side) : "";
   const teamBlock = teams ? `<section class="card"><div class="labrow"><span class="lab">오늘의 팀</span>${pid && teams[pid] ? `<span class="chip ${teams[pid] === "A" ? "clay" : "ink"}">나는 ${teams[pid] === "A" ? "조끼팀" : "일반팀"}</span>` : ""}</div>
-    <div class="small"><b style="color:var(--clay)">조끼팀</b> ${roster(e).confirmed.filter(p => teams[p.id] === "A").map(p => esc(p.name)).join(", ")}</div><div class="small"><b>일반팀</b> ${roster(e).confirmed.filter(p => teams[p.id] === "B").map(p => esc(p.name)).join(", ")}</div></section>` : "";
+    <div class="small"><b style="color:var(--clay)">조끼팀</b> ${squadBase(e).filter(p => teams[p.id] === "A").map(p => esc(p.name)).join(", ")}</div><div class="small"><b>일반팀</b> ${squadBase(e).filter(p => teams[p.id] === "B").map(p => esc(p.name)).join(", ")}</div></section>` : "";
   if (!any) return teamBlock + sideTabs + `<div class="empty"><b>아직 라인업 전이에요</b>운영진이 라인업을 짜면 몇 쿼터에 어느 자리로 뛰고 언제 쉬는지 여기에 보여요.</div>`;
   const k = Math.min(ui.evQ || 0, L.N - 1); const P = pid ? myPlan(e, pid) : null;
   return `${teamBlock}<div class="stack">
@@ -234,7 +234,7 @@ function mLineup(e) {
 }
 // 내전 팀 고르기 탭 (조끼팀 / 일반팀)
 function sideSeg(e, side) {
-  const T = teamsOf(e).t; const n = s => roster(e).confirmed.filter(p => T[p.id] === s).length;
+  const n = s => sidePool(e, s).length;
   return `<div class="seg" role="group" aria-label="팀">${[["A", "조끼팀"], ["B", "일반팀"]].map(([s, l]) => `<button data-act="lineSide" data-eid="${e.id}" data-v="${s}" aria-pressed="${s === side}">${l} ${n(s)}명</button>`).join("")}</div>`;
 }
 function benchOf(e, L, k) {
