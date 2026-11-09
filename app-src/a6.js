@@ -30,6 +30,8 @@ function opSetAtt(e, pid, nv) {
 }
 function lineupSave(e, L, q) {
   const obj = {}; q.forEach((slots, k) => { obj[k + 1] = slots.map(x => x || null); });
+  const side = L.side || curSide(e);
+  if (side) { saveEv(e, { lineS: { [side]: { formation: L.formation, q: obj } } }); return; }
   saveEv(e, { lineupQ: { formation: L.formation, q: obj }, lineup: null });
 }
 
@@ -149,6 +151,8 @@ const ACT = {
   delGoal: t => { const e = curEvent(); if (!e) return; saveEv(e, { goals: (e.goals || []).filter((_, i) => i !== Number(t.dataset.i)) }); },
   // 라인업
   lineQ: t => { ui.lineQ = Number(t.dataset.v) || 0; ui.lineSel = -1; ui.lineMsg = ""; render(); },
+  lineSide: t => { ui.lineSide = t.dataset.v === "B" ? "B" : "A"; ui.lineSideEv = t.dataset.eid; ui.lineSel = -1; ui.lineMsg = ""; render(); },
+  scrimN: t => { const e = curEvent(); if (!e) return; const f = Object.keys(SCRIM_FORMS).find(k => k.startsWith(t.dataset.v + "|")); if (f) ACT.formation({ dataset: { v: f } }); },
   formation: t => {
     const e = curEvent(); if (!e) return; const L = lineupOf(e);
     const spots = L.forms[t.dataset.v]; if (!spots) return;
@@ -164,10 +168,10 @@ const ACT = {
   pickSlot: t => {
     const e = curEvent(); if (!e) return; const L = lineupOf(e); const k = Math.min(ui.lineQ, L.N - 1); const i = Number(t.dataset.i);
     const slots = L.q[k];
-    const rr = roster(e);
-    const avail = rr.confirmed.filter(p => availFrom(e, p.id) <= k + 1);
-    const late = rr.confirmed.filter(p => availFrom(e, p.id) > k + 1);
-    const others = activePlayers().filter(p => !rr.confirmed.includes(p));
+    const rr = roster(e); const base = L.side ? sidePool(e, L.side) : rr.confirmed;
+    const avail = base.filter(p => availFrom(e, p.id) <= k + 1);
+    const late = base.filter(p => availFrom(e, p.id) > k + 1);
+    const others = activePlayers().filter(p => !base.includes(p));
     const where = pid => { const j = slots.indexOf(pid); return j >= 0 ? `(지금 ${L.spots[j][3]})` : ""; };
     playerPicker(`${k + 1}쿼터 ${L.spots[i][3]} 자리`, { current: slots[i], tag: where, sections: [["이번 쿼터 가능", avail], ["아직 안 옴", late], ["그 외 선수", others]], extra: slots[i] ? [["__none", "이 자리 비우기"]] : [] }, pid => {
       const cur = S.events[e.id]; if (!cur) return; const L2 = lineupOf(cur);
@@ -179,11 +183,12 @@ const ACT = {
   },
   autoLineup: () => {
     const e = curEvent(); if (!e) return; const L = lineupOf(e);
-    if (!roster(e).confirmed.length) { toast("참석 탭에서 확정 인원이 생기면 배치할 수 있어요"); return; }
+    const base = L.side ? sidePool(e, L.side) : roster(e).confirmed;
+    if (!base.length) { toast(L.side ? "먼저 이 팀 스쿼드를 골라 주세요" : "참석 탭에서 확정 인원이 생기면 배치할 수 있어요"); return; }
     const out = autoRotate(e); const q = L.q.map((_, k) => out[k + 1]);
     lineupSave(e, L, q);
     const cnt = {}; q.forEach(sl => sl.forEach(id => { if (id) cnt[id] = (cnt[id] || 0) + 1; }));
-    const vals = roster(e).confirmed.filter(p => availFrom(e, p.id) === 1).map(p => cnt[p.id] || 0);
+    const vals = base.filter(p => availFrom(e, p.id) === 1).map(p => cnt[p.id] || 0);
     toast(vals.length ? `배치했어요. 정시에 오는 사람은 ${Math.min(...vals)}에서 ${Math.max(...vals)}쿼터씩 뛰어요` : "배치했어요");
   },
   copyQ: () => { const e = curEvent(); if (!e) return; const L = lineupOf(e); const k = Math.min(ui.lineQ, L.N - 1); const q = L.q.map(() => L.q[k].slice()); lineupSave(e, L, q); toast(`${k + 1}쿼터 배치를 모든 쿼터에 복사했어요`); },
@@ -363,6 +368,9 @@ Object.assign(ACT, {
       evPatch(e.id, { feeCharged: true }); render(); scheduleSync(); toast(`${F.ppl.length}명에게 청구했어요`);
     });
   },
+  // 내전 스쿼드: 한 명씩 조끼팀, 일반팀, 빼기
+  teamSet: t => { const e = S.events[t.dataset.eid]; if (!e) return; const cur = teamsOf(e).t[t.dataset.pid] || ""; const v = t.dataset.v === cur ? null : (t.dataset.v || null); evPatch(e.id, { teams: { [t.dataset.pid]: v }, teamsAt: "" }); render(); },
+  teamClear: t => { const e = S.events[t.dataset.eid]; if (!e) return; confirmSheet("스쿼드 비우기", "고른 팀을 모두 지울까요? 라인업은 그대로 남지만 스쿼드에서 빠진 사람은 휴식 칸에서도 사라져요.", "비우기", () => { evPatch(e.id, { teams: Object.fromEntries(Object.keys(e.teams || {}).map(k => [k, null])), teamsAt: "" }); render(); }); },
   teamMove: t => { const e = S.events[t.dataset.eid]; if (!e) return; const T = { ...teamsOf(e).t }; T[t.dataset.pid] = T[t.dataset.pid] === "A" ? "B" : "A"; evPatch(e.id, { teams: T, teamsAt: "" }); render(); },
   teamShuffle: t => { const e = S.events[t.dataset.eid]; if (!e) return; ui.splitSeed = (ui.splitSeed || 0) + 1; evPatch(e.id, { teams: autoTeams(e, ui.splitSeed), teamsAt: "" }); render(); },
   teamConfirm: t => { const e = S.events[t.dataset.eid]; if (!e) return; evPatch(e.id, { teams: { ...teamsOf(e).t }, teamsAt: nowIso() }); render(); textSheet("팀을 확정했어요", teamText(S.events[e.id] || e), "단톡방에 붙여 넣으세요. 팀원 일정 화면에도 바로 보여요."); },
@@ -386,7 +394,7 @@ Object.assign(ACT, {
   peDel: t => { const p = playerById(t.dataset.id); if (!p) return; confirmSheet("선수 삭제", `${p.name} 선수를 삭제할까요? 지난 기록에는 '삭제된 선수'로 표시돼요. 그만둔 선수라면 삭제 대신 휴면으로 두는 것을 권해요.`, "삭제", () => { delDoc("players/" + p.id); if (p.phone) delDoc("contacts/" + p.id); location.hash = "players"; toast("삭제했어요"); }); },
   unlink: t => { patchDoc("rsvp/" + t.dataset.u, { pid: "" }); render(); toast("계정 연결을 해제했어요"); },
 });
-["voteSheet", "evQ", "mlQ", "goEvTab", "rptTab", "claimPick", "posSel", "inboxToggle", "momPick", "teamShare", "pePos", "peRest", "noticeEdit"].forEach(a => READ_ACTS.add(a));
+["voteSheet", "evQ", "mlQ", "lineSide", "goEvTab", "rptTab", "claimPick", "posSel", "inboxToggle", "momPick", "teamShare", "pePos", "peRest", "noticeEdit"].forEach(a => READ_ACTS.add(a));
 ["claimConfirm", "posSend", "guestOpen", "pollVote", "inboxRead", "momSend"].forEach(a => VOTE_ACTS.add(a));
 /* 화면을 그린 뒤 할 일: 공지를 열면 읽음으로 표시 */
 function afterRender(v) {

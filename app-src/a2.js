@@ -6,11 +6,12 @@ const activePlayers = () => S.players.filter(p => p.active !== false).sort(sortP
 function sortPlayers(a, b) { const pa = POS.indexOf(a.pos), pb = POS.indexOf(b.pos); if (pa !== pb) return (pa < 0 ? 9 : pa) - (pb < 0 ? 9 : pb); return (Number(a.num) || 999) - (Number(b.num) || 999) || String(a.name).localeCompare(String(b.name), "ko"); }
 const eventsSorted = () => Object.values(S.events).sort((a, b) => (a.date + (a.time || "")).localeCompare(b.date + (b.time || "")));
 const isPast = e => e.date < todayStr();
-const hasScore = e => e.type === "match" && e.score && Number.isFinite(e.score.us) && Number.isFinite(e.score.them);
+const isPlay = e => !!e && (e.type === "match" || e.type === "scrim");
+const hasScore = e => isPlay(e) && e.score && Number.isFinite(e.score.us) && Number.isFinite(e.score.them);
 function resultOf(e) { if (!hasScore(e)) return null; return e.score.us > e.score.them ? "W" : e.score.us < e.score.them ? "L" : "D"; }
 const going = v => v === "yes" || v === "late";
 const quartersOf = e => QUARTERS[e.format === "futsal" ? "futsal" : "11"];
-const evTitle = e => e.type === "match" ? (e.opponent ? (e.opponent === "내전" ? "내전" : "vs " + e.opponent) : "경기") : (e.title || "훈련");
+const evTitle = e => e.type === "scrim" ? (e.title || "내전") : e.type === "match" ? (e.opponent ? (e.opponent === "내전" ? "내전" : "vs " + e.opponent) : "경기") : (e.title || "훈련");
 function eventStart(e) {
   const d = parseD(e.date);
   if (/^\d{2}:\d{2}$/.test(e.time || "")) { const [h, m] = e.time.split(":").map(Number); d.setHours(h, m, 0, 0); } else d.setHours(23, 59, 0, 0);
@@ -113,7 +114,29 @@ function fineCands(e) {
 const fineOn = key => ui.fineSel[key] !== false;
 
 /* 쿼터별 라인업 */
-function lineupOf(e) {
+// 내전: 운영진이 고른 쪽(조끼팀/일반팀)의 라인업을 다룬다. 팀원은 자기 팀이 먼저 보인다
+const sidePool = (e, side) => { const T = teamsOf(e).t; return roster(e).confirmed.filter(p => T[p.id] === side); };
+function curSide(e) {
+  if (!isScrim(e)) return null;
+  if (ui.lineSideEv === e.id && (ui.lineSide === "A" || ui.lineSide === "B")) return ui.lineSide;
+  const pid = myPid(); const s = pid && teamsOf(e).t[pid]; return s === "B" ? "B" : "A";
+}
+function scrimDefaultForm(e, side) {
+  if (e.format === "futsal") return "5|" + Object.keys(FORMATIONS.futsal)[0];
+  const n = Math.max(5, Math.min(11, sidePool(e, side).length || 11));
+  return Object.keys(SCRIM_FORMS).find(k => k.startsWith(n + "|"));
+}
+const lineFor = (e, pid) => isScrim(e) ? lineupOf(e, teamsOf(e).t[pid] || curSide(e)) : lineupOf(e);
+function lineupOf(e, side) {
+  if (isScrim(e)) {
+    side = side === "A" || side === "B" ? side : curSide(e);
+    const forms = SCRIM_FORMS; const N = quartersOf(e); const src = (e.lineS || {})[side];
+    const ok = src && forms[src.formation];
+    const formation = ok ? src.formation : scrimDefaultForm(e, side); const qs = ok ? src.q || {} : {};
+    const spots = forms[formation];
+    const q = Array.from({ length: N }, (_, k) => spots.map((_, i) => { const id = (qs[k + 1] || [])[i]; return id && playerById(id) ? id : null; }));
+    return { fmt: e.format === "futsal" ? "futsal" : "11", forms, formation, spots, q, N, side };
+  }
   const fmt = e.format === "futsal" ? "futsal" : "11"; const forms = FORMATIONS[fmt]; const N = quartersOf(e);
   let formation = Object.keys(forms)[0], qs = {};
   if (e.lineupQ && forms[e.lineupQ.formation]) { formation = e.lineupQ.formation; qs = e.lineupQ.q || {}; }
@@ -127,10 +150,10 @@ const isGk = p => (p.pos1 || p.pos) === "GK";
 // 내 쿼터별 출전 계획: 출전(자리), 휴식, 합류 전
 function myPlan(e, pid) {
   if (!e || !pid) return null;
-  const L = lineupOf(e); const conf = roster(e).ids.has(pid);
+  const L = lineFor(e, pid); const conf = isScrim(e) ? sidePool(e, L.side).some(p => p.id === pid) : roster(e).ids.has(pid);
   const rows = L.q.map((qs, k) => { const i = qs.indexOf(pid); if (i >= 0) return { k, st: "on", lab: L.spots[i][3] }; if (conf && availFrom(e, pid) > k + 1) return { k, st: "late" }; return { k, st: "rest" }; });
   const on = rows.filter(r => r.st === "on").length;
-  return { any: L.q.some(qs => qs.some(Boolean)), conf, rows, on, N: L.N };
+  return { any: L.q.some(qs => qs.some(Boolean)), conf, rows, on, N: L.N, side: L.side };
 }
 function myPosReq() {
   const pid = myPid(); if (!pid) return null;
@@ -150,7 +173,7 @@ function spotFit(spot, p) {
   return g1 === "GK" ? 60 : 40;
 }
 function autoRotate(e) {
-  const L = lineupOf(e); const pool = roster(e).confirmed.filter(p => p.active !== false);
+  const L = lineupOf(e); const pool = (L.side ? sidePool(e, L.side) : roster(e).confirmed).filter(p => p.active !== false);
   const played = {}, gkPlayed = {}, prev = {}; const order = new Map(pool.map((p, i) => [p.id, i]));
   pool.forEach(p => { played[p.id] = 0; gkPlayed[p.id] = 0; });
   const gkIdx = L.spots.findIndex(s => s[0] === "GK");
@@ -205,7 +228,7 @@ function playerStats(pid, year) {
     played++;
     if (checkStarted(e)) { const v = (e.check || {})[pid]; if (v === "in" || v === "late" || v === "excused") apps++; }
     else if (roster(e).ids.has(pid)) apps++;
-    if (e.type === "match") (e.goals || []).forEach(g => { if (g.pid === pid) goals++; if (g.assist === pid) assists++; });
+    if (isPlay(e)) (e.goals || []).forEach(g => { if (g.pid === pid) goals++; if (g.assist === pid) assists++; });
   });
   return { apps, goals, assists, played };
 }
@@ -268,7 +291,7 @@ function myUvote() { const u = myUid(); return (u && S.uvote[u]) || {}; }
 
 /* ---------- MOM ---------- */
 function momDeadline(e) { const d = parseD(e.date); d.setDate(d.getDate() + 1); d.setHours(12, 0, 0, 0); return d; }
-const momOpen = e => !!e && e.type === "match" && started(e) && Date.now() < momDeadline(e).getTime() && attendees(e).length >= 2;
+const momOpen = e => isPlay(e) && started(e) && Date.now() < momDeadline(e).getTime() && attendees(e).length >= 2;
 function attendees(e) {
   if (checkStarted(e)) return checkPeople(e).filter(p => ["in", "late", "excused"].includes(checkOf(e, p.id)));
   return roster(e).confirmed;
@@ -317,11 +340,13 @@ function autoTeams(e, seed) {
 }
 function teamsOf(e) {
   const conf = roster(e).confirmed; const saved = (e && e.teams) || {};
+  // 새 내전은 운영진이 한 명씩 고른다. 고르지 않은 사람은 스쿼드 밖
+  if (e && e.type === "scrim") { const t = {}; conf.forEach(p => { if (saved[p.id] === "A" || saved[p.id] === "B") t[p.id] = saved[p.id]; }); return { t, saved: !!e.teamsAt }; }
   const has = conf.length && conf.every(p => saved[p.id] === "A" || saved[p.id] === "B");
   const t = has ? saved : Object.assign(autoTeams(e, 0), Object.fromEntries(Object.entries(saved).filter(([pid, v]) => conf.some(p => p.id === pid) && (v === "A" || v === "B"))));
   return { t, saved: !!(e && e.teamsAt) && has };
 }
-const isScrim = e => !!e && e.type === "match" && /내전/.test(e.opponent || "");
+const isScrim = e => !!e && (e.type === "scrim" || (e.type === "match" && /내전/.test(e.opponent || "")));
 
 /* ---------- 할 일, 신경 써 볼 사람 ---------- */
 function feeEvents() { return eventsSorted().filter(e => Number(e.fieldFee) > 0 && !e.feeCharged && roster(e).confirmed.length); }
@@ -357,7 +382,7 @@ function reportData(pid, from, to) {
     if (cameTo(e, pid)) came++;
     const ck = (e.check || {})[pid]; if (ck === "late") late++; if (ck === "absent") absent++;
     (e.goals || []).forEach(g => { if (g.pid === pid) goals++; if (g.assist === pid) assists++; });
-    const L = lineupOf(e); L.q.forEach(qs => { const i = qs.indexOf(pid); if (i >= 0) { quarters++; const lab = L.spots[i][3]; pos[lab] = (pos[lab] || 0) + 1; } });
+    const L = lineFor(e, pid); L.q.forEach(qs => { const i = qs.indexOf(pid); if (i >= 0) { quarters++; const lab = L.spots[i][3]; pos[lab] = (pos[lab] || 0) + 1; } });
   });
   let streak = 0; for (const e of evs.slice().reverse()) { if (cameTo(e, pid)) streak++; else break; }
   return { played: evs.length, came, goals, assists, quarters, late, absent, pos, streak, mom: momCount(pid, from, to) };

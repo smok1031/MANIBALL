@@ -91,11 +91,12 @@ function eventSheet(e) {
   if (isNew && !e.date) { const d = new Date(); d.setDate(d.getDate() + 1); e.date = ymd(d); }
   const tpls = isNew ? templates() : [];
   openSheet(isNew ? "일정 올리기" : "일정 수정", `<form id="ef">
-    ${tpls.length ? `<div class="field"><span class="flabel">지난 일정으로 빠르게 만들기</span><div class="stack" id="tplList" style="gap:6px">${tpls.map((t, i) => `<button type="button" class="tpl" data-i="${i}" aria-pressed="false"><span class="num" style="font-size:18px;font-weight:700;width:64px;flex:none">${WD[t.wd]} ${esc(t.time || "")}</span><span class="grow ell" style="font-weight:600">${esc(t.type === "match" ? (t.opponent || "경기") : (t.title || "훈련"))}</span><span class="tiny muted">${esc(FORMAT_KO[t.format])}</span></button>`).join("")}</div></div>` : ""}
-    <div class="field"><span class="flabel">종류</span><div class="seg" id="typeSeg"><button type="button" data-v="match" aria-pressed="${e.type === "match"}">경기</button><button type="button" data-v="training" aria-pressed="${e.type !== "match"}">훈련</button></div></div>
+    ${tpls.length ? `<div class="field"><span class="flabel">지난 일정으로 빠르게 만들기</span><div class="stack" id="tplList" style="gap:6px">${tpls.map((t, i) => `<button type="button" class="tpl" data-i="${i}" aria-pressed="false"><span class="num" style="font-size:18px;font-weight:700;width:64px;flex:none">${WD[t.wd]} ${esc(t.time || "")}</span><span class="grow ell" style="font-weight:600">${esc(t.type === "scrim" ? "내전" : t.type === "match" ? (t.opponent || "경기") : (t.title || "훈련"))}</span><span class="tiny muted">${esc(FORMAT_KO[t.format])}</span></button>`).join("")}</div></div>` : ""}
+    <div class="field"><span class="flabel">종류</span><div class="seg" id="typeSeg"><button type="button" data-v="match" aria-pressed="${e.type === "match"}">경기</button><button type="button" data-v="scrim" aria-pressed="${e.type === "scrim"}">내전</button></div></div>
     <div class="field"><span class="flabel">형식</span><div class="seg" id="fmtSeg"><button type="button" data-v="11" aria-pressed="${e.format !== "futsal"}">11인 축구 (4쿼터)</button><button type="button" data-v="futsal" aria-pressed="${e.format === "futsal"}">풋살 (8쿼터)</button></div></div>
     <div class="grid2"><div class="field"><label for="eDate">날짜</label><input type="date" id="eDate" name="date" required value="${esc(e.date)}"></div><div class="field"><label for="eTime">시간</label><input type="time" id="eTime" name="time" value="${esc(e.time || "")}"></div></div>
     <div class="field" id="oppField"><label for="eOpp">상대 팀</label><input id="eOpp" name="opponent" maxlength="30" value="${esc(e.opponent || "")}" placeholder="예: FC 서울, 내전"></div>
+    <div class="hint" id="scrimHint" style="margin:-4px 0 12px">내전은 참석 투표를 받은 뒤, 일정의 라인업 탭에서 조끼팀과 일반팀 스쿼드를 한 명씩 고르고 팀마다 쿼터별 자리와 휴식을 짜요.</div>
     <div class="field" id="titleField"><label for="eTitle">제목 (선택)</label><input id="eTitle" name="title" maxlength="30" value="${esc(e.title || "")}" placeholder="예: 세트피스 훈련"></div>
     <div class="grid2"><div class="field"><label for="ePlace">장소</label><input id="ePlace" name="place" maxlength="40" value="${esc(e.place || "")}" placeholder="예: 보라매 축구장"></div>
     <div class="field"><label for="eCap">정원</label><input id="eCap" name="cap" inputmode="numeric" maxlength="3" value="${esc(e.cap ?? "")}" placeholder="팀 기본 ${Number(S.settings.cap) > 0 ? S.settings.cap + "명" : "없음"}"></div></div>
@@ -107,7 +108,8 @@ function eventSheet(e) {
     const sync = () => {
       sh.querySelectorAll("#typeSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === type));
       sh.querySelectorAll("#fmtSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === format));
-      $("#oppField", sh).hidden = type !== "match"; $("#titleField", sh).hidden = type === "match";
+      $("#oppField", sh).hidden = type !== "match"; $("#titleField", sh).hidden = type !== "training";
+      $("#scrimHint", sh).hidden = type !== "scrim";
     };
     sync();
     $("#typeSeg", sh).onclick = ev => { const b = ev.target.closest("button"); if (b) { type = b.dataset.v; sync(); } };
@@ -125,9 +127,9 @@ function eventSheet(e) {
       ev.preventDefault(); const f = ev.target;
       if (!f.elements["date"].value) { f.elements["date"].focus(); return; }
       const base = S.events[e.id] || e;
-      const patch = { type, format, date: f.elements["date"].value, time: f.elements["time"].value, place: f.elements["place"].value.trim(), opponent: type === "match" ? f.elements["opponent"].value.trim() : "", title: type === "match" ? "" : f.elements["title"].value.trim(), cap: digits(f.elements["cap"].value) };
+      const patch = { type, format, date: f.elements["date"].value, time: f.elements["time"].value, place: f.elements["place"].value.trim(), opponent: type === "match" ? f.elements["opponent"].value.trim() : "", title: type === "training" ? f.elements["title"].value.trim() : "", cap: digits(f.elements["cap"].value) };
       if (!isNew && format !== base.format && (base.lineup || base.lineupQ)) { patch.lineup = null; patch.lineupQ = null; }
-      if (!isNew && type !== "match" && base.score) patch.score = null;
+      if (!isNew && type === "training" && base.score) patch.score = null;
       setPref("lastFormat", format); setPref("lastPlace", patch.place);
       if (!isNew) { evPatch(e.id, patch); closeSheet(); render(); toast("저장했습니다"); return; }
       const repeat = $("#eRepeat", sh) && $("#eRepeat", sh).checked;

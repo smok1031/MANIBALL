@@ -364,3 +364,7 @@ html.big main,html.big header.top{zoom:1.12}
 .tpl{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:1px solid var(--line2);background:var(--surface);border-radius:12px;padding:8px 12px;min-height:44px;color:var(--ink)}
 .tpl[aria-pressed="true"]{background:var(--clay-s);border-color:var(--clay)}
 .chip.match{background:var(--ink);color:var(--bg)} .chip.good{background:var(--surface2)} .chip.bad,.chip.warn{background:var(--clay-s);color:var(--clay-d)}
+
+/* 내전 스쿼드 고르기: 고른 팀이 색으로 보이게 */
+.seg.pick button[aria-pressed="true"][data-v="A"]{background:var(--clay);color:#fff}
+.seg.pick button[aria-pressed="true"][data-v="B"]{background:var(--ink);color:var(--bg)}

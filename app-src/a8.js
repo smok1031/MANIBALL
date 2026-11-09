@@ -8,7 +8,13 @@ function demoBoot() {
   derive();
   // 다음 내전 라인업은 앱의 자동 배치로 만든다
   const lid = D.__lineupEvent; const e = S.events[lid];
-  if (e) { const out = autoRotate(e); const L = lineupOf(e); const q = {}; L.q.forEach((_, k) => { q[k + 1] = out[k + 1]; }); R.events[lid].lineupQ = { formation: L.formation, q }; R.events[lid].teams = autoTeams(e, 3); derive(); }
+  if (e) {
+    R.events[lid].teams = autoTeams(e, 3); derive();
+    // 내전: 팀마다 7인 포메이션으로 쿼터별 자리와 휴식을 자동으로 짜 둔다
+    ["A", "B"].forEach(side => { ui.lineSide = side; ui.lineSideEv = lid; R.events[lid].lineS = Object.assign(R.events[lid].lineS || {}, { [side]: { formation: "7|2-3-1", q: {} } }); derive();
+      const out = autoRotate(S.events[lid]); const L = lineupOf(S.events[lid], side); const q = {}; L.q.forEach((_, k) => { q[k + 1] = out[k + 1]; }); R.events[lid].lineS[side] = { formation: L.formation, q }; derive(); });
+    ui.lineSide = null; ui.lineSideEv = null;
+  }
   applyRole(); route();
 }
 function makeDemo() {
@@ -31,14 +37,14 @@ function makeDemo() {
   const a2 = core.slice();
   ev(-21, { type: "match", opponent: "한양 FC" }, a2, { check: chk(a2), score: { us: 2, them: 2 }, goals: [{ id: "g2", pid: p("김성우"), assist: p("황종민"), q: 1 }, { id: "g3", pid: p("류영준"), assist: ME, q: 3 }] });
   const a3 = core.slice();
-  const e3 = ev(-14, { type: "match", opponent: "내전" }, a3, { check: chk(a3, { [ME]: "late", [p("류영준")]: "late" }), score: { us: 3, them: 2 }, goals: [{ id: "g4", pid: p("김성우"), assist: ME, q: 1 }, { id: "g5", pid: ME, assist: p("용호연"), q: 2 }, { id: "g6", pid: p("류영준"), assist: "", q: 4 }] });
+  const e3 = ev(-14, { type: "scrim" }, a3, { check: chk(a3, { [ME]: "late", [p("류영준")]: "late" }), score: { us: 3, them: 2 }, goals: [{ id: "g4", pid: p("김성우"), assist: ME, q: 1 }, { id: "g5", pid: ME, assist: p("용호연"), q: 2 }, { id: "g6", pid: p("류영준"), assist: "", q: 4 }] });
   const a4 = core.filter(x => x !== p("김동욱")).concat([p("김준수")]);
-  const eMom = ev(0, { type: "match", opponent: "내전", time: "06:30", tag: "a", place: "보라매 축구장 (조기)" }, a4, { check: chk(a4), score: { us: 4, them: 3 }, goals: [{ id: "g7", pid: ME, assist: p("이진우"), q: 1 }, { id: "g8", pid: p("김성우"), assist: "", q: 2 }] });
+  const eMom = ev(0, { type: "scrim", time: "06:30", tag: "a", place: "보라매 축구장 (조기)" }, a4, { check: chk(a4), score: { us: 4, them: 3 }, goals: [{ id: "g7", pid: ME, assist: p("이진우"), q: 1 }, { id: "g8", pid: p("김성우"), assist: "", q: 2 }] });
   // 다가오는 일정
   const f1 = ["정성목", "김성우", "조수현", "용호연", "황종민", "이동환", "김준엽", "이진우", "류영준", "송정의"].map(p);
-  ev(1, { type: "training", format: "futsal", title: "풋살 연습", place: "보라매 풋살장", cap: "12" }, f1);
+  ev(1, { type: "scrim", format: "futsal", place: "보라매 풋살장", cap: "12" }, f1);
   const scr = core.filter(x => x !== ME);
-  const lid = ev(6, { type: "match", opponent: "내전", fieldFee: 120000 }, scr.concat([p("김준수")]), { teamsAt: iso(-1, 21) });
+  const lid = ev(6, { type: "scrim", fieldFee: 120000 }, scr.concat([p("김준수")]), { teamsAt: iso(-1, 21) });
   D.events[lid].att[p("류영준")] = "late"; D.events[lid].lateQ = { [p("류영준")]: 3 };
   ev(13, { type: "match", opponent: "FC 서울", cap: "18" }, ["정성목", "김성우", "김영효", "조수현", "용호연", "김동욱", "권기현", "황종민", "이동환"].map(p));
   D.__lineupEvent = lid;

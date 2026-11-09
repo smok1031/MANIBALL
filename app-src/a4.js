@@ -10,7 +10,7 @@ function viewOpHome() {
   const next = eventsSorted().find(e => !started(e));
   if (next) {
     const c = attCounts(next); const tot = Math.max(activePlayers().length, 1);
-    parts.push(`<a class="rule" href="#event-${next.id}"><div class="labrow"><span class="lab">다음 일정</span><span class="chip ink">${next.type === "match" ? (isScrim(next) ? "내전" : "경기") : "훈련"}, ${esc(FORMAT_KO[next.format] || "")}</span></div>
+    parts.push(`<a class="rule" href="#event-${next.id}"><div class="labrow"><span class="lab">다음 일정</span><span class="chip ink">${isScrim(next) ? "내전" : next.type === "match" ? "경기" : "훈련"}, ${esc(FORMAT_KO[next.format] || "")}</span></div>
       <span class="date-xl">${esc(bigDate(next))}</span><span class="small muted">${evSub(next, false).replace(esc(evTitle(next)) + ", ", "")}</span>
       <div class="barline" aria-hidden="true" style="height:12px;margin-top:4px"><span style="width:${c.in / tot * 100}%;background:var(--clay)"></span><span style="width:${c.wait / tot * 100}%;background:var(--tan)"></span><span style="width:${c.no / tot * 100}%;background:var(--tile)"></span></div>
       <div class="tiles3" style="grid-template-columns:repeat(4,minmax(0,1fr))"><div><div class="num" style="font-size:22px;color:var(--clay)">${c.all}${c.capAll === Infinity ? "" : "/" + c.capAll}</div><div class="tiny muted">확정</div></div><div><div class="num" style="font-size:22px">${c.wait}</div><div class="tiny muted">대기</div></div><div><div class="num" style="font-size:22px">${c.no}</div><div class="tiny muted">불참</div></div><div><div class="num" style="font-size:22px">${c.none}</div><div class="tiny muted">미응답</div></div></div></a>`);
@@ -55,28 +55,28 @@ function viewOpSched() {
   const all = eventsSorted(); const up = ui.schedFilter !== "past";
   const list = up ? all.filter(e => !started(e)) : all.filter(e => started(e)).reverse();
   const next = all.find(e => !started(e));
-  const kind = e => e.type === "match" ? (isScrim(e) ? ["내전", "clay"] : ["경기", "ink"]) : ["훈련", ""];
+  const kind = e => isScrim(e) ? ["내전", "clay"] : e.type === "match" ? ["경기", "ink"] : ["훈련", ""];
   return `<div class="titlebar"><h1 class="title">일정</h1><button class="btn primary" data-act="newEvent" style="min-height:44px;border-radius:14px;font-size:14px">+ 일정 올리기</button></div>
   <div class="seg" role="group" aria-label="일정 보기"><button data-act="schedFilter" data-v="up" aria-pressed="${up}">다가오는 일정</button><button data-act="schedFilter" data-v="past" aria-pressed="${!up}">지난 일정</button></div>
   ${list.length ? list.map(e => { const d = parseD(e.date); const c = attCounts(e); const k = kind(e); const r = resultOf(e);
     return `<a class="evcard ${next && e.id === next.id ? "hot" : ""}" href="#event-${e.id}"><div class="datebox"><div class="m">${d.getMonth() + 1}월</div><div class="d">${d.getDate()}</div><div class="w">${WD[d.getDay()]}요일</div></div>
       <div class="grow" style="display:flex;flex-direction:column;gap:2px"><div class="row" style="gap:6px"><span class="chip ${k[1]}">${k[0]}</span><span class="tiny muted">${esc(FORMAT_KO[e.format] || "")}</span></div><b class="ell">${esc(evTitle(e))}</b><span class="tiny muted ell">${[e.time, e.place].filter(Boolean).map(esc).join(", ") || "&nbsp;"}</span></div>
       <div style="text-align:right;flex:none">${hasScore(e) ? `<div class="num" style="font-size:24px;color:${r === "W" ? "var(--clay)" : r === "L" ? "var(--muted)" : "var(--ink)"}">${e.score.us} : ${e.score.them}</div><div class="tiny muted">${{ W: "승", D: "무", L: "패" }[r]}</div>` : `<div class="num" style="font-size:20px">${c.all}${c.capAll === Infinity ? "" : "/" + c.capAll}</div><div class="tiny muted">${c.wait ? `대기 ${c.wait}` : "명 확정"}</div>`}</div></a>`; }).join("")
-    : `<div class="card"><div class="empty"><b>${up ? "다가오는 일정이 없어요" : "지난 일정이 없어요"}</b>${up ? "위 버튼으로 경기나 훈련을 올리세요." : "날짜가 지난 일정이 여기 쌓여요."}</div></div>`}`;
+    : `<div class="card"><div class="empty"><b>${up ? "다가오는 일정이 없어요" : "지난 일정이 없어요"}</b>${up ? "위 버튼으로 경기나 내전을 올리세요." : "날짜가 지난 일정이 여기 쌓여요."}</div></div>`}`;
 }
 
 /* ---------- 운영진 일정 상세 ---------- */
 function viewOpEvent(e) {
-  if (ui.evFor !== e.id) { ui.evFor = e.id; const mins = (eventStart(e).getTime() - Date.now()) / 60000; ui.evTab = mins > 90 ? "att" : mins > -180 && !checkStarted(e) ? "check" : e.type === "match" ? "rec" : "check"; ui.attFilter = "in"; ui.lineQ = 0; ui.lineSel = -1; ui.lineMsg = ""; }
-  const titles = { att: "참석 관리", lineup: "라인업 짜기", check: "현장 출석", rec: e.type === "match" ? "경기 기록" : "메모" };
+  if (ui.evFor !== e.id) { ui.evFor = e.id; const mins = (eventStart(e).getTime() - Date.now()) / 60000; ui.evTab = mins > 90 ? "att" : mins > -180 && !checkStarted(e) ? "check" : isPlay(e) ? "rec" : "check"; ui.attFilter = "in"; ui.lineQ = 0; ui.lineSel = -1; ui.lineMsg = ""; }
+  const titles = { att: "참석 관리", lineup: "라인업 짜기", check: "현장 출석", rec: isPlay(e) ? "경기 기록" : "메모" };
   if (!titles[ui.evTab]) ui.evTab = "att";
   const body = ui.evTab === "att" ? opAtt(e) : ui.evTab === "lineup" ? opLineup(e) : ui.evTab === "check" ? opCheck(e) : opRec(e);
   const links = [];
-  if (isScrim(e)) links.push(`<a class="btn" href="#split-${e.id}">팀 나누기${e.teamsAt ? " (확정)" : ""}</a>`);
+  if (isScrim(e) && e.type !== "scrim") links.push(`<a class="btn" href="#split-${e.id}">팀 나누기${e.teamsAt ? " (확정)" : ""}</a>`);
   if (S.tally["mom-" + e.id] || momOpen(e)) links.push(`<a class="btn" href="#mom-${e.id}">MOM</a>`);
   return `${backbar("#schedule", "운영진", titles[ui.evTab], `<button class="btn" data-act="shareEvent" data-id="${e.id}">공유</button><button class="btn" data-act="editEvent" data-id="${e.id}">수정</button>`)}
   <section class="stack" style="gap:4px;padding:0 4px"><div class="date-l">${esc(bigDate(e))}</div><div class="small muted">${evSub(e)}${Number(e.fieldFee) ? `, 구장비 ${won(e.fieldFee)}` : ""}</div></section>
-  <div class="seg" role="group" aria-label="일정 보기">${[["att", "참석"], ["lineup", "라인업"], ["check", "현장 출석"], ["rec", e.type === "match" ? "기록" : "메모"]].map(([k, l]) => `<button data-act="evTab" data-v="${k}" aria-pressed="${ui.evTab === k}">${l}</button>`).join("")}</div>
+  <div class="seg" role="group" aria-label="일정 보기">${[["att", "참석"], ["lineup", "라인업"], ["check", "현장 출석"], ["rec", isPlay(e) ? "기록" : "메모"]].map(([k, l]) => `<button data-act="evTab" data-v="${k}" aria-pressed="${ui.evTab === k}">${l}</button>`).join("")}</div>
   ${links.length ? `<div class="btnrow">${links.join("")}</div>` : ""}
   ${body}
   ${e.updatedBy ? `<div class="hint center">마지막 수정 <span data-uid="${esc(e.updatedBy)}" data-fallback="운영진">운영진</span>${e.updatedAt ? ", " + esc(fmtStamp(e.updatedAt)) : ""}</div>` : ""}`;
@@ -109,20 +109,32 @@ function opAtt(e) {
 function opLineup(e) {
   const L = lineupOf(e); const k = Math.min(ui.lineQ, L.N - 1); const conf = roster(e).confirmed;
   const sel = ui.lineSel; const bench = benchOf(e, L, k);
-  const confIds = new Set(conf.map(p => p.id)); const stale = Array.from(new Set(L.q.flat().filter(id => id && !confIds.has(id)))).map(id => pname(id));
-  const hint = ui.lineMsg || (sel >= 0 ? `${L.spots[sel] ? L.spots[sel][3] : ""} 자리를 골랐어요. 벤치에서 넣을 사람을 누르거나, 다른 자리를 누르면 서로 바꿔요.` : "자리를 누르고 벤치에서 사람을 고르면 바뀌어요.");
+  const confIds = new Set((L.side ? sidePool(e, L.side) : conf).map(p => p.id)); const stale = Array.from(new Set(L.q.flat().filter(id => id && !confIds.has(id)))).map(id => pname(id));
+  const hint = ui.lineMsg || (sel >= 0 ? `${L.spots[sel] ? L.spots[sel][3] : ""} 자리를 골랐어요. ${L.side ? "휴식" : "벤치"}에서 넣을 사람을 누르거나, 다른 자리를 누르면 서로 바꿔요.` : `자리를 누르고 ${L.side ? "휴식" : "벤치"}에서 사람을 고르면 바뀌어요.`);
+  const scrim = !!L.side;
+  let top = `<div class="forms" role="group" aria-label="포메이션">${Object.keys(L.forms).map(f => `<button data-act="formation" data-v="${f}" aria-pressed="${f === L.formation}">${f}</button>`).join("")}</div>`;
+  if (scrim) {
+    const T = teamsOf(e).t; const nA = conf.filter(p => T[p.id] === "A").length, nB = conf.filter(p => T[p.id] === "B").length, nOut = conf.length - nA - nB;
+    const size = L.formation.split("|")[0];
+    const sizes = Array.from(new Set(Object.keys(SCRIM_FORMS).map(k => k.split("|")[0])));
+    top = `<div class="row between" style="gap:8px"><div class="small"><b>스쿼드</b> 조끼팀 ${nA}명, 일반팀 ${nB}명${nOut ? `, 안 고른 사람 ${nOut}명` : ""}</div><a class="btn sm" href="#split-${e.id}">스쿼드 고르기</a></div>
+      ${sideSeg(e, L.side)}
+      <div class="field" style="margin:0"><span class="flabel">${L.side === "A" ? "조끼팀" : "일반팀"} 한 번에 뛰는 인원</span><div class="forms" role="group" aria-label="인원">${sizes.map(n => `<button data-act="scrimN" data-v="${n}" aria-pressed="${n === size}">${n}인</button>`).join("")}</div></div>
+      <div class="forms" role="group" aria-label="포메이션">${Object.keys(SCRIM_FORMS).filter(k => k.startsWith(size + "|")).map(f => `<button data-act="formation" data-v="${f}" aria-pressed="${f === L.formation}">${f.split("|")[1]}</button>`).join("")}</div>`;
+    if (!nA && !nB) return `<section class="card" style="gap:10px">${top}<div class="empty"><b>먼저 스쿼드를 골라 주세요</b>참석 확정 인원 중에서 조끼팀과 일반팀에 넣을 사람을 한 명씩 고르면, 팀마다 쿼터별 자리와 휴식을 짤 수 있어요.</div><a class="btn primary big" href="#split-${e.id}">스쿼드 고르기</a></section>`;
+  }
   return `<section class="card" style="gap:10px">
-    <div class="forms" role="group" aria-label="포메이션">${Object.keys(L.forms).map(f => `<button data-act="formation" data-v="${f}" aria-pressed="${f === L.formation}">${f}</button>`).join("")}</div>
+    ${top}
     <div class="seg" role="group" aria-label="쿼터">${L.q.map((_, j) => `<button data-act="lineQ" data-v="${j}" aria-pressed="${j === k}">${j + 1}Q</button>`).join("")}</div>
     ${pitchHtml(e, L, k, { edit: true, sel })}
     <div role="status" style="font-size:13px;font-weight:600;color:${sel >= 0 ? "var(--clay-d)" : "var(--muted)"}">${esc(hint)}</div>
-    ${stale.length ? `<div class="status">참석 확정이 아닌 사람이 배치에 남아 있어요: ${esc(stale.join(", "))}. 자동 배치를 다시 누르면 정리돼요.</div>` : ""}
-    <div class="benchrow"><span class="k">벤치</span>${bench.map(x => `<button class="bench ${x.late ? "late" : sel >= 0 ? "armed" : ""}" data-act="benchTap" data-pid="${x.id}" ${x.late ? "disabled" : ""}>${esc(x.name)}${x.late ? ` (${x.from}Q~)` : ""}</button>`).join("") || `<span class="small muted">없음</span>`}</div>
-    <button class="btn primary big" data-act="autoLineup">출전 시간 고르게 자동 배치</button>
+    ${stale.length ? `<div class="status">${L.side ? "이 팀 스쿼드가 아닌 사람이" : "참석 확정이 아닌 사람이"} 배치에 남아 있어요: ${esc(stale.join(", "))}. 자동 배치를 다시 누르면 정리돼요.</div>` : ""}
+    <div class="benchrow"><span class="k">${scrim ? "휴식" : "벤치"}</span>${bench.map(x => `<button class="bench ${x.late ? "late" : sel >= 0 ? "armed" : ""}" data-act="benchTap" data-pid="${x.id}" ${x.late ? "disabled" : ""}>${esc(x.name)}${x.late ? ` (${x.from}Q~)` : ""}</button>`).join("") || `<span class="small muted">없음</span>`}</div>
+    <button class="btn primary big" data-act="autoLineup">${scrim ? (L.side === "A" ? "조끼팀" : "일반팀") + " 출전 시간 고르게 자동 배치" : "출전 시간 고르게 자동 배치"}</button>
     <div class="btnrow"><button class="btn" data-act="copyQ">${k + 1}Q를 전 쿼터에 복사</button><button class="btn" data-act="clearQ">${k + 1}Q 비우기</button></div>
-    <div class="hint">자동 배치는 확정 인원(대기 제외)을 쿼터마다 돌려서 출전 시간을 맞추고, 주, 부 포지션에 맞는 자리에 넣어요. 늦참은 합류 쿼터부터 들어가요.</div>
+    <div class="hint">${scrim ? "자리를 누르고 휴식 칸에서 사람을 고르면 직접 넣을 수 있어요. 자동 배치는 이 팀 스쿼드만 쿼터마다 돌려서 출전 시간을 맞추고, 주, 부 포지션에 맞는 자리에 넣어요." : "자동 배치는 확정 인원(대기 제외)을 쿼터마다 돌려서 출전 시간을 맞추고, 주, 부 포지션에 맞는 자리에 넣어요."} 늦참은 합류 쿼터부터 들어가요.</div>
   </section>
-  <section class="card" style="gap:4px"><div class="labrow" style="margin-bottom:4px"><span class="lab">출전 시간</span>${legendHtml("벤치")}</div>${playTable(e, L, k)}</section>`;
+  <section class="card" style="gap:4px"><div class="labrow" style="margin-bottom:4px"><span class="lab">${scrim ? (L.side === "A" ? "조끼팀 " : "일반팀 ") + "누가 언제 쉬나" : "출전 시간"}</span>${legendHtml(scrim ? "휴식" : "벤치")}</div>${playTable(e, L, k)}</section>`;
 }
 function opCheck(e) {
   const people = checkPeople(e); const c = checkCounts(e); const t = checkTime(e); const saved = checkStarted(e); const cancels = lateCancels(e);
@@ -154,7 +166,7 @@ function opCheck(e) {
 }
 function opRec(e) {
   const memo = `<section class="card"><label class="field" style="margin:0">메모<textarea class="inp" id="memo" data-input="memo" placeholder="준비물, 정산, 경기 소감 등">${esc(e.memo || "")}</textarea></label><div class="hint">입력을 멈추면 자동 저장돼요.</div></section>`;
-  if (e.type !== "match") return memo;
+  if (!isPlay(e)) return memo;
   const sc = e.score || {}; const us = Number.isFinite(sc.us) ? sc.us : null, them = Number.isFinite(sc.them) ? sc.them : null;
   const goals = e.goals || []; const mismatch = us !== null && goals.length > 0 && goals.length !== us;
   const r = resultOf(e); const scrim = isScrim(e);

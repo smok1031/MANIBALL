@@ -46,6 +46,19 @@ const FORMATIONS = {
   }
 };
 const QUARTERS = { "11": 4, futsal: 8 };
+// 내전은 한 팀 인원이 그날그날 달라서, 5인부터 11인까지 포메이션을 둔다. 키는 "인원|이름"
+const SCRIM_FORMS = (() => {
+  const xs = n => ({ 1: [50], 2: [32, 68], 3: [20, 50, 80], 4: [14, 38, 62, 86], 5: [10, 30, 50, 70, 90] })[n];
+  const lab = { DF: { 1: ["CB"], 2: ["CB", "CB"], 3: ["LB", "CB", "RB"], 4: ["LB", "CB", "CB", "RB"], 5: ["LWB", "CB", "CB", "CB", "RWB"] }, MF: { 1: ["CM"], 2: ["CM", "CM"], 3: ["LM", "CM", "RM"], 4: ["LM", "CM", "CM", "RM"], 5: ["LM", "CM", "AM", "CM", "RM"] }, FW: { 1: ["ST"], 2: ["ST", "ST"], 3: ["LW", "ST", "RW"] } };
+  const make = (d, m, f) => { const out = [["GK", 50, 90, "GK"]]; [["DF", d, 74], ["MF", m, f ? 50 : 40], ["FW", f, 24]].forEach(([g, n, y]) => { if (n) xs(n).forEach((x, i) => out.push([g, x, y, lab[g][n][i]])); }); return out; };
+  const list = { 6: ["2-2-1", "2-1-2", "3-1-1"], 7: ["2-3-1", "3-2-1", "3-1-2"], 8: ["3-3-1", "3-2-2", "2-3-2"], 9: ["3-3-2", "3-4-1", "4-3-1"], 10: ["4-3-2", "3-4-2", "4-4-1"] };
+  const out = {};
+  Object.keys(FORMATIONS.futsal).forEach(f => { out["5|" + f] = FORMATIONS.futsal[f]; });
+  Object.keys(list).forEach(n => list[n].forEach(f => { const [d, m, w] = f.split("-").map(Number); out[n + "|" + f] = make(d, m, w); }));
+  Object.keys(FORMATIONS["11"]).forEach(f => { out["11|" + f] = FORMATIONS["11"][f]; });
+  return out;
+})();
+const formName = f => { const [n, name] = String(f || "").split("|"); return name ? `${n}인 ${name}` : String(f || ""); };
 const DEFAULT_SETTINGS = () => ({ teamName: "", fee: 30000, cap: 14, checkBefore: 10, lateCancelH: 3, account: "", shareLink: "", sample: false, finePresets: [{ id: "late", label: "지각", amount: 5000 }, { id: "noshow", label: "무단 불참", amount: 10000 }], guestFee: 10000 });
 
 /* ---------- state ---------- */
