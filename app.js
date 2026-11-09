@@ -534,6 +534,20 @@ function scrimDefaultForm(e, side) {
   return Object.keys(SCRIM_FORMS).find(k => k.startsWith(n + "|"));
 }
 const lineFor = (e, pid) => isScrim(e) ? lineupOf(e, teamsOf(e).t[pid] || curSide(e)) : lineupOf(e);
+// 반쿼터 교체: 쿼터 k의 자리 i에 후반부터 들어가는 사람. 자리가 비었거나 이미 뛰는 사람이면 무시
+function halfMap(raw, q) {
+  return q.map((slots, k) => { const out = {}; const used = new Set(); const r = (raw || {})[k + 1] || {};
+    Object.keys(r).forEach(i => { const pid = r[i]; if (pid && playerById(pid) && slots[i] && !slots.includes(pid) && !used.has(pid)) { out[i] = pid; used.add(pid); } });
+    return out; });
+}
+// 한 쿼터에 뛰는 양: 1, 0.5(전반 또는 후반), 0
+function playAmt(L, k, pid) {
+  const i = L.q[k].indexOf(pid); const h = (L.h && L.h[k]) || {};
+  if (i >= 0) return h[i] ? 0.5 : 1;
+  return Object.values(h).includes(pid) ? 0.5 : 0;
+}
+const halfInOf = (L, k, pid) => { const h = (L.h && L.h[k]) || {}; const i = Object.keys(h).find(j => h[j] === pid); return i == null ? -1 : Number(i); };
+const qn = x => String(Math.round(x * 10) / 10);
 function lineupOf(e, side) {
   if (isScrim(e)) {
     side = side === "A" || side === "B" ? side : curSide(e);
@@ -542,7 +556,7 @@ function lineupOf(e, side) {
     const formation = ok ? src.formation : scrimDefaultForm(e, side); const qs = ok ? src.q || {} : {};
     const spots = forms[formation];
     const q = Array.from({ length: N }, (_, k) => spots.map((_, i) => { const id = (qs[k + 1] || [])[i]; return id && playerById(id) ? id : null; }));
-    return { fmt: e.format === "futsal" ? "futsal" : "11", forms, formation, spots, q, N, side };
+    return { fmt: e.format === "futsal" ? "futsal" : "11", forms, formation, spots, q, N, side, h: halfMap(ok ? src.h : null, q) };
   }
   const fmt = e.format === "futsal" ? "futsal" : "11"; const forms = FORMATIONS[fmt]; const N = quartersOf(e);
   let formation = Object.keys(forms)[0], qs = {};
@@ -550,7 +564,7 @@ function lineupOf(e, side) {
   else if (e.lineup && forms[e.lineup.formation]) { formation = e.lineup.formation; for (let k = 1; k <= N; k++) qs[k] = e.lineup.slots || []; }
   const spots = forms[formation];
   const q = Array.from({ length: N }, (_, k) => spots.map((_, i) => { const id = (qs[k + 1] || [])[i]; return id && playerById(id) ? id : null; }));
-  return { fmt, forms, formation, spots, q, N };
+  return { fmt, forms, formation, spots, q, N, h: halfMap(e.lineupQ && forms[e.lineupQ.formation] ? e.lineupQ.h : null, q) };
 }
 const availFrom = (e, pid) => lateQ(e, pid) || 1;
 const isGk = p => (p.pos1 || p.pos) === "GK";
@@ -558,8 +572,11 @@ const isGk = p => (p.pos1 || p.pos) === "GK";
 function myPlan(e, pid) {
   if (!e || !pid) return null;
   const L = lineFor(e, pid); const conf = isScrim(e) ? sidePool(e, L.side).some(p => p.id === pid) : roster(e).ids.has(pid);
-  const rows = L.q.map((qs, k) => { const i = qs.indexOf(pid); if (i >= 0) return { k, st: "on", lab: L.spots[i][3] }; if (conf && availFrom(e, pid) > k + 1) return { k, st: "late" }; return { k, st: "rest" }; });
-  const on = rows.filter(r => r.st === "on").length;
+  const rows = L.q.map((qs, k) => { const i = qs.indexOf(pid); const h = (L.h && L.h[k]) || {};
+    if (i >= 0) return { k, st: "on", lab: L.spots[i][3], half: h[i] ? "전반" : "", with: h[i] || "" };
+    const j = halfInOf(L, k, pid); if (j >= 0) return { k, st: "on", lab: L.spots[j][3], half: "후반", with: qs[j] };
+    if (conf && availFrom(e, pid) > k + 1) return { k, st: "late" }; return { k, st: "rest" }; });
+  const on = rows.reduce((a, r) => a + (r.st === "on" ? (r.half ? 0.5 : 1) : 0), 0);
   return { any: L.q.some(qs => qs.some(Boolean)), conf, rows, on, N: L.N, side: L.side };
 }
 function myPosReq() {
@@ -866,7 +883,7 @@ const WDE = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 function bigDate(e, noTime) { const d = parseD(e.date); return `${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${WDE[d.getDay()]}${!noTime && e.time ? " " + e.time : ""}`; }
 const shortDate = e => { const d = parseD(e.date); return `${pad(d.getMonth() + 1)}.${pad(d.getDate())}`; };
 function evSub(e, noCheck) { return [evTitle(e), e.place, !noCheck && checkTime(e) ? `출석 체크 ${checkTime(e)}` : ""].filter(Boolean).map(esc).join(", "); }
-const qText = r => r.st === "on" ? r.lab : r.st === "late" ? "합류 전" : "휴식";
+const qText = r => r.st === "on" ? (r.half ? `${r.half} ${r.lab}` : r.lab) : r.st === "late" ? "합류 전" : "휴식";
 const ICON = {
   back: `<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>`,
   chev: `<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="color:var(--muted);flex:none"><path d="m9 6 6 6-6 6"/></svg>`,
@@ -1081,7 +1098,7 @@ function mLineup(e) {
     ${sideTabs}<div class="labrow"><span class="lab">쿼터별 라인업 (${esc(formName(L.formation))})</span><span class="hint">운영진이 짠 배치</span></div>
     <div class="utabs" role="tablist" aria-label="쿼터">${L.q.map((_, j) => `<button role="tab" data-act="evQ" data-v="${j}" aria-selected="${j === k}">${j + 1}Q</button>`).join("")}</div>
     ${pitchHtml(e, L, k, { small: true, me: pid })}
-    <div class="small"><span class="muted" style="font-weight:700">벤치</span> ${benchOf(e, L, k).map(x => esc(x.name) + (x.late ? ` (${x.from}Q 합류)` : "")).join(", ") || "없음"}</div>
+    <div class="small"><span class="muted" style="font-weight:700">벤치</span> ${benchOf(e, L, k).map(x => esc(x.name) + (x.halfIn ? ` (후반 ${x.halfIn})` : x.late ? ` (${x.from}Q 합류)` : "")).join(", ") || "없음"}</div>
     <div class="hint">라인업이 바뀌면 알림함에 떠요. 바꾸고 싶으면 운영진에게 말해 주세요.</div>
     <a class="btn block" href="#lineup-${e.id}" style="border:2px solid var(--ink);border-radius:0">누가 언제 쉬는지 전체 보기</a>
   </div>`;
@@ -1093,23 +1110,26 @@ function sideSeg(e, side) {
 }
 function benchOf(e, L, k) {
   const used = new Set(L.q[k].filter(Boolean));
-  return (L.side ? sidePool(e, L.side) : roster(e).confirmed).filter(p => !used.has(p.id)).map(p => ({ ...p, from: availFrom(e, p.id), late: availFrom(e, p.id) > k + 1 }));
+  return (L.side ? sidePool(e, L.side) : roster(e).confirmed).filter(p => !used.has(p.id)).map(p => { const j = halfInOf(L, k, p.id); return { ...p, from: availFrom(e, p.id), late: availFrom(e, p.id) > k + 1, halfIn: j >= 0 ? L.spots[j][3] : "" }; });
 }
 function pitchHtml(e, L, k, o) {
   const slots = L.q[k];
   return `<div class="pitch ${o.small ? "sm" : ""}"><i class="ln box"></i><i class="ln mid"></i><i class="ln circle"></i><i class="ln pb"></i>${o.small ? "" : `<i class="ln pt"></i>`}
-    ${L.spots.map(([grp, x, y, lab], i) => { const p = slots[i] ? playerById(slots[i]) : null; const me = p && o.me && p.id === o.me; const sel = o.sel === i;
-      const cls = `slot ${p ? "" : "empty"} ${grp === "GK" ? "gk" : ""} ${me ? "me" : ""} ${sel ? "sel" : ""}`;
-      const inner = `<span class="l">${esc(lab)}</span><span class="n">${p ? (me && !o.edit ? "나" : esc(p.name)) : "비어 있음"}</span>`;
-      return o.edit ? `<button class="${cls}" style="left:${x}%;top:${y}%" data-act="slotTap" data-i="${i}" aria-pressed="${sel}" aria-label="${k + 1}쿼터 ${esc(lab)} 자리, ${p ? esc(p.name) : "비어 있음"}">${inner}</button>` : `<div class="${cls}" style="left:${x}%;top:${y}%">${inner}</div>`;
+    ${L.spots.map(([grp, x, y, lab], i) => { const p = slots[i] ? playerById(slots[i]) : null; const hp = L.h && L.h[k] && L.h[k][i] ? playerById(L.h[k][i]) : null;
+      const me = p && o.me && (p.id === o.me || (hp && hp.id === o.me)); const sel = o.sel === i;
+      const cls = `slot ${p ? "" : "empty"} ${grp === "GK" ? "gk" : ""} ${me ? "me" : ""} ${sel ? "sel" : ""} ${hp ? "hf" : ""}`;
+      const nm = q => q.id === o.me && !o.edit ? "나" : esc(q.name);
+      const inner = `<span class="l">${esc(lab)}</span><span class="n">${p ? nm(p) : "비어 있음"}</span>${hp ? `<span class="h">후반 ${nm(hp)}</span>` : ""}`;
+      const al = `${k + 1}쿼터 ${esc(lab)} 자리, ${p ? esc(p.name) : "비어 있음"}${hp ? `, 후반 ${esc(hp.name)}` : ""}`;
+      return o.edit ? `<button class="${cls}" style="left:${x}%;top:${y}%" data-act="slotTap" data-i="${i}" aria-pressed="${sel}" aria-label="${al}">${inner}</button>` : `<div class="${cls}" style="left:${x}%;top:${y}%" aria-label="${al}">${inner}</div>`;
     }).join("")}</div>`;
 }
 function playTable(e, L, k, mePid) {
   const conf = L.side ? sidePool(e, L.side) : roster(e).confirmed; if (!conf.length) return `<div class="hint">${L.side ? "이 팀에 고른 사람이 아직 없어요." : "참석이 확정된 사람이 생기면 여기에 표시돼요."}</div>`;
-  return `<div class="ptable" style="--n:${L.N}">${conf.map(p => { let tot = 0; const cells = L.q.map((qs, j) => { const on = qs.includes(p.id); if (on) tot++; const late = availFrom(e, p.id) > j + 1; return `<span class="cell ${on ? "on" : late ? "late" : ""} ${j === k ? "cur" : ""}" title="${j + 1}쿼터 ${on ? "출전" : late ? "합류 전" : "휴식"}"></span>`; }).join("");
-    return `<div class="prow"><span class="nm ${p.id === mePid ? "me" : ""}">${esc(p.name)}${p.id === mePid ? " (나)" : ""}</span>${cells}<span class="tot">${tot}쿼터</span></div>`; }).join("")}</div>`;
+  return `<div class="ptable" style="--n:${L.N}">${conf.map(p => { let tot = 0; const cells = L.q.map((qs, j) => { const a = playAmt(L, j, p.id); tot += a; const late = !a && availFrom(e, p.id) > j + 1; return `<span class="cell ${a === 1 ? "on" : a ? "hf" : late ? "late" : ""} ${j === k ? "cur" : ""}" title="${j + 1}쿼터 ${a === 1 ? "출전" : a ? "반쿼터" : late ? "합류 전" : "휴식"}"></span>`; }).join("");
+    return `<div class="prow"><span class="nm ${p.id === mePid ? "me" : ""}">${esc(p.name)}${p.id === mePid ? " (나)" : ""}</span>${cells}<span class="tot">${qn(tot)}쿼터</span></div>`; }).join("")}</div>`;
 }
-function legendHtml(rest) { return `<span class="legend"><span><i style="background:var(--clay)"></i>출전</span><span><i style="background:var(--surface2)"></i>${rest || "휴식"}</span><span><i style="background:var(--clay-s);border:1px dashed var(--tan)"></i>합류 전</span></span>`; }
+function legendHtml(rest) { return `<span class="legend"><span><i style="background:var(--clay)"></i>출전</span><span><i style="background:linear-gradient(90deg,var(--clay) 50%,var(--surface2) 50%)"></i>반쿼터</span><span><i style="background:var(--surface2)"></i>${rest || "휴식"}</span><span><i style="background:var(--clay-s);border:1px dashed var(--tan)"></i>합류 전</span></span>`; }
 function mCheck(e) {
   const pid = myPid(); const t = checkTime(e); const saved = checkStarted(e); const A = effAtt(e);
   let mine = "";
@@ -1152,14 +1172,15 @@ function viewMemberLineup(e) {
   const P = pid ? myPlan(e, pid) : null; const i = pid ? L.q[k].indexOf(pid) : -1;
   const rest = P ? P.rows.filter(r => r.st === "rest").map(r => r.k + 1 + "쿼터") : [];
   return `${head}${tabs}
-  ${P && (P.conf || P.on) && (!L.side || P.side === L.side) ? `<section class="card hot" style="gap:8px"><span class="lab">내 출전</span>${planTiles(e, pid)}<div class="small muted">${P.on ? `${rest.length ? rest.join(", ") + "에 쉬고, " : "쉬는 쿼터 없이 "}${P.N}개 쿼터 중 ${P.on}개를 뛰어요.` : "아직 라인업에 들어가 있지 않아요."}</div></section>` : ""}
+  ${P && (P.conf || P.on) && (!L.side || P.side === L.side) ? `<section class="card hot" style="gap:8px"><span class="lab">내 출전</span>${planTiles(e, pid)}<div class="small muted">${P.on ? `${rest.length ? rest.join(", ") + "에 쉬고, " : "쉬는 쿼터 없이 "}${P.N}개 쿼터 중 ${qn(P.on)}쿼터를 뛰어요.` : "아직 라인업에 들어가 있지 않아요."}</div></section>` : ""}
   <section class="card" style="gap:10px"><div class="labrow"><span class="lab">쿼터별 위치</span><span class="chip ink num" style="font-size:14px">${esc(formName(L.formation))}</span></div>
     <div class="seg" role="tablist" aria-label="쿼터">${L.q.map((_, j) => `<button role="tab" data-act="mlQ" data-v="${j}" aria-selected="${j === k}">${j + 1}Q</button>`).join("")}</div>
     ${pitchHtml(e, L, k, { me: pid })}
     ${pid ? `<div role="status" style="font-size:14px;font-weight:700;color:${i >= 0 ? "var(--clay)" : "var(--muted)"}">${k + 1}쿼터: ${i >= 0 ? `${esc(L.spots[i][3])} 자리에서 뛰어요` : roster(e).ids.has(pid) ? "쉬는 쿼터예요" : "라인업에 없어요"}</div>` : ""}
-    <div class="benchrow"><span class="k">이 쿼터 휴식</span>${benchOf(e, L, k).map(x => `<span class="bench ${x.id === pid ? "me" : x.late ? "late" : ""}">${x.id === pid ? "나 (" + esc(x.name) + ")" : esc(x.name) + (x.late ? ` (${x.from}Q 합류)` : "")}</span>`).join("") || `<span class="small muted">없음</span>`}</div>
+    <div class="benchrow"><span class="k">이 쿼터 휴식</span>${benchOf(e, L, k).map(x => `<span class="bench ${x.id === pid ? "me" : x.late ? "late" : ""}">${x.id === pid ? "나 (" + esc(x.name) + ")" : esc(x.name)}${x.halfIn ? ` (후반 ${esc(x.halfIn)})` : x.late && x.id !== pid ? ` (${x.from}Q 합류)` : ""}</span>`).join("") || `<span class="small muted">없음</span>`}</div>
   </section>
-  <section class="card" style="gap:4px"><div class="labrow" style="margin-bottom:4px"><span class="lab">누가 언제 쉬나</span>${legendHtml()}</div>${playTable(e, L, k, pid)}<div class="hint" style="padding-top:4px">운영진이 짠 라인업이라 여기서는 바꿀 수 없어요. 바뀌면 알림함에 떠요.</div></section>`;
+  <section class="card" style="gap:4px"><div class="labrow" style="margin-bottom:4px"><span class="lab">누가 언제 쉬나</span>${legendHtml()}</div>${playTable(e, L, k, pid)}<div class="hint" style="padding-top:4px">운영진이 짠 라인업이라 여기서는 바꿀 수 없어요. 바뀌면 알림함에 떠요.</div></section>
+  <button class="btn block" data-act="lineupPdf" data-eid="${e.id}">${L.side ? (L.side === "A" ? "조끼팀 " : "일반팀 ") : ""}라인업 PDF로 저장</button>`;
 }
 
 /* ---------- 내 회비 ---------- */
@@ -1378,9 +1399,12 @@ function opLineup(e) {
     ${pitchHtml(e, L, k, { edit: true, sel })}
     <div role="status" style="font-size:13px;font-weight:600;color:${sel >= 0 ? "var(--clay-d)" : "var(--muted)"}">${esc(hint)}</div>
     ${stale.length ? `<div class="status">${L.side ? "이 팀 스쿼드가 아닌 사람이" : "참석 확정이 아닌 사람이"} 배치에 남아 있어요: ${esc(stale.join(", "))}. 자동 배치를 다시 누르면 정리돼요.</div>` : ""}
-    <div class="benchrow"><span class="k">${scrim ? "휴식" : "벤치"}</span>${bench.map(x => `<button class="bench ${x.late ? "late" : sel >= 0 ? "armed" : ""}" data-act="benchTap" data-pid="${x.id}" ${x.late ? "disabled" : ""}>${esc(x.name)}${x.late ? ` (${x.from}Q~)` : ""}</button>`).join("") || `<span class="small muted">없음</span>`}</div>
+    <div class="benchrow"><span class="k">${scrim ? "휴식" : "벤치"}</span>${bench.map(x => `<button class="bench ${x.late ? "late" : sel >= 0 ? "armed" : ""}" data-act="benchTap" data-pid="${x.id}" ${x.late ? "disabled" : ""}>${esc(x.name)}${x.halfIn ? ` (후반 ${esc(x.halfIn)})` : x.late ? ` (${x.from}Q~)` : ""}</button>`).join("") || `<span class="small muted">없음</span>`}</div>
+    ${sel >= 0 && L.q[k][sel] ? `<div class="card soft" style="gap:8px;border-radius:14px;padding:10px 12px"><div class="small"><b>반쿼터 교체</b> ${esc(L.spots[sel][3])} 자리의 ${esc(pname(L.q[k][sel]))} 선수가 전반만 뛰고, 후반에 다른 사람으로 바꿔요.</div>
+      <div class="btnrow"><button class="btn" data-act="halfPick">${L.h[k][sel] ? `후반: ${esc(pname(L.h[k][sel]))} (바꾸기)` : "후반에 들어갈 사람 고르기"}</button>${L.h[k][sel] ? `<button class="btn muted" data-act="halfClear">반쿼터 교체 없애기</button>` : ""}</div></div>` : ""}
     <button class="btn primary big" data-act="autoLineup">${scrim ? (L.side === "A" ? "조끼팀" : "일반팀") + " 출전 시간 고르게 자동 배치" : "출전 시간 고르게 자동 배치"}</button>
     <div class="btnrow"><button class="btn" data-act="copyQ">${k + 1}Q를 전 쿼터에 복사</button><button class="btn" data-act="clearQ">${k + 1}Q 비우기</button></div>
+    <button class="btn block" data-act="lineupPdf" data-eid="${e.id}">${scrim ? (L.side === "A" ? "조끼팀 " : "일반팀 ") : ""}라인업 한 장 PDF로 저장</button>
     <div class="hint">${scrim ? "자리를 누르고 휴식 칸에서 사람을 고르면 직접 넣을 수 있어요. 자동 배치는 이 팀 스쿼드만 쿼터마다 돌려서 출전 시간을 맞추고, 주, 부 포지션에 맞는 자리에 넣어요." : "자동 배치는 확정 인원(대기 제외)을 쿼터마다 돌려서 출전 시간을 맞추고, 주, 부 포지션에 맞는 자리에 넣어요."} 늦참은 합류 쿼터부터 들어가요.</div>
   </section>
   <section class="card" style="gap:4px"><div class="labrow" style="margin-bottom:4px"><span class="lab">${scrim ? (L.side === "A" ? "조끼팀 " : "일반팀 ") + "누가 언제 쉬나" : "출전 시간"}</span>${legendHtml(scrim ? "휴식" : "벤치")}</div>${playTable(e, L, k)}</section>`;
@@ -1726,6 +1750,74 @@ function voteSheet() {
     <div class="btnrow"><a class="btn" href="#event-${e.id}" data-act="closeSheet">일정 자세히</a><button class="btn primary" data-act="closeSheet">닫기</button></div></div>`);
 }
 
+/* ---------- 라인업 한 장 PDF (쿼터별 위치, 휴식, 반쿼터 교체, 선수별 출전) ---------- */
+const PDF_LIBS = ["https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js", "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"];
+function loadScriptOnce(src) {
+  return new Promise((res, rej) => {
+    const old = document.querySelector(`script[data-src="${src}"]`);
+    if (old) { if (old.dataset.ok) res(); else { old.addEventListener("load", () => res()); old.addEventListener("error", rej); } return; }
+    const s = document.createElement("script"); s.src = src; s.dataset.src = src; s.onload = () => { s.dataset.ok = "1"; res(); }; s.onerror = rej; document.head.appendChild(s);
+  });
+}
+function lineupPool(e, L) {
+  const base = (L.side ? sidePool(e, L.side) : roster(e).confirmed).slice(); const ids = new Set(base.map(p => p.id));
+  L.q.forEach((qs, k) => { qs.concat(Object.values(L.h[k] || {})).forEach(id => { if (id && !ids.has(id) && playerById(id)) { ids.add(id); base.push(playerById(id)); } }); });
+  return base;
+}
+function lineupSheet(e, L) {
+  const W = 794, H = 1123, pad = 30; const N = L.N; const cols = N <= 4 ? 2 : 4; const rowsN = Math.ceil(N / cols);
+  const pool = lineupPool(e, L); const team = S.settings.teamName || "우리 팀"; const side = L.side ? (L.side === "A" ? "조끼팀" : "일반팀") : "";
+  const sumRows = Math.ceil(pool.length / 3); const sumH = 26 + sumRows * 21; const headH = 70; const gap = 10;
+  const cellH = Math.floor((H - pad * 2 - headH - sumH - 14) / rowsN); const pitchH = cellH - 44;
+  const C = { clay: "#A84D24", clayD: "#7E3818", clayS: "#F6E3D5", ink: "#2A1E16", ink2: "#4A3B30", muted: "#6E5B4C", line: "#EBDFD1" };
+  const font = getComputedStyle(document.body).fontFamily;
+  const pitch = k => {
+    const slots = L.q[k], h = L.h[k] || {};
+    const stripes = Array.from({ length: 10 }, (_, j) => `<div style="position:absolute;left:0;right:0;top:${j * 10}%;height:10%;background:${j % 2 ? "#4E6844" : "#55704A"}"></div>`).join("");
+    const lines = `<div style="position:absolute;left:0;right:0;top:50%;border-top:1.5px solid rgba(255,255,255,.45)"></div><div style="position:absolute;left:28%;right:28%;bottom:0;height:13%;border:1.5px solid rgba(255,255,255,.45);border-bottom:0"></div><div style="position:absolute;left:28%;right:28%;top:0;height:13%;border:1.5px solid rgba(255,255,255,.45);border-top:0"></div>`;
+    const tiles = L.spots.map(([grp, x, y, lab], i) => { const p = slots[i] ? pname(slots[i]) : ""; const hp = h[i] ? pname(h[i]) : "";
+      return `<div style="position:absolute;left:${x}%;top:${y}%;transform:translate(-50%,-50%);background:${grp === "GK" ? C.clayS : "#FFFDF9"};border-radius:9px;padding:3px 7px;text-align:center;min-width:52px;box-shadow:0 1px 2px rgba(0,0,0,.3)">
+        <div style="font-size:9px;font-weight:700;color:${C.clay};line-height:1.1">${esc(lab)}</div><div style="font-size:${cols === 4 ? 10 : 12}px;font-weight:700;color:${C.ink};line-height:1.2;white-space:nowrap">${p ? esc(p) : "-"}</div>${hp ? `<div style="font-size:${cols === 4 ? 8.5 : 10}px;font-weight:700;color:${C.clayD};white-space:nowrap">후반 ${esc(hp)}</div>` : ""}</div>`; }).join("");
+    const rest = pool.filter(p => playAmt(L, k, p.id) === 0).map(p => p.name);
+    const halves = Object.keys(h).map(i => `${L.spots[i][3]} ${pname(slots[i])} → ${pname(h[i])}`);
+    return `<div style="height:${cellH}px"><div style="font-size:14px;font-weight:700;color:${C.ink};margin-bottom:4px">${k + 1}쿼터</div>
+      <div style="position:relative;height:${pitchH}px;border-radius:12px;overflow:hidden">${stripes}${lines}${tiles}</div>
+      <div style="font-size:10.5px;color:${C.ink2};margin-top:4px;line-height:1.35"><b style="color:${C.ink}">휴식</b> ${esc(rest.join(", ") || "없음")}${halves.length ? `<br><b style="color:${C.clayD}">반쿼터</b> ${esc(halves.join(", "))}` : ""}</div></div>`;
+  };
+  const bar = (p, k) => { const a = playAmt(L, k, p.id); return `<span style="display:inline-block;width:13px;height:9px;border-radius:2px;margin-right:2px;background:${a === 1 ? C.clay : a ? `linear-gradient(90deg,${C.clay} 50%,${C.line} 50%)` : C.line}"></span>`; };
+  const sum = pool.map(p => { const tot = L.q.reduce((a, _, k) => a + playAmt(L, k, p.id), 0);
+    return `<div style="display:flex;align-items:center;gap:6px;border-bottom:1px solid ${C.line};padding:2px 0;font-size:11px"><b style="color:${C.ink};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px">${esc(p.name)}</b><span style="margin-left:auto;white-space:nowrap">${L.q.map((_, k) => bar(p, k)).join("")}</span><b style="width:30px;text-align:right">${qn(tot)}</b></div>`; }).join("");
+  const el = document.createElement("div");
+  el.setAttribute("aria-hidden", "true");
+  el.style.cssText = `position:fixed;left:-${W + 50}px;top:0;width:${W}px;height:${H}px;padding:${pad}px;box-sizing:border-box;background:#fff;font-family:${font};color:${C.ink}`;
+  el.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:flex-end;height:${headH - 10}px">
+      <div><div style="font-size:24px;font-weight:700;letter-spacing:-.5px">${esc(team)} ${esc(evTitle(e))} 라인업${side ? ` (${side})` : ""}</div><div style="font-size:12px;color:${C.muted};margin-top:2px">${esc(fmtDate(e.date))}${e.time ? " " + esc(e.time) : ""}${e.place ? ", " + esc(e.place) : ""}</div></div>
+      <div style="font-size:11px;font-weight:700;color:${C.clayD}"><span style="background:${C.clayS};border-radius:999px;padding:3px 9px">${esc(formName(L.formation))}</span> <span style="background:${C.clayS};border-radius:999px;padding:3px 9px">${pool.length}명</span></div></div>
+    <div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:${gap}px 14px">${Array.from({ length: N }, (_, k) => pitch(k)).join("")}</div>
+    <div style="margin-top:10px"><div style="font-size:12px;font-weight:700;color:${C.clay};margin-bottom:3px">선수별 출전 <span style="font-weight:500;color:${C.muted};font-size:10px">진한 칸 출전, 반 칸 반쿼터, 숫자는 뛰는 쿼터 수</span></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0 16px">${sum}</div></div>`;
+  return el;
+}
+async function lineupPdf(e) {
+  const L = lineupOf(e);
+  if (!L.q.some(qs => qs.some(Boolean))) { toast("아직 라인업이 비어 있어요"); return; }
+  toast("PDF를 만드는 중이에요");
+  try { for (const s of PDF_LIBS) await loadScriptOnce(s); } catch (err) { toast("PDF 도구를 불러오지 못했어요. 인터넷 연결을 확인해 주세요"); return; }
+  const el = lineupSheet(e, L); document.body.appendChild(el);
+  try {
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    const canvas = await window.html2canvas(el, { scale: 2, backgroundColor: "#ffffff", logging: false });
+    const pdf = new window.jspdf.jsPDF({ orientation: "p", unit: "mm", format: "a4" });
+    pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, 210, 297);
+    const side = L.side ? (L.side === "A" ? " 조끼팀" : " 일반팀") : "";
+    const name = `${S.settings.teamName || "팀"} ${e.date} ${evTitle(e)}${side} 라인업.pdf`.replace(/[\\/:*?"<>|]/g, " ");
+    const url = URL.createObjectURL(pdf.output("blob")); const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 4000);
+    toast("PDF를 저장했어요");
+  } catch (err) { toast("PDF를 만들지 못했어요. 다시 시도해 주세요"); }
+  finally { el.remove(); }
+}
+
 
 /* ---------- sheets ---------- */
 function openSheet(title, html, onMount) {
@@ -2039,11 +2131,16 @@ function opSetAtt(e, pid, nv) {
   saveEv(e, patch);
   if (going(nv) && !going(cur)) { const pos = roster(S.events[e.id] || e).waitPos(pid); if (pos) toast(`정원 ${capOf(e)}명이 차서 ${pname(pid)} 선수는 대기 ${pos}번입니다`); }
 }
-function lineupSave(e, L, q) {
+function lineupSave(e, L, q, extra) {
   const obj = {}; q.forEach((slots, k) => { obj[k + 1] = slots.map(x => x || null); });
   const side = L.side || curSide(e);
-  if (side) { saveEv(e, { lineS: { [side]: { formation: L.formation, q: obj } } }); return; }
-  saveEv(e, { lineupQ: { formation: L.formation, q: obj }, lineup: null });
+  const body = Object.assign({ formation: L.formation, q: obj }, extra || {});
+  if (side) { saveEv(e, { lineS: { [side]: body } }); return; }
+  saveEv(e, { lineupQ: body, lineup: null });
+}
+function halfSave(e, L, k, i, pid) {
+  const side = L.side || curSide(e); const body = { h: { [k + 1]: { [i]: pid || null } } };
+  if (side) saveEv(e, { lineS: { [side]: body } }); else saveEv(e, { lineupQ: Object.assign({ formation: L.formation }, body) });
 }
 
 const ACT = {
@@ -2174,8 +2271,21 @@ const ACT = {
       spots.forEach((s, i) => { if (!slots[i] && pool.length) slots[i] = pool.shift().pid; });
       return slots;
     });
-    lineupSave(e, { formation: t.dataset.v }, q);
+    lineupSave(e, { formation: t.dataset.v }, q, { h: null });
   },
+  halfPick: () => {
+    const e = curEvent(); if (!e) return; const L = lineupOf(e); const k = Math.min(ui.lineQ, L.N - 1); const i = ui.lineSel; if (i < 0 || !L.q[k][i]) return;
+    const base = L.side ? sidePool(e, L.side) : roster(e).confirmed; const on = new Set(L.q[k].filter(Boolean));
+    const free = base.filter(p => !on.has(p.id) && availFrom(e, p.id) <= k + 1);
+    const others = activePlayers().filter(p => !on.has(p.id) && !free.includes(p));
+    playerPicker(`${k + 1}쿼터 ${L.spots[i][3]} 후반 교체`, { current: L.h[k][i] || "", tag: pid => { const j = halfInOf(L, k, pid); return j >= 0 && j !== i ? `(지금 후반 ${L.spots[j][3]})` : ""; }, sections: [["이번 쿼터 쉬는 사람", free], ["그 외 선수", others]], extra: [] }, pid => {
+      const cur = S.events[e.id]; if (!cur) return; const L2 = lineupOf(cur); const j = halfInOf(L2, k, pid);
+      if (j >= 0 && j !== i) halfSave(cur, L2, k, j, null);
+      halfSave(cur, L2, k, i, pid); ui.lineSel = -1; ui.lineMsg = `${k + 1}쿼터 ${L2.spots[i][3]}: ${pname(L2.q[k][i])} 전반, ${pname(pid)} 후반이에요.`; render();
+    });
+  },
+  halfClear: () => { const e = curEvent(); if (!e) return; const L = lineupOf(e); const k = Math.min(ui.lineQ, L.N - 1); const i = ui.lineSel; if (i < 0) return; halfSave(e, L, k, i, null); ui.lineSel = -1; ui.lineMsg = "반쿼터 교체를 없앴어요."; render(); },
+  lineupPdf: t => { const e = S.events[t.dataset.eid] || curEvent(); if (e) lineupPdf(e); },
   pickSlot: t => {
     const e = curEvent(); if (!e) return; const L = lineupOf(e); const k = Math.min(ui.lineQ, L.N - 1); const i = Number(t.dataset.i);
     const slots = L.q[k];
@@ -2405,7 +2515,7 @@ Object.assign(ACT, {
   peDel: t => { const p = playerById(t.dataset.id); if (!p) return; confirmSheet("선수 삭제", `${p.name} 선수를 삭제할까요? 지난 기록에는 '삭제된 선수'로 표시돼요. 그만둔 선수라면 삭제 대신 휴면으로 두는 것을 권해요.`, "삭제", () => { delDoc("players/" + p.id); if (p.phone) delDoc("contacts/" + p.id); location.hash = "players"; toast("삭제했어요"); }); },
   unlink: t => { patchDoc("rsvp/" + t.dataset.u, { pid: "" }); render(); toast("계정 연결을 해제했어요"); },
 });
-["voteSheet", "evQ", "mlQ", "lineSide", "goEvTab", "rptTab", "claimPick", "posSel", "inboxToggle", "momPick", "teamShare", "pePos", "peRest", "noticeEdit"].forEach(a => READ_ACTS.add(a));
+["voteSheet", "evQ", "mlQ", "lineSide", "lineupPdf", "goEvTab", "rptTab", "claimPick", "posSel", "inboxToggle", "momPick", "teamShare", "pePos", "peRest", "noticeEdit"].forEach(a => READ_ACTS.add(a));
 ["claimConfirm", "posSend", "guestOpen", "pollVote", "inboxRead", "momSend"].forEach(a => VOTE_ACTS.add(a));
 /* 화면을 그린 뒤 할 일: 공지를 열면 읽음으로 표시 */
 function afterRender(v) {

@@ -369,6 +369,11 @@ html.big main,html.big header.top{zoom:1.12}
 .seg.pick button[aria-pressed="true"][data-v="A"]{background:var(--clay);color:#fff}
 .seg.pick button[aria-pressed="true"][data-v="B"]{background:var(--ink);color:var(--bg)}
 
+/* 반쿼터 교체 */
+.cell.hf{background:linear-gradient(90deg,var(--clay) 50%,var(--surface2) 50%)}
+.slot .h{display:block;font-size:10px;font-weight:700;color:var(--clay-d);line-height:1.1;margin-top:1px}
+.slot.hf{outline:2px dashed var(--clay);outline-offset:1px}
+
 /* ---------- 웹 셸: 로그인, 팀 고르기, 팀 멤버 관리 ---------- */
 .auth{display:flex;flex-direction:column;gap:14px}
 .auth .hero{display:flex;align-items:center;gap:12px;padding:8px 4px 0}
