@@ -129,9 +129,12 @@ function opLineup(e) {
     ${pitchHtml(e, L, k, { edit: true, sel })}
     <div role="status" style="font-size:13px;font-weight:600;color:${sel >= 0 ? "var(--clay-d)" : "var(--muted)"}">${esc(hint)}</div>
     ${stale.length ? `<div class="status">${L.side ? "이 팀 스쿼드가 아닌 사람이" : "참석 확정이 아닌 사람이"} 배치에 남아 있어요: ${esc(stale.join(", "))}. 자동 배치를 다시 누르면 정리돼요.</div>` : ""}
-    <div class="benchrow"><span class="k">${scrim ? "휴식" : "벤치"}</span>${bench.map(x => `<button class="bench ${x.late ? "late" : sel >= 0 ? "armed" : ""}" data-act="benchTap" data-pid="${x.id}" ${x.late ? "disabled" : ""}>${esc(x.name)}${x.late ? ` (${x.from}Q~)` : ""}</button>`).join("") || `<span class="small muted">없음</span>`}</div>
+    <div class="benchrow"><span class="k">${scrim ? "휴식" : "벤치"}</span>${bench.map(x => `<button class="bench ${x.late ? "late" : sel >= 0 ? "armed" : ""}" data-act="benchTap" data-pid="${x.id}" ${x.late ? "disabled" : ""}>${esc(x.name)}${x.halfIn ? ` (후반 ${esc(x.halfIn)})` : x.late ? ` (${x.from}Q~)` : ""}</button>`).join("") || `<span class="small muted">없음</span>`}</div>
+    ${sel >= 0 && L.q[k][sel] ? `<div class="card soft" style="gap:8px;border-radius:14px;padding:10px 12px"><div class="small"><b>반쿼터 교체</b> ${esc(L.spots[sel][3])} 자리의 ${esc(pname(L.q[k][sel]))} 선수가 전반만 뛰고, 후반에 다른 사람으로 바꿔요.</div>
+      <div class="btnrow"><button class="btn" data-act="halfPick">${L.h[k][sel] ? `후반: ${esc(pname(L.h[k][sel]))} (바꾸기)` : "후반에 들어갈 사람 고르기"}</button>${L.h[k][sel] ? `<button class="btn muted" data-act="halfClear">반쿼터 교체 없애기</button>` : ""}</div></div>` : ""}
     <button class="btn primary big" data-act="autoLineup">${scrim ? (L.side === "A" ? "조끼팀" : "일반팀") + " 출전 시간 고르게 자동 배치" : "출전 시간 고르게 자동 배치"}</button>
     <div class="btnrow"><button class="btn" data-act="copyQ">${k + 1}Q를 전 쿼터에 복사</button><button class="btn" data-act="clearQ">${k + 1}Q 비우기</button></div>
+    <button class="btn block" data-act="lineupPdf" data-eid="${e.id}">${scrim ? (L.side === "A" ? "조끼팀 " : "일반팀 ") : ""}라인업 한 장 PDF로 저장</button>
     <div class="hint">${scrim ? "자리를 누르고 휴식 칸에서 사람을 고르면 직접 넣을 수 있어요. 자동 배치는 이 팀 스쿼드만 쿼터마다 돌려서 출전 시간을 맞추고, 주, 부 포지션에 맞는 자리에 넣어요." : "자동 배치는 확정 인원(대기 제외)을 쿼터마다 돌려서 출전 시간을 맞추고, 주, 부 포지션에 맞는 자리에 넣어요."} 늦참은 합류 쿼터부터 들어가요.</div>
   </section>
   <section class="card" style="gap:4px"><div class="labrow" style="margin-bottom:4px"><span class="lab">${scrim ? (L.side === "A" ? "조끼팀 " : "일반팀 ") + "누가 언제 쉬나" : "출전 시간"}</span>${legendHtml(scrim ? "휴식" : "벤치")}</div>${playTable(e, L, k)}</section>`;

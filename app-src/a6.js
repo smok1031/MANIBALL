@@ -28,11 +28,16 @@ function opSetAtt(e, pid, nv) {
   saveEv(e, patch);
   if (going(nv) && !going(cur)) { const pos = roster(S.events[e.id] || e).waitPos(pid); if (pos) toast(`정원 ${capOf(e)}명이 차서 ${pname(pid)} 선수는 대기 ${pos}번입니다`); }
 }
-function lineupSave(e, L, q) {
+function lineupSave(e, L, q, extra) {
   const obj = {}; q.forEach((slots, k) => { obj[k + 1] = slots.map(x => x || null); });
   const side = L.side || curSide(e);
-  if (side) { saveEv(e, { lineS: { [side]: { formation: L.formation, q: obj } } }); return; }
-  saveEv(e, { lineupQ: { formation: L.formation, q: obj }, lineup: null });
+  const body = Object.assign({ formation: L.formation, q: obj }, extra || {});
+  if (side) { saveEv(e, { lineS: { [side]: body } }); return; }
+  saveEv(e, { lineupQ: body, lineup: null });
+}
+function halfSave(e, L, k, i, pid) {
+  const side = L.side || curSide(e); const body = { h: { [k + 1]: { [i]: pid || null } } };
+  if (side) saveEv(e, { lineS: { [side]: body } }); else saveEv(e, { lineupQ: Object.assign({ formation: L.formation }, body) });
 }
 
 const ACT = {
@@ -163,8 +168,21 @@ const ACT = {
       spots.forEach((s, i) => { if (!slots[i] && pool.length) slots[i] = pool.shift().pid; });
       return slots;
     });
-    lineupSave(e, { formation: t.dataset.v }, q);
+    lineupSave(e, { formation: t.dataset.v }, q, { h: null });
   },
+  halfPick: () => {
+    const e = curEvent(); if (!e) return; const L = lineupOf(e); const k = Math.min(ui.lineQ, L.N - 1); const i = ui.lineSel; if (i < 0 || !L.q[k][i]) return;
+    const base = L.side ? sidePool(e, L.side) : roster(e).confirmed; const on = new Set(L.q[k].filter(Boolean));
+    const free = base.filter(p => !on.has(p.id) && availFrom(e, p.id) <= k + 1);
+    const others = activePlayers().filter(p => !on.has(p.id) && !free.includes(p));
+    playerPicker(`${k + 1}쿼터 ${L.spots[i][3]} 후반 교체`, { current: L.h[k][i] || "", tag: pid => { const j = halfInOf(L, k, pid); return j >= 0 && j !== i ? `(지금 후반 ${L.spots[j][3]})` : ""; }, sections: [["이번 쿼터 쉬는 사람", free], ["그 외 선수", others]], extra: [] }, pid => {
+      const cur = S.events[e.id]; if (!cur) return; const L2 = lineupOf(cur); const j = halfInOf(L2, k, pid);
+      if (j >= 0 && j !== i) halfSave(cur, L2, k, j, null);
+      halfSave(cur, L2, k, i, pid); ui.lineSel = -1; ui.lineMsg = `${k + 1}쿼터 ${L2.spots[i][3]}: ${pname(L2.q[k][i])} 전반, ${pname(pid)} 후반이에요.`; render();
+    });
+  },
+  halfClear: () => { const e = curEvent(); if (!e) return; const L = lineupOf(e); const k = Math.min(ui.lineQ, L.N - 1); const i = ui.lineSel; if (i < 0) return; halfSave(e, L, k, i, null); ui.lineSel = -1; ui.lineMsg = "반쿼터 교체를 없앴어요."; render(); },
+  lineupPdf: t => { const e = S.events[t.dataset.eid] || curEvent(); if (e) lineupPdf(e); },
   pickSlot: t => {
     const e = curEvent(); if (!e) return; const L = lineupOf(e); const k = Math.min(ui.lineQ, L.N - 1); const i = Number(t.dataset.i);
     const slots = L.q[k];
@@ -394,7 +412,7 @@ Object.assign(ACT, {
   peDel: t => { const p = playerById(t.dataset.id); if (!p) return; confirmSheet("선수 삭제", `${p.name} 선수를 삭제할까요? 지난 기록에는 '삭제된 선수'로 표시돼요. 그만둔 선수라면 삭제 대신 휴면으로 두는 것을 권해요.`, "삭제", () => { delDoc("players/" + p.id); if (p.phone) delDoc("contacts/" + p.id); location.hash = "players"; toast("삭제했어요"); }); },
   unlink: t => { patchDoc("rsvp/" + t.dataset.u, { pid: "" }); render(); toast("계정 연결을 해제했어요"); },
 });
-["voteSheet", "evQ", "mlQ", "lineSide", "goEvTab", "rptTab", "claimPick", "posSel", "inboxToggle", "momPick", "teamShare", "pePos", "peRest", "noticeEdit"].forEach(a => READ_ACTS.add(a));
+["voteSheet", "evQ", "mlQ", "lineSide", "lineupPdf", "goEvTab", "rptTab", "claimPick", "posSel", "inboxToggle", "momPick", "teamShare", "pePos", "peRest", "noticeEdit"].forEach(a => READ_ACTS.add(a));
 ["claimConfirm", "posSend", "guestOpen", "pollVote", "inboxRead", "momSend"].forEach(a => VOTE_ACTS.add(a));
 /* 화면을 그린 뒤 할 일: 공지를 열면 읽음으로 표시 */
 function afterRender(v) {

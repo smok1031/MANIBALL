@@ -128,6 +128,20 @@ function scrimDefaultForm(e, side) {
   return Object.keys(SCRIM_FORMS).find(k => k.startsWith(n + "|"));
 }
 const lineFor = (e, pid) => isScrim(e) ? lineupOf(e, teamsOf(e).t[pid] || curSide(e)) : lineupOf(e);
+// 반쿼터 교체: 쿼터 k의 자리 i에 후반부터 들어가는 사람. 자리가 비었거나 이미 뛰는 사람이면 무시
+function halfMap(raw, q) {
+  return q.map((slots, k) => { const out = {}; const used = new Set(); const r = (raw || {})[k + 1] || {};
+    Object.keys(r).forEach(i => { const pid = r[i]; if (pid && playerById(pid) && slots[i] && !slots.includes(pid) && !used.has(pid)) { out[i] = pid; used.add(pid); } });
+    return out; });
+}
+// 한 쿼터에 뛰는 양: 1, 0.5(전반 또는 후반), 0
+function playAmt(L, k, pid) {
+  const i = L.q[k].indexOf(pid); const h = (L.h && L.h[k]) || {};
+  if (i >= 0) return h[i] ? 0.5 : 1;
+  return Object.values(h).includes(pid) ? 0.5 : 0;
+}
+const halfInOf = (L, k, pid) => { const h = (L.h && L.h[k]) || {}; const i = Object.keys(h).find(j => h[j] === pid); return i == null ? -1 : Number(i); };
+const qn = x => String(Math.round(x * 10) / 10);
 function lineupOf(e, side) {
   if (isScrim(e)) {
     side = side === "A" || side === "B" ? side : curSide(e);
@@ -136,7 +150,7 @@ function lineupOf(e, side) {
     const formation = ok ? src.formation : scrimDefaultForm(e, side); const qs = ok ? src.q || {} : {};
     const spots = forms[formation];
     const q = Array.from({ length: N }, (_, k) => spots.map((_, i) => { const id = (qs[k + 1] || [])[i]; return id && playerById(id) ? id : null; }));
-    return { fmt: e.format === "futsal" ? "futsal" : "11", forms, formation, spots, q, N, side };
+    return { fmt: e.format === "futsal" ? "futsal" : "11", forms, formation, spots, q, N, side, h: halfMap(ok ? src.h : null, q) };
   }
   const fmt = e.format === "futsal" ? "futsal" : "11"; const forms = FORMATIONS[fmt]; const N = quartersOf(e);
   let formation = Object.keys(forms)[0], qs = {};
@@ -144,7 +158,7 @@ function lineupOf(e, side) {
   else if (e.lineup && forms[e.lineup.formation]) { formation = e.lineup.formation; for (let k = 1; k <= N; k++) qs[k] = e.lineup.slots || []; }
   const spots = forms[formation];
   const q = Array.from({ length: N }, (_, k) => spots.map((_, i) => { const id = (qs[k + 1] || [])[i]; return id && playerById(id) ? id : null; }));
-  return { fmt, forms, formation, spots, q, N };
+  return { fmt, forms, formation, spots, q, N, h: halfMap(e.lineupQ && forms[e.lineupQ.formation] ? e.lineupQ.h : null, q) };
 }
 const availFrom = (e, pid) => lateQ(e, pid) || 1;
 const isGk = p => (p.pos1 || p.pos) === "GK";
@@ -152,8 +166,11 @@ const isGk = p => (p.pos1 || p.pos) === "GK";
 function myPlan(e, pid) {
   if (!e || !pid) return null;
   const L = lineFor(e, pid); const conf = isScrim(e) ? sidePool(e, L.side).some(p => p.id === pid) : roster(e).ids.has(pid);
-  const rows = L.q.map((qs, k) => { const i = qs.indexOf(pid); if (i >= 0) return { k, st: "on", lab: L.spots[i][3] }; if (conf && availFrom(e, pid) > k + 1) return { k, st: "late" }; return { k, st: "rest" }; });
-  const on = rows.filter(r => r.st === "on").length;
+  const rows = L.q.map((qs, k) => { const i = qs.indexOf(pid); const h = (L.h && L.h[k]) || {};
+    if (i >= 0) return { k, st: "on", lab: L.spots[i][3], half: h[i] ? "전반" : "", with: h[i] || "" };
+    const j = halfInOf(L, k, pid); if (j >= 0) return { k, st: "on", lab: L.spots[j][3], half: "후반", with: qs[j] };
+    if (conf && availFrom(e, pid) > k + 1) return { k, st: "late" }; return { k, st: "rest" }; });
+  const on = rows.reduce((a, r) => a + (r.st === "on" ? (r.half ? 0.5 : 1) : 0), 0);
   return { any: L.q.some(qs => qs.some(Boolean)), conf, rows, on, N: L.N, side: L.side };
 }
 function myPosReq() {

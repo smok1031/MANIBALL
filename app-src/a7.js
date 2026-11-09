@@ -198,3 +198,71 @@ function voteSheet() {
     ${voteGroup(e, st)}${myLatePicker(e, st)}${myStatusLine(e, st) || (st && st.s ? `<div class="status" role="status">${st.s === "late" ? "늦참" : "참석"} 확정 (${st.cap === Infinity ? st.order + "번째" : attCounts(e).capAll + "명 중 " + st.order + "번째"})</div>` : "")}
     <div class="btnrow"><a class="btn" href="#event-${e.id}" data-act="closeSheet">일정 자세히</a><button class="btn primary" data-act="closeSheet">닫기</button></div></div>`);
 }
+
+/* ---------- 라인업 한 장 PDF (쿼터별 위치, 휴식, 반쿼터 교체, 선수별 출전) ---------- */
+const PDF_LIBS = ["https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js", "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"];
+function loadScriptOnce(src) {
+  return new Promise((res, rej) => {
+    const old = document.querySelector(`script[data-src="${src}"]`);
+    if (old) { if (old.dataset.ok) res(); else { old.addEventListener("load", () => res()); old.addEventListener("error", rej); } return; }
+    const s = document.createElement("script"); s.src = src; s.dataset.src = src; s.onload = () => { s.dataset.ok = "1"; res(); }; s.onerror = rej; document.head.appendChild(s);
+  });
+}
+function lineupPool(e, L) {
+  const base = (L.side ? sidePool(e, L.side) : roster(e).confirmed).slice(); const ids = new Set(base.map(p => p.id));
+  L.q.forEach((qs, k) => { qs.concat(Object.values(L.h[k] || {})).forEach(id => { if (id && !ids.has(id) && playerById(id)) { ids.add(id); base.push(playerById(id)); } }); });
+  return base;
+}
+function lineupSheet(e, L) {
+  const W = 794, H = 1123, pad = 30; const N = L.N; const cols = N <= 4 ? 2 : 4; const rowsN = Math.ceil(N / cols);
+  const pool = lineupPool(e, L); const team = S.settings.teamName || "우리 팀"; const side = L.side ? (L.side === "A" ? "조끼팀" : "일반팀") : "";
+  const sumRows = Math.ceil(pool.length / 3); const sumH = 26 + sumRows * 21; const headH = 70; const gap = 10;
+  const cellH = Math.floor((H - pad * 2 - headH - sumH - 14) / rowsN); const pitchH = cellH - 44;
+  const C = { clay: "#A84D24", clayD: "#7E3818", clayS: "#F6E3D5", ink: "#2A1E16", ink2: "#4A3B30", muted: "#6E5B4C", line: "#EBDFD1" };
+  const font = getComputedStyle(document.body).fontFamily;
+  const pitch = k => {
+    const slots = L.q[k], h = L.h[k] || {};
+    const stripes = Array.from({ length: 10 }, (_, j) => `<div style="position:absolute;left:0;right:0;top:${j * 10}%;height:10%;background:${j % 2 ? "#4E6844" : "#55704A"}"></div>`).join("");
+    const lines = `<div style="position:absolute;left:0;right:0;top:50%;border-top:1.5px solid rgba(255,255,255,.45)"></div><div style="position:absolute;left:28%;right:28%;bottom:0;height:13%;border:1.5px solid rgba(255,255,255,.45);border-bottom:0"></div><div style="position:absolute;left:28%;right:28%;top:0;height:13%;border:1.5px solid rgba(255,255,255,.45);border-top:0"></div>`;
+    const tiles = L.spots.map(([grp, x, y, lab], i) => { const p = slots[i] ? pname(slots[i]) : ""; const hp = h[i] ? pname(h[i]) : "";
+      return `<div style="position:absolute;left:${x}%;top:${y}%;transform:translate(-50%,-50%);background:${grp === "GK" ? C.clayS : "#FFFDF9"};border-radius:9px;padding:3px 7px;text-align:center;min-width:52px;box-shadow:0 1px 2px rgba(0,0,0,.3)">
+        <div style="font-size:9px;font-weight:700;color:${C.clay};line-height:1.1">${esc(lab)}</div><div style="font-size:${cols === 4 ? 10 : 12}px;font-weight:700;color:${C.ink};line-height:1.2;white-space:nowrap">${p ? esc(p) : "-"}</div>${hp ? `<div style="font-size:${cols === 4 ? 8.5 : 10}px;font-weight:700;color:${C.clayD};white-space:nowrap">후반 ${esc(hp)}</div>` : ""}</div>`; }).join("");
+    const rest = pool.filter(p => playAmt(L, k, p.id) === 0).map(p => p.name);
+    const halves = Object.keys(h).map(i => `${L.spots[i][3]} ${pname(slots[i])} → ${pname(h[i])}`);
+    return `<div style="height:${cellH}px"><div style="font-size:14px;font-weight:700;color:${C.ink};margin-bottom:4px">${k + 1}쿼터</div>
+      <div style="position:relative;height:${pitchH}px;border-radius:12px;overflow:hidden">${stripes}${lines}${tiles}</div>
+      <div style="font-size:10.5px;color:${C.ink2};margin-top:4px;line-height:1.35"><b style="color:${C.ink}">휴식</b> ${esc(rest.join(", ") || "없음")}${halves.length ? `<br><b style="color:${C.clayD}">반쿼터</b> ${esc(halves.join(", "))}` : ""}</div></div>`;
+  };
+  const bar = (p, k) => { const a = playAmt(L, k, p.id); return `<span style="display:inline-block;width:13px;height:9px;border-radius:2px;margin-right:2px;background:${a === 1 ? C.clay : a ? `linear-gradient(90deg,${C.clay} 50%,${C.line} 50%)` : C.line}"></span>`; };
+  const sum = pool.map(p => { const tot = L.q.reduce((a, _, k) => a + playAmt(L, k, p.id), 0);
+    return `<div style="display:flex;align-items:center;gap:6px;border-bottom:1px solid ${C.line};padding:2px 0;font-size:11px"><b style="color:${C.ink};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px">${esc(p.name)}</b><span style="margin-left:auto;white-space:nowrap">${L.q.map((_, k) => bar(p, k)).join("")}</span><b style="width:30px;text-align:right">${qn(tot)}</b></div>`; }).join("");
+  const el = document.createElement("div");
+  el.setAttribute("aria-hidden", "true");
+  el.style.cssText = `position:fixed;left:-${W + 50}px;top:0;width:${W}px;height:${H}px;padding:${pad}px;box-sizing:border-box;background:#fff;font-family:${font};color:${C.ink}`;
+  el.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:flex-end;height:${headH - 10}px">
+      <div><div style="font-size:24px;font-weight:700;letter-spacing:-.5px">${esc(team)} ${esc(evTitle(e))} 라인업${side ? ` (${side})` : ""}</div><div style="font-size:12px;color:${C.muted};margin-top:2px">${esc(fmtDate(e.date))}${e.time ? " " + esc(e.time) : ""}${e.place ? ", " + esc(e.place) : ""}</div></div>
+      <div style="font-size:11px;font-weight:700;color:${C.clayD}"><span style="background:${C.clayS};border-radius:999px;padding:3px 9px">${esc(formName(L.formation))}</span> <span style="background:${C.clayS};border-radius:999px;padding:3px 9px">${pool.length}명</span></div></div>
+    <div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:${gap}px 14px">${Array.from({ length: N }, (_, k) => pitch(k)).join("")}</div>
+    <div style="margin-top:10px"><div style="font-size:12px;font-weight:700;color:${C.clay};margin-bottom:3px">선수별 출전 <span style="font-weight:500;color:${C.muted};font-size:10px">진한 칸 출전, 반 칸 반쿼터, 숫자는 뛰는 쿼터 수</span></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0 16px">${sum}</div></div>`;
+  return el;
+}
+async function lineupPdf(e) {
+  const L = lineupOf(e);
+  if (!L.q.some(qs => qs.some(Boolean))) { toast("아직 라인업이 비어 있어요"); return; }
+  toast("PDF를 만드는 중이에요");
+  try { for (const s of PDF_LIBS) await loadScriptOnce(s); } catch (err) { toast("PDF 도구를 불러오지 못했어요. 인터넷 연결을 확인해 주세요"); return; }
+  const el = lineupSheet(e, L); document.body.appendChild(el);
+  try {
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    const canvas = await window.html2canvas(el, { scale: 2, backgroundColor: "#ffffff", logging: false });
+    const pdf = new window.jspdf.jsPDF({ orientation: "p", unit: "mm", format: "a4" });
+    pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, 210, 297);
+    const side = L.side ? (L.side === "A" ? " 조끼팀" : " 일반팀") : "";
+    const name = `${S.settings.teamName || "팀"} ${e.date} ${evTitle(e)}${side} 라인업.pdf`.replace(/[\\/:*?"<>|]/g, " ");
+    const url = URL.createObjectURL(pdf.output("blob")); const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 4000);
+    toast("PDF를 저장했어요");
+  } catch (err) { toast("PDF를 만들지 못했어요. 다시 시도해 주세요"); }
+  finally { el.remove(); }
+}

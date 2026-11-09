@@ -12,7 +12,7 @@ const WDE = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 function bigDate(e, noTime) { const d = parseD(e.date); return `${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${WDE[d.getDay()]}${!noTime && e.time ? " " + e.time : ""}`; }
 const shortDate = e => { const d = parseD(e.date); return `${pad(d.getMonth() + 1)}.${pad(d.getDate())}`; };
 function evSub(e, noCheck) { return [evTitle(e), e.place, !noCheck && checkTime(e) ? `출석 체크 ${checkTime(e)}` : ""].filter(Boolean).map(esc).join(", "); }
-const qText = r => r.st === "on" ? r.lab : r.st === "late" ? "합류 전" : "휴식";
+const qText = r => r.st === "on" ? (r.half ? `${r.half} ${r.lab}` : r.lab) : r.st === "late" ? "합류 전" : "휴식";
 const ICON = {
   back: `<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>`,
   chev: `<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="color:var(--muted);flex:none"><path d="m9 6 6 6-6 6"/></svg>`,
@@ -227,7 +227,7 @@ function mLineup(e) {
     ${sideTabs}<div class="labrow"><span class="lab">쿼터별 라인업 (${esc(formName(L.formation))})</span><span class="hint">운영진이 짠 배치</span></div>
     <div class="utabs" role="tablist" aria-label="쿼터">${L.q.map((_, j) => `<button role="tab" data-act="evQ" data-v="${j}" aria-selected="${j === k}">${j + 1}Q</button>`).join("")}</div>
     ${pitchHtml(e, L, k, { small: true, me: pid })}
-    <div class="small"><span class="muted" style="font-weight:700">벤치</span> ${benchOf(e, L, k).map(x => esc(x.name) + (x.late ? ` (${x.from}Q 합류)` : "")).join(", ") || "없음"}</div>
+    <div class="small"><span class="muted" style="font-weight:700">벤치</span> ${benchOf(e, L, k).map(x => esc(x.name) + (x.halfIn ? ` (후반 ${x.halfIn})` : x.late ? ` (${x.from}Q 합류)` : "")).join(", ") || "없음"}</div>
     <div class="hint">라인업이 바뀌면 알림함에 떠요. 바꾸고 싶으면 운영진에게 말해 주세요.</div>
     <a class="btn block" href="#lineup-${e.id}" style="border:2px solid var(--ink);border-radius:0">누가 언제 쉬는지 전체 보기</a>
   </div>`;
@@ -239,23 +239,26 @@ function sideSeg(e, side) {
 }
 function benchOf(e, L, k) {
   const used = new Set(L.q[k].filter(Boolean));
-  return (L.side ? sidePool(e, L.side) : roster(e).confirmed).filter(p => !used.has(p.id)).map(p => ({ ...p, from: availFrom(e, p.id), late: availFrom(e, p.id) > k + 1 }));
+  return (L.side ? sidePool(e, L.side) : roster(e).confirmed).filter(p => !used.has(p.id)).map(p => { const j = halfInOf(L, k, p.id); return { ...p, from: availFrom(e, p.id), late: availFrom(e, p.id) > k + 1, halfIn: j >= 0 ? L.spots[j][3] : "" }; });
 }
 function pitchHtml(e, L, k, o) {
   const slots = L.q[k];
   return `<div class="pitch ${o.small ? "sm" : ""}"><i class="ln box"></i><i class="ln mid"></i><i class="ln circle"></i><i class="ln pb"></i>${o.small ? "" : `<i class="ln pt"></i>`}
-    ${L.spots.map(([grp, x, y, lab], i) => { const p = slots[i] ? playerById(slots[i]) : null; const me = p && o.me && p.id === o.me; const sel = o.sel === i;
-      const cls = `slot ${p ? "" : "empty"} ${grp === "GK" ? "gk" : ""} ${me ? "me" : ""} ${sel ? "sel" : ""}`;
-      const inner = `<span class="l">${esc(lab)}</span><span class="n">${p ? (me && !o.edit ? "나" : esc(p.name)) : "비어 있음"}</span>`;
-      return o.edit ? `<button class="${cls}" style="left:${x}%;top:${y}%" data-act="slotTap" data-i="${i}" aria-pressed="${sel}" aria-label="${k + 1}쿼터 ${esc(lab)} 자리, ${p ? esc(p.name) : "비어 있음"}">${inner}</button>` : `<div class="${cls}" style="left:${x}%;top:${y}%">${inner}</div>`;
+    ${L.spots.map(([grp, x, y, lab], i) => { const p = slots[i] ? playerById(slots[i]) : null; const hp = L.h && L.h[k] && L.h[k][i] ? playerById(L.h[k][i]) : null;
+      const me = p && o.me && (p.id === o.me || (hp && hp.id === o.me)); const sel = o.sel === i;
+      const cls = `slot ${p ? "" : "empty"} ${grp === "GK" ? "gk" : ""} ${me ? "me" : ""} ${sel ? "sel" : ""} ${hp ? "hf" : ""}`;
+      const nm = q => q.id === o.me && !o.edit ? "나" : esc(q.name);
+      const inner = `<span class="l">${esc(lab)}</span><span class="n">${p ? nm(p) : "비어 있음"}</span>${hp ? `<span class="h">후반 ${nm(hp)}</span>` : ""}`;
+      const al = `${k + 1}쿼터 ${esc(lab)} 자리, ${p ? esc(p.name) : "비어 있음"}${hp ? `, 후반 ${esc(hp.name)}` : ""}`;
+      return o.edit ? `<button class="${cls}" style="left:${x}%;top:${y}%" data-act="slotTap" data-i="${i}" aria-pressed="${sel}" aria-label="${al}">${inner}</button>` : `<div class="${cls}" style="left:${x}%;top:${y}%" aria-label="${al}">${inner}</div>`;
     }).join("")}</div>`;
 }
 function playTable(e, L, k, mePid) {
   const conf = L.side ? sidePool(e, L.side) : roster(e).confirmed; if (!conf.length) return `<div class="hint">${L.side ? "이 팀에 고른 사람이 아직 없어요." : "참석이 확정된 사람이 생기면 여기에 표시돼요."}</div>`;
-  return `<div class="ptable" style="--n:${L.N}">${conf.map(p => { let tot = 0; const cells = L.q.map((qs, j) => { const on = qs.includes(p.id); if (on) tot++; const late = availFrom(e, p.id) > j + 1; return `<span class="cell ${on ? "on" : late ? "late" : ""} ${j === k ? "cur" : ""}" title="${j + 1}쿼터 ${on ? "출전" : late ? "합류 전" : "휴식"}"></span>`; }).join("");
-    return `<div class="prow"><span class="nm ${p.id === mePid ? "me" : ""}">${esc(p.name)}${p.id === mePid ? " (나)" : ""}</span>${cells}<span class="tot">${tot}쿼터</span></div>`; }).join("")}</div>`;
+  return `<div class="ptable" style="--n:${L.N}">${conf.map(p => { let tot = 0; const cells = L.q.map((qs, j) => { const a = playAmt(L, j, p.id); tot += a; const late = !a && availFrom(e, p.id) > j + 1; return `<span class="cell ${a === 1 ? "on" : a ? "hf" : late ? "late" : ""} ${j === k ? "cur" : ""}" title="${j + 1}쿼터 ${a === 1 ? "출전" : a ? "반쿼터" : late ? "합류 전" : "휴식"}"></span>`; }).join("");
+    return `<div class="prow"><span class="nm ${p.id === mePid ? "me" : ""}">${esc(p.name)}${p.id === mePid ? " (나)" : ""}</span>${cells}<span class="tot">${qn(tot)}쿼터</span></div>`; }).join("")}</div>`;
 }
-function legendHtml(rest) { return `<span class="legend"><span><i style="background:var(--clay)"></i>출전</span><span><i style="background:var(--surface2)"></i>${rest || "휴식"}</span><span><i style="background:var(--clay-s);border:1px dashed var(--tan)"></i>합류 전</span></span>`; }
+function legendHtml(rest) { return `<span class="legend"><span><i style="background:var(--clay)"></i>출전</span><span><i style="background:linear-gradient(90deg,var(--clay) 50%,var(--surface2) 50%)"></i>반쿼터</span><span><i style="background:var(--surface2)"></i>${rest || "휴식"}</span><span><i style="background:var(--clay-s);border:1px dashed var(--tan)"></i>합류 전</span></span>`; }
 function mCheck(e) {
   const pid = myPid(); const t = checkTime(e); const saved = checkStarted(e); const A = effAtt(e);
   let mine = "";
@@ -298,14 +301,15 @@ function viewMemberLineup(e) {
   const P = pid ? myPlan(e, pid) : null; const i = pid ? L.q[k].indexOf(pid) : -1;
   const rest = P ? P.rows.filter(r => r.st === "rest").map(r => r.k + 1 + "쿼터") : [];
   return `${head}${tabs}
-  ${P && (P.conf || P.on) && (!L.side || P.side === L.side) ? `<section class="card hot" style="gap:8px"><span class="lab">내 출전</span>${planTiles(e, pid)}<div class="small muted">${P.on ? `${rest.length ? rest.join(", ") + "에 쉬고, " : "쉬는 쿼터 없이 "}${P.N}개 쿼터 중 ${P.on}개를 뛰어요.` : "아직 라인업에 들어가 있지 않아요."}</div></section>` : ""}
+  ${P && (P.conf || P.on) && (!L.side || P.side === L.side) ? `<section class="card hot" style="gap:8px"><span class="lab">내 출전</span>${planTiles(e, pid)}<div class="small muted">${P.on ? `${rest.length ? rest.join(", ") + "에 쉬고, " : "쉬는 쿼터 없이 "}${P.N}개 쿼터 중 ${qn(P.on)}쿼터를 뛰어요.` : "아직 라인업에 들어가 있지 않아요."}</div></section>` : ""}
   <section class="card" style="gap:10px"><div class="labrow"><span class="lab">쿼터별 위치</span><span class="chip ink num" style="font-size:14px">${esc(formName(L.formation))}</span></div>
     <div class="seg" role="tablist" aria-label="쿼터">${L.q.map((_, j) => `<button role="tab" data-act="mlQ" data-v="${j}" aria-selected="${j === k}">${j + 1}Q</button>`).join("")}</div>
     ${pitchHtml(e, L, k, { me: pid })}
     ${pid ? `<div role="status" style="font-size:14px;font-weight:700;color:${i >= 0 ? "var(--clay)" : "var(--muted)"}">${k + 1}쿼터: ${i >= 0 ? `${esc(L.spots[i][3])} 자리에서 뛰어요` : roster(e).ids.has(pid) ? "쉬는 쿼터예요" : "라인업에 없어요"}</div>` : ""}
-    <div class="benchrow"><span class="k">이 쿼터 휴식</span>${benchOf(e, L, k).map(x => `<span class="bench ${x.id === pid ? "me" : x.late ? "late" : ""}">${x.id === pid ? "나 (" + esc(x.name) + ")" : esc(x.name) + (x.late ? ` (${x.from}Q 합류)` : "")}</span>`).join("") || `<span class="small muted">없음</span>`}</div>
+    <div class="benchrow"><span class="k">이 쿼터 휴식</span>${benchOf(e, L, k).map(x => `<span class="bench ${x.id === pid ? "me" : x.late ? "late" : ""}">${x.id === pid ? "나 (" + esc(x.name) + ")" : esc(x.name)}${x.halfIn ? ` (후반 ${esc(x.halfIn)})` : x.late && x.id !== pid ? ` (${x.from}Q 합류)` : ""}</span>`).join("") || `<span class="small muted">없음</span>`}</div>
   </section>
-  <section class="card" style="gap:4px"><div class="labrow" style="margin-bottom:4px"><span class="lab">누가 언제 쉬나</span>${legendHtml()}</div>${playTable(e, L, k, pid)}<div class="hint" style="padding-top:4px">운영진이 짠 라인업이라 여기서는 바꿀 수 없어요. 바뀌면 알림함에 떠요.</div></section>`;
+  <section class="card" style="gap:4px"><div class="labrow" style="margin-bottom:4px"><span class="lab">누가 언제 쉬나</span>${legendHtml()}</div>${playTable(e, L, k, pid)}<div class="hint" style="padding-top:4px">운영진이 짠 라인업이라 여기서는 바꿀 수 없어요. 바뀌면 알림함에 떠요.</div></section>
+  <button class="btn block" data-act="lineupPdf" data-eid="${e.id}">${L.side ? (L.side === "A" ? "조끼팀 " : "일반팀 ") : ""}라인업 PDF로 저장</button>`;
 }
 
 /* ---------- 내 회비 ---------- */
