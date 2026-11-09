@@ -521,7 +521,8 @@ const fineOn = key => ui.fineSel[key] !== false;
 
 /* 쿼터별 라인업 */
 // 내전: 운영진이 고른 쪽(조끼팀/일반팀)의 라인업을 다룬다. 팀원은 자기 팀이 먼저 보인다
-const sidePool = (e, side) => { const T = teamsOf(e).t; return roster(e).confirmed.filter(p => T[p.id] === side); };
+const squadBase = e => e && e.type === "scrim" ? S.players.filter(p => p.active !== false || (e.teams || {})[p.id]) : roster(e).confirmed;
+const sidePool = (e, side) => { const T = teamsOf(e).t; return squadBase(e).filter(p => T[p.id] === side); };
 function curSide(e) {
   if (!isScrim(e)) return null;
   if (ui.lineSideEv === e.id && (ui.lineSide === "A" || ui.lineSide === "B")) return ui.lineSide;
@@ -747,7 +748,7 @@ function autoTeams(e, seed) {
 function teamsOf(e) {
   const conf = roster(e).confirmed; const saved = (e && e.teams) || {};
   // 새 내전은 운영진이 한 명씩 고른다. 고르지 않은 사람은 스쿼드 밖
-  if (e && e.type === "scrim") { const t = {}; conf.forEach(p => { if (saved[p.id] === "A" || saved[p.id] === "B") t[p.id] = saved[p.id]; }); return { t, saved: !!e.teamsAt }; }
+  if (e && e.type === "scrim") { const t = {}; S.players.forEach(p => { if (saved[p.id] === "A" || saved[p.id] === "B") t[p.id] = saved[p.id]; }); return { t, saved: !!e.teamsAt }; }
   const has = conf.length && conf.every(p => saved[p.id] === "A" || saved[p.id] === "B");
   const t = has ? saved : Object.assign(autoTeams(e, 0), Object.fromEntries(Object.entries(saved).filter(([pid, v]) => conf.some(p => p.id === pid) && (v === "A" || v === "B"))));
   return { t, saved: !!(e && e.teamsAt) && has };
@@ -1072,7 +1073,7 @@ function mLineup(e) {
   const teams = isScrim(e) && e.teamsAt ? teamsOf(e).t : null;
   const sideTabs = isScrim(e) ? sideSeg(e, L.side) : "";
   const teamBlock = teams ? `<section class="card"><div class="labrow"><span class="lab">오늘의 팀</span>${pid && teams[pid] ? `<span class="chip ${teams[pid] === "A" ? "clay" : "ink"}">나는 ${teams[pid] === "A" ? "조끼팀" : "일반팀"}</span>` : ""}</div>
-    <div class="small"><b style="color:var(--clay)">조끼팀</b> ${roster(e).confirmed.filter(p => teams[p.id] === "A").map(p => esc(p.name)).join(", ")}</div><div class="small"><b>일반팀</b> ${roster(e).confirmed.filter(p => teams[p.id] === "B").map(p => esc(p.name)).join(", ")}</div></section>` : "";
+    <div class="small"><b style="color:var(--clay)">조끼팀</b> ${squadBase(e).filter(p => teams[p.id] === "A").map(p => esc(p.name)).join(", ")}</div><div class="small"><b>일반팀</b> ${squadBase(e).filter(p => teams[p.id] === "B").map(p => esc(p.name)).join(", ")}</div></section>` : "";
   if (!any) return teamBlock + sideTabs + `<div class="empty"><b>아직 라인업 전이에요</b>운영진이 라인업을 짜면 몇 쿼터에 어느 자리로 뛰고 언제 쉬는지 여기에 보여요.</div>`;
   const k = Math.min(ui.evQ || 0, L.N - 1); const P = pid ? myPlan(e, pid) : null;
   return `${teamBlock}<div class="stack">
@@ -1087,7 +1088,7 @@ function mLineup(e) {
 }
 // 내전 팀 고르기 탭 (조끼팀 / 일반팀)
 function sideSeg(e, side) {
-  const T = teamsOf(e).t; const n = s => roster(e).confirmed.filter(p => T[p.id] === s).length;
+  const n = s => sidePool(e, s).length;
   return `<div class="seg" role="group" aria-label="팀">${[["A", "조끼팀"], ["B", "일반팀"]].map(([s, l]) => `<button data-act="lineSide" data-eid="${e.id}" data-v="${s}" aria-pressed="${s === side}">${l} ${n(s)}명</button>`).join("")}</div>`;
 }
 function benchOf(e, L, k) {
@@ -1362,14 +1363,14 @@ function opLineup(e) {
   const scrim = !!L.side;
   let top = `<div class="forms" role="group" aria-label="포메이션">${Object.keys(L.forms).map(f => `<button data-act="formation" data-v="${f}" aria-pressed="${f === L.formation}">${f}</button>`).join("")}</div>`;
   if (scrim) {
-    const T = teamsOf(e).t; const nA = conf.filter(p => T[p.id] === "A").length, nB = conf.filter(p => T[p.id] === "B").length, nOut = conf.length - nA - nB;
+    const nA = sidePool(e, "A").length, nB = sidePool(e, "B").length, nOut = 0;
     const size = L.formation.split("|")[0];
     const sizes = Array.from(new Set(Object.keys(SCRIM_FORMS).map(k => k.split("|")[0])));
     top = `<div class="row between" style="gap:8px"><div class="small"><b>스쿼드</b> 조끼팀 ${nA}명, 일반팀 ${nB}명${nOut ? `, 안 고른 사람 ${nOut}명` : ""}</div><a class="btn sm" href="#split-${e.id}">스쿼드 고르기</a></div>
       ${sideSeg(e, L.side)}
       <div class="field" style="margin:0"><span class="flabel">${L.side === "A" ? "조끼팀" : "일반팀"} 한 번에 뛰는 인원</span><div class="forms" role="group" aria-label="인원">${sizes.map(n => `<button data-act="scrimN" data-v="${n}" aria-pressed="${n === size}">${n}인</button>`).join("")}</div></div>
       <div class="forms" role="group" aria-label="포메이션">${Object.keys(SCRIM_FORMS).filter(k => k.startsWith(size + "|")).map(f => `<button data-act="formation" data-v="${f}" aria-pressed="${f === L.formation}">${f.split("|")[1]}</button>`).join("")}</div>`;
-    if (!nA && !nB) return `<section class="card" style="gap:10px">${top}<div class="empty"><b>먼저 스쿼드를 골라 주세요</b>참석 확정 인원 중에서 조끼팀과 일반팀에 넣을 사람을 한 명씩 고르면, 팀마다 쿼터별 자리와 휴식을 짤 수 있어요.</div><a class="btn primary big" href="#split-${e.id}">스쿼드 고르기</a></section>`;
+    if (!nA && !nB) return `<section class="card" style="gap:10px">${top}<div class="empty"><b>먼저 스쿼드를 골라 주세요</b>팀 선수 중에서 조끼팀과 일반팀에 넣을 사람을 한 명씩 고르면, 팀마다 쿼터별 자리와 휴식을 짤 수 있어요.</div><a class="btn primary big" href="#split-${e.id}">스쿼드 고르기</a></section>`;
   }
   return `<section class="card" style="gap:10px">
     ${top}
@@ -1671,26 +1672,29 @@ function viewTodo() {
 }
 
 /* ---------- 팀 나누기 ---------- */
-// 새 내전: 참석 확정 인원 중에서 운영진이 한 명씩 조끼팀, 일반팀을 고른다
+// 새 내전: 참석 투표와 상관없이 팀 선수 중에서 운영진이 한 명씩 조끼팀, 일반팀을 고른다
 function viewSquad(e) {
-  const op = isOpView(); const conf = roster(e).confirmed; const T = teamsOf(e); const t = T.t;
-  const A = conf.filter(p => t[p.id] === "A"), B = conf.filter(p => t[p.id] === "B"), O = conf.filter(p => !t[p.id]);
+  const op = isOpView(); const all = squadBase(e); const T = teamsOf(e); const t = T.t; const st = effAtt(e).s;
+  const A = all.filter(p => t[p.id] === "A"), B = all.filter(p => t[p.id] === "B"), O = all.filter(p => !t[p.id]);
+  const goingIds = new Set(roster(e).confirmed.map(p => p.id));
+  const Oin = O.filter(p => goingIds.has(p.id)), Orest = O.filter(p => !goingIds.has(p.id));
   const lock = !op || T.saved;
-  const row = p => { const s = t[p.id] || ""; const late = availFrom(e, p.id) > 1 ? `, ${availFrom(e, p.id)}Q부터` : "";
-    return `<div class="mrow"><div class="grow"><div class="nm">${esc(p.name)}</div><div class="tiny muted">${esc([p.pos1, p.pos2].filter(Boolean).join("/") || p.pos || "")}${esc(late)}</div></div>
+  const vote = p => goingIds.has(p.id) ? (st[p.id] === "late" ? "늦참" : "참석") : st[p.id] === "no" ? "불참" : "";
+  const row = p => { const s = t[p.id] || ""; const late = availFrom(e, p.id) > 1 ? `, ${availFrom(e, p.id)}Q부터` : ""; const v = vote(p);
+    return `<div class="mrow"><div class="grow"><div class="nm">${esc(p.name)}${v ? ` <span class="tiny ${v === "불참" ? "muted" : ""}" style="font-weight:700${v === "불참" ? "" : ";color:var(--clay)"}">${v}</span>` : ""}</div><div class="tiny muted">${esc([p.pos1, p.pos2].filter(Boolean).join("/") || p.pos || "")}${esc(late)}</div></div>
       ${lock ? `<span class="chip${s === "A" ? " clay" : ""}">${s === "A" ? "조끼팀" : s === "B" ? "일반팀" : "빠짐"}</span>` : `<div class="seg pick" role="group" aria-label="${esc(p.name)} 팀" style="flex:none"><button data-act="teamSet" data-eid="${e.id}" data-pid="${p.id}" data-v="A" aria-pressed="${s === "A"}">조끼</button><button data-act="teamSet" data-eid="${e.id}" data-pid="${p.id}" data-v="B" aria-pressed="${s === "B"}">일반</button></div>`}</div>`; };
-  const group = (title, arr, cls) => arr.length ? `<section class="card" style="gap:2px"><div class="labrow"><span class="lab"${cls ? ` style="color:var(--clay)"` : ""}>${title}</span><span class="num" style="font-size:18px">${arr.length}명</span></div>${arr.map(row).join("")}</section>` : "";
+  const group = (title, arr, cls, note) => arr.length ? `<section class="card" style="gap:2px"><div class="labrow"><span class="lab"${cls ? ` style="color:var(--clay)"` : ""}>${title}</span><span class="num" style="font-size:18px">${arr.length}명</span></div>${note ? `<div class="tiny muted" style="margin-bottom:4px">${note}</div>` : ""}${arr.map(row).join("")}</section>` : "";
   const gk = arr => arr.some(p => isGk(p) || p.pos2 === "GK");
-  const warn = A.length && B.length && conf.filter(p => isGk(p) || p.pos2 === "GK").length >= 2 && (!gk(A) || !gk(B)) ? `${gk(A) ? "일반팀" : "조끼팀"}에 골키퍼가 없어요.` : "";
-  return `${backbar("#event-" + e.id, `${esc(bigDate(e, true))} ${esc(evTitle(e))}, 참석 확정 ${conf.length}명`, "스쿼드 고르기", op && !T.saved && (A.length || B.length) ? `<button class="btn" data-act="teamClear" data-eid="${e.id}">비우기</button>` : "")}
-  ${!conf.length ? `<div class="card"><div class="empty"><b>참석 확정 인원이 없어요</b>참석 투표가 들어오면 여기서 한 명씩 팀을 고를 수 있어요.</div></div>` : `
-  ${op && !T.saved ? `<div class="small muted" style="padding:0 4px">참석 확정 인원 중에서 한 명씩 <b>조끼</b> 또는 <b>일반</b>을 누르세요. 한 번 더 누르면 빠져요. 고르지 않은 사람은 오늘 스쿼드에 들어가지 않아요.</div>` : ""}
-  <div class="small" style="padding:0 4px"><b style="color:var(--clay)">조끼팀 ${A.length}명</b>, <b>일반팀 ${B.length}명</b>${O.length ? `, 안 고른 사람 ${O.length}명` : ""}</div>
+  const warn = A.length && B.length && (!gk(A) || !gk(B)) ? `${gk(A) ? "일반팀" : "조끼팀"}에 골키퍼가 없어요.` : "";
+  return `${backbar("#event-" + e.id, `${esc(bigDate(e, true))} ${esc(evTitle(e))}, 참석 확정 ${goingIds.size}명`, "스쿼드 고르기", op && !T.saved && (A.length || B.length) ? `<button class="btn" data-act="teamClear" data-eid="${e.id}">비우기</button>` : "")}
+  ${!all.length ? `<div class="card"><div class="empty"><b>등록된 선수가 없어요</b>선수 탭에서 명단을 먼저 올려 주세요.</div></div>` : `
+  ${op && !T.saved ? `<div class="small muted" style="padding:0 4px">참석 투표와 상관없이 한 명씩 <b>조끼</b> 또는 <b>일반</b>을 누르세요. 한 번 더 누르면 빠져요. 고르지 않은 사람은 오늘 스쿼드에 들어가지 않아요.</div>` : ""}
+  <div class="small" style="padding:0 4px"><b style="color:var(--clay)">조끼팀 ${A.length}명</b>, <b>일반팀 ${B.length}명</b></div>
   ${warn && !T.saved ? `<div class="status" role="status">${esc(warn)}</div>` : ""}
-  ${group("안 고른 사람", O)}${group("조끼팀", A, true)}${group("일반팀", B)}
+  ${group("조끼팀", A, true)}${group("일반팀", B)}${lock ? "" : group("참석 투표한 사람", Oin) + group("그 외 선수", Orest, false, "아직 투표 안 했거나 불참으로 낸 사람이에요.")}
   ${op ? (T.saved
     ? `<section class="card"><div role="status" style="font-weight:700;color:var(--clay)">확정했어요. 팀원 일정 화면에 바로 보여요.</div><a class="btn primary block" href="#event-${e.id}" data-act="goEvTab" data-eid="${e.id}" data-v="lineup">팀별 라인업 짜기</a><button class="btn block" data-act="teamShare" data-eid="${e.id}">단톡방 공유 문구</button><button class="btn block" data-act="teamUnconfirm" data-eid="${e.id}">다시 고치기</button></section>`
-    : `<div class="btnrow"><button class="btn" data-act="teamShuffle" data-eid="${e.id}">고르게 자동으로 나누기</button><button class="btn primary" data-act="teamConfirm" data-eid="${e.id}" ${A.length && B.length ? "" : "disabled"}>스쿼드 확정</button></div><a class="btn block" href="#event-${e.id}" data-act="goEvTab" data-eid="${e.id}" data-v="lineup">팀별 라인업 짜러 가기</a>`)
+    : `<div class="btnrow"><button class="btn primary" data-act="teamConfirm" data-eid="${e.id}" ${A.length && B.length ? "" : "disabled"}>스쿼드 확정</button></div><a class="btn block" href="#event-${e.id}" data-act="goEvTab" data-eid="${e.id}" data-v="lineup">팀별 라인업 짜러 가기</a>`)
     : `<div class="hint center">${T.saved ? "운영진이 확정한 스쿼드예요." : "아직 운영진이 스쿼드를 고르는 중이에요."}</div>`}`}`;
 }
 function viewSplit(e) {
@@ -1708,7 +1712,7 @@ function viewSplit(e) {
   ${warn && !T.saved ? `<div class="status" role="status">${esc(warn)}</div>` : ""}
   ${op ? (T.saved ? `<section class="card"><div role="status" style="font-weight:700;color:var(--clay)">확정했어요. 팀원 일정 화면에 바로 보여요.</div><button class="btn primary block" data-act="teamShare" data-eid="${e.id}">단톡방 공유 문구</button><button class="btn block" data-act="teamUnconfirm" data-eid="${e.id}">다시 고치기</button></section>` : `<button class="btn primary big" data-act="teamConfirm" data-eid="${e.id}">이대로 확정하고 공유</button>`) : `<div class="hint center">${T.saved ? "운영진이 확정한 팀이에요." : "아직 운영진이 팀을 확정하지 않았어요."}</div>`}`}`;
 }
-function teamText(e) { const conf = roster(e).confirmed; const T = teamsOf(e).t; return [`[${S.settings.teamName || "우리 팀"}] ${fmtDate(e.date)} ${evTitle(e)} 팀`, `조끼팀: ${conf.filter(p => T[p.id] === "A").map(p => p.name).join(", ")}`, `일반팀: ${conf.filter(p => T[p.id] === "B").map(p => p.name).join(", ")}`].join("\n"); }
+function teamText(e) { const conf = squadBase(e); const T = teamsOf(e).t; return [`[${S.settings.teamName || "우리 팀"}] ${fmtDate(e.date)} ${evTitle(e)} 팀`, `조끼팀: ${conf.filter(p => T[p.id] === "A").map(p => p.name).join(", ")}`, `일반팀: ${conf.filter(p => T[p.id] === "B").map(p => p.name).join(", ")}`].join("\n"); }
 
 /* ---------- 가운데 투표 버튼 ---------- */
 function voteSheet() {
