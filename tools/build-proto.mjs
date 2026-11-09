@@ -38,6 +38,8 @@ for (const f of readdirSync(SRC).filter(f => f.endsWith(".dc.html"))) {
   body = body
     .replaceAll("{{accent}}", ACCENT)
     .replace(/href="([A-Za-z0-9]+)\.dc\.html"/g, 'href="$1.html"');
+  // 팀 만들기의 뒤로는 홈페이지로
+  body = body.replace(/href="Main\.html"/g, 'href="../"');
   // 캔버스용 고정 높이를 실제 휴대폰 화면 높이로
   body = body.replace(/^(<div style="width: 100%; max-width: 480px; box-sizing: border-box; )(height|min-height): \d+px;/,
     (m, a, kind) => a + (kind === "height" ? "height: 100dvh;" : "min-height: 100dvh;"));
