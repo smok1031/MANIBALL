@@ -40,11 +40,11 @@ const html = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>팀매니저 | 축구팀, 풋살팀 관리를 편하게</title>
+<title>매니볼 | 축구팀, 풋살팀 관리를 편하게</title>
 <meta name="description" content="참석 투표 집계, 축구장 위 라인업과 휴식 자동 배치, 현장 출석과 벌금, 회비, 공지와 MOM 투표까지. 우리 팀 링크 하나로 관리해요.">
-<meta property="og:title" content="팀매니저">
+<meta property="og:title" content="매니볼">
 <meta property="og:description" content="운영진이 매주 손으로 하던 일, 이제 앱이 해요">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%2315803D'/%3E%3Ccircle cx='12' cy='12' r='7' fill='none' stroke='white' stroke-width='1.8'/%3E%3Cpath d='M12 8.5l3 2.2-1.1 3.8h-3.8L9 10.7z' fill='white'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231E6B45'/%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='white' stroke-width='5'/%3E%3Ccircle cx='23' cy='26' r='3.5' fill='%23F5B841'/%3E%3Ccircle cx='23' cy='38' r='3.5' fill='%23F5B841'/%3E%3Cpath d='M30 26 H43 M30 38 H41' fill='none' stroke='white' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
