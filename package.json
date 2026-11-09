@@ -4,8 +4,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node tools/build-app.mjs && node tools/build-landing.mjs && vite",
-    "build": "node tools/build-app.mjs && node tools/build-landing.mjs && vite build",
+    "dev": "node tools/build-app.mjs && node tools/build-landing.mjs && node tools/build-proto.mjs && vite",
+    "build": "node tools/build-app.mjs && node tools/build-landing.mjs && node tools/build-proto.mjs && vite build",
     "preview": "vite preview --port 4173"
   },
   "dependencies": {

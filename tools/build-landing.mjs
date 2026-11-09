@@ -3,7 +3,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 
 const ACCENT = "#15803D";
-const APP_URL = "../"; // 지금 쓰는 앱(로그인, 팀 만들기). 새 앱이 생기면 여기만 바꾼다.
+const APP_URL = "app/TeamSplit.html"; // 새 디자인 화면(눌러 보기용). 실제 앱이 붙으면 여기만 바꾼다.
 const dir = new URL("../design/home/", import.meta.url);
 const read = f => readFileSync(new URL(f, dir), "utf8");
 const body = src => {
@@ -35,6 +35,7 @@ tag('<div style="max-width: 1180px; margin: 0 auto; background: #111827; color: 
 // 팀 만들기 버튼은 모두 실제 앱으로 보낸다. 메뉴의 앵커(#before, #screens)는 그대로 둔다.
 main = main.replace(/<a href="#start"([^>]*)>우리 팀 만들기<\/a>/g, `<a href="${APP_URL}"$1>우리 팀 만들기</a>`);
 
+main = main.replace("매니볼 ManiBall</footer>", '매니볼 ManiBall<br><a href="app/" style="color: #6B7280">화면 둘러보기</a></footer>');
 const html = `<!doctype html>
 <html lang="ko">
 <head>
