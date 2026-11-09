@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>팀 수칙 수정</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0;background:#FFFFFF}
+a{color:#15803D}
+</style>
+</helmet>
+<div style="width: 100%; max-width: 480px; box-sizing: border-box; min-height: 844px; margin: 0 auto; font-family: 'Noto Sans KR', sans-serif; color: #111827; background: #F6F7F9; display: flex; flex-direction: column; position: relative; word-break: keep-all">
+  <header style="position: sticky; top: 0; z-index: 3; background: #FFFFFF; border-bottom: 1px solid #F3F4F6; height: 56px; padding: 0 8px; display: flex; align-items: center; gap: 4px">
+    <a href="PlayersAdmin.dc.html" aria-label="뒤로" style="width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <b style="flex: 1; font-size: 17px">팀 수칙 수정</b>
+    <span style="width: 44px"></span>
+  </header>
+  <div style="padding: 16px 16px 24px; display: flex; flex-direction: column; gap: 16px">
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px; gap: 0"><div style="display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #F3F4F6"><span style="flex: 1; font-size: 15px"><b>지각</b><br><span style="color: #6B7280; font-size: 12px">킥오프 10분 전 기준</span></span><span style="border: 1px solid #D1D5DB; border-radius: 10px; padding: 8px 10px; font-weight: 700; font-size: 14px">2,000원</span><a href="#" style="font-size: 13px; color: #B91C1C; text-decoration: none; padding: 8px 0 8px 4px">삭제</a></div><div style="display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #F3F4F6"><span style="flex: 1; font-size: 15px"><b>무단 결석</b></span><span style="border: 1px solid #D1D5DB; border-radius: 10px; padding: 8px 10px; font-weight: 700; font-size: 14px">10,000원</span><a href="#" style="font-size: 13px; color: #B91C1C; text-decoration: none; padding: 8px 0 8px 4px">삭제</a></div><div style="display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #F3F4F6"><span style="flex: 1; font-size: 15px"><b>직전 취소</b><br><span style="color: #6B7280; font-size: 12px">전날 21시 이후</span></span><span style="border: 1px solid #D1D5DB; border-radius: 10px; padding: 8px 10px; font-weight: 700; font-size: 14px">5,000원</span><a href="#" style="font-size: 13px; color: #B91C1C; text-decoration: none; padding: 8px 0 8px 4px">삭제</a></div><div style="display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #F3F4F6"><span style="flex: 1; font-size: 15px"><b>구장 정리는 다 같이 해요</b></span><span style="font-size: 12px; color: #6B7280">글 수칙</span><a href="#" style="font-size: 13px; color: #B91C1C; text-decoration: none; padding: 8px 0 8px 4px">삭제</a></div><a href="#" style="padding: 14px 0 2px; font-weight: 700; text-decoration: none">+ 수칙 추가</a></div>
+    <div style="display: flex; justify-content: space-between; align-items: center; background: #FFFFFF; border-radius: 16px; padding: 14px; gap: 12px"><span><b style="font-size: 15px">팀원에게 다시 동의 받기</b><br><span style="font-size: 12px; color: #6B7280">저장하면 팀원이 다음에 들어올 때 바뀐 수칙에 동의해요</span></span><a href="#" style="width: 46px; height: 26px; border-radius: 999px; background: {{accent}}; position: relative; flex: none; display: inline-block"><span style="position: absolute; right: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #FFFFFF"></span></a></div>
+    <p style="margin: 0; font-size: 13px; color: #6B7280; line-height: 1.5">벌금 금액을 바꾸면 그 다음 일정부터 적용돼요. 이미 매긴 벌금은 그대로예요.</p>
+  </div>
+  <div style="position: sticky; bottom: 0; margin-top: auto; background: #FFFFFF; border-top: 1px solid #F3F4F6; padding: 12px 16px 28px; display: flex; flex-direction: column; gap: 8px">
+    <a href="PlayersAdmin.dc.html" style="display: block; text-decoration: none; text-align: center; background: {{accent}}; color: #FFFFFF; font-weight: 700; font-size: 16px; padding: 15px 0; border-radius: 14px">저장하기</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#15803D","options":["#15803D","#1E6B45","#2563EB","#111827"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#15803D' };
+  }
+}
+</script>
+</body>
+</html>

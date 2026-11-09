@@ -7,17 +7,20 @@ const SRC = new URL("../design/app/", import.meta.url);
 const OUT = new URL("../public/v2/app/", import.meta.url);
 mkdirSync(OUT, { recursive: true });
 
-// 화면 위에 덮이는 시트처럼 한 화면 높이에 고정해야 하는 것
-const FIXED = new Set(["AdminRemind", "AdminRemindLocked", "AdminOpenNow", "RecordMemberSeason", "RecordAdminSeason", "DuesMemberPay", "DuesAdminRemind"]);
+// 시트처럼 한 화면 높이에 고정된 화면은 캔버스 원본의 고정 높이(height: 844px; overflow: hidden)로 알아낸다
 
 const GROUPS = [
   ["팀 만들기", ["TeamSplit", "InviteMessage", "InviteRoster"]],
-  ["운영진", ["HomeAdmin", "ScheduleAdmin", "AdminRemind", "AdminRemindLocked", "AdminLineup", "AdminCheckIn", "AdminSquad", "AdminOpenNow", "AdminCreate", "AdminEdit"]],
+  ["운영진 홈", ["HomeAdmin", "NotifyAdmin", "NoticeAdmin", "NoticeAdminWrite"]],
+  ["운영진 일정", ["ScheduleAdmin", "AdminRemind", "AdminRemindLocked", "AdminLineup", "AdminFormation", "AdminRestTable", "AdminLineupShare", "AdminCheckIn", "AdminGuestAdd", "AdminCheckInDone", "AdminSquad", "AdminOpenNow", "AdminOpenNowDeadline", "AdminCreate", "AdminCreateDate", "AdminCreateDeadline", "AdminEdit", "AdminEditDate", "AdminEditDeadline", "AdminDeleteConfirm"]],
   ["운영진 기록", ["RecordAdmin", "RecordAdminSeason", "RecordAdminPlayers", "RecordAdminMatch", "RecordAdminScrim", "RecordAdminResult", "RecordAdminVoting", "RecordAdminEditScrim", "RecordAdminEditGame", "RecordAdminEditDraw"]],
-  ["팀원", ["Home5", "Home5Late", "Home5Absent", "ScheduleMember", "ScheduleMemberAttend", "ScheduleMemberLate", "ScheduleMemberAbsent", "ScheduleMemberChange", "ScheduleMemberCalendar"]],
-  ["팀원 기록", ["RecordMember", "RecordMemberSeason", "RecordMemberMatch", "RecordMemberScrim", "RecordMemberPending", "RecordMemberScrimView", "RecordMemberGame", "RecordMemberMissed"]],
   ["운영진 회비", ["DuesAdmin", "DuesAdminSettings", "DuesAdminConfirmed", "DuesAdminRemind", "DuesAdminReminded", "DuesAdminLedger", "DuesAdminSpend", "DuesAdminUpload", "DuesAdminMatched", "DuesAdminApplied"]],
+  ["운영진 선수", ["PlayersAdmin", "PlayersAdminInvite", "PlayersAdminRules", "PlayersAdminDetail", "PlayersAdminPromote", "PlayersAdminPromoted", "PlayersAdminRemove", "PlayersAdminRemoved"]],
+  ["팀원 홈", ["Home5", "Home5Late", "Home5Absent", "NotifyMember"]],
+  ["팀원 일정", ["ScheduleMember", "ScheduleMemberAttend", "ScheduleMemberLate", "ScheduleMemberAbsent", "ScheduleMemberChange", "ScheduleMemberCalendar", "ScheduleMemberRoster"]],
+  ["팀원 기록", ["RecordMember", "RecordMemberSeason", "RecordMemberMatch", "RecordMemberScrim", "RecordMemberPending", "RecordMemberScrimView", "RecordMemberGame", "RecordMemberMissed"]],
   ["팀원 회비", ["DuesMember", "DuesMemberPay", "DuesMemberSent", "DuesMemberLedger"]],
+  ["팀원 선수", ["PlayersMember", "PlayersMemberProfile", "PlayersMemberEdit", "PlayersMemberPosition", "PlayersMemberRequested", "PlayersMemberApply", "PlayersMemberApplied"]],
 ];
 
 const titles = {};
@@ -36,7 +39,7 @@ for (const f of readdirSync(SRC).filter(f => f.endsWith(".dc.html"))) {
     .replace(/href="([A-Za-z0-9]+)\.dc\.html"/g, 'href="$1.html"');
   // 캔버스용 고정 높이를 실제 휴대폰 화면 높이로
   body = body.replace(/^(<div style="width: 100%; max-width: 480px; box-sizing: border-box; )(height|min-height): \d+px;/,
-    (m, a) => a + (FIXED.has(name) ? "height: 100dvh;" : "min-height: 100dvh;"));
+    (m, a, kind) => a + (kind === "height" ? "height: 100dvh;" : "min-height: 100dvh;"));
   const html = `<!doctype html>
 <html lang="ko">
 <head>
@@ -49,11 +52,19 @@ ${helmet.trim()}
 </head>
 <body>
 ${body}
+<script src="proto.js"></script>
 </body>
 </html>
 `;
   writeFileSync(new URL(`${name}.html`, OUT), html);
 }
+
+writeFileSync(new URL("proto.js", OUT), readFileSync(new URL("proto.js", import.meta.url)));
+
+// 목록에 빠진 화면이 있으면 알려 준다
+const listed = new Set(GROUPS.flatMap(([, n]) => n));
+const unlisted = Object.keys(titles).filter(n => !listed.has(n));
+if (unlisted.length) console.warn("목록에 없는 화면:", unlisted.join(", "));
 
 const list = GROUPS.map(([g, names]) => `
   <section style="display: flex; flex-direction: column; gap: 8px">
