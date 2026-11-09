@@ -46,6 +46,19 @@ const FORMATIONS = {
   }
 };
 const QUARTERS = { "11": 4, futsal: 8 };
+// 내전은 한 팀 인원이 그날그날 달라서, 5인부터 11인까지 포메이션을 둔다. 키는 "인원|이름"
+const SCRIM_FORMS = (() => {
+  const xs = n => ({ 1: [50], 2: [32, 68], 3: [20, 50, 80], 4: [14, 38, 62, 86], 5: [10, 30, 50, 70, 90] })[n];
+  const lab = { DF: { 1: ["CB"], 2: ["CB", "CB"], 3: ["LB", "CB", "RB"], 4: ["LB", "CB", "CB", "RB"], 5: ["LWB", "CB", "CB", "CB", "RWB"] }, MF: { 1: ["CM"], 2: ["CM", "CM"], 3: ["LM", "CM", "RM"], 4: ["LM", "CM", "CM", "RM"], 5: ["LM", "CM", "AM", "CM", "RM"] }, FW: { 1: ["ST"], 2: ["ST", "ST"], 3: ["LW", "ST", "RW"] } };
+  const make = (d, m, f) => { const out = [["GK", 50, 90, "GK"]]; [["DF", d, 74], ["MF", m, f ? 50 : 40], ["FW", f, 24]].forEach(([g, n, y]) => { if (n) xs(n).forEach((x, i) => out.push([g, x, y, lab[g][n][i]])); }); return out; };
+  const list = { 6: ["2-2-1", "2-1-2", "3-1-1"], 7: ["2-3-1", "3-2-1", "3-1-2"], 8: ["3-3-1", "3-2-2", "2-3-2"], 9: ["3-3-2", "3-4-1", "4-3-1"], 10: ["4-3-2", "3-4-2", "4-4-1"] };
+  const out = {};
+  Object.keys(FORMATIONS.futsal).forEach(f => { out["5|" + f] = FORMATIONS.futsal[f]; });
+  Object.keys(list).forEach(n => list[n].forEach(f => { const [d, m, w] = f.split("-").map(Number); out[n + "|" + f] = make(d, m, w); }));
+  Object.keys(FORMATIONS["11"]).forEach(f => { out["11|" + f] = FORMATIONS["11"][f]; });
+  return out;
+})();
+const formName = f => { const [n, name] = String(f || "").split("|"); return name ? `${n}인 ${name}` : String(f || ""); };
 const DEFAULT_SETTINGS = () => ({ teamName: "", fee: 30000, cap: 14, checkBefore: 10, lateCancelH: 3, account: "", shareLink: "", sample: false, finePresets: [{ id: "late", label: "지각", amount: 5000 }, { id: "noshow", label: "무단 불참", amount: 10000 }], guestFee: 10000 });
 
 /* ---------- state ---------- */
@@ -399,11 +412,12 @@ const activePlayers = () => S.players.filter(p => p.active !== false).sort(sortP
 function sortPlayers(a, b) { const pa = POS.indexOf(a.pos), pb = POS.indexOf(b.pos); if (pa !== pb) return (pa < 0 ? 9 : pa) - (pb < 0 ? 9 : pb); return (Number(a.num) || 999) - (Number(b.num) || 999) || String(a.name).localeCompare(String(b.name), "ko"); }
 const eventsSorted = () => Object.values(S.events).sort((a, b) => (a.date + (a.time || "")).localeCompare(b.date + (b.time || "")));
 const isPast = e => e.date < todayStr();
-const hasScore = e => e.type === "match" && e.score && Number.isFinite(e.score.us) && Number.isFinite(e.score.them);
+const isPlay = e => !!e && (e.type === "match" || e.type === "scrim");
+const hasScore = e => isPlay(e) && e.score && Number.isFinite(e.score.us) && Number.isFinite(e.score.them);
 function resultOf(e) { if (!hasScore(e)) return null; return e.score.us > e.score.them ? "W" : e.score.us < e.score.them ? "L" : "D"; }
 const going = v => v === "yes" || v === "late";
 const quartersOf = e => QUARTERS[e.format === "futsal" ? "futsal" : "11"];
-const evTitle = e => e.type === "match" ? (e.opponent ? (e.opponent === "내전" ? "내전" : "vs " + e.opponent) : "경기") : (e.title || "훈련");
+const evTitle = e => e.type === "scrim" ? (e.title || "내전") : e.type === "match" ? (e.opponent ? (e.opponent === "내전" ? "내전" : "vs " + e.opponent) : "경기") : (e.title || "훈련");
 function eventStart(e) {
   const d = parseD(e.date);
   if (/^\d{2}:\d{2}$/.test(e.time || "")) { const [h, m] = e.time.split(":").map(Number); d.setHours(h, m, 0, 0); } else d.setHours(23, 59, 0, 0);
@@ -506,7 +520,29 @@ function fineCands(e) {
 const fineOn = key => ui.fineSel[key] !== false;
 
 /* 쿼터별 라인업 */
-function lineupOf(e) {
+// 내전: 운영진이 고른 쪽(조끼팀/일반팀)의 라인업을 다룬다. 팀원은 자기 팀이 먼저 보인다
+const sidePool = (e, side) => { const T = teamsOf(e).t; return roster(e).confirmed.filter(p => T[p.id] === side); };
+function curSide(e) {
+  if (!isScrim(e)) return null;
+  if (ui.lineSideEv === e.id && (ui.lineSide === "A" || ui.lineSide === "B")) return ui.lineSide;
+  const pid = myPid(); const s = pid && teamsOf(e).t[pid]; return s === "B" ? "B" : "A";
+}
+function scrimDefaultForm(e, side) {
+  if (e.format === "futsal") return "5|" + Object.keys(FORMATIONS.futsal)[0];
+  const n = Math.max(5, Math.min(11, sidePool(e, side).length || 11));
+  return Object.keys(SCRIM_FORMS).find(k => k.startsWith(n + "|"));
+}
+const lineFor = (e, pid) => isScrim(e) ? lineupOf(e, teamsOf(e).t[pid] || curSide(e)) : lineupOf(e);
+function lineupOf(e, side) {
+  if (isScrim(e)) {
+    side = side === "A" || side === "B" ? side : curSide(e);
+    const forms = SCRIM_FORMS; const N = quartersOf(e); const src = (e.lineS || {})[side];
+    const ok = src && forms[src.formation];
+    const formation = ok ? src.formation : scrimDefaultForm(e, side); const qs = ok ? src.q || {} : {};
+    const spots = forms[formation];
+    const q = Array.from({ length: N }, (_, k) => spots.map((_, i) => { const id = (qs[k + 1] || [])[i]; return id && playerById(id) ? id : null; }));
+    return { fmt: e.format === "futsal" ? "futsal" : "11", forms, formation, spots, q, N, side };
+  }
   const fmt = e.format === "futsal" ? "futsal" : "11"; const forms = FORMATIONS[fmt]; const N = quartersOf(e);
   let formation = Object.keys(forms)[0], qs = {};
   if (e.lineupQ && forms[e.lineupQ.formation]) { formation = e.lineupQ.formation; qs = e.lineupQ.q || {}; }
@@ -520,10 +556,10 @@ const isGk = p => (p.pos1 || p.pos) === "GK";
 // 내 쿼터별 출전 계획: 출전(자리), 휴식, 합류 전
 function myPlan(e, pid) {
   if (!e || !pid) return null;
-  const L = lineupOf(e); const conf = roster(e).ids.has(pid);
+  const L = lineFor(e, pid); const conf = isScrim(e) ? sidePool(e, L.side).some(p => p.id === pid) : roster(e).ids.has(pid);
   const rows = L.q.map((qs, k) => { const i = qs.indexOf(pid); if (i >= 0) return { k, st: "on", lab: L.spots[i][3] }; if (conf && availFrom(e, pid) > k + 1) return { k, st: "late" }; return { k, st: "rest" }; });
   const on = rows.filter(r => r.st === "on").length;
-  return { any: L.q.some(qs => qs.some(Boolean)), conf, rows, on, N: L.N };
+  return { any: L.q.some(qs => qs.some(Boolean)), conf, rows, on, N: L.N, side: L.side };
 }
 function myPosReq() {
   const pid = myPid(); if (!pid) return null;
@@ -543,7 +579,7 @@ function spotFit(spot, p) {
   return g1 === "GK" ? 60 : 40;
 }
 function autoRotate(e) {
-  const L = lineupOf(e); const pool = roster(e).confirmed.filter(p => p.active !== false);
+  const L = lineupOf(e); const pool = (L.side ? sidePool(e, L.side) : roster(e).confirmed).filter(p => p.active !== false);
   const played = {}, gkPlayed = {}, prev = {}; const order = new Map(pool.map((p, i) => [p.id, i]));
   pool.forEach(p => { played[p.id] = 0; gkPlayed[p.id] = 0; });
   const gkIdx = L.spots.findIndex(s => s[0] === "GK");
@@ -598,7 +634,7 @@ function playerStats(pid, year) {
     played++;
     if (checkStarted(e)) { const v = (e.check || {})[pid]; if (v === "in" || v === "late" || v === "excused") apps++; }
     else if (roster(e).ids.has(pid)) apps++;
-    if (e.type === "match") (e.goals || []).forEach(g => { if (g.pid === pid) goals++; if (g.assist === pid) assists++; });
+    if (isPlay(e)) (e.goals || []).forEach(g => { if (g.pid === pid) goals++; if (g.assist === pid) assists++; });
   });
   return { apps, goals, assists, played };
 }
@@ -661,7 +697,7 @@ function myUvote() { const u = myUid(); return (u && S.uvote[u]) || {}; }
 
 /* ---------- MOM ---------- */
 function momDeadline(e) { const d = parseD(e.date); d.setDate(d.getDate() + 1); d.setHours(12, 0, 0, 0); return d; }
-const momOpen = e => !!e && e.type === "match" && started(e) && Date.now() < momDeadline(e).getTime() && attendees(e).length >= 2;
+const momOpen = e => isPlay(e) && started(e) && Date.now() < momDeadline(e).getTime() && attendees(e).length >= 2;
 function attendees(e) {
   if (checkStarted(e)) return checkPeople(e).filter(p => ["in", "late", "excused"].includes(checkOf(e, p.id)));
   return roster(e).confirmed;
@@ -710,11 +746,13 @@ function autoTeams(e, seed) {
 }
 function teamsOf(e) {
   const conf = roster(e).confirmed; const saved = (e && e.teams) || {};
+  // 새 내전은 운영진이 한 명씩 고른다. 고르지 않은 사람은 스쿼드 밖
+  if (e && e.type === "scrim") { const t = {}; conf.forEach(p => { if (saved[p.id] === "A" || saved[p.id] === "B") t[p.id] = saved[p.id]; }); return { t, saved: !!e.teamsAt }; }
   const has = conf.length && conf.every(p => saved[p.id] === "A" || saved[p.id] === "B");
   const t = has ? saved : Object.assign(autoTeams(e, 0), Object.fromEntries(Object.entries(saved).filter(([pid, v]) => conf.some(p => p.id === pid) && (v === "A" || v === "B"))));
   return { t, saved: !!(e && e.teamsAt) && has };
 }
-const isScrim = e => !!e && e.type === "match" && /내전/.test(e.opponent || "");
+const isScrim = e => !!e && (e.type === "scrim" || (e.type === "match" && /내전/.test(e.opponent || "")));
 
 /* ---------- 할 일, 신경 써 볼 사람 ---------- */
 function feeEvents() { return eventsSorted().filter(e => Number(e.fieldFee) > 0 && !e.feeCharged && roster(e).confirmed.length); }
@@ -750,7 +788,7 @@ function reportData(pid, from, to) {
     if (cameTo(e, pid)) came++;
     const ck = (e.check || {})[pid]; if (ck === "late") late++; if (ck === "absent") absent++;
     (e.goals || []).forEach(g => { if (g.pid === pid) goals++; if (g.assist === pid) assists++; });
-    const L = lineupOf(e); L.q.forEach(qs => { const i = qs.indexOf(pid); if (i >= 0) { quarters++; const lab = L.spots[i][3]; pos[lab] = (pos[lab] || 0) + 1; } });
+    const L = lineFor(e, pid); L.q.forEach(qs => { const i = qs.indexOf(pid); if (i >= 0) { quarters++; const lab = L.spots[i][3]; pos[lab] = (pos[lab] || 0) + 1; } });
   });
   let streak = 0; for (const e of evs.slice().reverse()) { if (cameTo(e, pid)) streak++; else break; }
   return { played: evs.length, came, goals, assists, quarters, late, absent, pos, streak, mom: momCount(pid, from, to) };
@@ -1000,7 +1038,7 @@ function viewMemberSched() {
 
 /* ---------- 팀원 일정 상세 ---------- */
 function viewMemberEvent(e) {
-  if (ui.evFor !== e.id) { ui.evFor = e.id; ui.evTab = started(e) ? (e.type === "match" ? "rec" : "check") : "att"; ui.evQ = 0; }
+  if (ui.evFor !== e.id) { ui.evFor = e.id; ui.evTab = started(e) ? (isPlay(e) ? "rec" : "check") : "att"; ui.evQ = 0; }
   const pid = myPid(); const st = myState(e); const locked = started(e);
   let top = "";
   if (st && !locked) top = voteGroup(e, st) + myLatePicker(e, st) + myStatusLine(e, st);
@@ -1032,13 +1070,14 @@ function mAtt(e) {
 function mLineup(e) {
   const pid = myPid(); const L = lineupOf(e); const any = L.q.some(qs => qs.some(Boolean));
   const teams = isScrim(e) && e.teamsAt ? teamsOf(e).t : null;
+  const sideTabs = isScrim(e) ? sideSeg(e, L.side) : "";
   const teamBlock = teams ? `<section class="card"><div class="labrow"><span class="lab">오늘의 팀</span>${pid && teams[pid] ? `<span class="chip ${teams[pid] === "A" ? "clay" : "ink"}">나는 ${teams[pid] === "A" ? "조끼팀" : "일반팀"}</span>` : ""}</div>
     <div class="small"><b style="color:var(--clay)">조끼팀</b> ${roster(e).confirmed.filter(p => teams[p.id] === "A").map(p => esc(p.name)).join(", ")}</div><div class="small"><b>일반팀</b> ${roster(e).confirmed.filter(p => teams[p.id] === "B").map(p => esc(p.name)).join(", ")}</div></section>` : "";
-  if (!any) return teamBlock + `<div class="empty"><b>아직 라인업 전이에요</b>운영진이 라인업을 짜면 몇 쿼터에 어느 자리로 뛰고 언제 쉬는지 여기에 보여요.</div>`;
+  if (!any) return teamBlock + sideTabs + `<div class="empty"><b>아직 라인업 전이에요</b>운영진이 라인업을 짜면 몇 쿼터에 어느 자리로 뛰고 언제 쉬는지 여기에 보여요.</div>`;
   const k = Math.min(ui.evQ || 0, L.N - 1); const P = pid ? myPlan(e, pid) : null;
   return `${teamBlock}<div class="stack">
     ${P && (P.conf || P.on) ? `<span class="lab">내 출전</span><div class="qbox" style="--n:${Math.min(L.N, 4)}">${P.rows.slice(0, 8).map(r => `<div class="${r.st === "on" ? "on" : ""}"><div class="q">${r.k + 1}Q</div><b>${esc(qText(r))}</b></div>`).join("")}</div>` : ""}
-    <div class="labrow"><span class="lab">쿼터별 라인업 (${esc(L.formation)})</span><span class="hint">운영진이 짠 배치</span></div>
+    ${sideTabs}<div class="labrow"><span class="lab">쿼터별 라인업 (${esc(formName(L.formation))})</span><span class="hint">운영진이 짠 배치</span></div>
     <div class="utabs" role="tablist" aria-label="쿼터">${L.q.map((_, j) => `<button role="tab" data-act="evQ" data-v="${j}" aria-selected="${j === k}">${j + 1}Q</button>`).join("")}</div>
     ${pitchHtml(e, L, k, { small: true, me: pid })}
     <div class="small"><span class="muted" style="font-weight:700">벤치</span> ${benchOf(e, L, k).map(x => esc(x.name) + (x.late ? ` (${x.from}Q 합류)` : "")).join(", ") || "없음"}</div>
@@ -1046,9 +1085,14 @@ function mLineup(e) {
     <a class="btn block" href="#lineup-${e.id}" style="border:2px solid var(--ink);border-radius:0">누가 언제 쉬는지 전체 보기</a>
   </div>`;
 }
+// 내전 팀 고르기 탭 (조끼팀 / 일반팀)
+function sideSeg(e, side) {
+  const T = teamsOf(e).t; const n = s => roster(e).confirmed.filter(p => T[p.id] === s).length;
+  return `<div class="seg" role="group" aria-label="팀">${[["A", "조끼팀"], ["B", "일반팀"]].map(([s, l]) => `<button data-act="lineSide" data-eid="${e.id}" data-v="${s}" aria-pressed="${s === side}">${l} ${n(s)}명</button>`).join("")}</div>`;
+}
 function benchOf(e, L, k) {
   const used = new Set(L.q[k].filter(Boolean));
-  return roster(e).confirmed.filter(p => !used.has(p.id)).map(p => ({ ...p, from: availFrom(e, p.id), late: availFrom(e, p.id) > k + 1 }));
+  return (L.side ? sidePool(e, L.side) : roster(e).confirmed).filter(p => !used.has(p.id)).map(p => ({ ...p, from: availFrom(e, p.id), late: availFrom(e, p.id) > k + 1 }));
 }
 function pitchHtml(e, L, k, o) {
   const slots = L.q[k];
@@ -1060,7 +1104,7 @@ function pitchHtml(e, L, k, o) {
     }).join("")}</div>`;
 }
 function playTable(e, L, k, mePid) {
-  const conf = roster(e).confirmed; if (!conf.length) return `<div class="hint">참석이 확정된 사람이 생기면 여기에 표시돼요.</div>`;
+  const conf = L.side ? sidePool(e, L.side) : roster(e).confirmed; if (!conf.length) return `<div class="hint">${L.side ? "이 팀에 고른 사람이 아직 없어요." : "참석이 확정된 사람이 생기면 여기에 표시돼요."}</div>`;
   return `<div class="ptable" style="--n:${L.N}">${conf.map(p => { let tot = 0; const cells = L.q.map((qs, j) => { const on = qs.includes(p.id); if (on) tot++; const late = availFrom(e, p.id) > j + 1; return `<span class="cell ${on ? "on" : late ? "late" : ""} ${j === k ? "cur" : ""}" title="${j + 1}쿼터 ${on ? "출전" : late ? "합류 전" : "휴식"}"></span>`; }).join("");
     return `<div class="prow"><span class="nm ${p.id === mePid ? "me" : ""}">${esc(p.name)}${p.id === mePid ? " (나)" : ""}</span>${cells}<span class="tot">${tot}쿼터</span></div>`; }).join("")}</div>`;
 }
@@ -1083,11 +1127,11 @@ function mCheck(e) {
 }
 function mRec(e) {
   const pid = myPid();
-  if (e.type !== "match") return e.memo ? `<section class="card"><span class="lab">메모</span><div class="small" style="white-space:pre-wrap">${esc(e.memo)}</div></section>` : `<div class="empty">훈련 메모가 없어요.</div>`;
+  if (!isPlay(e)) return e.memo ? `<section class="card"><span class="lab">메모</span><div class="small" style="white-space:pre-wrap">${esc(e.memo)}</div></section>` : `<div class="empty">훈련 메모가 없어요.</div>`;
   if (!hasScore(e)) return `<div class="note">경기가 끝나면 점수와 골, 도움이 여기에 올라와요.</div>${momOpen(e) && pid && cameTo(e, pid) ? `<a class="btn primary big" href="#mom-${e.id}">이 경기 MOM 투표하러 가기</a>` : ""}`;
   const r = resultOf(e); const goals = e.goals || []; const scrim = isScrim(e);
   const T = scrim && e.teamsAt ? teamsOf(e).t : null; const myTeam = T && pid ? T[pid] : "";
-  const L = lineupOf(e); const myQ = pid ? L.q.filter(qs => qs.includes(pid)).length : 0;
+  const L = lineFor(e, pid); const myQ = pid ? L.q.filter(qs => qs.includes(pid)).length : 0;
   const lUs = scrim ? (myTeam === "B" ? "일반팀" : "조끼팀") + (myTeam ? " (나)" : "") : esc(S.settings.teamName || "우리 팀");
   const lThem = scrim ? (myTeam === "B" ? "조끼팀" : "일반팀") : esc(e.opponent || "상대 팀");
   return `<section class="rule"><div class="labrow"><span class="lab">${esc(shortDate(e))} ${WDE[parseD(e.date).getDay()]} ${esc(evTitle(e))}</span><span class="chip ${r === "W" ? "clay" : r === "L" ? "ink" : ""}">${{ W: "승", D: "무", L: "패" }[r]}</span></div>
@@ -1102,12 +1146,13 @@ function viewMemberLineup(e) {
   const pid = myPid(); const L = lineupOf(e); const k = Math.min(ui.mlQ || 0, L.N - 1); const any = L.q.some(qs => qs.some(Boolean));
   const seg = `<nav class="seg" aria-label="일정 보기">${[["att", "참석"], ["lineup", "라인업"], ["check", "출석"], ["rec", "기록"]].map(([v, l]) => v === "lineup" ? `<a href="#lineup-${e.id}" aria-current="page">${l}</a>` : `<a href="#event-${e.id}" data-act="goEvTab" data-eid="${e.id}" data-v="${v}">${l}</a>`).join("")}</nav>`;
   const head = `${backbar("#event-" + e.id, pid ? esc(pname(pid)) + ", 팀원" : "팀원", "라인업 확인")}<section class="stack" style="gap:4px;padding:0 4px"><div class="date-l">${esc(bigDate(e))}</div><div class="small muted">${evSub(e)}</div></section>${seg}`;
-  if (!any) return head + `<div class="card"><div class="empty"><b>아직 라인업 전이에요</b>운영진이 라인업을 짜면 여기에 보여요.</div></div>`;
+  const tabs = isScrim(e) ? `<div style="padding:0 4px">${sideSeg(e, L.side)}</div>` : "";
+  if (!any) return head + tabs + `<div class="card"><div class="empty"><b>아직 라인업 전이에요</b>운영진이 라인업을 짜면 여기에 보여요.</div></div>`;
   const P = pid ? myPlan(e, pid) : null; const i = pid ? L.q[k].indexOf(pid) : -1;
   const rest = P ? P.rows.filter(r => r.st === "rest").map(r => r.k + 1 + "쿼터") : [];
-  return `${head}
-  ${P && (P.conf || P.on) ? `<section class="card hot" style="gap:8px"><span class="lab">내 출전</span>${planTiles(e, pid)}<div class="small muted">${P.on ? `${rest.length ? rest.join(", ") + "에 쉬고, " : "쉬는 쿼터 없이 "}${P.N}개 쿼터 중 ${P.on}개를 뛰어요.` : "아직 라인업에 들어가 있지 않아요."}</div></section>` : ""}
-  <section class="card" style="gap:10px"><div class="labrow"><span class="lab">쿼터별 위치</span><span class="chip ink num" style="font-size:14px">${esc(L.formation)}</span></div>
+  return `${head}${tabs}
+  ${P && (P.conf || P.on) && (!L.side || P.side === L.side) ? `<section class="card hot" style="gap:8px"><span class="lab">내 출전</span>${planTiles(e, pid)}<div class="small muted">${P.on ? `${rest.length ? rest.join(", ") + "에 쉬고, " : "쉬는 쿼터 없이 "}${P.N}개 쿼터 중 ${P.on}개를 뛰어요.` : "아직 라인업에 들어가 있지 않아요."}</div></section>` : ""}
+  <section class="card" style="gap:10px"><div class="labrow"><span class="lab">쿼터별 위치</span><span class="chip ink num" style="font-size:14px">${esc(formName(L.formation))}</span></div>
     <div class="seg" role="tablist" aria-label="쿼터">${L.q.map((_, j) => `<button role="tab" data-act="mlQ" data-v="${j}" aria-selected="${j === k}">${j + 1}Q</button>`).join("")}</div>
     ${pitchHtml(e, L, k, { me: pid })}
     ${pid ? `<div role="status" style="font-size:14px;font-weight:700;color:${i >= 0 ? "var(--clay)" : "var(--muted)"}">${k + 1}쿼터: ${i >= 0 ? `${esc(L.spots[i][3])} 자리에서 뛰어요` : roster(e).ids.has(pid) ? "쉬는 쿼터예요" : "라인업에 없어요"}</div>` : ""}
@@ -1213,7 +1258,7 @@ function viewOpHome() {
   const next = eventsSorted().find(e => !started(e));
   if (next) {
     const c = attCounts(next); const tot = Math.max(activePlayers().length, 1);
-    parts.push(`<a class="rule" href="#event-${next.id}"><div class="labrow"><span class="lab">다음 일정</span><span class="chip ink">${next.type === "match" ? (isScrim(next) ? "내전" : "경기") : "훈련"}, ${esc(FORMAT_KO[next.format] || "")}</span></div>
+    parts.push(`<a class="rule" href="#event-${next.id}"><div class="labrow"><span class="lab">다음 일정</span><span class="chip ink">${isScrim(next) ? "내전" : next.type === "match" ? "경기" : "훈련"}, ${esc(FORMAT_KO[next.format] || "")}</span></div>
       <span class="date-xl">${esc(bigDate(next))}</span><span class="small muted">${evSub(next, false).replace(esc(evTitle(next)) + ", ", "")}</span>
       <div class="barline" aria-hidden="true" style="height:12px;margin-top:4px"><span style="width:${c.in / tot * 100}%;background:var(--clay)"></span><span style="width:${c.wait / tot * 100}%;background:var(--tan)"></span><span style="width:${c.no / tot * 100}%;background:var(--tile)"></span></div>
       <div class="tiles3" style="grid-template-columns:repeat(4,minmax(0,1fr))"><div><div class="num" style="font-size:22px;color:var(--clay)">${c.all}${c.capAll === Infinity ? "" : "/" + c.capAll}</div><div class="tiny muted">확정</div></div><div><div class="num" style="font-size:22px">${c.wait}</div><div class="tiny muted">대기</div></div><div><div class="num" style="font-size:22px">${c.no}</div><div class="tiny muted">불참</div></div><div><div class="num" style="font-size:22px">${c.none}</div><div class="tiny muted">미응답</div></div></div></a>`);
@@ -1258,28 +1303,28 @@ function viewOpSched() {
   const all = eventsSorted(); const up = ui.schedFilter !== "past";
   const list = up ? all.filter(e => !started(e)) : all.filter(e => started(e)).reverse();
   const next = all.find(e => !started(e));
-  const kind = e => e.type === "match" ? (isScrim(e) ? ["내전", "clay"] : ["경기", "ink"]) : ["훈련", ""];
+  const kind = e => isScrim(e) ? ["내전", "clay"] : e.type === "match" ? ["경기", "ink"] : ["훈련", ""];
   return `<div class="titlebar"><h1 class="title">일정</h1><button class="btn primary" data-act="newEvent" style="min-height:44px;border-radius:14px;font-size:14px">+ 일정 올리기</button></div>
   <div class="seg" role="group" aria-label="일정 보기"><button data-act="schedFilter" data-v="up" aria-pressed="${up}">다가오는 일정</button><button data-act="schedFilter" data-v="past" aria-pressed="${!up}">지난 일정</button></div>
   ${list.length ? list.map(e => { const d = parseD(e.date); const c = attCounts(e); const k = kind(e); const r = resultOf(e);
     return `<a class="evcard ${next && e.id === next.id ? "hot" : ""}" href="#event-${e.id}"><div class="datebox"><div class="m">${d.getMonth() + 1}월</div><div class="d">${d.getDate()}</div><div class="w">${WD[d.getDay()]}요일</div></div>
       <div class="grow" style="display:flex;flex-direction:column;gap:2px"><div class="row" style="gap:6px"><span class="chip ${k[1]}">${k[0]}</span><span class="tiny muted">${esc(FORMAT_KO[e.format] || "")}</span></div><b class="ell">${esc(evTitle(e))}</b><span class="tiny muted ell">${[e.time, e.place].filter(Boolean).map(esc).join(", ") || "&nbsp;"}</span></div>
       <div style="text-align:right;flex:none">${hasScore(e) ? `<div class="num" style="font-size:24px;color:${r === "W" ? "var(--clay)" : r === "L" ? "var(--muted)" : "var(--ink)"}">${e.score.us} : ${e.score.them}</div><div class="tiny muted">${{ W: "승", D: "무", L: "패" }[r]}</div>` : `<div class="num" style="font-size:20px">${c.all}${c.capAll === Infinity ? "" : "/" + c.capAll}</div><div class="tiny muted">${c.wait ? `대기 ${c.wait}` : "명 확정"}</div>`}</div></a>`; }).join("")
-    : `<div class="card"><div class="empty"><b>${up ? "다가오는 일정이 없어요" : "지난 일정이 없어요"}</b>${up ? "위 버튼으로 경기나 훈련을 올리세요." : "날짜가 지난 일정이 여기 쌓여요."}</div></div>`}`;
+    : `<div class="card"><div class="empty"><b>${up ? "다가오는 일정이 없어요" : "지난 일정이 없어요"}</b>${up ? "위 버튼으로 경기나 내전을 올리세요." : "날짜가 지난 일정이 여기 쌓여요."}</div></div>`}`;
 }
 
 /* ---------- 운영진 일정 상세 ---------- */
 function viewOpEvent(e) {
-  if (ui.evFor !== e.id) { ui.evFor = e.id; const mins = (eventStart(e).getTime() - Date.now()) / 60000; ui.evTab = mins > 90 ? "att" : mins > -180 && !checkStarted(e) ? "check" : e.type === "match" ? "rec" : "check"; ui.attFilter = "in"; ui.lineQ = 0; ui.lineSel = -1; ui.lineMsg = ""; }
-  const titles = { att: "참석 관리", lineup: "라인업 짜기", check: "현장 출석", rec: e.type === "match" ? "경기 기록" : "메모" };
+  if (ui.evFor !== e.id) { ui.evFor = e.id; const mins = (eventStart(e).getTime() - Date.now()) / 60000; ui.evTab = mins > 90 ? "att" : mins > -180 && !checkStarted(e) ? "check" : isPlay(e) ? "rec" : "check"; ui.attFilter = "in"; ui.lineQ = 0; ui.lineSel = -1; ui.lineMsg = ""; }
+  const titles = { att: "참석 관리", lineup: "라인업 짜기", check: "현장 출석", rec: isPlay(e) ? "경기 기록" : "메모" };
   if (!titles[ui.evTab]) ui.evTab = "att";
   const body = ui.evTab === "att" ? opAtt(e) : ui.evTab === "lineup" ? opLineup(e) : ui.evTab === "check" ? opCheck(e) : opRec(e);
   const links = [];
-  if (isScrim(e)) links.push(`<a class="btn" href="#split-${e.id}">팀 나누기${e.teamsAt ? " (확정)" : ""}</a>`);
+  if (isScrim(e) && e.type !== "scrim") links.push(`<a class="btn" href="#split-${e.id}">팀 나누기${e.teamsAt ? " (확정)" : ""}</a>`);
   if (S.tally["mom-" + e.id] || momOpen(e)) links.push(`<a class="btn" href="#mom-${e.id}">MOM</a>`);
   return `${backbar("#schedule", "운영진", titles[ui.evTab], `<button class="btn" data-act="shareEvent" data-id="${e.id}">공유</button><button class="btn" data-act="editEvent" data-id="${e.id}">수정</button>`)}
   <section class="stack" style="gap:4px;padding:0 4px"><div class="date-l">${esc(bigDate(e))}</div><div class="small muted">${evSub(e)}${Number(e.fieldFee) ? `, 구장비 ${won(e.fieldFee)}` : ""}</div></section>
-  <div class="seg" role="group" aria-label="일정 보기">${[["att", "참석"], ["lineup", "라인업"], ["check", "현장 출석"], ["rec", e.type === "match" ? "기록" : "메모"]].map(([k, l]) => `<button data-act="evTab" data-v="${k}" aria-pressed="${ui.evTab === k}">${l}</button>`).join("")}</div>
+  <div class="seg" role="group" aria-label="일정 보기">${[["att", "참석"], ["lineup", "라인업"], ["check", "현장 출석"], ["rec", isPlay(e) ? "기록" : "메모"]].map(([k, l]) => `<button data-act="evTab" data-v="${k}" aria-pressed="${ui.evTab === k}">${l}</button>`).join("")}</div>
   ${links.length ? `<div class="btnrow">${links.join("")}</div>` : ""}
   ${body}
   ${e.updatedBy ? `<div class="hint center">마지막 수정 <span data-uid="${esc(e.updatedBy)}" data-fallback="운영진">운영진</span>${e.updatedAt ? ", " + esc(fmtStamp(e.updatedAt)) : ""}</div>` : ""}`;
@@ -1312,20 +1357,32 @@ function opAtt(e) {
 function opLineup(e) {
   const L = lineupOf(e); const k = Math.min(ui.lineQ, L.N - 1); const conf = roster(e).confirmed;
   const sel = ui.lineSel; const bench = benchOf(e, L, k);
-  const confIds = new Set(conf.map(p => p.id)); const stale = Array.from(new Set(L.q.flat().filter(id => id && !confIds.has(id)))).map(id => pname(id));
-  const hint = ui.lineMsg || (sel >= 0 ? `${L.spots[sel] ? L.spots[sel][3] : ""} 자리를 골랐어요. 벤치에서 넣을 사람을 누르거나, 다른 자리를 누르면 서로 바꿔요.` : "자리를 누르고 벤치에서 사람을 고르면 바뀌어요.");
+  const confIds = new Set((L.side ? sidePool(e, L.side) : conf).map(p => p.id)); const stale = Array.from(new Set(L.q.flat().filter(id => id && !confIds.has(id)))).map(id => pname(id));
+  const hint = ui.lineMsg || (sel >= 0 ? `${L.spots[sel] ? L.spots[sel][3] : ""} 자리를 골랐어요. ${L.side ? "휴식" : "벤치"}에서 넣을 사람을 누르거나, 다른 자리를 누르면 서로 바꿔요.` : `자리를 누르고 ${L.side ? "휴식" : "벤치"}에서 사람을 고르면 바뀌어요.`);
+  const scrim = !!L.side;
+  let top = `<div class="forms" role="group" aria-label="포메이션">${Object.keys(L.forms).map(f => `<button data-act="formation" data-v="${f}" aria-pressed="${f === L.formation}">${f}</button>`).join("")}</div>`;
+  if (scrim) {
+    const T = teamsOf(e).t; const nA = conf.filter(p => T[p.id] === "A").length, nB = conf.filter(p => T[p.id] === "B").length, nOut = conf.length - nA - nB;
+    const size = L.formation.split("|")[0];
+    const sizes = Array.from(new Set(Object.keys(SCRIM_FORMS).map(k => k.split("|")[0])));
+    top = `<div class="row between" style="gap:8px"><div class="small"><b>스쿼드</b> 조끼팀 ${nA}명, 일반팀 ${nB}명${nOut ? `, 안 고른 사람 ${nOut}명` : ""}</div><a class="btn sm" href="#split-${e.id}">스쿼드 고르기</a></div>
+      ${sideSeg(e, L.side)}
+      <div class="field" style="margin:0"><span class="flabel">${L.side === "A" ? "조끼팀" : "일반팀"} 한 번에 뛰는 인원</span><div class="forms" role="group" aria-label="인원">${sizes.map(n => `<button data-act="scrimN" data-v="${n}" aria-pressed="${n === size}">${n}인</button>`).join("")}</div></div>
+      <div class="forms" role="group" aria-label="포메이션">${Object.keys(SCRIM_FORMS).filter(k => k.startsWith(size + "|")).map(f => `<button data-act="formation" data-v="${f}" aria-pressed="${f === L.formation}">${f.split("|")[1]}</button>`).join("")}</div>`;
+    if (!nA && !nB) return `<section class="card" style="gap:10px">${top}<div class="empty"><b>먼저 스쿼드를 골라 주세요</b>참석 확정 인원 중에서 조끼팀과 일반팀에 넣을 사람을 한 명씩 고르면, 팀마다 쿼터별 자리와 휴식을 짤 수 있어요.</div><a class="btn primary big" href="#split-${e.id}">스쿼드 고르기</a></section>`;
+  }
   return `<section class="card" style="gap:10px">
-    <div class="forms" role="group" aria-label="포메이션">${Object.keys(L.forms).map(f => `<button data-act="formation" data-v="${f}" aria-pressed="${f === L.formation}">${f}</button>`).join("")}</div>
+    ${top}
     <div class="seg" role="group" aria-label="쿼터">${L.q.map((_, j) => `<button data-act="lineQ" data-v="${j}" aria-pressed="${j === k}">${j + 1}Q</button>`).join("")}</div>
     ${pitchHtml(e, L, k, { edit: true, sel })}
     <div role="status" style="font-size:13px;font-weight:600;color:${sel >= 0 ? "var(--clay-d)" : "var(--muted)"}">${esc(hint)}</div>
-    ${stale.length ? `<div class="status">참석 확정이 아닌 사람이 배치에 남아 있어요: ${esc(stale.join(", "))}. 자동 배치를 다시 누르면 정리돼요.</div>` : ""}
-    <div class="benchrow"><span class="k">벤치</span>${bench.map(x => `<button class="bench ${x.late ? "late" : sel >= 0 ? "armed" : ""}" data-act="benchTap" data-pid="${x.id}" ${x.late ? "disabled" : ""}>${esc(x.name)}${x.late ? ` (${x.from}Q~)` : ""}</button>`).join("") || `<span class="small muted">없음</span>`}</div>
-    <button class="btn primary big" data-act="autoLineup">출전 시간 고르게 자동 배치</button>
+    ${stale.length ? `<div class="status">${L.side ? "이 팀 스쿼드가 아닌 사람이" : "참석 확정이 아닌 사람이"} 배치에 남아 있어요: ${esc(stale.join(", "))}. 자동 배치를 다시 누르면 정리돼요.</div>` : ""}
+    <div class="benchrow"><span class="k">${scrim ? "휴식" : "벤치"}</span>${bench.map(x => `<button class="bench ${x.late ? "late" : sel >= 0 ? "armed" : ""}" data-act="benchTap" data-pid="${x.id}" ${x.late ? "disabled" : ""}>${esc(x.name)}${x.late ? ` (${x.from}Q~)` : ""}</button>`).join("") || `<span class="small muted">없음</span>`}</div>
+    <button class="btn primary big" data-act="autoLineup">${scrim ? (L.side === "A" ? "조끼팀" : "일반팀") + " 출전 시간 고르게 자동 배치" : "출전 시간 고르게 자동 배치"}</button>
     <div class="btnrow"><button class="btn" data-act="copyQ">${k + 1}Q를 전 쿼터에 복사</button><button class="btn" data-act="clearQ">${k + 1}Q 비우기</button></div>
-    <div class="hint">자동 배치는 확정 인원(대기 제외)을 쿼터마다 돌려서 출전 시간을 맞추고, 주, 부 포지션에 맞는 자리에 넣어요. 늦참은 합류 쿼터부터 들어가요.</div>
+    <div class="hint">${scrim ? "자리를 누르고 휴식 칸에서 사람을 고르면 직접 넣을 수 있어요. 자동 배치는 이 팀 스쿼드만 쿼터마다 돌려서 출전 시간을 맞추고, 주, 부 포지션에 맞는 자리에 넣어요." : "자동 배치는 확정 인원(대기 제외)을 쿼터마다 돌려서 출전 시간을 맞추고, 주, 부 포지션에 맞는 자리에 넣어요."} 늦참은 합류 쿼터부터 들어가요.</div>
   </section>
-  <section class="card" style="gap:4px"><div class="labrow" style="margin-bottom:4px"><span class="lab">출전 시간</span>${legendHtml("벤치")}</div>${playTable(e, L, k)}</section>`;
+  <section class="card" style="gap:4px"><div class="labrow" style="margin-bottom:4px"><span class="lab">${scrim ? (L.side === "A" ? "조끼팀 " : "일반팀 ") + "누가 언제 쉬나" : "출전 시간"}</span>${legendHtml(scrim ? "휴식" : "벤치")}</div>${playTable(e, L, k)}</section>`;
 }
 function opCheck(e) {
   const people = checkPeople(e); const c = checkCounts(e); const t = checkTime(e); const saved = checkStarted(e); const cancels = lateCancels(e);
@@ -1357,7 +1414,7 @@ function opCheck(e) {
 }
 function opRec(e) {
   const memo = `<section class="card"><label class="field" style="margin:0">메모<textarea class="inp" id="memo" data-input="memo" placeholder="준비물, 정산, 경기 소감 등">${esc(e.memo || "")}</textarea></label><div class="hint">입력을 멈추면 자동 저장돼요.</div></section>`;
-  if (e.type !== "match") return memo;
+  if (!isPlay(e)) return memo;
   const sc = e.score || {}; const us = Number.isFinite(sc.us) ? sc.us : null, them = Number.isFinite(sc.them) ? sc.them : null;
   const goals = e.goals || []; const mismatch = us !== null && goals.length > 0 && goals.length !== us;
   const r = resultOf(e); const scrim = isScrim(e);
@@ -1614,7 +1671,30 @@ function viewTodo() {
 }
 
 /* ---------- 팀 나누기 ---------- */
+// 새 내전: 참석 확정 인원 중에서 운영진이 한 명씩 조끼팀, 일반팀을 고른다
+function viewSquad(e) {
+  const op = isOpView(); const conf = roster(e).confirmed; const T = teamsOf(e); const t = T.t;
+  const A = conf.filter(p => t[p.id] === "A"), B = conf.filter(p => t[p.id] === "B"), O = conf.filter(p => !t[p.id]);
+  const lock = !op || T.saved;
+  const row = p => { const s = t[p.id] || ""; const late = availFrom(e, p.id) > 1 ? `, ${availFrom(e, p.id)}Q부터` : "";
+    return `<div class="mrow"><div class="grow"><div class="nm">${esc(p.name)}</div><div class="tiny muted">${esc([p.pos1, p.pos2].filter(Boolean).join("/") || p.pos || "")}${esc(late)}</div></div>
+      ${lock ? `<span class="chip${s === "A" ? " clay" : ""}">${s === "A" ? "조끼팀" : s === "B" ? "일반팀" : "빠짐"}</span>` : `<div class="seg pick" role="group" aria-label="${esc(p.name)} 팀" style="flex:none"><button data-act="teamSet" data-eid="${e.id}" data-pid="${p.id}" data-v="A" aria-pressed="${s === "A"}">조끼</button><button data-act="teamSet" data-eid="${e.id}" data-pid="${p.id}" data-v="B" aria-pressed="${s === "B"}">일반</button></div>`}</div>`; };
+  const group = (title, arr, cls) => arr.length ? `<section class="card" style="gap:2px"><div class="labrow"><span class="lab"${cls ? ` style="color:var(--clay)"` : ""}>${title}</span><span class="num" style="font-size:18px">${arr.length}명</span></div>${arr.map(row).join("")}</section>` : "";
+  const gk = arr => arr.some(p => isGk(p) || p.pos2 === "GK");
+  const warn = A.length && B.length && conf.filter(p => isGk(p) || p.pos2 === "GK").length >= 2 && (!gk(A) || !gk(B)) ? `${gk(A) ? "일반팀" : "조끼팀"}에 골키퍼가 없어요.` : "";
+  return `${backbar("#event-" + e.id, `${esc(bigDate(e, true))} ${esc(evTitle(e))}, 참석 확정 ${conf.length}명`, "스쿼드 고르기", op && !T.saved && (A.length || B.length) ? `<button class="btn" data-act="teamClear" data-eid="${e.id}">비우기</button>` : "")}
+  ${!conf.length ? `<div class="card"><div class="empty"><b>참석 확정 인원이 없어요</b>참석 투표가 들어오면 여기서 한 명씩 팀을 고를 수 있어요.</div></div>` : `
+  ${op && !T.saved ? `<div class="small muted" style="padding:0 4px">참석 확정 인원 중에서 한 명씩 <b>조끼</b> 또는 <b>일반</b>을 누르세요. 한 번 더 누르면 빠져요. 고르지 않은 사람은 오늘 스쿼드에 들어가지 않아요.</div>` : ""}
+  <div class="small" style="padding:0 4px"><b style="color:var(--clay)">조끼팀 ${A.length}명</b>, <b>일반팀 ${B.length}명</b>${O.length ? `, 안 고른 사람 ${O.length}명` : ""}</div>
+  ${warn && !T.saved ? `<div class="status" role="status">${esc(warn)}</div>` : ""}
+  ${group("안 고른 사람", O)}${group("조끼팀", A, true)}${group("일반팀", B)}
+  ${op ? (T.saved
+    ? `<section class="card"><div role="status" style="font-weight:700;color:var(--clay)">확정했어요. 팀원 일정 화면에 바로 보여요.</div><a class="btn primary block" href="#event-${e.id}" data-act="goEvTab" data-eid="${e.id}" data-v="lineup">팀별 라인업 짜기</a><button class="btn block" data-act="teamShare" data-eid="${e.id}">단톡방 공유 문구</button><button class="btn block" data-act="teamUnconfirm" data-eid="${e.id}">다시 고치기</button></section>`
+    : `<div class="btnrow"><button class="btn" data-act="teamShuffle" data-eid="${e.id}">고르게 자동으로 나누기</button><button class="btn primary" data-act="teamConfirm" data-eid="${e.id}" ${A.length && B.length ? "" : "disabled"}>스쿼드 확정</button></div><a class="btn block" href="#event-${e.id}" data-act="goEvTab" data-eid="${e.id}" data-v="lineup">팀별 라인업 짜러 가기</a>`)
+    : `<div class="hint center">${T.saved ? "운영진이 확정한 스쿼드예요." : "아직 운영진이 스쿼드를 고르는 중이에요."}</div>`}`}`;
+}
 function viewSplit(e) {
+  if (e.type === "scrim") return viewSquad(e);
   const op = isOpView(); const conf = roster(e).confirmed; const T = teamsOf(e);
   const A = conf.filter(p => T.t[p.id] === "A"), B = conf.filter(p => T.t[p.id] === "B");
   const gk = arr => arr.some(p => isGk(p) || p.pos2 === "GK"); const anyGk = conf.filter(p => isGk(p) || p.pos2 === "GK").length >= 2;
@@ -1735,11 +1815,12 @@ function eventSheet(e) {
   if (isNew && !e.date) { const d = new Date(); d.setDate(d.getDate() + 1); e.date = ymd(d); }
   const tpls = isNew ? templates() : [];
   openSheet(isNew ? "일정 올리기" : "일정 수정", `<form id="ef">
-    ${tpls.length ? `<div class="field"><span class="flabel">지난 일정으로 빠르게 만들기</span><div class="stack" id="tplList" style="gap:6px">${tpls.map((t, i) => `<button type="button" class="tpl" data-i="${i}" aria-pressed="false"><span class="num" style="font-size:18px;font-weight:700;width:64px;flex:none">${WD[t.wd]} ${esc(t.time || "")}</span><span class="grow ell" style="font-weight:600">${esc(t.type === "match" ? (t.opponent || "경기") : (t.title || "훈련"))}</span><span class="tiny muted">${esc(FORMAT_KO[t.format])}</span></button>`).join("")}</div></div>` : ""}
-    <div class="field"><span class="flabel">종류</span><div class="seg" id="typeSeg"><button type="button" data-v="match" aria-pressed="${e.type === "match"}">경기</button><button type="button" data-v="training" aria-pressed="${e.type !== "match"}">훈련</button></div></div>
+    ${tpls.length ? `<div class="field"><span class="flabel">지난 일정으로 빠르게 만들기</span><div class="stack" id="tplList" style="gap:6px">${tpls.map((t, i) => `<button type="button" class="tpl" data-i="${i}" aria-pressed="false"><span class="num" style="font-size:18px;font-weight:700;width:64px;flex:none">${WD[t.wd]} ${esc(t.time || "")}</span><span class="grow ell" style="font-weight:600">${esc(t.type === "scrim" ? "내전" : t.type === "match" ? (t.opponent || "경기") : (t.title || "훈련"))}</span><span class="tiny muted">${esc(FORMAT_KO[t.format])}</span></button>`).join("")}</div></div>` : ""}
+    <div class="field"><span class="flabel">종류</span><div class="seg" id="typeSeg"><button type="button" data-v="match" aria-pressed="${e.type === "match"}">경기</button><button type="button" data-v="scrim" aria-pressed="${e.type === "scrim"}">내전</button></div></div>
     <div class="field"><span class="flabel">형식</span><div class="seg" id="fmtSeg"><button type="button" data-v="11" aria-pressed="${e.format !== "futsal"}">11인 축구 (4쿼터)</button><button type="button" data-v="futsal" aria-pressed="${e.format === "futsal"}">풋살 (8쿼터)</button></div></div>
     <div class="grid2"><div class="field"><label for="eDate">날짜</label><input type="date" id="eDate" name="date" required value="${esc(e.date)}"></div><div class="field"><label for="eTime">시간</label><input type="time" id="eTime" name="time" value="${esc(e.time || "")}"></div></div>
     <div class="field" id="oppField"><label for="eOpp">상대 팀</label><input id="eOpp" name="opponent" maxlength="30" value="${esc(e.opponent || "")}" placeholder="예: FC 서울, 내전"></div>
+    <div class="hint" id="scrimHint" style="margin:-4px 0 12px">내전은 참석 투표를 받은 뒤, 일정의 라인업 탭에서 조끼팀과 일반팀 스쿼드를 한 명씩 고르고 팀마다 쿼터별 자리와 휴식을 짜요.</div>
     <div class="field" id="titleField"><label for="eTitle">제목 (선택)</label><input id="eTitle" name="title" maxlength="30" value="${esc(e.title || "")}" placeholder="예: 세트피스 훈련"></div>
     <div class="grid2"><div class="field"><label for="ePlace">장소</label><input id="ePlace" name="place" maxlength="40" value="${esc(e.place || "")}" placeholder="예: 보라매 축구장"></div>
     <div class="field"><label for="eCap">정원</label><input id="eCap" name="cap" inputmode="numeric" maxlength="3" value="${esc(e.cap ?? "")}" placeholder="팀 기본 ${Number(S.settings.cap) > 0 ? S.settings.cap + "명" : "없음"}"></div></div>
@@ -1751,7 +1832,8 @@ function eventSheet(e) {
     const sync = () => {
       sh.querySelectorAll("#typeSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === type));
       sh.querySelectorAll("#fmtSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === format));
-      $("#oppField", sh).hidden = type !== "match"; $("#titleField", sh).hidden = type === "match";
+      $("#oppField", sh).hidden = type !== "match"; $("#titleField", sh).hidden = type !== "training";
+      $("#scrimHint", sh).hidden = type !== "scrim";
     };
     sync();
     $("#typeSeg", sh).onclick = ev => { const b = ev.target.closest("button"); if (b) { type = b.dataset.v; sync(); } };
@@ -1769,9 +1851,9 @@ function eventSheet(e) {
       ev.preventDefault(); const f = ev.target;
       if (!f.elements["date"].value) { f.elements["date"].focus(); return; }
       const base = S.events[e.id] || e;
-      const patch = { type, format, date: f.elements["date"].value, time: f.elements["time"].value, place: f.elements["place"].value.trim(), opponent: type === "match" ? f.elements["opponent"].value.trim() : "", title: type === "match" ? "" : f.elements["title"].value.trim(), cap: digits(f.elements["cap"].value) };
+      const patch = { type, format, date: f.elements["date"].value, time: f.elements["time"].value, place: f.elements["place"].value.trim(), opponent: type === "match" ? f.elements["opponent"].value.trim() : "", title: type === "training" ? f.elements["title"].value.trim() : "", cap: digits(f.elements["cap"].value) };
       if (!isNew && format !== base.format && (base.lineup || base.lineupQ)) { patch.lineup = null; patch.lineupQ = null; }
-      if (!isNew && type !== "match" && base.score) patch.score = null;
+      if (!isNew && type === "training" && base.score) patch.score = null;
       setPref("lastFormat", format); setPref("lastPlace", patch.place);
       if (!isNew) { evPatch(e.id, patch); closeSheet(); render(); toast("저장했습니다"); return; }
       const repeat = $("#eRepeat", sh) && $("#eRepeat", sh).checked;
@@ -1955,6 +2037,8 @@ function opSetAtt(e, pid, nv) {
 }
 function lineupSave(e, L, q) {
   const obj = {}; q.forEach((slots, k) => { obj[k + 1] = slots.map(x => x || null); });
+  const side = L.side || curSide(e);
+  if (side) { saveEv(e, { lineS: { [side]: { formation: L.formation, q: obj } } }); return; }
   saveEv(e, { lineupQ: { formation: L.formation, q: obj }, lineup: null });
 }
 
@@ -2074,6 +2158,8 @@ const ACT = {
   delGoal: t => { const e = curEvent(); if (!e) return; saveEv(e, { goals: (e.goals || []).filter((_, i) => i !== Number(t.dataset.i)) }); },
   // 라인업
   lineQ: t => { ui.lineQ = Number(t.dataset.v) || 0; ui.lineSel = -1; ui.lineMsg = ""; render(); },
+  lineSide: t => { ui.lineSide = t.dataset.v === "B" ? "B" : "A"; ui.lineSideEv = t.dataset.eid; ui.lineSel = -1; ui.lineMsg = ""; render(); },
+  scrimN: t => { const e = curEvent(); if (!e) return; const f = Object.keys(SCRIM_FORMS).find(k => k.startsWith(t.dataset.v + "|")); if (f) ACT.formation({ dataset: { v: f } }); },
   formation: t => {
     const e = curEvent(); if (!e) return; const L = lineupOf(e);
     const spots = L.forms[t.dataset.v]; if (!spots) return;
@@ -2089,10 +2175,10 @@ const ACT = {
   pickSlot: t => {
     const e = curEvent(); if (!e) return; const L = lineupOf(e); const k = Math.min(ui.lineQ, L.N - 1); const i = Number(t.dataset.i);
     const slots = L.q[k];
-    const rr = roster(e);
-    const avail = rr.confirmed.filter(p => availFrom(e, p.id) <= k + 1);
-    const late = rr.confirmed.filter(p => availFrom(e, p.id) > k + 1);
-    const others = activePlayers().filter(p => !rr.confirmed.includes(p));
+    const rr = roster(e); const base = L.side ? sidePool(e, L.side) : rr.confirmed;
+    const avail = base.filter(p => availFrom(e, p.id) <= k + 1);
+    const late = base.filter(p => availFrom(e, p.id) > k + 1);
+    const others = activePlayers().filter(p => !base.includes(p));
     const where = pid => { const j = slots.indexOf(pid); return j >= 0 ? `(지금 ${L.spots[j][3]})` : ""; };
     playerPicker(`${k + 1}쿼터 ${L.spots[i][3]} 자리`, { current: slots[i], tag: where, sections: [["이번 쿼터 가능", avail], ["아직 안 옴", late], ["그 외 선수", others]], extra: slots[i] ? [["__none", "이 자리 비우기"]] : [] }, pid => {
       const cur = S.events[e.id]; if (!cur) return; const L2 = lineupOf(cur);
@@ -2104,11 +2190,12 @@ const ACT = {
   },
   autoLineup: () => {
     const e = curEvent(); if (!e) return; const L = lineupOf(e);
-    if (!roster(e).confirmed.length) { toast("참석 탭에서 확정 인원이 생기면 배치할 수 있어요"); return; }
+    const base = L.side ? sidePool(e, L.side) : roster(e).confirmed;
+    if (!base.length) { toast(L.side ? "먼저 이 팀 스쿼드를 골라 주세요" : "참석 탭에서 확정 인원이 생기면 배치할 수 있어요"); return; }
     const out = autoRotate(e); const q = L.q.map((_, k) => out[k + 1]);
     lineupSave(e, L, q);
     const cnt = {}; q.forEach(sl => sl.forEach(id => { if (id) cnt[id] = (cnt[id] || 0) + 1; }));
-    const vals = roster(e).confirmed.filter(p => availFrom(e, p.id) === 1).map(p => cnt[p.id] || 0);
+    const vals = base.filter(p => availFrom(e, p.id) === 1).map(p => cnt[p.id] || 0);
     toast(vals.length ? `배치했어요. 정시에 오는 사람은 ${Math.min(...vals)}에서 ${Math.max(...vals)}쿼터씩 뛰어요` : "배치했어요");
   },
   copyQ: () => { const e = curEvent(); if (!e) return; const L = lineupOf(e); const k = Math.min(ui.lineQ, L.N - 1); const q = L.q.map(() => L.q[k].slice()); lineupSave(e, L, q); toast(`${k + 1}쿼터 배치를 모든 쿼터에 복사했어요`); },
@@ -2288,6 +2375,9 @@ Object.assign(ACT, {
       evPatch(e.id, { feeCharged: true }); render(); scheduleSync(); toast(`${F.ppl.length}명에게 청구했어요`);
     });
   },
+  // 내전 스쿼드: 한 명씩 조끼팀, 일반팀, 빼기
+  teamSet: t => { const e = S.events[t.dataset.eid]; if (!e) return; const cur = teamsOf(e).t[t.dataset.pid] || ""; const v = t.dataset.v === cur ? null : (t.dataset.v || null); evPatch(e.id, { teams: { [t.dataset.pid]: v }, teamsAt: "" }); render(); },
+  teamClear: t => { const e = S.events[t.dataset.eid]; if (!e) return; confirmSheet("스쿼드 비우기", "고른 팀을 모두 지울까요? 라인업은 그대로 남지만 스쿼드에서 빠진 사람은 휴식 칸에서도 사라져요.", "비우기", () => { evPatch(e.id, { teams: Object.fromEntries(Object.keys(e.teams || {}).map(k => [k, null])), teamsAt: "" }); render(); }); },
   teamMove: t => { const e = S.events[t.dataset.eid]; if (!e) return; const T = { ...teamsOf(e).t }; T[t.dataset.pid] = T[t.dataset.pid] === "A" ? "B" : "A"; evPatch(e.id, { teams: T, teamsAt: "" }); render(); },
   teamShuffle: t => { const e = S.events[t.dataset.eid]; if (!e) return; ui.splitSeed = (ui.splitSeed || 0) + 1; evPatch(e.id, { teams: autoTeams(e, ui.splitSeed), teamsAt: "" }); render(); },
   teamConfirm: t => { const e = S.events[t.dataset.eid]; if (!e) return; evPatch(e.id, { teams: { ...teamsOf(e).t }, teamsAt: nowIso() }); render(); textSheet("팀을 확정했어요", teamText(S.events[e.id] || e), "단톡방에 붙여 넣으세요. 팀원 일정 화면에도 바로 보여요."); },
@@ -2311,7 +2401,7 @@ Object.assign(ACT, {
   peDel: t => { const p = playerById(t.dataset.id); if (!p) return; confirmSheet("선수 삭제", `${p.name} 선수를 삭제할까요? 지난 기록에는 '삭제된 선수'로 표시돼요. 그만둔 선수라면 삭제 대신 휴면으로 두는 것을 권해요.`, "삭제", () => { delDoc("players/" + p.id); if (p.phone) delDoc("contacts/" + p.id); location.hash = "players"; toast("삭제했어요"); }); },
   unlink: t => { patchDoc("rsvp/" + t.dataset.u, { pid: "" }); render(); toast("계정 연결을 해제했어요"); },
 });
-["voteSheet", "evQ", "mlQ", "goEvTab", "rptTab", "claimPick", "posSel", "inboxToggle", "momPick", "teamShare", "pePos", "peRest", "noticeEdit"].forEach(a => READ_ACTS.add(a));
+["voteSheet", "evQ", "mlQ", "lineSide", "goEvTab", "rptTab", "claimPick", "posSel", "inboxToggle", "momPick", "teamShare", "pePos", "peRest", "noticeEdit"].forEach(a => READ_ACTS.add(a));
 ["claimConfirm", "posSend", "guestOpen", "pollVote", "inboxRead", "momSend"].forEach(a => VOTE_ACTS.add(a));
 /* 화면을 그린 뒤 할 일: 공지를 열면 읽음으로 표시 */
 function afterRender(v) {
@@ -2334,7 +2424,13 @@ function demoBoot() {
   derive();
   // 다음 내전 라인업은 앱의 자동 배치로 만든다
   const lid = D.__lineupEvent; const e = S.events[lid];
-  if (e) { const out = autoRotate(e); const L = lineupOf(e); const q = {}; L.q.forEach((_, k) => { q[k + 1] = out[k + 1]; }); R.events[lid].lineupQ = { formation: L.formation, q }; R.events[lid].teams = autoTeams(e, 3); derive(); }
+  if (e) {
+    R.events[lid].teams = autoTeams(e, 3); derive();
+    // 내전: 팀마다 7인 포메이션으로 쿼터별 자리와 휴식을 자동으로 짜 둔다
+    ["A", "B"].forEach(side => { ui.lineSide = side; ui.lineSideEv = lid; R.events[lid].lineS = Object.assign(R.events[lid].lineS || {}, { [side]: { formation: "7|2-3-1", q: {} } }); derive();
+      const out = autoRotate(S.events[lid]); const L = lineupOf(S.events[lid], side); const q = {}; L.q.forEach((_, k) => { q[k + 1] = out[k + 1]; }); R.events[lid].lineS[side] = { formation: L.formation, q }; derive(); });
+    ui.lineSide = null; ui.lineSideEv = null;
+  }
   applyRole(); route();
 }
 // 운영진 미리보기에서 처리할 일이 보이도록 확인 요청을 몇 개 넣는다
@@ -2369,14 +2465,14 @@ function makeDemo() {
   const a2 = core.slice();
   ev(-21, { type: "match", opponent: "한양 FC" }, a2, { check: chk(a2), score: { us: 2, them: 2 }, goals: [{ id: "g2", pid: p("김성우"), assist: p("황종민"), q: 1 }, { id: "g3", pid: p("류영준"), assist: ME, q: 3 }] });
   const a3 = core.slice();
-  const e3 = ev(-14, { type: "match", opponent: "내전" }, a3, { check: chk(a3, { [ME]: "late", [p("류영준")]: "late" }), score: { us: 3, them: 2 }, goals: [{ id: "g4", pid: p("김성우"), assist: ME, q: 1 }, { id: "g5", pid: ME, assist: p("용호연"), q: 2 }, { id: "g6", pid: p("류영준"), assist: "", q: 4 }] });
+  const e3 = ev(-14, { type: "scrim" }, a3, { check: chk(a3, { [ME]: "late", [p("류영준")]: "late" }), score: { us: 3, them: 2 }, goals: [{ id: "g4", pid: p("김성우"), assist: ME, q: 1 }, { id: "g5", pid: ME, assist: p("용호연"), q: 2 }, { id: "g6", pid: p("류영준"), assist: "", q: 4 }] });
   const a4 = core.filter(x => x !== p("김동욱")).concat([p("김준수")]);
-  const eMom = ev(0, { type: "match", opponent: "내전", time: "06:30", tag: "a", place: "보라매 축구장 (조기)" }, a4, { check: chk(a4), score: { us: 4, them: 3 }, goals: [{ id: "g7", pid: ME, assist: p("이진우"), q: 1 }, { id: "g8", pid: p("김성우"), assist: "", q: 2 }] });
+  const eMom = ev(0, { type: "scrim", time: "06:30", tag: "a", place: "보라매 축구장 (조기)" }, a4, { check: chk(a4), score: { us: 4, them: 3 }, goals: [{ id: "g7", pid: ME, assist: p("이진우"), q: 1 }, { id: "g8", pid: p("김성우"), assist: "", q: 2 }] });
   // 다가오는 일정
   const f1 = ["정성목", "김성우", "조수현", "용호연", "황종민", "이동환", "김준엽", "이진우", "류영준", "송정의"].map(p);
-  ev(1, { type: "training", format: "futsal", title: "풋살 연습", place: "보라매 풋살장", cap: "12" }, f1);
+  ev(1, { type: "scrim", format: "futsal", place: "보라매 풋살장", cap: "12" }, f1);
   const scr = core.filter(x => x !== ME);
-  const lid = ev(6, { type: "match", opponent: "내전", fieldFee: 120000 }, scr.concat([p("김준수")]), { teamsAt: iso(-1, 21) });
+  const lid = ev(6, { type: "scrim", fieldFee: 120000 }, scr.concat([p("김준수")]), { teamsAt: iso(-1, 21) });
   D.events[lid].att[p("류영준")] = "late"; D.events[lid].lateQ = { [p("류영준")]: 3 };
   ev(13, { type: "match", opponent: "FC 서울", cap: "18" }, ["정성목", "김성우", "김영효", "조수현", "용호연", "김동욱", "권기현", "황종민", "이동환"].map(p));
   D.__lineupEvent = lid;
