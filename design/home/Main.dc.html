@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>시안 A</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0;background:#FFFFFF}
+a{color:#15803D}a:hover{color:#166534}
+</style>
+</helmet>
+<div style="font-family: 'Noto Sans KR', sans-serif; color: #111827; background: #FFFFFF">
+  <header style="max-width: 1180px; margin: 0 auto; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <span style="width: 36px; height: 36px; border-radius: 10px; background: {{accent}}; display: inline-flex; align-items: center; justify-content: center">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7l4 3-1.5 5h-5L8 10z"></path></svg>
+      </span>
+      <span style="font-weight: 900; font-size: 20px; letter-spacing: -0.5px">팀매니저</span>
+    </div>
+    <nav aria-label="주요 메뉴" style="display: flex; align-items: center; gap: 22px; flex-wrap: wrap; font-size: 15px; font-weight: 500">
+      <a href="#before" style="color: #374151; text-decoration: none">달라지는 점</a>
+      <a href="#screens" style="color: #374151; text-decoration: none">화면 보기</a>
+      <a href="#start" style="background: #111827; color: #FFFFFF; text-decoration: none; padding: 10px 16px; border-radius: 10px">우리 팀 만들기</a>
+    </nav>
+  </header>
+
+  <section style="max-width: 1180px; margin: 0 auto; padding: 40px 24px 72px; display: flex; flex-wrap: wrap; align-items: center; gap: 48px">
+    <div style="flex: 1 1 460px; min-width: 0">
+      <span style="display: inline-block; background: #DCFCE7; color: #166534; font-weight: 700; font-size: 14px; padding: 6px 12px; border-radius: 999px">축구팀과 풋살팀을 위한 팀 관리</span>
+      <h1 style="font-size: 56px; line-height: 1.15; font-weight: 900; letter-spacing: -1.5px; margin: 18px 0 18px">운영진이 매주<br>손으로 하던 일,<br>이제 앱이 해요</h1>
+      <p style="font-size: 19px; line-height: 1.7; color: #4B5563; margin: 0 0 28px; max-width: 540px">참석 인원 세기, 엑셀 라인업, 출석과 벌금, 회비, 공지와 MOM 투표까지. 우리 팀 링크 하나에서 자동으로 정리돼요.</p>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap">
+        <a href="#start" style="background: {{accent}}; color: #FFFFFF; text-decoration: none; font-weight: 700; font-size: 17px; padding: 16px 24px; border-radius: 14px">우리 팀 만들기</a>
+        <a href="#screens" style="background: #F3F4F6; color: #111827; text-decoration: none; font-weight: 700; font-size: 17px; padding: 16px 24px; border-radius: 14px">실제 화면 보기</a>
+      </div>
+      <p style="font-size: 14px; color: #6B7280; margin: 16px 0 0">팀원은 카카오로 한 번 로그인하면 끝. 앱 설치는 필요 없어요.</p>
+    </div>
+    <div style="flex: 1 1 420px; min-width: 0; display: flex; justify-content: center; align-items: flex-end">
+      <div style="transform: rotate(-4deg); margin-right: -40px; margin-bottom: 30px">
+        <dc-import name="AppVote" accent="{{accent}}" hint-size="320px,660px"></dc-import>
+      </div>
+      <div style="transform: rotate(3deg)">
+        <dc-import name="AppLineup" accent="{{accent}}" hint-size="320px,660px"></dc-import>
+      </div>
+    </div>
+  </section>
+
+  <section id="before" style="background: #F9FAFB; padding: 80px 24px">
+    <div style="max-width: 1180px; margin: 0 auto">
+      <h2 style="font-size: 36px; font-weight: 900; letter-spacing: -1px; margin: 0 0 10px">이렇게 달라져요</h2>
+      <p style="font-size: 17px; color: #4B5563; margin: 0 0 32px">운영진이 매주 반복하던 다섯 가지 일이에요.</p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 18px">
+        <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 18px; padding: 26px; display: flex; flex-direction: column; gap: 10px">
+          <span style="font-size: 13px; font-weight: 900; color: {{accent}}">01 참석 투표</span>
+          <p style="font-size: 15px; color: #6B7280; margin: 0"><b style="color: #9CA3AF">전에는</b> 단톡방에 "이번 주 참석하실 분 투표해주세요" 올리고, 안 한 사람에게 일일이 물어보고, 인원을 다시 세기</p>
+          <p style="font-size: 17px; color: #111827; line-height: 1.6; margin: 0; font-weight: 500"><b style="color: {{accent}}">이제는</b> 링크 하나로 참석, 늦참, 불참. 인원은 자동으로 모이고, 아직 안 누른 사람만 따로 보여서 한 번에 알려요.</p>
+        </div>
+        <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 18px; padding: 26px; display: flex; flex-direction: column; gap: 10px">
+          <span style="font-size: 13px; font-weight: 900; color: {{accent}}">02 포지션과 휴식</span>
+          <p style="font-size: 15px; color: #6B7280; margin: 0"><b style="color: #9CA3AF">전에는</b> 엑셀에 포지션과 쿼터를 적고, 누가 몇 번 쉬는지 손으로 맞추기</p>
+          <p style="font-size: 17px; color: #111827; line-height: 1.6; margin: 0; font-weight: 500"><b style="color: rgb(21, 128, 61)">이제는</b>&nbsp;포메이션 위에 인원을 올려 자리를 정하면, 포지션에 맞춰 인원별 휴식 수를 자동으로 고르게 맞춰요.</p>
+        </div>
+        <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 18px; padding: 26px; display: flex; flex-direction: column; gap: 10px">
+          <span style="font-size: 13px; font-weight: 900; color: {{accent}}">03 현장 출석과 벌금</span>
+          <p style="font-size: 15px; color: #6B7280; margin: 0"><b style="color: #9CA3AF">전에는</b> 출석을 부르고 지각한 사람을 메모했다가, 나중에 벌금을 계산해서 공지하기</p>
+          <p style="font-size: 17px; color: #111827; line-height: 1.6; margin: 0; font-weight: 500"><b style="color: {{accent}}">이제는</b> 현장에서 없는 사람만 누르면 지각, 결석이 기록되고 팀 규칙대로 벌금이 바로 붙어요.</p>
+        </div>
+        <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 18px; padding: 26px; display: flex; flex-direction: column; gap: 10px">
+          <span style="font-size: 13px; font-weight: 900; color: {{accent}}">04 회비</span>
+          <p style="font-size: 15px; color: #6B7280; margin: 0"><b style="color: #9CA3AF">전에는</b> 통장 내역을 보면서 누가 냈는지 한 명씩 체크하기</p>
+          <p style="font-size: 17px; color: #111827; line-height: 1.6; margin: 0; font-weight: 500"><b style="color: {{accent}}">이제는</b> 팀원이 "입금했어요"를 누르면 운영진은 확인만. 달마다 낸 사람과 미납자가 한눈에 보여요.</p>
+        </div>
+        <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 18px; padding: 26px; display: flex; flex-direction: column; gap: 10px">
+          <span style="font-size: 13px; font-weight: 900; color: {{accent}}">05 공지와 이벤트</span>
+          <p style="font-size: 15px; color: #6B7280; margin: 0"><b style="color: #9CA3AF">전에는</b> 중요한 공지는 대화에 묻히고, 투표는 따로 만들어서 링크 돌리기</p>
+          <p style="font-size: 17px; color: #111827; line-height: 1.6; margin: 0; font-weight: 500"><b style="color: {{accent}}">이제는</b> 공지는 맨 위에 고정, 회식 날짜 설문과 오늘의 MOM 투표도 앱 안에서 바로 열려요.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="screens" style="padding: 88px 24px">
+    <div style="max-width: 1180px; margin: 0 auto">
+      <h2 style="font-size: 36px; font-weight: 900; letter-spacing: -1px; margin: 0 0 10px; text-align: center">우리는 이렇게 관리해요</h2>
+      <p style="font-size: 17px; color: #4B5563; margin: 0 0 44px; text-align: center">실제로 매주 쓰는 화면이에요.</p>
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 40px 32px">
+        <figure style="margin: 0; display: flex; flex-direction: column; align-items: center; gap: 14px; width: 320px">
+          <dc-import name="AppVote" accent="{{accent}}" hint-size="320px,660px"></dc-import>
+          <figcaption style="text-align: center"><b style="font-size: 18px">참석 인원은 자동으로</b><br><span style="color: #6B7280; font-size: 15px">안 누른 사람만 골라서 알려요</span></figcaption>
+        </figure>
+        <figure style="margin: 0; display: flex; flex-direction: column; align-items: center; gap: 14px; width: 320px">
+          <dc-import name="AppLineup" accent="{{accent}}" hint-size="320px,660px"></dc-import>
+          <figcaption style="text-align: center"><b style="font-size: 18px">축구장 위에서 라인업</b><br><span style="color: #6B7280; font-size: 15px">포지션별 휴식 수를 자동으로 맞춰요</span></figcaption>
+        </figure>
+        <figure style="margin: 0; display: flex; flex-direction: column; align-items: center; gap: 14px; width: 320px">
+          <dc-import name="AppCheck" accent="{{accent}}" hint-size="320px,660px"></dc-import>
+          <figcaption style="text-align: center"><b style="font-size: 18px">현장 출석과 벌금</b><br><span style="color: #6B7280; font-size: 15px">없는 사람만 누르면 끝</span></figcaption>
+        </figure>
+        <figure style="margin: 0; display: flex; flex-direction: column; align-items: center; gap: 14px; width: 320px">
+          <dc-import name="AppDues" accent="{{accent}}" hint-size="320px,660px"></dc-import>
+          <figcaption style="text-align: center"><b style="font-size: 18px">회비</b><br><span style="color: #6B7280; font-size: 15px">입금 확인은 버튼 하나로</span></figcaption>
+        </figure>
+        <figure style="margin: 0; display: flex; flex-direction: column; align-items: center; gap: 14px; width: 320px">
+          <dc-import name="AppEvent" accent="{{accent}}" hint-size="320px,660px"></dc-import>
+          <figcaption style="text-align: center"><b style="font-size: 18px">공지, 설문, MOM</b><br><span style="color: #6B7280; font-size: 15px">팀 이벤트도 한곳에서</span></figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="how" style="background: #F9FAFB; padding: 80px 24px">
+    <div style="max-width: 1180px; margin: 0 auto">
+      <h2 style="font-size: 36px; font-weight: 900; letter-spacing: -1px; margin: 0 0 32px">3단계면 시작해요</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px">
+        <div style="display: flex; flex-direction: column; gap: 10px"><span style="font-size: 44px; font-weight: 900; color: {{accent}}">1</span><b style="font-size: 19px">팀을 만들어요</b><span style="color: #4B5563; line-height: 1.6">팀 이름과 정원, 회비, 벌금 규칙을 정해요.</span></div>
+        <div style="display: flex; flex-direction: column; gap: 10px"><span style="font-size: 44px; font-weight: 900; color: {{accent}}">2</span><b style="font-size: 19px">초대 링크를 단톡방에</b><span style="color: #4B5563; line-height: 1.6">링크로 들어온 사람은 팀원이 되고, 운영진은 팀장이 정해요.</span></div>
+        <div style="display: flex; flex-direction: column; gap: 10px"><span style="font-size: 44px; font-weight: 900; color: {{accent}}">3</span><b style="font-size: 19px">일정을 올려요</b><span style="color: #4B5563; line-height: 1.6">참석, 라인업, 출석, 회비가 그 일정 하나에 모여요.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="start" style="padding: 88px 24px">
+    <div style="max-width: 1180px; margin: 0 auto; background: #111827; color: #FFFFFF; border-radius: 28px; padding: 56px 40px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px">
+      <div style="flex: 1 1 420px; min-width: 0"><h2 style="font-size: 34px; font-weight: 900; letter-spacing: -1px; margin: 0 0 10px">이번 주 경기부터 손을 덜어 보세요</h2><p style="margin: 0; color: #D1D5DB; font-size: 17px">축구 11인 4쿼터, 풋살 8쿼터, 내전까지 모두 돼요.</p></div>
+      <a href="#start" style="background: {{accent}}; color: #FFFFFF; text-decoration: none; font-weight: 700; font-size: 18px; padding: 18px 28px; border-radius: 14px">우리 팀 만들기</a>
+    </div>
+  </section>
+
+  <footer style="border-top: 1px solid #E5E7EB; padding: 28px 24px; text-align: center; color: #6B7280; font-size: 14px">팀매니저 (가칭)</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#15803D","options":["#15803D","#2563EB","#EA580C","#111827"]},"$preview":{"width":1280,"height":3900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#15803D' };
+  }
+}
+</script>
+</body>
+</html>

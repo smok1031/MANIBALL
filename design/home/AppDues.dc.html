@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>예시 화면 회비</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div role="img" aria-label="팀원이 입금했다고 누르면 운영진이 확인만 하는 회비 화면 예시" style="width: 320px; height: 660px; box-sizing: border-box; border-radius: 44px; background: #111111; padding: 10px; font-family: 'Noto Sans KR', sans-serif; color: #111827; box-shadow: 0 24px 50px rgba(0,0,0,0.18)">
+  <div style="width: 100%; height: 100%; border-radius: 34px; background: #F6F7F9; overflow: hidden; display: flex; flex-direction: column">
+    <div style="padding: 26px 18px 10px; display: flex; justify-content: space-between; align-items: center">
+      <b style="font-size: 20px; font-weight: 900">회비</b>
+      <span style="font-size: 11px; font-weight: 700; color: #FFFFFF; background: #111827; border-radius: 999px; padding: 4px 9px">운영진</span>
+    </div>
+    <div style="margin: 0 14px; background: #FFFFFF; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <b style="font-size: 14px">11월 회비</b>
+        <span style="font-size: 24px; font-weight: 900">18<span style="font-size: 13px; color: #9CA3AF"> / 24명</span></span>
+      </div>
+      <div style="height: 8px; border-radius: 999px; background: #E5E7EB; overflow: hidden"><div style="width: 75%; height: 100%; background: {{accent}}"></div></div>
+      <div style="font-size: 12px; color: #4B5563">입금 확인 요청 2건이 기다리고 있어요.</div>
+    </div>
+    <div style="margin: 12px 14px 0; background: #FFFFFF; border-radius: 20px; padding: 6px 16px">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #F3F4F6; font-size: 13px"><span><b>김민준</b> <span style="color: #6B7280">입금했어요</span></span><span style="background: {{accent}}; color: #FFFFFF; border-radius: 8px; padding: 5px 10px; font-weight: 700; font-size: 12px">확인</span></div>
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #F3F4F6; font-size: 13px"><span><b>오태윤</b> <span style="color: #6B7280">입금했어요</span></span><span style="background: {{accent}}; color: #FFFFFF; border-radius: 8px; padding: 5px 10px; font-weight: 700; font-size: 12px">확인</span></div>
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #F3F4F6; font-size: 13px"><b>이서준</b><span style="color: {{accent}}; font-weight: 700; font-size: 12px">납부</span></div>
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #F3F4F6; font-size: 13px"><b>박도윤</b><span style="color: {{accent}}; font-weight: 700; font-size: 12px">납부</span></div>
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 0; font-size: 13px"><b>최하준</b><span style="color: #B91C1C; font-weight: 700; font-size: 12px">2달 미납</span></div>
+    </div>
+    <div style="margin: 12px 14px 0; background: #FFFFFF; border-radius: 20px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline"><b style="font-size: 14px">팀 잔액</b><b style="font-size: 18px">1,284,000원</b></div>
+      <div style="display: flex; justify-content: space-between; font-size: 12px; color: #4B5563"><span>11월 들어온 돈 <span style="color: #6B7280">회비, 벌금</span></span><b style="color: #111827">+ 560,000원</b></div>
+      <div style="display: flex; justify-content: space-between; font-size: 12px; color: #4B5563"><span>11월 나간 돈 <span style="color: #6B7280">구장비</span></span><b style="color: #111827">- 330,000원</b></div>
+      <span style="margin-top: 2px; border: 1px solid {{accent}}; color: {{accent}}; border-radius: 12px; padding: 9px 0; text-align: center; font-weight: 700; font-size: 12px">미납자 6명에게 보낼 문구 복사</span>
+    </div>
+    <div style="margin-top: auto; background: #FFFFFF; border-top: 1px solid #E5E7EB; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 10px 6px 18px; font-size: 11px; color: #6B7280; text-align: center">
+      <span>홈</span><span>일정</span><span style="color: {{accent}}; font-weight: 700">회비</span><span>선수</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#15803D"},"$preview":{"width":320,"height":660}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#15803D' };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>예시 화면 포지션과 휴식</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div role="img" aria-label="축구장 위에서 쿼터별 자리를 정하고 휴식 수를 자동으로 맞추는 화면 예시" style="width: 320px; height: 660px; box-sizing: border-box; border-radius: 44px; background: #111111; padding: 10px; font-family: 'Noto Sans KR', sans-serif; color: #111827; box-shadow: 0 24px 50px rgba(0,0,0,0.18)">
+  <div style="width: 100%; height: 100%; border-radius: 34px; background: #F6F7F9; overflow: hidden; display: flex; flex-direction: column">
+    <div style="padding: 24px 18px 8px; display: flex; justify-content: space-between; align-items: flex-end">
+      <div><div style="font-size: 11px; color: #6B7280; font-weight: 700">11.15 토 라인업</div><b style="font-size: 19px; font-weight: 900">4-4-2, 15명</b></div>
+      <span style="font-size: 11px; font-weight: 700; color: #FFFFFF; background: #111827; border-radius: 999px; padding: 4px 9px">운영진</span>
+    </div>
+    <div style="margin: 0 14px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; background: #E5E7EB; border-radius: 12px; padding: 3px; font-size: 12px; font-weight: 700; text-align: center">
+      <span style="padding: 5px 0; color: #6B7280">1Q</span><span style="padding: 5px 0; background: #FFFFFF; border-radius: 9px">2Q</span><span style="padding: 5px 0; color: #6B7280">3Q</span><span style="padding: 5px 0; color: #6B7280">4Q</span>
+    </div>
+    <div style="margin: 8px 14px 0; position: relative; height: 250px; border-radius: 16px; overflow: hidden; background: #4E7A45">
+      <div style="position: absolute; left: 0; right: 0; top: 0; height: 20%; background: #558450"></div>
+      <div style="position: absolute; left: 0; right: 0; top: 40%; height: 20%; background: #558450"></div>
+      <div style="position: absolute; left: 0; right: 0; top: 80%; height: 20%; background: #558450"></div>
+      <div style="position: absolute; left: 0; right: 0; top: 50%; border-top: 1.5px solid rgba(255,255,255,0.55)"></div>
+      <div style="position: absolute; left: 30%; right: 30%; bottom: 0; height: 13%; border: 1.5px solid rgba(255,255,255,0.55); border-bottom: 0"></div>
+      <div style="position: absolute; left: 50%; top: 90%; transform: translate(-50%,-50%); background: #FEF3C7; border-radius: 7px; padding: 2px 6px; font-size: 10px; font-weight: 700; text-align: center">GK<br>윤지호</div>
+      <div style="position: absolute; left: 14%; top: 71%; transform: translate(-50%,-50%); background: #FFFFFF; border-radius: 7px; padding: 2px 6px; font-size: 10px; font-weight: 700; text-align: center">LB<br>한유찬</div>
+      <div style="position: absolute; left: 38%; top: 75%; transform: translate(-50%,-50%); background: #FFFFFF; border-radius: 7px; padding: 2px 6px; font-size: 10px; font-weight: 700; text-align: center">CB<br>김민준</div>
+      <div style="position: absolute; left: 62%; top: 75%; transform: translate(-50%,-50%); background: #FFFFFF; border-radius: 7px; padding: 2px 6px; font-size: 10px; font-weight: 700; text-align: center">CB<br>이서준</div>
+      <div style="position: absolute; left: 86%; top: 71%; transform: translate(-50%,-50%); background: #FFFFFF; border-radius: 7px; padding: 2px 6px; font-size: 10px; font-weight: 700; text-align: center">RB<br>강시우</div>
+      <div style="position: absolute; left: 14%; top: 47%; transform: translate(-50%,-50%); background: #FFFFFF; border-radius: 7px; padding: 2px 6px; font-size: 10px; font-weight: 700; text-align: center">LM<br>오태윤</div>
+      <div style="position: absolute; left: 38%; top: 51%; transform: translate(-50%,-50%); background: #FFFFFF; border-radius: 7px; padding: 2px 6px; font-size: 10px; font-weight: 700; text-align: center">CM<br>박도윤</div>
+      <div style="position: absolute; left: 62%; top: 51%; transform: translate(-50%,-50%); background: #FFFFFF; border-radius: 7px; padding: 2px 6px; font-size: 10px; font-weight: 700; text-align: center; outline: 2px solid {{accent}}">CM<br>임건우</div>
+      <div style="position: absolute; left: 86%; top: 47%; transform: translate(-50%,-50%); background: #FFFFFF; border-radius: 7px; padding: 2px 6px; font-size: 10px; font-weight: 700; text-align: center">RM<br>신재원</div>
+      <div style="position: absolute; left: 37%; top: 21%; transform: translate(-50%,-50%); background: #FFFFFF; border-radius: 7px; padding: 2px 6px; font-size: 10px; font-weight: 700; text-align: center; outline: 2px dashed {{accent}}">ST<br>정우진<br><span style="color: {{accent}}">후반 조현우</span></div>
+      <div style="position: absolute; left: 63%; top: 21%; transform: translate(-50%,-50%); background: #FFFFFF; border-radius: 7px; padding: 2px 6px; font-size: 10px; font-weight: 700; text-align: center">ST<br>최하준</div>
+    </div>
+    <div style="margin: 8px 14px 0; font-size: 11px; display: flex; gap: 5px; flex-wrap: wrap; align-items: center">
+      <b>휴식</b><span style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 999px; padding: 3px 8px">황민재</span><span style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 999px; padding: 3px 8px">유승호</span><span style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 999px; padding: 3px 8px">배준서</span>
+    </div>
+    <span style="margin: 8px 14px 0; background: {{accent}}; color: #FFFFFF; border-radius: 12px; padding: 10px 0; text-align: center; font-weight: 700; font-size: 13px">포지션 맞춰 휴식 자동 배치</span>
+    <div style="margin: 8px 14px 0; background: #FFFFFF; border-radius: 16px; padding: 8px 12px; font-size: 11px; display: flex; flex-direction: column; gap: 4px">
+      <div style="display: flex; align-items: center; gap: 6px"><b style="width: 48px">김민준</b><span style="flex: 1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px"><i style="height: 8px; border-radius: 2px; background: {{accent}}"></i><i style="height: 8px; border-radius: 2px; background: {{accent}}"></i><i style="height: 8px; border-radius: 2px; background: {{accent}}"></i><i style="height: 8px; border-radius: 2px; background: #E5E7EB"></i></span><b>3</b></div>
+      <div style="display: flex; align-items: center; gap: 6px"><b style="width: 48px">정우진</b><span style="flex: 1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px"><i style="height: 8px; border-radius: 2px; background: {{accent}}"></i><i style="height: 8px; border-radius: 2px; background: linear-gradient(90deg, {{accent}} 50%, #E5E7EB 50%)"></i><i style="height: 8px; border-radius: 2px; background: #E5E7EB"></i><i style="height: 8px; border-radius: 2px; background: {{accent}}"></i></span><b>2.5</b></div>
+      <div style="display: flex; align-items: center; gap: 6px"><b style="width: 48px">배준서</b><span style="flex: 1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px"><i style="height: 8px; border-radius: 2px; background: {{accent}}"></i><i style="height: 8px; border-radius: 2px; background: #E5E7EB"></i><i style="height: 8px; border-radius: 2px; background: {{accent}}"></i><i style="height: 8px; border-radius: 2px; background: {{accent}}"></i></span><b>3</b></div>
+      <div style="color: #6B7280">모두 3쿼터, GK 4쿼터로 맞췄어요</div>
+    </div>
+    <div style="margin-top: auto; background: #FFFFFF; border-top: 1px solid #E5E7EB; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 10px 6px 18px; font-size: 11px; color: #6B7280; text-align: center">
+      <span>홈</span><span style="color: {{accent}}; font-weight: 700">일정</span><span>회비</span><span>선수</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#15803D"},"$preview":{"width":320,"height":660}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#15803D' };
+  }
+}
+</script>
+</body>
+</html>
