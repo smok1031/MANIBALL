@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>용병 신청</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0;background:#FFFFFF}
+a{color:#15803D}
+</style>
+</helmet>
+<div style="width: 100%; max-width: 480px; box-sizing: border-box; height: 844px; overflow: hidden; margin: 0 auto; font-family: 'Noto Sans KR', sans-serif; color: #111827; background: #F6F7F9; display: flex; flex-direction: column; position: relative; word-break: keep-all">
+  <div aria-hidden="true" style="display: flex; flex-direction: column; flex: 1">
+  <header style="position: sticky; top: 0; z-index: 2; background: #F6F7F9; padding: 14px 16px 8px; display: flex; align-items: center; gap: 10px">
+    <span role="img" aria-label="매니볼" style="width: 32px; height: 32px; border-radius: 9px; background: #1E6B45; display: inline-flex; align-items: center; justify-content: center; flex: none"><svg width="24" height="24" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="22" fill="none" stroke="#FFFFFF" stroke-width="5"></circle><circle cx="23" cy="26" r="3.5" fill="#F5B841"></circle><circle cx="23" cy="38" r="3.5" fill="#F5B841"></circle><path d="M30 26 H43 M30 38 H41" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"></path></svg></span>
+    <b style="flex: 1; font-size: 20px; font-weight: 900">일정</b>
+    <a href="ScheduleMemberCalendar.dc.html" style="font-size: 13px; font-weight: 700; text-decoration: none; padding: 10px 4px">달력으로 보기</a>
+  </header>
+  <div style="padding: 4px 16px 20px; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; align-items: center; justify-content: space-between; background: #FFFFFF; border-radius: 16px; padding: 6px">
+      <a href="#" aria-label="이전 달" style="width: 44px; height: 40px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: #6B7280">‹</a>
+      <b style="font-size: 16px">2026년 11월</b>
+      <a href="#" aria-label="다음 달" style="width: 44px; height: 40px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: #6B7280">›</a>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 8px 4px 0"><b style="font-size: 15px; color: #374151">다가오는 일정</b></div>
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; gap: 12px; align-items: center"><span style="width: 52px; height: 58px; border-radius: 14px; background: #DCFCE7; color: #166534; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; flex: none"><span style="font-size: 11px; font-weight: 700">토</span><b style="font-size: 21px; line-height: 1.1">15</b></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px"><span style="display: flex; gap: 6px; align-items: center"><span style="background: #DCFCE7; color: #166534; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px">경기</span><b style="font-size: 16px">08:00 ~ 10:00</b></span><span style="font-size: 13px; color: #6B7280">잠실 풋살장 2번 코트</span></span><span style="font-size: 12px; font-weight: 700; color: #6B7280; flex: none">D-5</span></div>
+      <div style="display: flex; justify-content: space-between; align-items: center; background: #F0FDF4; border-radius: 12px; padding: 10px 12px; font-size: 14px"><span>내 응답 <b style="color: {{accent}}">참석</b></span><a href="ScheduleMemberChange.dc.html" style="font-size: 13px; font-weight: 700; text-decoration: none">바꾸기</a></div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px"><a href="ScheduleMemberRoster.dc.html" style="text-decoration: none; text-align: center; border-radius: 12px; padding: 11px 0; font-weight: 700; font-size: 13px; background: #F3F4F6; color: #111827">참석 명단 10명</a><a href="#" style="text-decoration: none; text-align: center; border-radius: 12px; padding: 11px 0; font-weight: 700; font-size: 13px; background: #F3F4F6; color: #9CA3AF">라인업 준비 중</a></div>
+      <a href="ScheduleMemberGuest.dc.html" style="text-decoration: none; text-align: center; font-size: 13px; font-weight: 700; padding: 2px 0">+ 용병 신청하기</a>
+    </div>
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; gap: 12px; align-items: center"><span style="width: 52px; height: 58px; border-radius: 14px; background: #DCFCE7; color: #166534; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; flex: none"><span style="font-size: 11px; font-weight: 700">토</span><b style="font-size: 21px; line-height: 1.1">22</b></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px"><span style="display: flex; gap: 6px; align-items: center"><span style="background: #DCFCE7; color: #166534; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px">경기</span><b style="font-size: 16px">08:00 ~ 10:00</b></span><span style="font-size: 13px; color: #6B7280">잠실 풋살장, 정원 14</span></span></div>
+      <div style="font-size: 13px; color: #3730A3; background: #EEF2FF; border-radius: 12px; padding: 10px 12px; line-height: 1.5">신청 20명 (참석 14, 대기 6). 3일 전까지 20명이 유지되면 내전으로 바뀔 수 있어요</div>
+    </div>
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; gap: 12px; align-items: center"><span style="width: 52px; height: 58px; border-radius: 14px; background: #DCFCE7; color: #166534; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; flex: none"><span style="font-size: 11px; font-weight: 700">토</span><b style="font-size: 21px; line-height: 1.1">29</b></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px"><span style="display: flex; gap: 6px; align-items: center"><span style="background: #DCFCE7; color: #166534; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px">경기</span><b style="font-size: 16px">07:00 ~ 09:00</b></span><span style="font-size: 13px; color: #6B7280">상암 풋살파크, 친선 경기</span></span></div>
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 14px"><span style="color: #B91C1C; font-weight: 700">아직 안 눌렀어요</span><span style="font-size: 12px; color: #6B7280">11.27 목 21:00 마감</span></div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; text-align: center; font-size: 14px"><a href="ScheduleMemberAttend.dc.html" style="text-decoration: none; background: #F3F4F6; color: #111827; border-radius: 12px; padding: 11px 0; font-weight: 700">참석</a><a href="ScheduleMemberLate.dc.html" style="text-decoration: none; background: #F3F4F6; color: #111827; border-radius: 12px; padding: 11px 0; font-weight: 700">늦참</a><a href="ScheduleMemberAbsent.dc.html" style="text-decoration: none; background: #F3F4F6; color: #111827; border-radius: 12px; padding: 11px 0; font-weight: 700">불참</a></div>
+    </div>
+  </div>
+  <nav aria-label="하단 메뉴" style="position: sticky; bottom: 0; margin-top: auto; background: #FFFFFF; border-top: 1px solid #E5E7EB; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 8px 6px 24px; font-size: 12px; text-align: center"><a href="Home5.dc.html" style="text-decoration: none; padding: 6px 0; color: #6B7280">홈</a><a href="#" style="text-decoration: none; padding: 6px 0; color: {{accent}}; font-weight: 700">일정</a><a href="RecordMember.dc.html" style="text-decoration: none; padding: 6px 0; color: #6B7280">기록</a><a href="DuesMember.dc.html" style="text-decoration: none; padding: 6px 0; color: #6B7280">회비</a><a href="PlayersMember.dc.html" style="text-decoration: none; padding: 6px 0; color: #6B7280">선수</a></nav>
+  </div>
+  <a href="ScheduleMember.dc.html" aria-label="닫기" style="position: absolute; inset: 0; background: rgba(17,24,39,0.45); z-index: 5"></a>
+  <div role="dialog" style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; background: #FFFFFF; border-radius: 26px 26px 0 0; padding: 10px 20px 30px; display: flex; flex-direction: column; gap: 14px">
+    <span style="align-self: center; width: 40px; height: 5px; border-radius: 999px; background: #E5E7EB"></span>
+    <div><b style="font-size: 19px">용병 신청</b><br><span style="font-size: 13px; color: #6B7280">11.15 토 08:00 경기에 지인을 데려와요</span></div>
+    <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; color: #6B7280">이름</span><span style="background: #FFFFFF; border: 1px solid #D1D5DB; border-radius: 12px; padding: 13px 14px; font-size: 16px; font-weight: 500; color: #9CA3AF; display: flex; justify-content: space-between">예: 박준서<span style="color: #6B7280; font-weight: 500"></span></span></label>
+    <span style="font-size: 13px; font-weight: 900; color: #6B7280">나와의 사이</span><div style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 14px; font-weight: 700"><a href="#" style="text-decoration: none; background: {{accent}}; color: #FFFFFF; border-radius: 999px; padding: 9px 14px">친구</a><a href="#" style="text-decoration: none; background: #FFFFFF; border: 1px solid #E5E7EB; color: #111827; border-radius: 999px; padding: 9px 14px">회사 동료</a><a href="#" style="text-decoration: none; background: #FFFFFF; border: 1px solid #E5E7EB; color: #111827; border-radius: 999px; padding: 9px 14px">가족</a><a href="#" style="text-decoration: none; background: #FFFFFF; border: 1px solid #E5E7EB; color: #111827; border-radius: 999px; padding: 9px 14px">기타</a></div>
+    <span style="font-size: 13px; font-weight: 900; color: #6B7280">포지션</span><div style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 14px; font-weight: 700"><a href="#" style="text-decoration: none; background: #FFFFFF; border: 1px solid #E5E7EB; color: #111827; border-radius: 999px; padding: 9px 14px">GK</a><a href="#" style="text-decoration: none; background: #FFFFFF; border: 1px solid #E5E7EB; color: #111827; border-radius: 999px; padding: 9px 14px">DF</a><a href="#" style="text-decoration: none; background: #FFFFFF; border: 1px solid #E5E7EB; color: #111827; border-radius: 999px; padding: 9px 14px">LW</a><a href="#" style="text-decoration: none; background: #FFFFFF; border: 1px solid #E5E7EB; color: #111827; border-radius: 999px; padding: 9px 14px">RW</a><a href="#" style="text-decoration: none; background: {{accent}}; color: #FFFFFF; border-radius: 999px; padding: 9px 14px">FW</a></div>
+    <div style="display: flex; gap: 10px; align-items: flex-start; background: #FFFBEB; color: #92400E; border-radius: 14px; padding: 12px 14px; font-size: 13px; line-height: 1.5"><b style="flex: none">안내</b><span>운영진이 수락해야 참석 명단에 들어가요. 참가비 10,000원은 경기 날 현장에서 내요.</span></div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px"><a href="ScheduleMember.dc.html" style="display: block; text-decoration: none; text-align: center; background: #F3F4F6; color: #111827; font-weight: 700; font-size: 15px; padding: 14px 0; border-radius: 14px">취소</a><a href="ScheduleMemberGuestSent.dc.html" style="display: block; text-decoration: none; text-align: center; background: {{accent}}; color: #FFFFFF; font-weight: 700; font-size: 16px; padding: 15px 0; border-radius: 14px; font-size: 15px; padding: 14px 0">신청하기</a></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#15803D","options":["#15803D","#1E6B45","#2563EB","#111827"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#15803D' };
+  }
+}
+</script>
+</body>
+</html>

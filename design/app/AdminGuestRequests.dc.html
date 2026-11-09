@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>용병 신청</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0;background:#FFFFFF}
+a{color:#15803D}
+</style>
+</helmet>
+<div style="width: 100%; max-width: 480px; box-sizing: border-box; min-height: 844px; margin: 0 auto; font-family: 'Noto Sans KR', sans-serif; color: #111827; background: #F6F7F9; display: flex; flex-direction: column; position: relative; word-break: keep-all">
+  <header style="position: sticky; top: 0; z-index: 3; background: #FFFFFF; border-bottom: 1px solid #F3F4F6; height: 56px; padding: 0 8px; display: flex; align-items: center; gap: 4px">
+    <a href="ScheduleAdmin.dc.html" aria-label="뒤로" style="width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <b style="flex: 1; font-size: 17px">용병 신청</b>
+    <span style="width: 44px"></span>
+  </header>
+  <div style="padding: 16px 16px 28px; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; gap: 10px; align-items: center; background: #FFFFFF; border-radius: 16px; padding: 14px"><span style="background: #DCFCE7; color: #166534; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px">경기</span><b style="flex: 1; font-size: 15px">11.15 토 08:00</b><span style="font-size: 13px; color: #6B7280">남은 자리 2</span></div>
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px; gap: 0"><b style="font-size: 15px">확인할 신청 <span style="color: #B45309">2건</span></b><div style="display: flex; flex-direction: column; gap: 8px; padding: 12px 0; border-bottom: 1px solid #F3F4F6"><div style="display: flex; gap: 10px; align-items: center"><span style="width: 40px; height: 40px; border-radius: 50%; background: #FEF3C7; color: #92400E; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; flex: none">박</span><span style="flex: 1"><b style="font-size: 15px">박준서</b> <span style="font-size: 12px; color: #92400E; font-weight: 700">용병</span><br><span style="font-size: 12px; color: #6B7280">박도윤 신청, 친구, FW, 1시간 전</span><br><span style="font-size: 13px; color: #374151">고등학교 때 축구부였어요</span></span></div><div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px"><a href="#" style="display: block; text-decoration: none; text-align: center; background: #F3F4F6; color: #111827; font-weight: 700; font-size: 15px; padding: 14px 0; border-radius: 14px; font-size: 14px; padding: 10px 0">거절</a><a href="#" style="display: block; text-decoration: none; text-align: center; background: {{accent}}; color: #FFFFFF; font-weight: 700; font-size: 16px; padding: 15px 0; border-radius: 14px; font-size: 14px; padding: 10px 0">수락</a></div></div><div style="display: flex; flex-direction: column; gap: 8px; padding: 12px 0; border-bottom: 1px solid #F3F4F6"><div style="display: flex; gap: 10px; align-items: center"><span style="width: 40px; height: 40px; border-radius: 50%; background: #FEF3C7; color: #92400E; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; flex: none">김</span><span style="flex: 1"><b style="font-size: 15px">김태훈</b> <span style="font-size: 12px; color: #92400E; font-weight: 700">용병</span><br><span style="font-size: 12px; color: #6B7280">윤지호 신청, 회사 동료, GK, 3시간 전</span><br><span style="font-size: 13px; color: #374151">골키퍼 볼 수 있어요</span></span></div><div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px"><a href="#" style="display: block; text-decoration: none; text-align: center; background: #F3F4F6; color: #111827; font-weight: 700; font-size: 15px; padding: 14px 0; border-radius: 14px; font-size: 14px; padding: 10px 0">거절</a><a href="#" style="display: block; text-decoration: none; text-align: center; background: {{accent}}; color: #FFFFFF; font-weight: 700; font-size: 16px; padding: 15px 0; border-radius: 14px; font-size: 14px; padding: 10px 0">수락</a></div></div></div>
+    <p style="margin: 2px 4px 0; font-size: 13px; color: #6B7280; line-height: 1.6">수락하면 참석 명단에 용병으로 들어가고 신청한 팀원에게 알림이 가요. 자리가 없으면 대기로 들어가요. 참가비 10,000원은 현장 출석에서 받아요.</p>
+    <a href="AdminGuestAdd.dc.html" style="font-size: 14px; font-weight: 700; text-align: center; text-decoration: none; padding: 8px 0">운영진이 직접 추가하기</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#15803D","options":["#15803D","#1E6B45","#2563EB","#111827"]},"$preview":{"width":390,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#15803D' };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>내전으로 바꾸기</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0;background:#FFFFFF}
+a{color:#15803D}
+</style>
+</helmet>
+<div style="width: 100%; max-width: 480px; box-sizing: border-box; height: 844px; overflow: hidden; margin: 0 auto; font-family: 'Noto Sans KR', sans-serif; color: #111827; background: #F6F7F9; display: flex; flex-direction: column; position: relative; word-break: keep-all">
+  <div aria-hidden="true" style="display: flex; flex-direction: column; flex: 1">
+  <header style="position: sticky; top: 0; z-index: 3; background: #FFFFFF; border-bottom: 1px solid #F3F4F6; height: 56px; padding: 0 8px; display: flex; align-items: center; gap: 4px">
+    <a href="ScheduleAdmin.dc.html" aria-label="뒤로" style="width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <b style="flex: 1; font-size: 17px">내전 검토</b>
+    <span style="width: 44px"></span>
+  </header>
+  <div style="padding: 16px 16px 24px; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; gap: 10px; align-items: flex-start; background: #EEF2FF; color: #3730A3; border-radius: 14px; padding: 12px 14px; font-size: 13px; line-height: 1.5"><b style="flex: none">알림</b><span>11.19 수 09:00에 운영진 모두에게 갔어요. 상의해서 정해 주세요.</span></div>
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+      <span style="display: flex; gap: 6px; align-items: center; font-size: 13px; color: #6B7280"><span style="background: #DCFCE7; color: #166534; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px">경기</span>11.22 토 08:00, 잠실 풋살장</span>
+      <div style="display: flex; align-items: baseline; gap: 8px"><b style="font-size: 36px; font-weight: 900; letter-spacing: -1px">20명</b><span style="font-size: 14px; color: #4B5563">참석 14 + 대기 6</span></div>
+      <span style="font-size: 13px; color: #6B7280">팀원 16명 모두와 용병 4명이에요</span>
+      <div style="display: flex; flex-direction: column"><div style="display: flex; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid #F3F4F6"><span style="width: 22px; height: 22px; border-radius: 50%; background: {{accent}}; color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; flex: none">✓</span><span style="flex: 1; font-size: 14px"><b>참석과 대기를 합쳐 20명 이상</b><br><span style="font-size: 12px; color: #6B7280">내전을 하려면 20명이 필요해요</span></span></div><div style="display: flex; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid #F3F4F6"><span style="width: 22px; height: 22px; border-radius: 50%; background: {{accent}}; color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; flex: none">✓</span><span style="flex: 1; font-size: 14px"><b>3일 전까지 20명 유지</b><br><span style="font-size: 12px; color: #6B7280">11.19 수 09:00 기준 20명</span></span></div></div>
+    </div>
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px; gap: 8px"><b style="font-size: 15px">내전으로 바꾸면</b><span style="display: flex; gap: 8px; font-size: 14px; line-height: 1.5"><span style="color: #3730A3; font-weight: 700">✓</span>대기 6명도 모두 참석으로 올라가요</span><span style="display: flex; gap: 8px; font-size: 14px; line-height: 1.5"><span style="color: #3730A3; font-weight: 700">✓</span>A팀, B팀 10명씩 나눠서 해요</span><span style="display: flex; gap: 8px; font-size: 14px; line-height: 1.5"><span style="color: #3730A3; font-weight: 700">✓</span>팀은 운영진이 스쿼드에서 직접 골라요</span><span style="display: flex; gap: 8px; font-size: 14px; line-height: 1.5"><span style="color: #3730A3; font-weight: 700">✓</span>신청한 20명에게 바로 알림이 가요</span></div>
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px; gap: 0"><div style="display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 6px"><b style="font-size: 15px">운영진 의견</b><span style="font-size: 12px; color: #6B7280">운영진끼리만 보여요</span></div>
+      <div style="display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #F3F4F6"><span style="flex: 1"><b style="font-size: 15px">정성목</b> <span style="font-size: 12px; color: #6B7280">팀장, 나</span></span><span style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; width: 120px; font-size: 13px; font-weight: 700; text-align: center"><a href="#" style="text-decoration: none; background: #EEF2FF; color: #3730A3; border-radius: 8px; padding: 8px 0; box-shadow: inset 0 0 0 1.5px #3730A3">찬성</a><a href="#" style="text-decoration: none; background: #F3F4F6; color: #9CA3AF; border-radius: 8px; padding: 8px 0">반대</a></span></div>
+      <div style="display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid #F3F4F6"><span style="flex: 1"><b style="font-size: 15px">김민준</b> <span style="font-size: 12px; color: #6B7280">운영진, 11.19 10:12</span><br><span style="font-size: 13px; color: #374151">구장 옆 코트까지 같이 잡을 수 있어요. 해 봐요!</span></span><span style="background: #EEF2FF; color: #3730A3; border-radius: 8px; padding: 6px 10px; font-size: 12px; font-weight: 700; flex: none">찬성</span></div>
+      <div style="padding-top: 10px"><label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; color: #6B7280">의견 남기기</span><span style="background: #FFFFFF; border: 1px solid #D1D5DB; border-radius: 12px; padding: 13px 14px; font-size: 16px; font-weight: 500; color: #9CA3AF; display: flex; justify-content: space-between">예: 구장 시간 늘릴 수 있는지 볼게요<span style="color: #6B7280; font-weight: 500"></span></span></label></div>
+    </div>
+  </div>
+  <div style="position: sticky; bottom: 0; margin-top: auto; background: #FFFFFF; border-top: 1px solid #F3F4F6; padding: 12px 16px 28px; display: flex; flex-direction: column; gap: 8px">
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px"><a href="AdminScrimKeep.dc.html" style="display: block; text-decoration: none; text-align: center; background: #F3F4F6; color: #111827; font-weight: 700; font-size: 15px; padding: 14px 0; border-radius: 14px">경기로 그대로</a><a href="AdminScrimNotify.dc.html" style="display: block; text-decoration: none; text-align: center; background: {{accent}}; color: #FFFFFF; font-weight: 700; font-size: 16px; padding: 15px 0; border-radius: 14px; background: #3730A3; font-size: 15px; padding: 14px 0">내전으로 바꾸기</a></div><span style="color: #6B7280; font-size: 13px; text-align: center">정하면 신청한 팀원에게 알림이 가요</span>
+  </div>
+  </div>
+  <a href="AdminScrimOffer.dc.html" aria-label="닫기" style="position: absolute; inset: 0; background: rgba(17,24,39,0.45); z-index: 5"></a>
+  <div role="dialog" style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; background: #FFFFFF; border-radius: 26px 26px 0 0; padding: 10px 20px 30px; display: flex; flex-direction: column; gap: 14px">
+    <span style="align-self: center; width: 40px; height: 5px; border-radius: 999px; background: #E5E7EB"></span>
+    <div><b style="font-size: 19px">11.22를 내전으로 바꿀까요?</b><br><span style="font-size: 13px; color: #6B7280">신청한 20명에게 앱 알림이 가요 (대기 6명 포함)</span></div>
+    <div style="background: #F9FAFB; border-radius: 14px; padding: 14px; font-size: 14px; line-height: 1.6; color: #374151">[TEST FS] 11.22 토 08:00 일정이 내전으로 바뀌었어요. 신청한 20명 모두 뛰어요. 팀은 운영진이 나눠서 다시 알려 드릴게요.</div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px"><a href="AdminScrimOffer.dc.html" style="display: block; text-decoration: none; text-align: center; background: #F3F4F6; color: #111827; font-weight: 700; font-size: 15px; padding: 14px 0; border-radius: 14px">취소</a><a href="AdminScrimDone.dc.html" style="display: block; text-decoration: none; text-align: center; background: {{accent}}; color: #FFFFFF; font-weight: 700; font-size: 16px; padding: 15px 0; border-radius: 14px; background: #3730A3; font-size: 15px; padding: 14px 0">바꾸고 알리기</a></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#15803D","options":["#15803D","#1E6B45","#2563EB","#111827"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#15803D' };
+  }
+}
+</script>
+</body>
+</html>
