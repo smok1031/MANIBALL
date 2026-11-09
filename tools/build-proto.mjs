@@ -8,7 +8,7 @@ const OUT = new URL("../public/v2/app/", import.meta.url);
 mkdirSync(OUT, { recursive: true });
 
 // 화면 위에 덮이는 시트처럼 한 화면 높이에 고정해야 하는 것
-const FIXED = new Set(["AdminRemind", "AdminRemindLocked", "AdminOpenNow", "RecordMemberSeason", "RecordAdminSeason"]);
+const FIXED = new Set(["AdminRemind", "AdminRemindLocked", "AdminOpenNow", "RecordMemberSeason", "RecordAdminSeason", "DuesMemberPay", "DuesAdminRemind"]);
 
 const GROUPS = [
   ["팀 만들기", ["TeamSplit", "InviteMessage", "InviteRoster"]],
@@ -16,6 +16,8 @@ const GROUPS = [
   ["운영진 기록", ["RecordAdmin", "RecordAdminSeason", "RecordAdminPlayers", "RecordAdminMatch", "RecordAdminScrim", "RecordAdminResult", "RecordAdminVoting", "RecordAdminEditScrim", "RecordAdminEditGame", "RecordAdminEditDraw"]],
   ["팀원", ["Home5", "Home5Late", "Home5Absent", "ScheduleMember", "ScheduleMemberAttend", "ScheduleMemberLate", "ScheduleMemberAbsent", "ScheduleMemberChange", "ScheduleMemberCalendar"]],
   ["팀원 기록", ["RecordMember", "RecordMemberSeason", "RecordMemberMatch", "RecordMemberScrim", "RecordMemberPending", "RecordMemberScrimView", "RecordMemberGame", "RecordMemberMissed"]],
+  ["운영진 회비", ["DuesAdmin", "DuesAdminSettings", "DuesAdminConfirmed", "DuesAdminRemind", "DuesAdminReminded", "DuesAdminLedger", "DuesAdminSpend", "DuesAdminUpload", "DuesAdminMatched", "DuesAdminApplied"]],
+  ["팀원 회비", ["DuesMember", "DuesMemberPay", "DuesMemberSent", "DuesMemberLedger"]],
 ];
 
 const titles = {};

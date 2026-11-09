@@ -364,6 +364,118 @@
       "x": 9253,
       "y": 11323,
       "is_interactive": true
+    },
+    "DuesMember.dc.html": {
+      "h": 1180,
+      "title": "팀원 회비 4-1",
+      "w": 390,
+      "x": -1522,
+      "y": 12200,
+      "is_interactive": true
+    },
+    "DuesMemberPay.dc.html": {
+      "h": 844,
+      "title": "팀원 회비 4-2 입금하기",
+      "w": 390,
+      "x": -1052,
+      "y": 12200,
+      "is_interactive": true
+    },
+    "DuesMemberSent.dc.html": {
+      "h": 1200,
+      "title": "팀원 회비 4-3 보냈어요 누른 뒤",
+      "w": 390,
+      "x": -582,
+      "y": 12200,
+      "is_interactive": true
+    },
+    "DuesMemberLedger.dc.html": {
+      "h": 1100,
+      "title": "팀원 회비 4-4 팀 통장 내역",
+      "w": 390,
+      "x": -112,
+      "y": 12200,
+      "is_interactive": true
+    },
+    "DuesAdmin.dc.html": {
+      "h": 1780,
+      "title": "운영진 회비 4-1",
+      "w": 390,
+      "x": 5023,
+      "y": 13200,
+      "is_interactive": true
+    },
+    "DuesAdminSettings.dc.html": {
+      "h": 1500,
+      "title": "운영진 회비 4-2 회비 설정",
+      "w": 390,
+      "x": 5493,
+      "y": 13200,
+      "is_interactive": true
+    },
+    "DuesAdminConfirmed.dc.html": {
+      "h": 1520,
+      "title": "운영진 회비 4-3 입금 확인한 뒤",
+      "w": 390,
+      "x": 5963,
+      "y": 13200,
+      "is_interactive": true
+    },
+    "DuesAdminRemind.dc.html": {
+      "h": 844,
+      "title": "운영진 회비 4-4 회비 알림 보내기",
+      "w": 390,
+      "x": 6433,
+      "y": 13200,
+      "is_interactive": true
+    },
+    "DuesAdminReminded.dc.html": {
+      "h": 1840,
+      "title": "운영진 회비 4-5 알림 보낸 뒤",
+      "w": 390,
+      "x": 6903,
+      "y": 13200,
+      "is_interactive": true
+    },
+    "DuesAdminLedger.dc.html": {
+      "h": 1140,
+      "title": "운영진 회비 4-6 통장 내역",
+      "w": 390,
+      "x": 7373,
+      "y": 13200,
+      "is_interactive": true
+    },
+    "DuesAdminSpend.dc.html": {
+      "h": 1000,
+      "title": "운영진 회비 4-7 직접 기록",
+      "w": 390,
+      "x": 7843,
+      "y": 13200,
+      "is_interactive": true
+    },
+    "DuesAdminUpload.dc.html": {
+      "h": 900,
+      "title": "운영진 회비 4-8 거래내역 올리기",
+      "w": 390,
+      "x": 8313,
+      "y": 13200,
+      "is_interactive": true
+    },
+    "DuesAdminMatched.dc.html": {
+      "h": 1180,
+      "title": "운영진 회비 4-9 맞춰본 결과",
+      "w": 390,
+      "x": 8783,
+      "y": 13200,
+      "is_interactive": true
+    },
+    "DuesAdminApplied.dc.html": {
+      "h": 1400,
+      "title": "운영진 회비 4-10 반영한 뒤",
+      "w": 390,
+      "x": 9253,
+      "y": 13200,
+      "is_interactive": true
     }
   },
   "createdOnFiles": {
@@ -488,7 +600,21 @@
     "RecordAdminVoting.dc.html",
     "RecordAdminEditScrim.dc.html",
     "RecordAdminEditGame.dc.html",
-    "RecordAdminEditDraw.dc.html"
+    "RecordAdminEditDraw.dc.html",
+    "DuesMember.dc.html",
+    "DuesMemberPay.dc.html",
+    "DuesMemberSent.dc.html",
+    "DuesMemberLedger.dc.html",
+    "DuesAdmin.dc.html",
+    "DuesAdminSettings.dc.html",
+    "DuesAdminConfirmed.dc.html",
+    "DuesAdminRemind.dc.html",
+    "DuesAdminReminded.dc.html",
+    "DuesAdminLedger.dc.html",
+    "DuesAdminSpend.dc.html",
+    "DuesAdminUpload.dc.html",
+    "DuesAdminMatched.dc.html",
+    "DuesAdminApplied.dc.html"
   ],
   "pages": [],
   "title": "매니볼 홈페이지 시안"
