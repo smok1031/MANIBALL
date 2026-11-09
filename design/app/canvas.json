@@ -212,6 +212,14 @@
       "x": 6361,
       "y": 7218,
       "is_interactive": true
+    },
+    "AdminRemindLocked.dc.html": {
+      "h": 844,
+      "title": "운영진 일정 2-2-1 미응답 알림 1시간 제한",
+      "w": 390,
+      "x": 3541,
+      "y": 8212,
+      "is_interactive": true
     }
   },
   "createdOnFiles": {
@@ -317,7 +325,8 @@
     "AdminSquad.dc.html",
     "AdminOpenNow.dc.html",
     "AdminCreate.dc.html",
-    "AdminEdit.dc.html"
+    "AdminEdit.dc.html",
+    "AdminRemindLocked.dc.html"
   ],
   "pages": [],
   "title": "매니볼 홈페이지 시안"
