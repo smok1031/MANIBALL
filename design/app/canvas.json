@@ -7,40 +7,40 @@
       "is_interactive": true,
       "title": "운영진 일정 2-4 현장 출석",
       "w": 390,
-      "x": 6433,
-      "y": 9690
+      "x": 6903,
+      "y": 9677
     },
     "AdminCreate.dc.html": {
       "h": 1160,
       "is_interactive": true,
       "title": "운영진 일정 2-7 일정 만들기",
       "w": 390,
-      "x": 7843,
-      "y": 9690
+      "x": 8313,
+      "y": 9677
     },
     "AdminEdit.dc.html": {
       "h": 1240,
       "is_interactive": true,
       "title": "운영진 일정 2-8 수정",
       "w": 390,
-      "x": 8313,
-      "y": 9690
+      "x": 8783,
+      "y": 9677
     },
     "AdminLineup.dc.html": {
       "h": 1240,
       "is_interactive": true,
       "title": "운영진 일정 2-3 라인업 짜기",
       "w": 390,
-      "x": 5963,
-      "y": 9690
+      "x": 6433,
+      "y": 9677
     },
     "AdminOpenNow.dc.html": {
       "h": 844,
       "is_interactive": true,
       "title": "운영진 일정 2-6 지금 열기",
       "w": 390,
-      "x": 7373,
-      "y": 9690
+      "x": 7843,
+      "y": 9677
     },
     "AdminRemind.dc.html": {
       "h": 844,
@@ -55,16 +55,16 @@
       "is_interactive": true,
       "title": "운영진 일정 2-2-1 미응답 알림 1시간 제한",
       "w": 390,
-      "x": 5493,
-      "y": 10684
+      "x": 5963,
+      "y": 9690
     },
     "AdminSquad.dc.html": {
       "h": 1340,
       "is_interactive": true,
       "title": "운영진 일정 2-5 스쿼드 직접 고르기",
       "w": 390,
-      "x": 6903,
-      "y": 9690
+      "x": 7373,
+      "y": 9677
     },
     "AppCheck.dc.html": {
       "h": 660,
@@ -157,6 +157,22 @@
       "x": 0,
       "y": 1100
     },
+    "RecordAdmin.dc.html": {
+      "h": 1420,
+      "is_interactive": true,
+      "title": "운영진 기록 3-1",
+      "w": 390,
+      "x": 5023,
+      "y": 11323
+    },
+    "RecordMember.dc.html": {
+      "h": 1240,
+      "is_interactive": true,
+      "title": "팀원 기록 3-1",
+      "w": 390,
+      "x": -1522,
+      "y": 10800
+    },
     "ScheduleAdmin.dc.html": {
       "h": 880,
       "is_interactive": true,
@@ -221,20 +237,140 @@
       "x": 0,
       "y": 6378
     },
-    "RecordAdmin.dc.html": {
-      "h": 1420,
-      "title": "운영진 기록 3-1",
+    "RecordMemberSeason.dc.html": {
+      "h": 844,
+      "title": "팀원 기록 3-2 시즌 고르기",
       "w": 390,
-      "x": 5023,
-      "y": 11750,
+      "x": -1052,
+      "y": 10800,
       "is_interactive": true
     },
-    "RecordMember.dc.html": {
+    "RecordMemberMatch.dc.html": {
       "h": 1240,
-      "title": "팀원 기록 3-1",
+      "title": "팀원 기록 3-3 경기만 보기",
       "w": 390,
-      "x": -1522,
+      "x": -582,
       "y": 10800,
+      "is_interactive": true
+    },
+    "RecordMemberScrim.dc.html": {
+      "h": 1240,
+      "title": "팀원 기록 3-4 내전만 보기",
+      "w": 390,
+      "x": -112,
+      "y": 10800,
+      "is_interactive": true
+    },
+    "RecordMemberPending.dc.html": {
+      "h": 844,
+      "title": "팀원 기록 3-5 결과 대기 경기",
+      "w": 390,
+      "x": 358,
+      "y": 10800,
+      "is_interactive": true
+    },
+    "RecordMemberScrimView.dc.html": {
+      "h": 1000,
+      "title": "팀원 기록 3-6 내전 보기",
+      "w": 390,
+      "x": 828,
+      "y": 10800,
+      "is_interactive": true
+    },
+    "RecordMemberGame.dc.html": {
+      "h": 1060,
+      "title": "팀원 기록 3-7 경기 보기",
+      "w": 390,
+      "x": 1298,
+      "y": 10800,
+      "is_interactive": true
+    },
+    "RecordMemberMissed.dc.html": {
+      "h": 900,
+      "title": "팀원 기록 3-8 불참한 경기 보기",
+      "w": 390,
+      "x": 1768,
+      "y": 10800,
+      "is_interactive": true
+    },
+    "RecordAdminSeason.dc.html": {
+      "h": 844,
+      "title": "운영진 기록 3-2 시즌 고르기",
+      "w": 390,
+      "x": 5493,
+      "y": 11323,
+      "is_interactive": true
+    },
+    "RecordAdminPlayers.dc.html": {
+      "h": 1300,
+      "title": "운영진 기록 3-3 선수별",
+      "w": 390,
+      "x": 5963,
+      "y": 11323,
+      "is_interactive": true
+    },
+    "RecordAdminExport.dc.html": {
+      "h": 844,
+      "title": "운영진 기록 3-4 엑셀로 내보내기",
+      "w": 390,
+      "x": 6433,
+      "y": 11323,
+      "is_interactive": true
+    },
+    "RecordAdminMatch.dc.html": {
+      "h": 1420,
+      "title": "운영진 기록 3-5 경기만 보기",
+      "w": 390,
+      "x": 6903,
+      "y": 11323,
+      "is_interactive": true
+    },
+    "RecordAdminScrim.dc.html": {
+      "h": 1420,
+      "title": "운영진 기록 3-6 내전만 보기",
+      "w": 390,
+      "x": 7373,
+      "y": 11323,
+      "is_interactive": true
+    },
+    "RecordAdminResult.dc.html": {
+      "h": 1640,
+      "title": "운영진 기록 3-7 결과 입력",
+      "w": 390,
+      "x": 7843,
+      "y": 11323,
+      "is_interactive": true
+    },
+    "RecordAdminVoting.dc.html": {
+      "h": 1480,
+      "title": "운영진 기록 3-8 결과 저장 뒤",
+      "w": 390,
+      "x": 8313,
+      "y": 11323,
+      "is_interactive": true
+    },
+    "RecordAdminEditScrim.dc.html": {
+      "h": 1500,
+      "title": "운영진 기록 3-9 내전 결과 수정",
+      "w": 390,
+      "x": 8783,
+      "y": 11323,
+      "is_interactive": true
+    },
+    "RecordAdminEditGame.dc.html": {
+      "h": 1680,
+      "title": "운영진 기록 3-10 경기 결과 수정",
+      "w": 390,
+      "x": 9253,
+      "y": 11323,
+      "is_interactive": true
+    },
+    "RecordAdminEditDraw.dc.html": {
+      "h": 1560,
+      "title": "운영진 기록 3-11 무승부 경기 결과 수정",
+      "w": 390,
+      "x": 9723,
+      "y": 11323,
       "is_interactive": true
     }
   },
@@ -344,7 +480,24 @@
     "AdminEdit.dc.html",
     "AdminRemindLocked.dc.html",
     "RecordAdmin.dc.html",
-    "RecordMember.dc.html"
+    "RecordMember.dc.html",
+    "RecordMemberSeason.dc.html",
+    "RecordMemberMatch.dc.html",
+    "RecordMemberScrim.dc.html",
+    "RecordMemberPending.dc.html",
+    "RecordMemberScrimView.dc.html",
+    "RecordMemberGame.dc.html",
+    "RecordMemberMissed.dc.html",
+    "RecordAdminSeason.dc.html",
+    "RecordAdminPlayers.dc.html",
+    "RecordAdminExport.dc.html",
+    "RecordAdminMatch.dc.html",
+    "RecordAdminScrim.dc.html",
+    "RecordAdminResult.dc.html",
+    "RecordAdminVoting.dc.html",
+    "RecordAdminEditScrim.dc.html",
+    "RecordAdminEditGame.dc.html",
+    "RecordAdminEditDraw.dc.html"
   ],
   "pages": [],
   "title": "매니볼 홈페이지 시안"
