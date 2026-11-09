@@ -90,6 +90,14 @@
       "x": 10577,
       "y": 124
     },
+    "AdminGuestRequests.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "운영진 일정 2-25 용병 신청 확인",
+      "w": 390,
+      "x": 18097,
+      "y": 124
+    },
     "AdminLineup.dc.html": {
       "h": 1240,
       "is_interactive": true,
@@ -144,6 +152,46 @@
       "title": "운영진 일정 2-18 휴식표",
       "w": 390,
       "x": 14807,
+      "y": 124
+    },
+    "AdminScrimDone.dc.html": {
+      "h": 1000,
+      "is_interactive": true,
+      "title": "운영진 일정 2-22 내전으로 바꾼 뒤",
+      "w": 390,
+      "x": 16687,
+      "y": 124
+    },
+    "AdminScrimKeep.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "운영진 일정 2-23 경기로 그대로",
+      "w": 390,
+      "x": 17157,
+      "y": 124
+    },
+    "AdminScrimKept.dc.html": {
+      "h": 1000,
+      "is_interactive": true,
+      "title": "운영진 일정 2-24 경기로 정한 뒤",
+      "w": 390,
+      "x": 17627,
+      "y": 124
+    },
+    "AdminScrimNotify.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "운영진 일정 2-21 내전으로 바꾸기",
+      "w": 390,
+      "x": 16217,
+      "y": 124
+    },
+    "AdminScrimOffer.dc.html": {
+      "h": 1500,
+      "is_interactive": true,
+      "title": "운영진 일정 2-20 내전 검토",
+      "w": 390,
+      "x": 15747,
       "y": 124
     },
     "AdminSquad.dc.html": {
@@ -354,24 +402,24 @@
       "is_interactive": true,
       "title": "팀원 가입 1 초대 링크로 들어왔을 때",
       "w": 390,
-      "x": 3402,
-      "y": 1378
+      "x": 2488,
+      "y": 2449
     },
     "JoinProfile.dc.html": {
       "h": 1340,
       "is_interactive": true,
       "title": "팀원 가입 2 카카오 로그인 뒤 선수 등록",
       "w": 390,
-      "x": 3872,
-      "y": 1378
+      "x": 2958,
+      "y": 2449
     },
     "JoinRules.dc.html": {
       "h": 1060,
       "is_interactive": true,
       "title": "팀원 가입 3 팀 수칙 동의",
       "w": 390,
-      "x": 4342,
-      "y": 1378
+      "x": 3428,
+      "y": 2449
     },
     "Main.dc.html": {
       "expand": "fill",
@@ -717,6 +765,22 @@
       "x": 1932,
       "y": 12483
     },
+    "ScheduleMemberGuest.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "팀원 일정 2-8 용병 신청",
+      "w": 390,
+      "x": 3342,
+      "y": 12483
+    },
+    "ScheduleMemberGuestSent.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "팀원 일정 2-9 용병 신청한 뒤",
+      "w": 390,
+      "x": 3812,
+      "y": 12483
+    },
     "ScheduleMemberLate.dc.html": {
       "h": 960,
       "is_interactive": true,
@@ -740,70 +804,6 @@
       "w": 390,
       "x": 1768,
       "y": 1378
-    },
-    "AdminScrimOffer.dc.html": {
-      "h": 1440,
-      "title": "운영진 일정 2-20 내전 검토",
-      "w": 390,
-      "x": 15747,
-      "y": 124,
-      "is_interactive": true
-    },
-    "AdminScrimNotify.dc.html": {
-      "h": 844,
-      "title": "운영진 일정 2-21 내전으로 바꾸기",
-      "w": 390,
-      "x": 16217,
-      "y": 124,
-      "is_interactive": true
-    },
-    "AdminScrimDone.dc.html": {
-      "h": 1000,
-      "title": "운영진 일정 2-22 내전으로 바꾼 뒤",
-      "w": 390,
-      "x": 16687,
-      "y": 124,
-      "is_interactive": true
-    },
-    "AdminScrimKeep.dc.html": {
-      "h": 844,
-      "title": "운영진 일정 2-23 경기로 그대로",
-      "w": 390,
-      "x": 17157,
-      "y": 124,
-      "is_interactive": true
-    },
-    "AdminScrimKept.dc.html": {
-      "h": 1000,
-      "title": "운영진 일정 2-24 경기로 정한 뒤",
-      "w": 390,
-      "x": 17627,
-      "y": 124,
-      "is_interactive": true
-    },
-    "AdminGuestRequests.dc.html": {
-      "h": 900,
-      "title": "운영진 일정 2-25 용병 신청 확인",
-      "w": 390,
-      "x": 18097,
-      "y": 124,
-      "is_interactive": true
-    },
-    "ScheduleMemberGuest.dc.html": {
-      "h": 844,
-      "title": "팀원 일정 2-8 용병 신청",
-      "w": 390,
-      "x": 3342,
-      "y": 12483,
-      "is_interactive": true
-    },
-    "ScheduleMemberGuestSent.dc.html": {
-      "h": 900,
-      "title": "팀원 일정 2-9 용병 신청한 뒤",
-      "w": 390,
-      "x": 3812,
-      "y": 12483,
-      "is_interactive": true
     }
   },
   "createdOnFiles": {
