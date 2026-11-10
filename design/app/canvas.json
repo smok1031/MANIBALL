@@ -750,7 +750,7 @@
       "y": 12483
     },
     "ScheduleMemberCalendar.dc.html": {
-      "h": 844,
+      "h": 960,
       "is_interactive": true,
       "title": "팀원 일정 2-6 달력으로 보기",
       "w": 390,
@@ -804,6 +804,14 @@
       "w": 390,
       "x": 1768,
       "y": 1378
+    },
+    "AdminCalendar.dc.html": {
+      "h": 1000,
+      "is_interactive": true,
+      "title": "운영진 일정 2-26 달력으로 보기",
+      "w": 390,
+      "x": 18567,
+      "y": 124
     }
   },
   "createdOnFiles": {
@@ -983,7 +991,8 @@
     "AdminScrimKept.dc.html",
     "AdminGuestRequests.dc.html",
     "ScheduleMemberGuest.dc.html",
-    "ScheduleMemberGuestSent.dc.html"
+    "ScheduleMemberGuestSent.dc.html",
+    "AdminCalendar.dc.html"
   ],
   "pages": [],
   "title": "매니볼 홈페이지 시안"

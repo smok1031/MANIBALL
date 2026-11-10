@@ -43,16 +43,107 @@ a{color:#15803D}
   <a href="AdminEdit.dc.html" aria-label="닫기" style="position: absolute; inset: 0; background: rgba(17,24,39,0.45); z-index: 5"></a>
   <div role="dialog" style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; background: #FFFFFF; border-radius: 26px 26px 0 0; padding: 10px 20px 30px; display: flex; flex-direction: column; gap: 14px">
     <span style="align-self: center; width: 40px; height: 5px; border-radius: 999px; background: #E5E7EB"></span>
-    <div style="display: flex; justify-content: space-between; align-items: center"><b style="font-size: 19px">날짜 고르기</b><span style="display: flex; gap: 4px"><a href="#" aria-label="이전 달" style="width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: #6B7280; font-size: 20px">‹</a><b style="font-size: 15px; line-height: 36px">2026년 12월</b><a href="#" aria-label="다음 달" style="width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: #6B7280; font-size: 20px">›</a></span></div>
-    <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; text-align: center; font-size: 15px"><span style="color: #9CA3AF; font-size: 12px; padding: 6px 0">일</span><span style="color: #9CA3AF; font-size: 12px; padding: 6px 0">월</span><span style="color: #9CA3AF; font-size: 12px; padding: 6px 0">화</span><span style="color: #9CA3AF; font-size: 12px; padding: 6px 0">수</span><span style="color: #9CA3AF; font-size: 12px; padding: 6px 0">목</span><span style="color: #9CA3AF; font-size: 12px; padding: 6px 0">금</span><span style="color: #9CA3AF; font-size: 12px; padding: 6px 0">토</span><span></span><span></span><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">1</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">2</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">3</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">4</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">5</a><a href="#" style="text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0">6</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">7</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">8</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">9</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">10</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">11</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">12</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">13</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">14</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">15</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">16</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">17</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">18</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">19</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">20</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">21</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">22</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">23</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">24</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">25</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">26</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">27</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">28</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">29</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">30</a><a href="#" style="text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0">31</a></div>
+    <div style="display: flex; justify-content: space-between; align-items: center"><b style="font-size: 19px">날짜 고르기</b><span style="display: flex; gap: 4px"><a href="#" aria-label="이전 달" style="width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: #6B7280; font-size: 20px" onClick="{{ c2m }}">‹</a><b style="font-size: 15px; line-height: 36px">{{ c2t }}</b><a href="#" aria-label="다음 달" style="width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: #6B7280; font-size: 20px" onClick="{{ c2p }}">›</a></span></div>
+    <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; text-align: center; font-size: 15px"><span style="color: #9CA3AF; font-size: 12px; padding: 6px 0">일</span><span style="color: #9CA3AF; font-size: 12px; padding: 6px 0">월</span><span style="color: #9CA3AF; font-size: 12px; padding: 6px 0">화</span><span style="color: #9CA3AF; font-size: 12px; padding: 6px 0">수</span><span style="color: #9CA3AF; font-size: 12px; padding: 6px 0">목</span><span style="color: #9CA3AF; font-size: 12px; padding: 6px 0">금</span><span style="color: #9CA3AF; font-size: 12px; padding: 6px 0">토</span><span></span><span></span><a href="#" style="{{ c1_0s }}" onClick="{{ c1_0k }}">1</a><a href="#" style="{{ c1_1s }}" onClick="{{ c1_1k }}">2</a><a href="#" style="{{ c1_2s }}" onClick="{{ c1_2k }}">3</a><a href="#" style="{{ c1_3s }}" onClick="{{ c1_3k }}">4</a><a href="#" style="{{ c1_4s }}" onClick="{{ c1_4k }}">5</a><a href="#" style="{{ c1_5s }}" onClick="{{ c1_5k }}">6</a><a href="#" style="{{ c1_6s }}" onClick="{{ c1_6k }}">7</a><a href="#" style="{{ c1_7s }}" onClick="{{ c1_7k }}">8</a><a href="#" style="{{ c1_8s }}" onClick="{{ c1_8k }}">9</a><a href="#" style="{{ c1_9s }}" onClick="{{ c1_9k }}">10</a><a href="#" style="{{ c1_10s }}" onClick="{{ c1_10k }}">11</a><a href="#" style="{{ c1_11s }}" onClick="{{ c1_11k }}">12</a><a href="#" style="{{ c1_12s }}" onClick="{{ c1_12k }}">13</a><a href="#" style="{{ c1_13s }}" onClick="{{ c1_13k }}">14</a><a href="#" style="{{ c1_14s }}" onClick="{{ c1_14k }}">15</a><a href="#" style="{{ c1_15s }}" onClick="{{ c1_15k }}">16</a><a href="#" style="{{ c1_16s }}" onClick="{{ c1_16k }}">17</a><a href="#" style="{{ c1_17s }}" onClick="{{ c1_17k }}">18</a><a href="#" style="{{ c1_18s }}" onClick="{{ c1_18k }}">19</a><a href="#" style="{{ c1_19s }}" onClick="{{ c1_19k }}">20</a><a href="#" style="{{ c1_20s }}" onClick="{{ c1_20k }}">21</a><a href="#" style="{{ c1_21s }}" onClick="{{ c1_21k }}">22</a><a href="#" style="{{ c1_22s }}" onClick="{{ c1_22k }}">23</a><a href="#" style="{{ c1_23s }}" onClick="{{ c1_23k }}">24</a><a href="#" style="{{ c1_24s }}" onClick="{{ c1_24k }}">25</a><a href="#" style="{{ c1_25s }}" onClick="{{ c1_25k }}">26</a><a href="#" style="{{ c1_26s }}" onClick="{{ c1_26k }}">27</a><a href="#" style="{{ c1_27s }}" onClick="{{ c1_27k }}">28</a><a href="#" style="{{ c1_28s }}" onClick="{{ c1_28k }}">29</a><a href="#" style="{{ c1_29s }}" onClick="{{ c1_29k }}">30</a><a href="#" style="{{ c1_30s }}" onClick="{{ c1_30k }}">31</a></div>
     <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px"><a href="AdminEdit.dc.html" style="display: block; text-decoration: none; text-align: center; background: #F3F4F6; color: #111827; font-weight: 700; font-size: 15px; padding: 14px 0; border-radius: 14px">취소</a><a href="AdminEdit.dc.html" style="display: block; text-decoration: none; text-align: center; background: {{accent}}; color: #FFFFFF; font-weight: 700; font-size: 16px; padding: 15px 0; border-radius: 14px; font-size: 15px; padding: 14px 0">12.6 토로 정하기</a></div>
   </div>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#15803D","options":["#15803D","#1E6B45","#2563EB","#111827"]},"$preview":{"width":390,"height":844}}'>
 class Component extends DCLogic {
-  renderVals() {
-    return { accent: this.props.accent ?? '#15803D' };
+  renderVals() { /*maniball-interactive*/
+    const A = this.props.accent ?? '#15803D';
+    const S = this.state || {};
+    const T = [{"id": "c1", "k": "sel", "multi": false, "sel": 5, "els": [{"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 9px 0", "off": "text-decoration: none; color: #111827; border-radius: 10px; padding: 9px 0"}], "labs": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31"]}, {"id": "c2", "k": "month", "y": 2026, "m": 12}];
+    const fix = (x) => String(x == null ? '' : x).split('{{accent}}').join(A);
+    const set = (o) => this.setState(o);
+    const pd = (e) => { if (e && e.preventDefault) e.preventDefault(); };
+    const get = (k, d) => (S[k] === undefined ? d : S[k]);
+    const v = { accent: A, toastOn: !!S._toast, toastText: S._toast || '' };
+    const toast = (m) => { set({ _toast: m }); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ _toast: '' }), 1800); };
+    const byId = {};
+    T.forEach((c) => { byId[c.id] = c; });
+    T.forEach((c) => {
+      const k = c.id;
+      if (c.k === 'sel') {
+        const cur = get(k, c.sel);
+        c.els.forEach((e, i) => {
+          const on = c.multi ? cur.indexOf(i) >= 0 : cur === i;
+          v[k + '_' + i + 's'] = fix(on ? e.on : e.off);
+          v[k + '_' + i + 'k'] = (ev) => {
+            pd(ev);
+            if (c.multi) { const a = cur.slice(); const j = a.indexOf(i); if (j >= 0) a.splice(j, 1); else a.push(i); set({ [k]: a }); }
+            else set({ [k]: i });
+          };
+        });
+      } else if (c.k === 'tog') {
+        const on = get(k, c.on);
+        v[k + 's'] = fix(on ? c.son : c.soff); v[k + 'n'] = on ? c.non : c.noff;
+        v[k + 'k'] = (ev) => { pd(ev); set({ [k]: !on }); };
+      } else if (c.k === 'chk') {
+        const on = get(k, c.on);
+        v[k + 's'] = fix(on ? c.son : c.soff); v[k + 't'] = on ? '✓' : '';
+        v[k + 'k'] = (ev) => { pd(ev); set({ [k]: !on }); };
+      } else if (c.k === 'step') {
+        const n = get(k, c.val);
+        v[k + 't'] = n + c.suf;
+        if (c.bst !== undefined) v[k + 'bs'] = c.bst.replace(/color: #(D1D5DB|111827)/, 'color: ' + (n ? '#111827' : '#D1D5DB'));
+        v[k + 'm'] = (ev) => { pd(ev); set({ [k]: Math.max(0, n - 1) }); };
+        v[k + 'p'] = (ev) => { pd(ev); set({ [k]: n + 1 }); };
+      } else if (c.k === 'field') {
+        v[k + 'v'] = get(k, c.val);
+        v[k + 'c'] = (ev) => set({ [k]: ev && ev.target ? ev.target.value : '' });
+      } else if (c.k === 'month') {
+        const off = get(k, 0); let y = c.y, m = c.m + off;
+        while (m < 1) { m += 12; y--; } while (m > 12) { m -= 12; y++; }
+        v[k + 't'] = y + '년 ' + m + '월';
+        v[k + 'm'] = (ev) => { pd(ev); set({ [k]: off - 1 }); };
+        v[k + 'p'] = (ev) => { pd(ev); set({ [k]: off + 1 }); };
+      } else if (c.k === 'act') {
+        const done = get(k, 0);
+        if (c.a === 'toast') v[k + 'k'] = (ev) => { pd(ev); toast(c.msg); };
+        if (c.a === 'copy') {
+          v[k + 't'] = done ? '복사했어요' : c.label;
+          v[k + 'k'] = (ev) => {
+            pd(ev);
+            let t = c.text;
+            if (c.codeFrom) t = t.replace(/maniball\.app\/j\/\w+/, 'maniball.app/j/' + get(c.codeFrom, 'TEST7Q'));
+            try { navigator.clipboard.writeText(t).catch(() => {}); } catch (e) {}
+            set({ [k]: 1 }); toast('복사했어요');
+            setTimeout(() => this.setState({ [k]: 0 }), 1600);
+          };
+        }
+        if (c.a === 'share') v[k + 'k'] = (ev) => {
+          if (!c.nav) pd(ev);
+          try { if (navigator.share) { navigator.share({ title: 'TEST FS', text: get('_msg', 'TEST FS 팀 관리 앱이에요. 링크 누르고 들어와요!'), url: 'https://maniball.app/j/TEST7Q' }).catch(() => {}); } } catch (e) {}
+          toast('카카오톡 공유 창을 열었어요');
+        };
+        if (c.a === 'hide') { v[k + 'r'] = c.rs + (done ? '; display: none' : ''); v[k + 'k'] = (ev) => { pd(ev); set({ [k]: 1 }); toast(c.msg); }; }
+        if (c.a === 'got') { v[k + 's'] = done ? c.s1 : c.s0; v[k + 't'] = done ? '받음 완료' : '받음'; v[k + 'k'] = (ev) => { pd(ev); if (!done) { set({ [k]: 1 }); toast('현금으로 받은 걸로 처리했어요'); } }; }
+        if (c.a === 'link') { v[k + 't'] = get(k, c.code); v[k + 'k'] = (ev) => { pd(ev); set({ [k]: Math.random().toString(36).slice(2, 8).toUpperCase() }); toast('새 링크를 만들었어요. 예전 링크는 막혔어요'); }; }
+        if (c.a === 'readall') {
+          (c.rows || []).forEach((r, i) => { v[k + '_' + i + 'r'] = done ? r.replace('background: #F0FDF4', 'background: #FFFFFF') : r; });
+          (c.dots || []).forEach((d, i) => { v[k + '_' + i + 'd'] = done ? d.replace('background: #DC2626', 'background: transparent') : d; });
+          v[k + 't'] = done ? '0개' : (c.cnt || '');
+          v[k + 'k'] = (ev) => { pd(ev); set({ [k]: 1 }); toast('모두 읽음으로 바꿨어요'); };
+        }
+        if (c.a === 'photo') {
+          const url = get(k, '');
+          v[k + 'ps'] = fix(c.ts) + (url ? '; background: center / cover no-repeat url(' + url + ')' : '');
+          v[k + 'sv'] = url ? 'display: none' : '';
+          v[k + 'pt'] = url ? '' : (c.pt || '');
+          v[k + 'c'] = (ev) => { const f = ev && ev.target && ev.target.files && ev.target.files[0]; if (f) { set({ [k]: URL.createObjectURL(f) }); toast('사진을 바꿨어요'); } };
+        }
+        if (c.a === 'selectall') v[k + 'k'] = (ev) => { pd(ev); const o = {}; T.forEach((x) => { if (x.k === 'chk') o[x.id] = true; }); set(o); toast('모두 골랐어요'); };
+        if (c.a === 'edit') v[k + 'k'] = (ev) => { pd(ev); set({ _edit: !get('_edit', false) }); };
+      }
+    });
+    const val = (id) => (byId[id] && byId[id].k === 'field' ? get(id, byId[id].val) : '');
+    const pick = (id) => { const c = byId[id]; if (!c) return ''; const i = get(id, c.sel); return c.multi ? i.map((x) => c.labs[x]) : (i >= 0 ? c.labs[i] : ''); };
+    const chk = (id) => { const c = byId[id]; return c ? get(id, c.on) : false; };
+
+
+    return v;
   }
 }
 </script>

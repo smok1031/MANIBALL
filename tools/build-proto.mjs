@@ -13,7 +13,7 @@ const GROUPS = [
   ["팀 만들기", ["TeamSplit", "InviteMessage", "InviteRoster"]],
   ["팀원 가입 (초대 링크로 들어왔을 때)", ["JoinInvite", "JoinProfile", "JoinRules"]],
   ["운영진 홈", ["HomeAdmin", "NotifyAdmin", "NoticeAdmin", "NoticeAdminWrite"]],
-  ["운영진 일정", ["ScheduleAdmin", "AdminRemind", "AdminRemindLocked", "AdminLineup", "AdminFormation", "AdminRestTable", "AdminLineupShare", "AdminCheckIn", "AdminGuestAdd", "AdminCheckInDone", "AdminSquad", "AdminOpenNow", "AdminOpenNowDeadline", "AdminCreate", "AdminCreateDate", "AdminCreateDeadline", "AdminEdit", "AdminEditDate", "AdminEditDeadline", "AdminDeleteConfirm", "AdminScrimOffer", "AdminScrimNotify", "AdminScrimDone", "AdminScrimKeep", "AdminScrimKept", "AdminGuestRequests"]],
+  ["운영진 일정", ["ScheduleAdmin", "AdminRemind", "AdminRemindLocked", "AdminLineup", "AdminFormation", "AdminRestTable", "AdminLineupShare", "AdminCheckIn", "AdminGuestAdd", "AdminCheckInDone", "AdminSquad", "AdminOpenNow", "AdminOpenNowDeadline", "AdminCreate", "AdminCreateDate", "AdminCreateDeadline", "AdminEdit", "AdminEditDate", "AdminEditDeadline", "AdminDeleteConfirm", "AdminScrimOffer", "AdminScrimNotify", "AdminScrimDone", "AdminScrimKeep", "AdminScrimKept", "AdminGuestRequests", "AdminCalendar"]],
   ["운영진 기록", ["RecordAdmin", "RecordAdminSeason", "RecordAdminPlayers", "RecordAdminMatch", "RecordAdminScrim", "RecordAdminResult", "RecordAdminVoting", "RecordAdminEditScrim", "RecordAdminEditGame", "RecordAdminEditDraw"]],
   ["운영진 회비", ["DuesAdmin", "DuesAdminSettings", "DuesAdminConfirmed", "DuesAdminRemind", "DuesAdminReminded", "DuesAdminLedger", "DuesAdminSpend", "DuesAdminUpload", "DuesAdminMatched", "DuesAdminApplied"]],
   ["운영진 선수", ["PlayersAdmin", "PlayersAdminInvite", "PlayersAdminRules", "PlayersAdminDetail", "PlayersAdminPromote", "PlayersAdminPromoted", "PlayersAdminRemove", "PlayersAdminRemoved", "PlayersAdminUniform"]],
@@ -21,7 +21,7 @@ const GROUPS = [
   ["팀원 일정", ["ScheduleMember", "ScheduleMemberAttend", "ScheduleMemberLate", "ScheduleMemberAbsent", "ScheduleMemberChange", "ScheduleMemberCalendar", "ScheduleMemberRoster", "ScheduleMemberGuest", "ScheduleMemberGuestSent"]],
   ["팀원 기록", ["RecordMember", "RecordMemberSeason", "RecordMemberMatch", "RecordMemberScrim", "RecordMemberPending", "RecordMemberScrimView", "RecordMemberGame", "RecordMemberMissed"]],
   ["팀원 회비", ["DuesMember", "DuesMemberPay", "DuesMemberSent", "DuesMemberLedger"]],
-  ["팀원 선수", ["PlayersMember", "PlayersMemberProfile", "PlayersMemberEdit", "PlayersMemberPosition", "PlayersMemberRequested", "PlayersMemberApply", "PlayersMemberApplied"]],
+  ["팀원 선수", ["PlayersMember", "PlayersMemberProfile", "PlayersMemberEdit", "PlayersMemberPosition", "PlayersMemberRequested"]],
 ];
 
 const titles = {};
@@ -34,7 +34,9 @@ for (const f of readdirSync(SRC).filter(f => f.endsWith(".dc.html"))) {
   titles[name] = boardTitles[name] || title;
   const helmet = (src.match(/<helmet>([\s\S]*?)<\/helmet>/) || [, ""])[1];
   let body = src.slice(src.indexOf("<x-dc>") + 6, src.indexOf("</x-dc>")).replace(/<helmet>[\s\S]*?<\/helmet>/, "").trim();
-  if (body.includes("{{") && body.replaceAll("{{accent}}", "").includes("{{")) throw new Error("unknown hole in " + f);
+  // 캔버스에서 상태로 움직이게 바꾼 화면은 화면 로직을 함께 싣는다 (proto.js가 같은 로직으로 그린다)
+  const live = src.includes("/*maniball-interactive*/");
+  if (!live && body.includes("{{") && body.replaceAll("{{accent}}", "").includes("{{")) throw new Error("unknown hole in " + f);
   body = body
     .replaceAll("{{accent}}", ACCENT)
     .replace(/href="([A-Za-z0-9]+)\.dc\.html"/g, 'href="$1.html"');
@@ -54,7 +56,9 @@ ${helmet.trim()}
 <style>html{background:#E5E7EB}body{background:#E5E7EB}a{-webkit-tap-highlight-color:transparent}a[href="#"]{cursor:default}</style>
 </head>
 <body>
-${body}
+${live ? `<div id="dc-root"></div>
+<template id="dc-tpl">${body}</template>
+<script type="text/x-dc" id="dc-code">${src.match(/<script type="text\/x-dc" data-dc-script[^>]*>([\s\S]*?)<\/script>/)[1]}</script>` : body}
 <script src="proto.js"></script>
 </body>
 </html>

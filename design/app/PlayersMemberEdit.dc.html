@@ -21,21 +21,113 @@ a{color:#15803D}
     <span style="width: 44px"></span>
   </header>
   <div style="padding: 16px 16px 24px; display: flex; flex-direction: column; gap: 22px">
-    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px"><span style="width: 72px; height: 72px; border-radius: 50%; background: {{accent}}; color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 22px; flex: none">이</span><a href="#" style="font-size: 13px; font-weight: 700; text-decoration: none">사진 바꾸기</a></div>
-    <section style="display: flex; flex-direction: column; gap: 10px"><span style="font-size: 13px; font-weight: 900; color: #6B7280; display: flex; justify-content: space-between">이름<span style="font-weight: 500"></span></span><label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; color: #6B7280">팀에서 부르는 이름</span><span style="background: #FFFFFF; border: 1px solid #D1D5DB; border-radius: 12px; padding: 13px 14px; font-size: 16px; font-weight: 700; color: #111827; display: flex; justify-content: space-between">이서준<span style="color: #6B7280; font-weight: 500"></span></span></label></section>
-    <section style="display: flex; flex-direction: column; gap: 10px"><span style="font-size: 13px; font-weight: 900; color: #6B7280; display: flex; justify-content: space-between">등번호<span style="font-weight: 500"></span></span><label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; color: #6B7280">번호</span><span style="background: #FFFFFF; border: 1px solid #D1D5DB; border-radius: 12px; padding: 13px 14px; font-size: 16px; font-weight: 700; color: #111827; display: flex; justify-content: space-between">11<span style="color: #6B7280; font-weight: 500">번</span></span></label><span style="font-size: 12px; color: #6B7280">다른 팀원과 겹치면 알려 드려요</span></section>
-    <section style="display: flex; flex-direction: column; gap: 10px"><span style="font-size: 13px; font-weight: 900; color: #6B7280; display: flex; justify-content: space-between">주발<span style="font-weight: 500"></span></span><div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; background: #E5E7EB; border-radius: 14px; padding: 5px; font-weight: 700; text-align: center; font-size: 15px"><a href="#" style="text-decoration: none; padding: 10px 0; background: #FFFFFF; color: #111827; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.08)">오른발</a><a href="#" style="text-decoration: none; padding: 10px 0; color: #6B7280">왼발</a><a href="#" style="text-decoration: none; padding: 10px 0; color: #6B7280">양발</a></div></section>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px"><span style="{{ c2ps }}">{{ c2pt }}</span><label style="font-size: 13px; font-weight: 700; text-decoration: none; cursor: pointer">사진 바꾸기<input type="file" accept="image/*" onChange="{{ c2c }}" style="display: none"></label></div>
+    <section style="display: flex; flex-direction: column; gap: 10px"><span style="font-size: 13px; font-weight: 900; color: #6B7280; display: flex; justify-content: space-between">이름<span style="font-weight: 500"></span></span><label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; color: #6B7280">팀에서 부르는 이름</span><span style="background: #FFFFFF; border: 1px solid #D1D5DB; border-radius: 12px; padding: 13px 14px; font-size: 16px; font-weight: 700; color: #111827; display: flex; justify-content: space-between"><input aria-label="팀에서 부르는 이름" value="{{ c3v }}" onChange="{{ c3c }}" style="border: 0; outline: none; background: transparent; font: inherit; color: #111827; padding: 0; margin: 0; min-width: 0; width: 100%; flex: 1"><span style="color: #6B7280; font-weight: 500"></span></span></label></section>
+    <section style="display: flex; flex-direction: column; gap: 10px"><span style="font-size: 13px; font-weight: 900; color: #6B7280; display: flex; justify-content: space-between">등번호<span style="font-weight: 500"></span></span><label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; color: #6B7280">번호</span><span style="background: #FFFFFF; border: 1px solid #D1D5DB; border-radius: 12px; padding: 13px 14px; font-size: 16px; font-weight: 700; color: #111827; display: flex; justify-content: space-between"><input aria-label="번호" value="{{ c4v }}" onChange="{{ c4c }}" style="border: 0; outline: none; background: transparent; font: inherit; color: #111827; padding: 0; margin: 0; min-width: 0; width: 100%; flex: 1"><span style="color: #6B7280; font-weight: 500">번</span></span></label><span style="font-size: 12px; color: #6B7280">다른 팀원과 겹치면 알려 드려요</span></section>
+    <section style="display: flex; flex-direction: column; gap: 10px"><span style="font-size: 13px; font-weight: 900; color: #6B7280; display: flex; justify-content: space-between">주발<span style="font-weight: 500"></span></span><div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; background: #E5E7EB; border-radius: 14px; padding: 5px; font-weight: 700; text-align: center; font-size: 15px"><a href="#" style="{{ c1_0s }}" onClick="{{ c1_0k }}">오른발</a><a href="#" style="{{ c1_1s }}" onClick="{{ c1_1k }}">왼발</a><a href="#" style="{{ c1_2s }}" onClick="{{ c1_2k }}">양발</a></div></section>
     <section style="display: flex; flex-direction: column; gap: 10px"><span style="font-size: 13px; font-weight: 900; color: #6B7280; display: flex; justify-content: space-between">포지션<span style="font-weight: 500"></span></span><div style="display: flex; justify-content: space-between; align-items: center; background: #FFFFFF; border-radius: 14px; padding: 14px; font-size: 14px"><span>지금 <b>RW</b></span><a href="PlayersMemberPosition.dc.html" style="font-weight: 700; text-decoration: none">변경 요청 ›</a></div><span style="font-size: 12px; color: #6B7280">포지션은 운영진이 정해요. 원하면 요청할 수 있어요.</span></section>
   </div>
   <div style="position: sticky; bottom: 0; margin-top: auto; background: #FFFFFF; border-top: 1px solid #F3F4F6; padding: 12px 16px 28px; display: flex; flex-direction: column; gap: 8px">
     <a href="PlayersMember.dc.html" style="display: block; text-decoration: none; text-align: center; background: {{accent}}; color: #FFFFFF; font-weight: 700; font-size: 16px; padding: 15px 0; border-radius: 14px">저장하기</a>
   </div>
+  <sc-if value="{{ toastOn }}" hint-placeholder-val="{{ false }}"><div role="status" style="position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); z-index: 50; width: max-content; max-width: 340px; box-sizing: border-box; background: #111827; color: #FFFFFF; font-size: 14px; font-weight: 700; line-height: 1.5; padding: 12px 16px; border-radius: 14px; text-align: center; box-shadow: 0 10px 24px rgba(17,24,39,0.25)">{{ toastText }}</div></sc-if>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#15803D","options":["#15803D","#1E6B45","#2563EB","#111827"]},"$preview":{"width":390,"height":1080}}'>
 class Component extends DCLogic {
-  renderVals() {
-    return { accent: this.props.accent ?? '#15803D' };
+  renderVals() { /*maniball-interactive*/
+    const A = this.props.accent ?? '#15803D';
+    const S = this.state || {};
+    const T = [{"id": "c1", "k": "sel", "multi": false, "sel": 0, "els": [{"on": "text-decoration: none; padding: 10px 0; background: #FFFFFF; color: #111827; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.08)", "off": "text-decoration: none; padding: 10px 0; color: #6B7280"}, {"on": "text-decoration: none; padding: 10px 0; background: #FFFFFF; color: #111827; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.08)", "off": "text-decoration: none; padding: 10px 0; color: #6B7280"}, {"on": "text-decoration: none; padding: 10px 0; background: #FFFFFF; color: #111827; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.08)", "off": "text-decoration: none; padding: 10px 0; color: #6B7280"}], "labs": ["오른발", "왼발", "양발"]}, {"id": "c2", "k": "act", "a": "photo", "ts": "width: 72px; height: 72px; border-radius: 50%; background: {{accent}}; color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 22px; flex: none", "pt": "이"}, {"id": "c3", "k": "field", "val": "이서준", "label": "팀에서 부르는 이름", "node": 1965}, {"id": "c4", "k": "field", "val": "11", "label": "번호", "node": 2595}];
+    const fix = (x) => String(x == null ? '' : x).split('{{accent}}').join(A);
+    const set = (o) => this.setState(o);
+    const pd = (e) => { if (e && e.preventDefault) e.preventDefault(); };
+    const get = (k, d) => (S[k] === undefined ? d : S[k]);
+    const v = { accent: A, toastOn: !!S._toast, toastText: S._toast || '' };
+    const toast = (m) => { set({ _toast: m }); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ _toast: '' }), 1800); };
+    const byId = {};
+    T.forEach((c) => { byId[c.id] = c; });
+    T.forEach((c) => {
+      const k = c.id;
+      if (c.k === 'sel') {
+        const cur = get(k, c.sel);
+        c.els.forEach((e, i) => {
+          const on = c.multi ? cur.indexOf(i) >= 0 : cur === i;
+          v[k + '_' + i + 's'] = fix(on ? e.on : e.off);
+          v[k + '_' + i + 'k'] = (ev) => {
+            pd(ev);
+            if (c.multi) { const a = cur.slice(); const j = a.indexOf(i); if (j >= 0) a.splice(j, 1); else a.push(i); set({ [k]: a }); }
+            else set({ [k]: i });
+          };
+        });
+      } else if (c.k === 'tog') {
+        const on = get(k, c.on);
+        v[k + 's'] = fix(on ? c.son : c.soff); v[k + 'n'] = on ? c.non : c.noff;
+        v[k + 'k'] = (ev) => { pd(ev); set({ [k]: !on }); };
+      } else if (c.k === 'chk') {
+        const on = get(k, c.on);
+        v[k + 's'] = fix(on ? c.son : c.soff); v[k + 't'] = on ? '✓' : '';
+        v[k + 'k'] = (ev) => { pd(ev); set({ [k]: !on }); };
+      } else if (c.k === 'step') {
+        const n = get(k, c.val);
+        v[k + 't'] = n + c.suf;
+        if (c.bst !== undefined) v[k + 'bs'] = c.bst.replace(/color: #(D1D5DB|111827)/, 'color: ' + (n ? '#111827' : '#D1D5DB'));
+        v[k + 'm'] = (ev) => { pd(ev); set({ [k]: Math.max(0, n - 1) }); };
+        v[k + 'p'] = (ev) => { pd(ev); set({ [k]: n + 1 }); };
+      } else if (c.k === 'field') {
+        v[k + 'v'] = get(k, c.val);
+        v[k + 'c'] = (ev) => set({ [k]: ev && ev.target ? ev.target.value : '' });
+      } else if (c.k === 'month') {
+        const off = get(k, 0); let y = c.y, m = c.m + off;
+        while (m < 1) { m += 12; y--; } while (m > 12) { m -= 12; y++; }
+        v[k + 't'] = y + '년 ' + m + '월';
+        v[k + 'm'] = (ev) => { pd(ev); set({ [k]: off - 1 }); };
+        v[k + 'p'] = (ev) => { pd(ev); set({ [k]: off + 1 }); };
+      } else if (c.k === 'act') {
+        const done = get(k, 0);
+        if (c.a === 'toast') v[k + 'k'] = (ev) => { pd(ev); toast(c.msg); };
+        if (c.a === 'copy') {
+          v[k + 't'] = done ? '복사했어요' : c.label;
+          v[k + 'k'] = (ev) => {
+            pd(ev);
+            let t = c.text;
+            if (c.codeFrom) t = t.replace(/maniball\.app\/j\/\w+/, 'maniball.app/j/' + get(c.codeFrom, 'TEST7Q'));
+            try { navigator.clipboard.writeText(t).catch(() => {}); } catch (e) {}
+            set({ [k]: 1 }); toast('복사했어요');
+            setTimeout(() => this.setState({ [k]: 0 }), 1600);
+          };
+        }
+        if (c.a === 'share') v[k + 'k'] = (ev) => {
+          if (!c.nav) pd(ev);
+          try { if (navigator.share) { navigator.share({ title: 'TEST FS', text: get('_msg', 'TEST FS 팀 관리 앱이에요. 링크 누르고 들어와요!'), url: 'https://maniball.app/j/TEST7Q' }).catch(() => {}); } } catch (e) {}
+          toast('카카오톡 공유 창을 열었어요');
+        };
+        if (c.a === 'hide') { v[k + 'r'] = c.rs + (done ? '; display: none' : ''); v[k + 'k'] = (ev) => { pd(ev); set({ [k]: 1 }); toast(c.msg); }; }
+        if (c.a === 'got') { v[k + 's'] = done ? c.s1 : c.s0; v[k + 't'] = done ? '받음 완료' : '받음'; v[k + 'k'] = (ev) => { pd(ev); if (!done) { set({ [k]: 1 }); toast('현금으로 받은 걸로 처리했어요'); } }; }
+        if (c.a === 'link') { v[k + 't'] = get(k, c.code); v[k + 'k'] = (ev) => { pd(ev); set({ [k]: Math.random().toString(36).slice(2, 8).toUpperCase() }); toast('새 링크를 만들었어요. 예전 링크는 막혔어요'); }; }
+        if (c.a === 'readall') {
+          (c.rows || []).forEach((r, i) => { v[k + '_' + i + 'r'] = done ? r.replace('background: #F0FDF4', 'background: #FFFFFF') : r; });
+          (c.dots || []).forEach((d, i) => { v[k + '_' + i + 'd'] = done ? d.replace('background: #DC2626', 'background: transparent') : d; });
+          v[k + 't'] = done ? '0개' : (c.cnt || '');
+          v[k + 'k'] = (ev) => { pd(ev); set({ [k]: 1 }); toast('모두 읽음으로 바꿨어요'); };
+        }
+        if (c.a === 'photo') {
+          const url = get(k, '');
+          v[k + 'ps'] = fix(c.ts) + (url ? '; background: center / cover no-repeat url(' + url + ')' : '');
+          v[k + 'sv'] = url ? 'display: none' : '';
+          v[k + 'pt'] = url ? '' : (c.pt || '');
+          v[k + 'c'] = (ev) => { const f = ev && ev.target && ev.target.files && ev.target.files[0]; if (f) { set({ [k]: URL.createObjectURL(f) }); toast('사진을 바꿨어요'); } };
+        }
+        if (c.a === 'selectall') v[k + 'k'] = (ev) => { pd(ev); const o = {}; T.forEach((x) => { if (x.k === 'chk') o[x.id] = true; }); set(o); toast('모두 골랐어요'); };
+        if (c.a === 'edit') v[k + 'k'] = (ev) => { pd(ev); set({ _edit: !get('_edit', false) }); };
+      }
+    });
+    const val = (id) => (byId[id] && byId[id].k === 'field' ? get(id, byId[id].val) : '');
+    const pick = (id) => { const c = byId[id]; if (!c) return ''; const i = get(id, c.sel); return c.multi ? i.map((x) => c.labs[x]) : (i >= 0 ? c.labs[i] : ''); };
+    const chk = (id) => { const c = byId[id]; return c ? get(id, c.on) : false; };
+
+    v.cdName = val('None') || ' '; v.cdNum = (val('c4') || '').replace(/\D/g, '');
+    return v;
   }
 }
 </script>
