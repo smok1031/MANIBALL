@@ -13,7 +13,8 @@ a{color:#15803D}
 <style>html{background:#E5E7EB}body{background:#E5E7EB}a{-webkit-tap-highlight-color:transparent}a[href="#"]{cursor:default}</style>
 </head>
 <body>
-<div style="width: 100%; max-width: 480px; box-sizing: border-box; min-height: 100dvh; margin: 0 auto; font-family: 'Noto Sans KR', sans-serif; color: #111827; background: #F6F7F9; display: flex; flex-direction: column; position: relative; word-break: keep-all">
+<div id="dc-root"></div>
+<template id="dc-tpl"><div style="width: 100%; max-width: 480px; box-sizing: border-box; min-height: 100dvh; margin: 0 auto; font-family: 'Noto Sans KR', sans-serif; color: #111827; background: #F6F7F9; display: flex; flex-direction: column; position: relative; word-break: keep-all">
   <header style="position: sticky; top: 0; z-index: 3; background: #FFFFFF; border-bottom: 1px solid #F3F4F6; height: 56px; padding: 0 8px; display: flex; align-items: center; gap: 4px">
     <a href="ScheduleAdmin.html" aria-label="뒤로" style="width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
     <b style="flex: 1; font-size: 17px">라인업 짜기</b>
@@ -21,7 +22,7 @@ a{color:#15803D}
   </header>
   <div style="padding: 14px 16px 20px; display: flex; flex-direction: column; gap: 12px">
     <div style="display: flex; justify-content: space-between; align-items: center"><span><b style="font-size: 16px">11.15 토 08:00 경기</b><br><span style="font-size: 13px; color: #6B7280">참석 10명, 늦참 1명</span></span><a href="AdminFormation.html" style="text-decoration: none; background: #FFFFFF; border: 1px solid #E5E7EB; color: #111827; border-radius: 999px; padding: 8px 12px; font-size: 13px; font-weight: 700">5대5, 1-2-1 ▾</a></div>
-    <div style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 2px; background: #E5E7EB; border-radius: 12px; padding: 3px; font-size: 12px; font-weight: 700; text-align: center"><a href="#" style="text-decoration: none; padding: 8px 0; background: #111827; color: #FFFFFF; border-radius: 9px">1Q</a><a href="#" style="text-decoration: none; padding: 8px 0; color: #6B7280">2Q</a><a href="#" style="text-decoration: none; padding: 8px 0; color: #6B7280">3Q</a><a href="#" style="text-decoration: none; padding: 8px 0; color: #6B7280">4Q</a><a href="#" style="text-decoration: none; padding: 8px 0; color: #6B7280">5Q</a><a href="#" style="text-decoration: none; padding: 8px 0; color: #6B7280">6Q</a><a href="#" style="text-decoration: none; padding: 8px 0; color: #6B7280">7Q</a><a href="#" style="text-decoration: none; padding: 8px 0; color: #6B7280">8Q</a></div>
+    <div style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 2px; background: #E5E7EB; border-radius: 12px; padding: 3px; font-size: 12px; font-weight: 700; text-align: center"><a href="#" style="{{ c1_0s }}" onClick="{{ c1_0k }}">1Q</a><a href="#" style="{{ c1_1s }}" onClick="{{ c1_1k }}">2Q</a><a href="#" style="{{ c1_2s }}" onClick="{{ c1_2k }}">3Q</a><a href="#" style="{{ c1_3s }}" onClick="{{ c1_3k }}">4Q</a><a href="#" style="{{ c1_4s }}" onClick="{{ c1_4k }}">5Q</a><a href="#" style="{{ c1_5s }}" onClick="{{ c1_5k }}">6Q</a><a href="#" style="{{ c1_6s }}" onClick="{{ c1_6k }}">7Q</a><a href="#" style="{{ c1_7s }}" onClick="{{ c1_7k }}">8Q</a></div>
     <div style="position: relative; height: 300px; border-radius: 18px; overflow: hidden; background: #4E7A45">
         <div style="position: absolute; left: 0; right: 0; top: 0; height: 25%; background: #558450"></div>
         <div style="position: absolute; left: 0; right: 0; top: 50%; height: 25%; background: #558450"></div>
@@ -35,7 +36,7 @@ a{color:#15803D}
       <b style="font-size: 14px">1쿼터 휴식 5명</b>
       <div style="display: flex; flex-wrap: wrap; gap: 6px"><span style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 999px; padding: 6px 11px; font-size: 13px">오태윤</span><span style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 999px; padding: 6px 11px; font-size: 13px">신재원</span><span style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 999px; padding: 6px 11px; font-size: 13px">한유찬</span><span style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 999px; padding: 6px 11px; font-size: 13px">황민재</span><span style="background: #FFFBEB; border: 1px solid #FDE68A; color: #92400E; border-radius: 999px; padding: 6px 11px; font-size: 13px">최하준 2Q부터</span></div>
     </div>
-    <a href="#" style="display: block; text-decoration: none; text-align: center; background: #15803D; color: #FFFFFF; font-weight: 700; font-size: 16px; padding: 15px 0; border-radius: 14px; font-size: 15px">포지션 맞춰 휴식 자동 배치</a>
+    <a href="#" style="display: block; text-decoration: none; text-align: center; background: #15803D; color: #FFFFFF; font-weight: 700; font-size: 16px; padding: 15px 0; border-radius: 14px; font-size: 15px" onClick="{{ c2k }}">포지션 맞춰 휴식 자동 배치</a>
     <div style="background: #FFFFFF; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px; padding: 14px; gap: 8px">
       <div style="display: flex; justify-content: space-between"><b style="font-size: 14px">쿼터 수</b><span style="font-size: 12px; color: #15803D; font-weight: 700">필드 1인 3~4쿼터로 고르게 맞췄어요</span></div>
       <div style="display: flex; align-items: center; gap: 8px; font-size: 13px"><b style="width: 52px">윤지호</b><span style="flex: 1; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px"><i style="height: 8px; border-radius: 2px; background: #15803D"></i><i style="height: 8px; border-radius: 2px; background: #15803D"></i><i style="height: 8px; border-radius: 2px; background: #15803D"></i><i style="height: 8px; border-radius: 2px; background: #15803D"></i><i style="height: 8px; border-radius: 2px; background: #15803D"></i><i style="height: 8px; border-radius: 2px; background: #15803D"></i><i style="height: 8px; border-radius: 2px; background: #15803D"></i><i style="height: 8px; border-radius: 2px; background: #15803D"></i></span><b style="width: 26px; text-align: right">8</b></div><div style="display: flex; align-items: center; gap: 8px; font-size: 13px"><b style="width: 52px">김민준</b><span style="flex: 1; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px"><i style="height: 8px; border-radius: 2px; background: #15803D"></i><i style="height: 8px; border-radius: 2px; background: #15803D"></i><i style="height: 8px; border-radius: 2px; background: #E5E7EB"></i><i style="height: 8px; border-radius: 2px; background: #15803D"></i><i style="height: 8px; border-radius: 2px; background: #15803D"></i><i style="height: 8px; border-radius: 2px; background: #E5E7EB"></i><i style="height: 8px; border-radius: 2px; background: #15803D"></i><i style="height: 8px; border-radius: 2px; background: #E5E7EB"></i></span><b style="width: 26px; text-align: right">5</b></div><div style="display: flex; align-items: center; gap: 8px; font-size: 13px"><b style="width: 52px">정우진</b><span style="flex: 1; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px"><i style="height: 8px; border-radius: 2px; background: #15803D"></i><i style="height: 8px; border-radius: 2px; background: #E5E7EB"></i><i style="height: 8px; border-radius: 2px; background: #15803D"></i><i style="height: 8px; border-radius: 2px; background: #15803D"></i><i style="height: 8px; border-radius: 2px; background: #E5E7EB"></i><i style="height: 8px; border-radius: 2px; background: #15803D"></i><i style="height: 8px; border-radius: 2px; background: #E5E7EB"></i><i style="height: 8px; border-radius: 2px; background: linear-gradient(90deg, #15803D 50%, #E5E7EB 50%)"></i></span><b style="width: 26px; text-align: right">4.5</b></div><div style="display: flex; align-items: center; gap: 8px; font-size: 13px"><b style="width: 52px">최하준</b><span style="flex: 1; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px"><i style="height: 8px; border-radius: 2px; background: #E5E7EB"></i><i style="height: 8px; border-radius: 2px; background: #15803D"></i><i style="height: 8px; border-radius: 2px; background: #E5E7EB"></i><i style="height: 8px; border-radius: 2px; background: #E5E7EB"></i><i style="height: 8px; border-radius: 2px; background: #15803D"></i><i style="height: 8px; border-radius: 2px; background: #E5E7EB"></i><i style="height: 8px; border-radius: 2px; background: #15803D"></i><i style="height: 8px; border-radius: 2px; background: #15803D"></i></span><b style="width: 26px; text-align: right">4</b></div><div style="display: flex; align-items: center; gap: 8px; font-size: 13px"><b style="width: 52px">오태윤</b><span style="flex: 1; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px"><i style="height: 8px; border-radius: 2px; background: #E5E7EB"></i><i style="height: 8px; border-radius: 2px; background: #15803D"></i><i style="height: 8px; border-radius: 2px; background: #15803D"></i><i style="height: 8px; border-radius: 2px; background: #E5E7EB"></i><i style="height: 8px; border-radius: 2px; background: #15803D"></i><i style="height: 8px; border-radius: 2px; background: #E5E7EB"></i><i style="height: 8px; border-radius: 2px; background: linear-gradient(90deg, #15803D 50%, #E5E7EB 50%)"></i><i style="height: 8px; border-radius: 2px; background: #E5E7EB"></i></span><b style="width: 26px; text-align: right">3.5</b></div>
@@ -43,9 +44,108 @@ a{color:#15803D}
     </div>
   </div>
   <div style="position: sticky; bottom: 0; margin-top: auto; background: #FFFFFF; border-top: 1px solid #F3F4F6; padding: 12px 16px 28px; display: flex; flex-direction: column; gap: 8px">
-    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px"><a href="#" style="display: block; text-decoration: none; text-align: center; background: #F3F4F6; color: #111827; font-weight: 700; font-size: 15px; padding: 14px 0; border-radius: 14px">한 장 PDF 저장</a><a href="AdminLineupShare.html" style="display: block; text-decoration: none; text-align: center; background: #15803D; color: #FFFFFF; font-weight: 700; font-size: 16px; padding: 15px 0; border-radius: 14px; font-size: 15px">팀원에게 공유</a></div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px"><a href="#" style="display: block; text-decoration: none; text-align: center; background: #F3F4F6; color: #111827; font-weight: 700; font-size: 15px; padding: 14px 0; border-radius: 14px" onClick="{{ c3k }}">한 장 PDF 저장</a><a href="AdminLineupShare.html" style="display: block; text-decoration: none; text-align: center; background: #15803D; color: #FFFFFF; font-weight: 700; font-size: 16px; padding: 15px 0; border-radius: 14px; font-size: 15px">팀원에게 공유</a></div>
   </div>
-</div>
+  <sc-if value="{{ toastOn }}" hint-placeholder-val="{{ false }}"><div role="status" style="position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); z-index: 50; width: max-content; max-width: 340px; box-sizing: border-box; background: #111827; color: #FFFFFF; font-size: 14px; font-weight: 700; line-height: 1.5; padding: 12px 16px; border-radius: 14px; text-align: center; box-shadow: 0 10px 24px rgba(17,24,39,0.25)">{{ toastText }}</div></sc-if>
+</div></template>
+<script type="text/x-dc" id="dc-code">
+class Component extends DCLogic {
+  renderVals() { /*maniball-interactive*/
+    const A = this.props.accent ?? '#15803D';
+    const S = this.state || {};
+    const T = [{"id": "c1", "k": "sel", "multi": false, "sel": 0, "els": [{"on": "text-decoration: none; padding: 8px 0; background: #111827; color: #FFFFFF; border-radius: 9px", "off": "text-decoration: none; padding: 8px 0; color: #6B7280"}, {"on": "text-decoration: none; padding: 8px 0; background: #111827; color: #FFFFFF; border-radius: 9px", "off": "text-decoration: none; padding: 8px 0; color: #6B7280"}, {"on": "text-decoration: none; padding: 8px 0; background: #111827; color: #FFFFFF; border-radius: 9px", "off": "text-decoration: none; padding: 8px 0; color: #6B7280"}, {"on": "text-decoration: none; padding: 8px 0; background: #111827; color: #FFFFFF; border-radius: 9px", "off": "text-decoration: none; padding: 8px 0; color: #6B7280"}, {"on": "text-decoration: none; padding: 8px 0; background: #111827; color: #FFFFFF; border-radius: 9px", "off": "text-decoration: none; padding: 8px 0; color: #6B7280"}, {"on": "text-decoration: none; padding: 8px 0; background: #111827; color: #FFFFFF; border-radius: 9px", "off": "text-decoration: none; padding: 8px 0; color: #6B7280"}, {"on": "text-decoration: none; padding: 8px 0; background: #111827; color: #FFFFFF; border-radius: 9px", "off": "text-decoration: none; padding: 8px 0; color: #6B7280"}, {"on": "text-decoration: none; padding: 8px 0; background: #111827; color: #FFFFFF; border-radius: 9px", "off": "text-decoration: none; padding: 8px 0; color: #6B7280"}], "labs": ["1Q", "2Q", "3Q", "4Q", "5Q", "6Q", "7Q", "8Q"]}, {"id": "c2", "k": "act", "a": "toast", "msg": "포지션에 맞춰 휴식을 다시 배치했어요"}, {"id": "c3", "k": "act", "a": "toast", "msg": "라인업을 PDF 한 장으로 저장했어요"}];
+    const fix = (x) => String(x == null ? '' : x).split('{{accent}}').join(A);
+    const set = (o) => this.setState(o);
+    const pd = (e) => { if (e && e.preventDefault) e.preventDefault(); };
+    const get = (k, d) => (S[k] === undefined ? d : S[k]);
+    const v = { accent: A, toastOn: !!S._toast, toastText: S._toast || '' };
+    const toast = (m) => { set({ _toast: m }); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ _toast: '' }), 1800); };
+    const byId = {};
+    T.forEach((c) => { byId[c.id] = c; });
+    T.forEach((c) => {
+      const k = c.id;
+      if (c.k === 'sel') {
+        const cur = get(k, c.sel);
+        c.els.forEach((e, i) => {
+          const on = c.multi ? cur.indexOf(i) >= 0 : cur === i;
+          v[k + '_' + i + 's'] = fix(on ? e.on : e.off);
+          v[k + '_' + i + 'k'] = (ev) => {
+            pd(ev);
+            if (c.multi) { const a = cur.slice(); const j = a.indexOf(i); if (j >= 0) a.splice(j, 1); else a.push(i); set({ [k]: a }); }
+            else set({ [k]: i });
+          };
+        });
+      } else if (c.k === 'tog') {
+        const on = get(k, c.on);
+        v[k + 's'] = fix(on ? c.son : c.soff); v[k + 'n'] = on ? c.non : c.noff;
+        v[k + 'k'] = (ev) => { pd(ev); set({ [k]: !on }); };
+      } else if (c.k === 'chk') {
+        const on = get(k, c.on);
+        v[k + 's'] = fix(on ? c.son : c.soff); v[k + 't'] = on ? '✓' : '';
+        v[k + 'k'] = (ev) => { pd(ev); set({ [k]: !on }); };
+      } else if (c.k === 'step') {
+        const n = get(k, c.val);
+        v[k + 't'] = n + c.suf;
+        if (c.bst !== undefined) v[k + 'bs'] = c.bst.replace(/color: #(D1D5DB|111827)/, 'color: ' + (n ? '#111827' : '#D1D5DB'));
+        v[k + 'm'] = (ev) => { pd(ev); set({ [k]: Math.max(0, n - 1) }); };
+        v[k + 'p'] = (ev) => { pd(ev); set({ [k]: n + 1 }); };
+      } else if (c.k === 'field') {
+        v[k + 'v'] = get(k, c.val);
+        v[k + 'c'] = (ev) => set({ [k]: ev && ev.target ? ev.target.value : '' });
+      } else if (c.k === 'month') {
+        const off = get(k, 0); let y = c.y, m = c.m + off;
+        while (m < 1) { m += 12; y--; } while (m > 12) { m -= 12; y++; }
+        v[k + 't'] = y + '년 ' + m + '월';
+        v[k + 'm'] = (ev) => { pd(ev); set({ [k]: off - 1 }); };
+        v[k + 'p'] = (ev) => { pd(ev); set({ [k]: off + 1 }); };
+      } else if (c.k === 'act') {
+        const done = get(k, 0);
+        if (c.a === 'toast') v[k + 'k'] = (ev) => { pd(ev); toast(c.msg); };
+        if (c.a === 'copy') {
+          v[k + 't'] = done ? '복사했어요' : c.label;
+          v[k + 'k'] = (ev) => {
+            pd(ev);
+            let t = c.text;
+            if (c.codeFrom) t = t.replace(/maniball\.app\/j\/\w+/, 'maniball.app/j/' + get(c.codeFrom, 'TEST7Q'));
+            try { navigator.clipboard.writeText(t).catch(() => {}); } catch (e) {}
+            set({ [k]: 1 }); toast('복사했어요');
+            setTimeout(() => this.setState({ [k]: 0 }), 1600);
+          };
+        }
+        if (c.a === 'share') v[k + 'k'] = (ev) => {
+          if (!c.nav) pd(ev);
+          try { if (navigator.share) { navigator.share({ title: 'TEST FS', text: get('_msg', 'TEST FS 팀 관리 앱이에요. 링크 누르고 들어와요!'), url: 'https://maniball.app/j/TEST7Q' }).catch(() => {}); } } catch (e) {}
+          toast('카카오톡 공유 창을 열었어요');
+        };
+        if (c.a === 'hide') { v[k + 'r'] = c.rs + (done ? '; display: none' : ''); v[k + 'k'] = (ev) => { pd(ev); set({ [k]: 1 }); toast(c.msg); }; }
+        if (c.a === 'got') { v[k + 's'] = done ? c.s1 : c.s0; v[k + 't'] = done ? '받음 완료' : '받음'; v[k + 'k'] = (ev) => { pd(ev); if (!done) { set({ [k]: 1 }); toast('현금으로 받은 걸로 처리했어요'); } }; }
+        if (c.a === 'link') { v[k + 't'] = get(k, c.code); v[k + 'k'] = (ev) => { pd(ev); set({ [k]: Math.random().toString(36).slice(2, 8).toUpperCase() }); toast('새 링크를 만들었어요. 예전 링크는 막혔어요'); }; }
+        if (c.a === 'readall') {
+          (c.rows || []).forEach((r, i) => { v[k + '_' + i + 'r'] = done ? r.replace('background: #F0FDF4', 'background: #FFFFFF') : r; });
+          (c.dots || []).forEach((d, i) => { v[k + '_' + i + 'd'] = done ? d.replace('background: #DC2626', 'background: transparent') : d; });
+          v[k + 't'] = done ? '0개' : (c.cnt || '');
+          v[k + 'k'] = (ev) => { pd(ev); set({ [k]: 1 }); toast('모두 읽음으로 바꿨어요'); };
+        }
+        if (c.a === 'photo') {
+          const url = get(k, '');
+          v[k + 'ps'] = fix(c.ts) + (url ? '; background: center / cover no-repeat url(' + url + ')' : '');
+          v[k + 'sv'] = url ? 'display: none' : '';
+          v[k + 'pt'] = url ? '' : (c.pt || '');
+          v[k + 'c'] = (ev) => { const f = ev && ev.target && ev.target.files && ev.target.files[0]; if (f) { set({ [k]: URL.createObjectURL(f) }); toast('사진을 바꿨어요'); } };
+        }
+        if (c.a === 'selectall') v[k + 'k'] = (ev) => { pd(ev); const o = {}; T.forEach((x) => { if (x.k === 'chk') o[x.id] = true; }); set(o); toast('모두 골랐어요'); };
+        if (c.a === 'edit') v[k + 'k'] = (ev) => { pd(ev); set({ _edit: !get('_edit', false) }); };
+      }
+    });
+    const val = (id) => (byId[id] && byId[id].k === 'field' ? get(id, byId[id].val) : '');
+    const pick = (id) => { const c = byId[id]; if (!c) return ''; const i = get(id, c.sel); return c.multi ? i.map((x) => c.labs[x]) : (i >= 0 ? c.labs[i] : ''); };
+    const chk = (id) => { const c = byId[id]; return c ? get(id, c.on) : false; };
+
+
+    return v;
+  }
+}
+</script>
 <script src="proto.js"></script>
 </body>
 </html>

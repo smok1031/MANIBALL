@@ -13,7 +13,8 @@ a{color:#15803D}
 <style>html{background:#E5E7EB}body{background:#E5E7EB}a{-webkit-tap-highlight-color:transparent}a[href="#"]{cursor:default}</style>
 </head>
 <body>
-<div style="width: 100%; max-width: 480px; box-sizing: border-box; min-height: 100dvh; margin: 0 auto; font-family: 'Noto Sans KR', sans-serif; color: #111827; background: #FFFFFF; display: flex; flex-direction: column; word-break: keep-all">
+<div id="dc-root"></div>
+<template id="dc-tpl"><div style="width: 100%; max-width: 480px; box-sizing: border-box; min-height: 100dvh; margin: 0 auto; font-family: 'Noto Sans KR', sans-serif; color: #111827; background: #FFFFFF; display: flex; flex-direction: column; word-break: keep-all">
   <header style="position: sticky; top: 0; z-index: 2; background: #FFFFFF; border-bottom: 1px solid #F3F4F6; height: 56px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between">
     <a href="../" aria-label="뒤로" style="width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
     <b style="font-size: 17px">팀 만들기</b>
@@ -24,45 +25,46 @@ a{color:#15803D}
     <div>
       <h1 style="font-size: 28px; font-weight: 900; letter-spacing: -0.8px; margin: 0 0 8px">우리 팀을 만들어요</h1>
       <p style="margin: 0; color: #4B5563; font-size: 15px; line-height: 1.6">세 가지만 정하면 돼요. 아래에서 팀원이 보게 될 화면을 바로 확인할 수 있어요.</p>
-      <label style="display: flex; flex-direction: column; gap: 6px; margin-top: 20px"><span style="color: #6B7280; font-size: 14px">팀 이름</span><span style="border: 2px solid #15803D; border-radius: 12px; padding: 13px 14px; font-size: 18px; font-weight: 700">TEST FS</span></label>
+      <label style="display: flex; flex-direction: column; gap: 6px; margin-top: 20px"><span style="color: #6B7280; font-size: 14px">팀 이름</span><span style="border: 2px solid #15803D; border-radius: 12px; padding: 13px 14px; font-size: 18px; font-weight: 700"><input aria-label="팀 이름" value="{{ c4v }}" onChange="{{ c4c }}" style="border: 0; outline: none; background: transparent; font: inherit; color: #111827; padding: 0; margin: 0; min-width: 0; width: 100%; flex: 1"></span></label>
     </div>
 
     <section style="display: flex; flex-direction: column; gap: 12px">
       <span style="font-size: 13px; font-weight: 900; color: #15803D">01 종목</span>
       <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; background: #F3F4F6; border-radius: 14px; padding: 5px; font-weight: 700; text-align: center; font-size: 16px">
-        <a href="#" style="text-decoration: none; color: #6B7280; padding: 12px 0">축구팀</a>
-        <a href="#" style="text-decoration: none; color: #111827; padding: 12px 0; background: #FFFFFF; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.08)">풋살팀</a>
+        <a href="#" style="{{ c1_0s }}" onClick="{{ c1_0k }}">축구팀</a>
+        <a href="#" style="{{ c1_1s }}" onClick="{{ c1_1k }}">풋살팀</a>
       </div>
     </section>
 
     <section style="display: flex; flex-direction: column; gap: 12px">
       <span style="font-size: 13px; font-weight: 900; color: #15803D">02 회비</span>
       <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; background: #F3F4F6; border-radius: 14px; padding: 5px; font-weight: 700; text-align: center; font-size: 15px">
-        <a href="#" style="text-decoration: none; color: #111827; padding: 11px 0; background: #FFFFFF; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.08)">월회비</a>
-        <a href="#" style="text-decoration: none; color: #6B7280; padding: 11px 0">경기마다</a>
-        <a href="#" style="text-decoration: none; color: #6B7280; padding: 11px 0">안 받음</a>
+        <a href="#" style="{{ c2_0s }}" onClick="{{ c2_0k }}">월회비</a>
+        <a href="#" style="{{ c2_1s }}" onClick="{{ c2_1k }}">경기마다</a>
+        <a href="#" style="{{ c2_2s }}" onClick="{{ c2_2k }}">안 받음</a>
       </div>
-      <label style="display: flex; flex-direction: column; gap: 6px"><span style="color: #6B7280; font-size: 14px">금액</span><span style="border: 1px solid #D1D5DB; border-radius: 12px; padding: 14px; font-size: 18px; font-weight: 700; display: flex; justify-content: space-between">30,000<span style="color: #6B7280; font-weight: 500; font-size: 15px">원</span></span></label>
+      <label style="display: flex; flex-direction: column; gap: 6px"><span style="color: #6B7280; font-size: 14px">금액</span><span style="border: 1px solid #D1D5DB; border-radius: 12px; padding: 14px; font-size: 18px; font-weight: 700; display: flex; justify-content: space-between"><input aria-label="금액" value="{{ c5v }}" onChange="{{ c5c }}" style="border: 0; outline: none; background: transparent; font: inherit; color: #111827; padding: 0; margin: 0; min-width: 0; width: 100%; flex: 1"><span style="color: #6B7280; font-weight: 500; font-size: 15px">원</span></span></label>
       <span style="color: #6B7280; font-size: 14px">납부일</span>
       <div style="display: flex; gap: 8px; overflow: hidden; font-size: 15px; font-weight: 700; white-space: nowrap; margin-right: -20px">
-        <a href="#" style="text-decoration: none; color: #111827; border: 1px solid #E5E7EB; border-radius: 999px; padding: 10px 16px">1일</a>
-        <a href="#" style="text-decoration: none; background: #15803D; color: #FFFFFF; border-radius: 999px; padding: 10px 16px">5일</a>
-        <a href="#" style="text-decoration: none; color: #111827; border: 1px solid #E5E7EB; border-radius: 999px; padding: 10px 16px">10일</a>
-        <a href="#" style="text-decoration: none; color: #111827; border: 1px solid #E5E7EB; border-radius: 999px; padding: 10px 16px">25일</a>
-        <a href="#" style="text-decoration: none; color: #111827; border: 1px solid #E5E7EB; border-radius: 999px; padding: 10px 16px">말일</a>
-        <a href="#" style="text-decoration: none; border: 1px dashed #D1D5DB; color: #6B7280; border-radius: 999px; padding: 10px 16px">직접</a>
-      </div>
+        <a href="#" style="{{ c3_0s }}" onClick="{{ c3_0k }}">1일</a>
+        <a href="#" style="{{ c3_1s }}" onClick="{{ c3_1k }}">5일</a>
+        <a href="#" style="{{ c3_2s }}" onClick="{{ c3_2k }}">10일</a>
+        <a href="#" style="{{ c3_3s }}" onClick="{{ c3_3k }}">25일</a>
+        <a href="#" style="{{ c3_4s }}" onClick="{{ c3_4k }}">말일</a>
+        <a href="#" style="{{ c3_5s }}" onClick="{{ c3_5k }}">직접</a>
+      </div><sc-if value="{{ dayOwn }}" hint-placeholder-val="{{ false }}"><label style="display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 15px; color: #374151">매월<span style="flex: none; width: 72px; border: 1px solid #D1D5DB; border-radius: 12px; padding: 10px 12px; display: flex; align-items: center; background: #FFFFFF"><input aria-label="납부일 직접 입력" inputmode="numeric" placeholder="15" value="{{ dayV }}" onChange="{{ dayC }}" style="border: 0; outline: none; background: transparent; font: inherit; color: #111827; padding: 0; margin: 0; min-width: 0; width: 100%; font-weight: 700; text-align: right"></span>일까지</label></sc-if>
       <span style="font-size: 13px; color: #6B7280; line-height: 1.5">입금 받을 계좌는 팀을 만든 뒤 회비 화면에서 넣을 수 있어요.</span>
     </section>
 
     <section style="display: flex; flex-direction: column; gap: 12px">
       <span style="font-size: 13px; font-weight: 900; color: #15803D">03 운영수칙</span>
       <div style="border: 1px solid #E5E7EB; border-radius: 18px; overflow: hidden; font-size: 15px">
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #F3F4F6"><span>지각<br><span style="color: #6B7280; font-size: 13px">킥오프 10분 전 기준</span></span><b>2,000원</b></div>
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #F3F4F6"><span>무단 결석</span><b>10,000원</b></div>
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #F3F4F6"><span>직전 취소<br><span style="color: #6B7280; font-size: 13px">전날 21시 이후</span></span><b>5,000원</b></div>
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #F3F4F6"><span>구장 정리는 다 같이 해요</span><span style="color: #6B7280; font-size: 13px; flex: none">글 수칙</span></div>
-        <a href="#" style="display: block; text-decoration: none; padding: 14px 16px; color: #15803D; font-weight: 700">+ 수칙 추가</a>
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #F3F4F6"><span><input aria-label="수칙 이름" value="{{ r0nv }}" onChange="{{ r0nc }}" style="border: 0; outline: none; background: transparent; font: inherit; color: #111827; padding: 0; margin: 0; min-width: 0; width: 100%; font-size: 15px"><br><span style="color: #6B7280; font-size: 13px">킥오프 10분 전 기준</span></span><b><input aria-label="벌금" value="{{ r0av }}" onChange="{{ r0ac }}" style="border: 0; outline: none; background: transparent; font: inherit; color: #111827; padding: 0; margin: 0; min-width: 0; width: 84px; text-align: right; font-weight: 700"></b></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #F3F4F6"><span><input aria-label="수칙 이름" value="{{ r1nv }}" onChange="{{ r1nc }}" style="border: 0; outline: none; background: transparent; font: inherit; color: #111827; padding: 0; margin: 0; min-width: 0; width: 100%; font-size: 15px"></span><b><input aria-label="벌금" value="{{ r1av }}" onChange="{{ r1ac }}" style="border: 0; outline: none; background: transparent; font: inherit; color: #111827; padding: 0; margin: 0; min-width: 0; width: 84px; text-align: right; font-weight: 700"></b></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #F3F4F6"><span><input aria-label="수칙 이름" value="{{ r2nv }}" onChange="{{ r2nc }}" style="border: 0; outline: none; background: transparent; font: inherit; color: #111827; padding: 0; margin: 0; min-width: 0; width: 100%; font-size: 15px"><br><span style="color: #6B7280; font-size: 13px">전날 21시 이후</span></span><b><input aria-label="벌금" value="{{ r2av }}" onChange="{{ r2ac }}" style="border: 0; outline: none; background: transparent; font: inherit; color: #111827; padding: 0; margin: 0; min-width: 0; width: 84px; text-align: right; font-weight: 700"></b></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #F3F4F6"><span><input aria-label="수칙 이름" value="{{ r3nv }}" onChange="{{ r3nc }}" style="border: 0; outline: none; background: transparent; font: inherit; color: #111827; padding: 0; margin: 0; min-width: 0; width: 100%; font-size: 15px"></span><span style="color: #6B7280; font-size: 13px; flex: none">글 수칙</span></div>
+        <sc-for list="{{ added }}" as="r" hint-placeholder-count="0"><div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #F3F4F6"><input aria-label="새 수칙 이름" placeholder="새 수칙" value="{{ r.nv }}" onChange="{{ r.nc }}" style="border: 0; outline: none; background: transparent; font: inherit; color: #111827; padding: 0; margin: 0; min-width: 0; flex: 1; font-size: 15px"><input aria-label="벌금" placeholder="0원" value="{{ r.av }}" onChange="{{ r.ac }}" style="border: 0; outline: none; background: transparent; font: inherit; color: #111827; padding: 0; margin: 0; min-width: 0; width: 84px; text-align: right; font-weight: 700"></div></sc-for>
+        <a href="#" style="display: block; text-decoration: none; padding: 14px 16px; color: #15803D; font-weight: 700" onClick="{{ addRule }}">+ 수칙 추가</a>
       </div>
     </section>
 
@@ -73,20 +75,20 @@ a{color:#15803D}
       </div>
       <div style="background: #F6F7F9; border-radius: 22px; padding: 16px 14px; display: flex; flex-direction: column; gap: 10px">
         <div style="padding: 0 4px">
-          <div style="font-size: 11px; color: #6B7280; font-weight: 700">풋살팀</div>
-          <b style="font-size: 19px; font-weight: 900">TEST FS</b>
+          <div style="font-size: 11px; color: #6B7280; font-weight: 700">{{ pvSport }}</div>
+          <b style="font-size: 19px; font-weight: 900">{{ pvName }}</b>
         </div>
         <div style="background: #FFFFFF; border-radius: 18px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px">
           <b style="font-size: 14px">회비</b>
-          <span style="font-size: 22px; font-weight: 900">30,000원<span style="font-size: 12px; color: #6B7280; font-weight: 500"> / 월</span></span>
-          <span style="font-size: 12px; color: #4B5563">매월 5일까지 내요</span>
+          <span style="font-size: 22px; font-weight: 900">{{ pvAmt }}<span style="font-size: 12px; color: #6B7280; font-weight: 500">{{ pvUnit }}</span></span>
+          <span style="font-size: 12px; color: #4B5563">{{ pvNote }}</span>
         </div>
         <div style="background: #FFFFFF; border-radius: 18px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; font-size: 13px">
           <b style="font-size: 14px">우리 팀 수칙</b>
-          <div style="display: flex; justify-content: space-between"><span>지각 (10분 전 기준)</span><b>2,000원</b></div>
-          <div style="display: flex; justify-content: space-between"><span>무단 결석</span><b>10,000원</b></div>
-          <div style="display: flex; justify-content: space-between"><span>직전 취소</span><b>5,000원</b></div>
-          <div style="color: #4B5563">구장 정리는 다 같이 해요</div>
+          <div style="display: flex; justify-content: space-between"><span>{{ p0n }}</span><b>{{ p0a }}</b></div>
+          <div style="display: flex; justify-content: space-between"><span>{{ p1n }}</span><b>{{ p1a }}</b></div>
+          <div style="display: flex; justify-content: space-between"><span>{{ p2n }}</span><b>{{ p2a }}</b></div>
+          <div style="color: #4B5563">{{ p3n }}</div><sc-for list="{{ added }}" as="r" hint-placeholder-count="0"><div style="display: flex; justify-content: space-between"><span>{{ r.pn }}</span><b>{{ r.pa }}</b></div></sc-for>
         </div>
         <div style="background: #DCFCE7; color: #166534; border-radius: 14px; padding: 12px 14px; font-size: 12px; font-weight: 700">처음 들어오면 수칙에 동의하고 시작해요</div>
       </div>
@@ -97,7 +99,121 @@ a{color:#15803D}
     <a href="InviteMessage.html" style="display: block; text-decoration: none; background: #15803D; color: #FFFFFF; font-weight: 700; font-size: 17px; padding: 16px 0; border-radius: 14px; text-align: center">팀 만들고 초대 링크 받기</a>
     <span style="color: #6B7280; font-size: 13px; text-align: center">팀 이름과 모든 설정은 나중에 바꿀 수 있어요</span>
   </div>
-</div>
+</div></template>
+<script type="text/x-dc" id="dc-code">
+class Component extends DCLogic {
+  renderVals() { /*maniball-interactive*/
+    const A = this.props.accent ?? '#15803D';
+    const S = this.state || {};
+    const T = [{"id": "c1", "k": "sel", "multi": false, "sel": 1, "els": [{"on": "text-decoration: none; color: #111827; padding: 12px 0; background: #FFFFFF; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.08)", "off": "text-decoration: none; color: #6B7280; padding: 12px 0"}, {"on": "text-decoration: none; color: #111827; padding: 12px 0; background: #FFFFFF; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.08)", "off": "text-decoration: none; color: #6B7280; padding: 12px 0"}], "labs": ["축구팀", "풋살팀"]}, {"id": "c2", "k": "sel", "multi": false, "sel": 0, "els": [{"on": "text-decoration: none; color: #111827; padding: 11px 0; background: #FFFFFF; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.08)", "off": "text-decoration: none; color: #6B7280; padding: 11px 0"}, {"on": "text-decoration: none; color: #111827; padding: 11px 0; background: #FFFFFF; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.08)", "off": "text-decoration: none; color: #6B7280; padding: 11px 0"}, {"on": "text-decoration: none; color: #111827; padding: 11px 0; background: #FFFFFF; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.08)", "off": "text-decoration: none; color: #6B7280; padding: 11px 0"}], "labs": ["월회비", "경기마다", "안 받음"]}, {"id": "c3", "k": "sel", "multi": false, "sel": 1, "els": [{"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; border-radius: 999px; padding: 10px 16px", "off": "text-decoration: none; color: #111827; border: 1px solid #E5E7EB; border-radius: 999px; padding: 10px 16px"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; border-radius: 999px; padding: 10px 16px", "off": "text-decoration: none; color: #111827; border: 1px solid #E5E7EB; border-radius: 999px; padding: 10px 16px"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; border-radius: 999px; padding: 10px 16px", "off": "text-decoration: none; color: #111827; border: 1px solid #E5E7EB; border-radius: 999px; padding: 10px 16px"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; border-radius: 999px; padding: 10px 16px", "off": "text-decoration: none; color: #111827; border: 1px solid #E5E7EB; border-radius: 999px; padding: 10px 16px"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; border-radius: 999px; padding: 10px 16px", "off": "text-decoration: none; color: #111827; border: 1px solid #E5E7EB; border-radius: 999px; padding: 10px 16px"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; border-radius: 999px; padding: 10px 16px", "off": "text-decoration: none; border: 1px dashed #D1D5DB; color: #6B7280; border-radius: 999px; padding: 10px 16px"}], "labs": ["1일", "5일", "10일", "25일", "말일", "직접"]}, {"id": "c4", "k": "field", "val": "TEST FS", "label": "팀 이름", "node": 2239}, {"id": "c5", "k": "field", "val": "30,000", "label": "금액", "node": 3904}];
+    const fix = (x) => String(x == null ? '' : x).split('{{accent}}').join(A);
+    const set = (o) => this.setState(o);
+    const pd = (e) => { if (e && e.preventDefault) e.preventDefault(); };
+    const get = (k, d) => (S[k] === undefined ? d : S[k]);
+    const v = { accent: A, toastOn: !!S._toast, toastText: S._toast || '' };
+    const toast = (m) => { set({ _toast: m }); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ _toast: '' }), 1800); };
+    const byId = {};
+    T.forEach((c) => { byId[c.id] = c; });
+    T.forEach((c) => {
+      const k = c.id;
+      if (c.k === 'sel') {
+        const cur = get(k, c.sel);
+        c.els.forEach((e, i) => {
+          const on = c.multi ? cur.indexOf(i) >= 0 : cur === i;
+          v[k + '_' + i + 's'] = fix(on ? e.on : e.off);
+          v[k + '_' + i + 'k'] = (ev) => {
+            pd(ev);
+            if (c.multi) { const a = cur.slice(); const j = a.indexOf(i); if (j >= 0) a.splice(j, 1); else a.push(i); set({ [k]: a }); }
+            else set({ [k]: i });
+          };
+        });
+      } else if (c.k === 'tog') {
+        const on = get(k, c.on);
+        v[k + 's'] = fix(on ? c.son : c.soff); v[k + 'n'] = on ? c.non : c.noff;
+        v[k + 'k'] = (ev) => { pd(ev); set({ [k]: !on }); };
+      } else if (c.k === 'chk') {
+        const on = get(k, c.on);
+        v[k + 's'] = fix(on ? c.son : c.soff); v[k + 't'] = on ? '✓' : '';
+        v[k + 'k'] = (ev) => { pd(ev); set({ [k]: !on }); };
+      } else if (c.k === 'step') {
+        const n = get(k, c.val);
+        v[k + 't'] = n + c.suf;
+        if (c.bst !== undefined) v[k + 'bs'] = c.bst.replace(/color: #(D1D5DB|111827)/, 'color: ' + (n ? '#111827' : '#D1D5DB'));
+        v[k + 'm'] = (ev) => { pd(ev); set({ [k]: Math.max(0, n - 1) }); };
+        v[k + 'p'] = (ev) => { pd(ev); set({ [k]: n + 1 }); };
+      } else if (c.k === 'field') {
+        v[k + 'v'] = get(k, c.val);
+        v[k + 'c'] = (ev) => set({ [k]: ev && ev.target ? ev.target.value : '' });
+      } else if (c.k === 'month') {
+        const off = get(k, 0); let y = c.y, m = c.m + off;
+        while (m < 1) { m += 12; y--; } while (m > 12) { m -= 12; y++; }
+        v[k + 't'] = y + '년 ' + m + '월';
+        v[k + 'm'] = (ev) => { pd(ev); set({ [k]: off - 1 }); };
+        v[k + 'p'] = (ev) => { pd(ev); set({ [k]: off + 1 }); };
+      } else if (c.k === 'act') {
+        const done = get(k, 0);
+        if (c.a === 'toast') v[k + 'k'] = (ev) => { pd(ev); toast(c.msg); };
+        if (c.a === 'copy') {
+          v[k + 't'] = done ? '복사했어요' : c.label;
+          v[k + 'k'] = (ev) => {
+            pd(ev);
+            let t = c.text;
+            if (c.codeFrom) t = t.replace(/maniball\.app\/j\/\w+/, 'maniball.app/j/' + get(c.codeFrom, 'TEST7Q'));
+            try { navigator.clipboard.writeText(t).catch(() => {}); } catch (e) {}
+            set({ [k]: 1 }); toast('복사했어요');
+            setTimeout(() => this.setState({ [k]: 0 }), 1600);
+          };
+        }
+        if (c.a === 'share') v[k + 'k'] = (ev) => {
+          if (!c.nav) pd(ev);
+          try { if (navigator.share) { navigator.share({ title: 'TEST FS', text: get('_msg', 'TEST FS 팀 관리 앱이에요. 링크 누르고 들어와요!'), url: 'https://maniball.app/j/TEST7Q' }).catch(() => {}); } } catch (e) {}
+          toast('카카오톡 공유 창을 열었어요');
+        };
+        if (c.a === 'hide') { v[k + 'r'] = c.rs + (done ? '; display: none' : ''); v[k + 'k'] = (ev) => { pd(ev); set({ [k]: 1 }); toast(c.msg); }; }
+        if (c.a === 'got') { v[k + 's'] = done ? c.s1 : c.s0; v[k + 't'] = done ? '받음 완료' : '받음'; v[k + 'k'] = (ev) => { pd(ev); if (!done) { set({ [k]: 1 }); toast('현금으로 받은 걸로 처리했어요'); } }; }
+        if (c.a === 'link') { v[k + 't'] = get(k, c.code); v[k + 'k'] = (ev) => { pd(ev); set({ [k]: Math.random().toString(36).slice(2, 8).toUpperCase() }); toast('새 링크를 만들었어요. 예전 링크는 막혔어요'); }; }
+        if (c.a === 'readall') {
+          (c.rows || []).forEach((r, i) => { v[k + '_' + i + 'r'] = done ? r.replace('background: #F0FDF4', 'background: #FFFFFF') : r; });
+          (c.dots || []).forEach((d, i) => { v[k + '_' + i + 'd'] = done ? d.replace('background: #DC2626', 'background: transparent') : d; });
+          v[k + 't'] = done ? '0개' : (c.cnt || '');
+          v[k + 'k'] = (ev) => { pd(ev); set({ [k]: 1 }); toast('모두 읽음으로 바꿨어요'); };
+        }
+        if (c.a === 'photo') {
+          const url = get(k, '');
+          v[k + 'ps'] = fix(c.ts) + (url ? '; background: center / cover no-repeat url(' + url + ')' : '');
+          v[k + 'sv'] = url ? 'display: none' : '';
+          v[k + 'pt'] = url ? '' : (c.pt || '');
+          v[k + 'c'] = (ev) => { const f = ev && ev.target && ev.target.files && ev.target.files[0]; if (f) { set({ [k]: URL.createObjectURL(f) }); toast('사진을 바꿨어요'); } };
+        }
+        if (c.a === 'selectall') v[k + 'k'] = (ev) => { pd(ev); const o = {}; T.forEach((x) => { if (x.k === 'chk') o[x.id] = true; }); set(o); toast('모두 골랐어요'); };
+        if (c.a === 'edit') v[k + 'k'] = (ev) => { pd(ev); set({ _edit: !get('_edit', false) }); };
+      }
+    });
+    const val = (id) => (byId[id] && byId[id].k === 'field' ? get(id, byId[id].val) : '');
+    const pick = (id) => { const c = byId[id]; if (!c) return ''; const i = get(id, c.sel); return c.multi ? i.map((x) => c.labs[x]) : (i >= 0 ? c.labs[i] : ''); };
+    const chk = (id) => { const c = byId[id]; return c ? get(id, c.on) : false; };
+
+    const R0 = [["r0n", "지각"], ["r1n", "무단 결석"], ["r2n", "직전 취소"], ["r3n", "구장 정리는 다 같이 해요"]];
+    const A0 = [["r0a", "2,000원"], ["r1a", "10,000원"], ["r2a", "5,000원"], [null, ""]];
+    const fv = (k, d) => get(k, d);
+    R0.forEach(([k, d]) => { v[k + 'v'] = fv(k, d); v[k + 'c'] = (ev) => set({ [k]: ev.target.value }); });
+    A0.forEach(([k, d]) => { if (!k) return; v[k + 'v'] = fv(k, d); v[k + 'c'] = (ev) => set({ [k]: ev.target.value }); });
+    const added = get('_rules', []);
+    v.added = added.map((r, i) => ({ nv: r.n, av: r.a, pn: r.n || '새 수칙', pa: r.a, nc: (ev) => { const a = added.slice(); a[i] = { ...a[i], n: ev.target.value }; set({ _rules: a }); }, ac: (ev) => { const a = added.slice(); a[i] = { ...a[i], a: ev.target.value }; set({ _rules: a }); } }));
+    v.addRule = (ev) => { pd(ev); set({ _rules: added.concat([{ n: '', a: '' }]) }); };
+    const mode = pick('c2'), day = pick('c3');
+    const dayOwn = String(get('_day', '')).replace(/\D/g, '').slice(0, 2); v.dayV = dayOwn; v.dayC = (ev) => set({ _day: ev.target.value }); v.dayOwn = day === '직접' && mode === '월회비';
+    v.pvSport = pick('c1') || '풋살팀';
+    v.pvName = val('c4') || '우리 팀';
+    const amt = val('c5') || '0';
+    v.pvAmt = mode === '안 받음' ? '회비 없음' : amt + '원';
+    v.pvUnit = mode === '안 받음' ? '' : (mode === '경기마다' ? ' / 경기' : ' / 월');
+    v.pvNote = mode === '안 받음' ? '회비를 받지 않아요' : mode === '경기마다' ? '경기 날 현장에서 내요' : day === '말일' ? '매월 말일까지 내요' : day === '직접' ? '매월 ' + (dayOwn || '정한 ') + '일까지 내요' : '매월 ' + day + '까지 내요';
+    R0.forEach(([k, d], i) => { v['p' + i + 'n'] = fv(k, d); const a = A0[i] && A0[i][0]; v['p' + i + 'a'] = a ? fv(a, A0[i][1]) : ''; });
+    return v;
+  }
+}
+</script>
 <script src="proto.js"></script>
 </body>
 </html>
