@@ -36,7 +36,7 @@ function vHomeAdmin() {
     <div class="spread"><b>공지</b><a class="hint" href="#/notices" style="text-decoration:none">전체 ›</a></div>
     ${pin ? `<a class="card" href="#/notices" style="text-decoration:none;color:inherit;gap:6px">${pin.pinned ? `<span class="tag" style="align-self:flex-start">고정</span>` : ""}<b>${esc(pin.title)}</b></a>` : `<a class="card" href="#/notice-new" style="text-decoration:none;color:inherit"><b>공지를 써 보세요</b><span class="hint">팀원 알림함에 바로 보여요</span></a>`}
     ${poll ? `<a class="card" href="#/notices" style="text-decoration:none;color:inherit;gap:6px"><span class="tag blue" style="align-self:flex-start">설문</span><b>${esc(poll.title)}</b><span class="hint">${(D("tally")["poll-" + poll.id] || {}).n || 0}명 참여</span></a>` : ""}
-    ${myProfile() ? `<button class="btn" data-act="viewMember">팀원 화면 보기 (내 참석, 내 선수 카드)</button>` : `<div class="card"><b>나도 선수로 등록하기</b><span class="hint">팀장도 선수로 등록하면 참석을 누르고 명단에 보여요.</span><a class="btn" href="${unclaimed().length ? "#/claim" : "#/me"}">선수 등록</a></div>`}
+    ${myProfile() ? "" : `<div class="card"><b>나도 선수로 등록하기</b><span class="hint">팀장도 선수로 등록하면 참석을 누르고 명단에 보여요.</span><a class="btn" href="${unclaimed().length ? "#/claim" : "#/me"}">선수 등록</a></div>`}
   </div>${nav("홈")}`;
 }
 function vSchedule() {

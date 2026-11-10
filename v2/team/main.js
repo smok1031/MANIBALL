@@ -25,8 +25,10 @@ const numColor = c => ["#F5B841", "#F3F4F6"].includes(c) ? "#111827" : "#FFFFFF"
 
 const S = { d: {}, session: null, uid: "", teams: [], tid: "", role: "", team: null, members: [], invite: "", settings: {}, events: {}, rsvp: {}, ready: false, flow: "", form: {}, ch: null };
 // 운영진 화면과 팀원 화면은 따로 그린다. 운영진도 "팀원 화면 보기"로 자기 참석과 카드를 본다
-const viewMode = () => (isAdmin() && ls.get("mb-view") !== "member") ? "admin" : "member";
-function setView(v) { ls.set("mb-view", v === "member" ? "member" : null); }
+// 운영진은 운영진 화면만 쓴다. 팀원 화면 검토용 주소(?view=member)로 들어올 때만 이 창에서 팀원 화면을 보여 준다
+const ss = { get: k => { try { return sessionStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { v == null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch (e) { /* 없어도 된다 */ } } };
+const viewMode = () => (isAdmin() && ss.get("mb-review") !== "member") ? "admin" : "member";
+function setView(v) { ss.set("mb-review", v === "member" ? "member" : null); }
 const isAdmin = () => S.role === "owner" || S.role === "admin";
 
 /* ---------- 작은 도구 ---------- */
@@ -864,7 +866,7 @@ const ACT = {
   }, true),
   logout: () => confirmBox("로그아웃", "이 기기에서 로그아웃할까요?", "로그아웃", async () => { try { await sb.auth.signOut(); } catch (e) { /* 그래도 처음으로 */ } ls.set("mb-team", null); location.replace(APP); }),
 };
-Object.assign(ACT, ACT2, ACT3, ACT4, AACT1, AACT2, AACT3, MACT, { viewMember: () => { setView("member"); location.hash = "#/"; render(); } });
+Object.assign(ACT, ACT2, ACT3, ACT4, AACT1, AACT2, AACT3, MACT);
 document.addEventListener("click", ev => {
   const t = ev.target.closest("[data-act]"); if (!t) return;
   const f = ACT[t.dataset.act]; if (!f) return;
@@ -916,6 +918,8 @@ async function boot() {
     render(); return;
   }
   S.uid = session.user.id;
+  if (qs.get("view") === "member") setView("member"); else if (qs.get("view") === "admin") setView("admin");
+  ls.set("mb-view", null);
   if (location.search) history.replaceState(null, "", APP + location.hash);
   try { await loadTeams(); } catch (e) { $("#app").innerHTML = `<div class="loading">팀 정보를 불러오지 못했어요. 네트워크를 확인하고 새로고침해 주세요.</div>`; return; }
   if (code) {
