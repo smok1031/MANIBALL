@@ -374,11 +374,11 @@ Object.assign(ACT, {
   guestRemove: t => { const e = curEvent(); if (!e) return; const g = guestsOf(e).find(x => x.id === t.dataset.gid); confirmSheet("게스트 빼기", `${g ? g.name : "게스트"}를 명단에서 뺄까요? 붙은 게스트비는 벌금 화면에서 따로 지워 주세요.`, "빼기", () => { evPatch(e.id, { guests: { [t.dataset.gid]: null } }); render(); }); },
   noticeNew: () => noticeSheet(null),
   noticeEdit: t => noticeSheet(S.notices.find(n => n.id === t.dataset.id)),
-  pollVote: t => { const nid = t.dataset.nid, opt = t.dataset.opt; const cur = (myUvote().poll || {})[nid]; uvPatch({ poll: { [nid]: cur === opt ? "" : opt } }); render(); },
+  pollVote: t => { const nid = t.dataset.nid, opt = t.dataset.opt; const cur = (myUvote().poll || {})[nid]; const nv = cur === opt ? "" : opt; if (!Store.preview) markVote("poll-" + nid, nv, cur || ""); uvPatch({ poll: { [nid]: nv } }); render(); },
   inboxRead: () => { uvPatch({ inboxAt: nowIso() }); render(); toast("모두 읽음으로 바꿨어요"); },
   inboxToggle: t => { const off = prefs().inboxOff || {}; off[t.dataset.k] = !off[t.dataset.k]; setPref("inboxOff", off); render(); },
   momPick: t => { ui.momPick[t.dataset.eid] = t.dataset.pid; render(); },
-  momSend: t => { const eid = t.dataset.eid; const pid = ui.momPick[eid]; const e = S.events[eid]; if (!pid || !e || !momOpen(e)) return; if ((myUvote().mom || {})[eid]) return; uvPatch({ mom: { [eid]: pid } }); render(); toast(`${pname(pid)} 선수에게 투표했어요`); },
+  momSend: t => { const eid = t.dataset.eid; const pid = ui.momPick[eid]; const e = S.events[eid]; if (!pid || !e || !momOpen(e)) return; if ((myUvote().mom || {})[eid]) return; if (!Store.preview) markVote("mom-" + eid, pid, ""); uvPatch({ mom: { [eid]: pid } }); render(); toast(`${pname(pid)} 선수에게 투표했어요`); },
   feeCharge: t => {
     const e = S.events[t.dataset.eid]; if (!e) return; const F = feeSplit(e); if (!F.ppl.length || !F.per) return;
     confirmSheet("구장비 청구", `${F.ppl.length}명에게 ${won(F.per)}씩 '구장비'로 청구할까요? 각자 내 회비 화면에 보여요.`, "청구", () => {

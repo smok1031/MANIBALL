@@ -103,9 +103,17 @@ const tabs = p => p.locator("#tabs .in > *").allInnerTexts();
   ok("update of missing doc is invalid_argument", missing === "invalid_argument", missing);
 
   // 8) MOM 표 (팀원) -> 서버 집계 -> 팀장 화면
-  await c.evaluate(() => { patchDoc("uvote/" + Store.me, { mom: { "dem14": "d1" } }); }); await wait(1200);
-  const momEvent = await a.evaluate(() => Object.keys(R.events).find(k => R.events[k].score));
-  await c.evaluate(id => { patchDoc("uvote/" + Store.me, { mom: { [id]: "d1" } }); }, momEvent); await wait(1200);
+  // 지난 경기의 MOM은 마감이라 서버가 거절하고, 권한은 그대로다
+  const oldEvent = await a.evaluate(() => Object.keys(R.events).find(k => R.events[k].score));
+  await c.evaluate(id => { patchDoc("uvote/" + Store.me, { mom: { [id]: "d1" } }); }, oldEvent); await wait(1200);
+  ok("closed mom refused", sql(`select count(*) from public.docs where team_id = '${tid}' and coll = 'uvote' and id = '${U.C}' and data->'mom' ? '${oldEvent}'`) === "0");
+  ok("member keeps vote rights after refusal", await c.evaluate(() => Store.canVote === true));
+  // 오늘 경기 (이미 시작) MOM
+  const today = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+  sql(`insert into public.docs (team_id, coll, id, data) values ('${tid}', 'events', 'momtoday', '{"id":"momtoday","type":"match","date":"${today}","time":"00:00","score":{"us":1,"them":0}}'::jsonb)`);
+  await wait(800); await c.reload(); await waitApp(c);
+  const momEvent = "momtoday";
+  await c.evaluate(id => { patchDoc("uvote/" + Store.me, { mom: { [id]: "d1" } }); }, momEvent); await wait(1500);
   ok("tally counted on server", sql(`select data->'c'->>'d1' from public.docs where team_id = '${tid}' and coll = 'tally' and id = 'mom-${momEvent}'`) === "1");
   ok("tally hides voter in updated_by", sql(`select count(*) from public.docs where coll = 'tally' and updated_by is not null`) === "0");
   const memTally = await c.evaluate(id => (R.tally["mom-" + id] || {}).n, momEvent);

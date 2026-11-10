@@ -124,7 +124,8 @@ async function showLogin(err) {
       <div class="or">또는 이메일로</div>
       <form id="emailForm" class="namerow"><input class="inp" type="email" name="email" placeholder="이메일 주소" autocomplete="email" aria-label="이메일 주소" required><button class="btn" type="submit">링크 받기</button></form>
       <div class="hint">메일로 온 로그인 링크는 지금 이 브라우저에서 열어 주세요.</div>
-    </section>${demoLinks}`);
+    </section>${demoLinks}
+    <div class="shellnote">로그인하면 <a class="linkbtn" href="privacy.html">개인정보처리방침과 이용약관</a>에 동의하는 것으로 봐요.</div>`);
 }
 
 async function afterLogin() {
@@ -207,11 +208,17 @@ function parseCode(v) {
 async function loadMembers() {
   const [{ data: mem, error }, { data: team, error: e2 }] = await Promise.all([
     sb.from("members").select("*").eq("team_id", state.tid).order("joined_at"),
-    sb.from("teams").select("id,name,invite_code").eq("id", state.tid).maybeSingle(),
+    sb.from("teams").select("id,name").eq("id", state.tid).maybeSingle(),
   ]);
   if (error || e2) throw error || e2;
   state.members = mem || []; state.team = team;
   const me = state.members.find(m => m.user_id === state.uid);
+  // 초대 코드는 운영진만 서버 함수로 받는다
+  if (team && me && (me.role === "owner" || me.role === "admin")) {
+    const { data: code, error: e3 } = await sb.rpc("team_invite_code", { p_team: state.tid });
+    if (!e3) team.invite_code = code || "";
+    else { const { data: t2 } = await sb.from("teams").select("invite_code").eq("id", state.tid).maybeSingle(); team.invite_code = (t2 && t2.invite_code) || ""; }
+  }
   return me ? me.role : "";
 }
 async function enterTeam(tid) {
@@ -238,8 +245,10 @@ function watchMembers(tid) {
   sb.channel("members-" + tid)
     .on("postgres_changes", { event: "INSERT", schema: "public", table: "members", filter: "team_id=eq." + tid }, onChange)
     .on("postgres_changes", { event: "UPDATE", schema: "public", table: "members", filter: "team_id=eq." + tid }, onChange)
-    .on("postgres_changes", { event: "DELETE", schema: "public", table: "members" }, onChange)
     .subscribe();
+  window.__memberGone = () => onChange({ new: { team_id: tid } });
+  // 내보내진 사람은 팀 문서를 더는 받지 못하므로, 화면으로 돌아올 때 한 번 확인한다
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && state.screen === "app") onChange({ new: { team_id: tid } }); });
 }
 
 /* ---------- 문서 저장소: Supabase docs 표를 앱의 db 모양으로 ---------- */
@@ -253,6 +262,7 @@ function ts(v) {
 function dbError(e) {
   const code = (e && e.code) || ""; const msg = String((e && e.message) || "");
   const out = new Error(msg || "error");
+  if (/^[a-z_]{3,30}$/.test(msg)) out.reason = msg; // 서버 규칙이 거절한 이유 (vote_closed 같은)
   if (code === "42501" || /row-level security|permission denied/i.test(msg)) out.code = "permission_denied";
   else if (code === "P0002") out.code = "invalid_argument";
   else if (!code || /^PGRST30/.test(code) || /JWT|fetch|network|Failed/i.test(msg)) out.code = "unavailable";
@@ -274,8 +284,14 @@ function makeClaude(tid) {
   const fire = s => { try { s.cb(s.id ? snapDoc(s.c, s.id) : snapColl(s.c)); } catch (e) { console.error(e); } };
   const emit = (c, id) => subs.forEach(s => { if (s.c === c && (!s.id || id === undefined || s.id === id)) fire(s); });
   const applyChange = p => {
-    if (p.eventType === "DELETE") { const o = p.old || {}; if (o.team_id !== tid) return; if (drop(o.coll, o.id)) emit(o.coll, o.id); return; }
+    if (p.eventType === "DELETE") return;
     const n = p.new || {}; if (n.team_id !== tid) return;
+    if (n.coll === "gone") { // 같은 팀에서 지운 문서나 내보낸 멤버
+      const i = String(n.id).indexOf(":"); const c = n.id.slice(0, i), id = n.id.slice(i + 1);
+      if (c === "member") { if (window.__memberGone) window.__memberGone(); return; }
+      if (drop(c, id)) emit(c, id);
+      return;
+    }
     if (put(n.coll, n.id, n.data, ts(n.updated_at))) emit(n.coll, n.id);
   };
   const onChange = p => { if (buffer) buffer.push(p); applyChange(p); };
@@ -292,7 +308,7 @@ function makeClaude(tid) {
       }
       const missed = buffer || [];
       Object.keys(cache).forEach(k => { delete cache[k]; });
-      rows.forEach(r => put(r.coll, r.id, r.data, ts(r.updated_at), true));
+      rows.forEach(r => { if (r.coll !== "gone") put(r.coll, r.id, r.data, ts(r.updated_at), true); });
       missed.forEach(applyChange);
       ready = true;
       subs.forEach(fire);
@@ -315,7 +331,6 @@ function makeClaude(tid) {
   sb.channel("docs-" + tid)
     .on("postgres_changes", { event: "INSERT", schema: "public", table: "docs", filter: "team_id=eq." + tid }, onChange)
     .on("postgres_changes", { event: "UPDATE", schema: "public", table: "docs", filter: "team_id=eq." + tid }, onChange)
-    .on("postgres_changes", { event: "DELETE", schema: "public", table: "docs" }, onChange)
     .subscribe(status => { if (status === "SUBSCRIBED" && ready) loadAll().catch(() => {}); });
   // 휴대폰에서 오래 꺼 뒀다가 다시 열면 놓친 변경을 한 번에 다시 받는다
   document.addEventListener("visibilitychange", () => {
@@ -395,7 +410,7 @@ window.webRoleCard = () => {
     : `<div class="hint">본인 참석만 투표하고, 회비와 벌금은 본인 것만 봐요.</div><button class="btn block" data-web="adminReq">관리자 신청</button>`) : "";
   const chip = m => m.role === "member" && m.admin_req ? `<span class="chip">신청 중</span>` : `<span class="chip${m.role === "member" ? "" : " clay"}">${esc(ROLE[m.role] || "")}</span>`;
   const rows = state.members.map(m => `<div class="mrow"><div class="grow"><div class="nm">${esc(m.display_name || "이름 없음")}${m.user_id === state.uid ? ` <span class="tiny muted">나</span>` : ""}</div><div class="tiny muted">${esc(linked(m.user_id))}</div></div>
-    ${owner && m.role !== "owner" ? `<select data-web-role="${esc(m.user_id)}" aria-label="${esc(m.display_name || "멤버")} 역할"><option value="admin"${m.role === "admin" ? " selected" : ""}>운영진</option><option value="member"${m.role === "member" ? " selected" : ""}>팀원</option></select><button class="btn sm muted" data-web="kick" data-u="${esc(m.user_id)}">내보내기</button>` : chip(m)}</div>`).join("");
+    ${owner && m.role !== "owner" ? `<select data-web-role="${esc(m.user_id)}" aria-label="${esc(m.display_name || "멤버")} 역할"><option value="admin"${m.role === "admin" ? " selected" : ""}>운영진</option><option value="member"${m.role === "member" ? " selected" : ""}>팀원</option></select><button class="btn sm muted" data-web="giveOwner" data-u="${esc(m.user_id)}">팀장 넘기기</button><button class="btn sm muted" data-web="kick" data-u="${esc(m.user_id)}">내보내기</button>` : chip(m)}</div>`).join("");
   return `<section class="card" style="gap:10px"><div class="labrow"><span class="lab">팀과 권한</span><span class="chip${admin ? " clay" : ""}">나는 ${esc(ROLE[r] || "")}</span></div>
     ${reqBox}
     <div class="field" style="margin:0">팀에서 쓰는 내 이름<div class="namerow"><input class="inp" id="webName" value="${esc(me.display_name || "")}" maxlength="30" aria-label="팀에서 쓰는 내 이름"><button class="btn" data-web="saveName">저장</button></div></div>
@@ -405,7 +420,8 @@ window.webRoleCard = () => {
     <div><div class="labrow"><span class="lab">멤버 ${state.members.length}명</span></div>${rows}</div>
     ${owner ? `<div class="hint">운영진 지정과 해제, 내보내기는 팀장만 할 수 있어요. 목록에서 바로 바꿀 수도 있어요.</div>` : `<div class="hint">운영진 지정과 해제, 내보내기는 팀장만 할 수 있어요.</div>`}` : myReq}
     ${real.canWrite && !preview ? `<button class="btn block" data-act="previewMember">팀원 화면으로 보기</button>` : ""}
-    <div class="btnrow"><button class="btn" data-web="switchTeam">다른 팀</button><button class="btn muted" data-web="logout">로그아웃</button></div></section>`;
+    <div class="btnrow"><button class="btn" data-web="switchTeam">다른 팀</button><button class="btn muted" data-web="logout">로그아웃</button></div>
+    <div class="shellnote" style="margin:0"><a class="linkbtn" href="privacy.html">개인정보처리방침과 이용약관</a> <button class="linkbtn" data-web="leave">회원 탈퇴</button></div></section>`;
 };
 // 팀장 홈 맨 위에 관리자 신청을 알린다
 window.webHomeCards = () => {
@@ -427,7 +443,7 @@ async function rpc(name, args, okMsg) {
     return { data };
   } catch (e) {
     const m = String((e && e.message) || "");
-    toastAny(m.includes("bad_code") ? "초대 링크가 바뀌었거나 잘못됐어요. 운영진에게 새 링크를 받아 주세요." : m.includes("owner_only") ? "팀장만 할 수 있어요." : m.includes("not_self") ? "내 역할은 바꿀 수 없어요." : m.includes("member_only") ? "팀원만 신청할 수 있어요." : m.includes("no_request") ? "이미 처리된 신청이에요." : /function|schema cache/i.test(m) ? "서버 설정이 아직 반영되지 않았어요. 팀장에게 알려 주세요." : "처리하지 못했어요. 잠시 후 다시 시도해 주세요.");
+    toastAny(m.includes("bad_code") ? "초대 링크가 바뀌었거나 잘못됐어요. 운영진에게 새 링크를 받아 주세요." : m.includes("owner_only") ? "팀장만 할 수 있어요." : m.includes("not_self") ? "내 역할은 바꿀 수 없어요." : m.includes("member_only") ? "팀원만 신청할 수 있어요." : m.includes("no_request") ? "이미 처리된 신청이에요." : m.includes("team_limit") ? "팀은 한 사람당 5개까지 만들 수 있어요." : m.includes("owner_has_members") ? "팀원이 있는 팀의 팀장은 먼저 다른 멤버에게 팀장을 넘겨야 탈퇴할 수 있어요." : m.includes("no_member") ? "팀에 없는 멤버예요." : /function|schema cache/i.test(m) ? "서버 설정이 아직 반영되지 않았어요. 팀장에게 알려 주세요." : "처리하지 못했어요. 잠시 후 다시 시도해 주세요.");
     return null;
   } finally { state.busy = false; }
 }
@@ -467,6 +483,15 @@ const ACTS = {
     const m = state.members.find(x => x.user_id === t.dataset.u); if (!m) return;
     if (await rpc("answer_admin_request", { p_team: state.tid, p_user: m.user_id, p_ok: false }, "신청을 거절했어요")) { await loadMembers().catch(() => {}); rerender(); }
   },
+  giveOwner: t => {
+    const m = state.members.find(x => x.user_id === t.dataset.u); if (!m) return;
+    confirmSheet("팀장 넘기기", `${m.display_name || "이 멤버"} 님에게 팀장을 넘길까요? 나는 운영진이 되고, 운영진 지정과 내보내기는 새 팀장만 할 수 있어요.`, "넘기기", async () => {
+      if (await rpc("transfer_owner", { p_team: state.tid, p_user: m.user_id }, `${m.display_name || "멤버"} 님이 팀장이 됐어요`)) location.reload();
+    });
+  },
+  leave: () => confirmSheet("회원 탈퇴", "내 계정과 내가 낸 참석 응답, 투표, 입금 요청이 모두 지워지고 되돌릴 수 없어요. 운영진이 기록한 경기 기록과 회비 장부는 팀에 남아요.", "탈퇴하기", async () => {
+    if (await rpc("delete_my_account", {}, "탈퇴했어요")) { try { await sb.auth.signOut(); } catch (e) { /* 계정이 이미 지워졌다 */ } store.set(LS.team, null); location.replace(APP_URL); }
+  }),
   kick: t => {
     const m = state.members.find(x => x.user_id === t.dataset.u); if (!m) return;
     confirmSheet("멤버 내보내기", `${m.display_name || "이 멤버"} 님을 팀에서 내보낼까요? 다시 들어오려면 초대 링크가 필요해요.`, "내보내기", async () => {

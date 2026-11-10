@@ -317,8 +317,8 @@ function attendees(e) {
 function momTally(e) {
   const t = S.tally["mom-" + e.id] || { n: 0, c: {}, v: [] };
   const out = { n: t.n || 0, c: { ...(t.c || {}) } };
-  const mine = (myUvote().mom || {})[e.id]; const u = myUid();
-  if (mine && u && !(t.v || []).includes(u)) { out.n++; out.c[mine] = (out.c[mine] || 0) + 1; }
+  const p = VOTE_PEND["mom-" + e.id];
+  if (p && p.val) { out.n++; out.c[p.val] = (out.c[p.val] || 0) + 1; }
   return out;
 }
 function momWinners(e) { const t = momTally(e); const max = Math.max(0, ...Object.values(t.c)); return max ? Object.keys(t.c).filter(k => t.c[k] === max) : []; }
@@ -334,8 +334,11 @@ function pollOpen(n) { return !!(n.poll && n.poll.opts && n.poll.opts.length) &&
 function pollTally(n) {
   const t = S.tally["poll-" + n.id] || { n: 0, c: {}, v: [] };
   const out = { n: t.n || 0, c: { ...(t.c || {}) } };
-  const u = myUid(); const mine = (myUvote().poll || {})[n.id];
-  if (u && !Store.canWrite) { const counted = (t.v || []).includes(u); if (mine && !counted) { out.n++; out.c[mine] = (out.c[mine] || 0) + 1; } }
+  const p = VOTE_PEND["poll-" + n.id];
+  if (p) {
+    if (p.prev && out.c[p.prev] > 0) { out.c[p.prev]--; out.n = Math.max(0, out.n - 1); }
+    if (p.val) { out.n++; out.c[p.val] = (out.c[p.val] || 0) + 1; }
+  }
   return out;
 }
 const seenCount = n => (S.tally["seen-" + n.id] || {}).n || 0;

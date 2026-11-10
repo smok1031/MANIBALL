@@ -40,7 +40,7 @@ const MEMBER_URL = "app/JoinInvite.html";
 const screensBtn = '<a href="#screens" style="background: #F3F4F6; color: #111827; text-decoration: none; font-weight: 700; font-size: 17px; padding: 16px 24px; border-radius: 14px">실제 화면 보기</a>';
 if (!main.includes(screensBtn)) throw new Error("not found: 실제 화면 보기");
 main = main.replace(screensBtn, screensBtn + `\n        <a href="${MEMBER_URL}" style="background: #F3F4F6; color: #111827; text-decoration: none; font-weight: 700; font-size: 17px; padding: 16px 24px; border-radius: 14px">팀원으로 들어가 보기</a>`);
-main = main.replace("매니볼 ManiBall</footer>", `매니볼 ManiBall<br><a href="app/" style="color: #6B7280">화면 둘러보기</a> &nbsp; <a href="${MEMBER_URL}" style="color: #6B7280">팀원 화면 보기</a></footer>`);
+main = main.replace("매니볼 ManiBall</footer>", `매니볼 ManiBall<br><a href="app/" style="color: #6B7280">화면 둘러보기</a> &nbsp; <a href="${MEMBER_URL}" style="color: #6B7280">팀원 화면 보기</a> &nbsp; <a href="../privacy.html" style="color: #6B7280">개인정보처리방침</a></footer>`);
 const html = `<!doctype html>
 <html lang="ko">
 <head>

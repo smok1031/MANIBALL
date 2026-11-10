@@ -11,7 +11,7 @@ PORT, DSN = int(sys.argv[1]), sys.argv[2]
 COLS = {"docs": {"team_id", "coll", "id", "data", "updated_at", "updated_by"},
         "members": {"team_id", "user_id", "role", "display_name", "joined_at"},
         "teams": {"id", "name", "invite_code", "created_by", "created_at"}}
-FNS = {"create_team", "team_by_code", "join_team", "set_my_name", "set_member_role", "remove_member", "new_invite_code", "doc_patch", "my_name", "request_admin", "cancel_admin_request", "answer_admin_request"}
+FNS = {"create_team", "team_by_code", "join_team", "set_my_name", "set_member_role", "remove_member", "new_invite_code", "doc_patch", "my_name", "request_admin", "cancel_admin_request", "answer_admin_request", "team_invite_code", "transfer_owner", "delete_my_account"}
 IDENT = re.compile(r"^[a-z_]+$")
 
 def claims(h):

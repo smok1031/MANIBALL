@@ -25,7 +25,7 @@ create index if not exists members_user_idx on public.members(user_id);
 -- 앱 데이터: 컬렉션/문서 구조 (선수, 일정, 회비, 벌금, 투표 등) -----------------
 create table if not exists public.docs (
   team_id uuid not null references public.teams(id) on delete cascade,
-  coll text not null check (coll in ('team','players','contacts','events','dues','fines','rsvp','mydues','payreq','notices','tally','uvote','guestreq')),
+  coll text not null check (coll in ('team','players','contacts','events','dues','fines','rsvp','mydues','payreq','notices','tally','uvote','guestreq','gone')),
   id text not null check (id ~ '^[A-Za-z0-9_:.@+-]{1,80}$'),
   data jsonb not null default '{}'::jsonb check (octet_length(data::text) <= 262144),
   updated_at timestamptz not null default now(),
@@ -33,6 +33,9 @@ create table if not exists public.docs (
   primary key (team_id, coll, id)
 );
 alter table public.docs replica identity full;
+-- 지운 문서 알림(gone)을 받을 수 있게 종류 목록을 넓힌다 (이미 만든 표에도 적용)
+alter table public.docs drop constraint if exists docs_coll_check;
+alter table public.docs add constraint docs_coll_check check (coll in ('team','players','contacts','events','dues','fines','rsvp','mydues','payreq','notices','tally','uvote','guestreq','gone'));
 
 -- 권한 도우미 -----------------------------------------------------------------
 create or replace function public.team_role(t uuid) returns text
@@ -69,7 +72,7 @@ drop policy if exists docs_read on public.docs;
 create policy docs_read on public.docs for select to authenticated using (
   public.is_admin(team_id)
   or (public.is_member(team_id) and (
-        coll in ('team','players','events','rsvp','notices','tally')
+        coll in ('team','players','events','rsvp','notices','tally','gone')
      or (coll in ('mydues','payreq','uvote','guestreq') and id = auth.uid()::text)))
 );
 drop policy if exists docs_insert on public.docs;
@@ -86,9 +89,10 @@ create policy docs_update on public.docs for update to authenticated using (
   or (public.is_member(team_id) and coll in ('rsvp','payreq','uvote','guestreq') and id = auth.uid()::text)
 );
 drop policy if exists docs_delete on public.docs;
+-- 팀원이 지울 수 있는 건 입금 요청과 용병 요청뿐이다 (참석 기록과 MOM 표는 지워서 되돌릴 수 없다)
 create policy docs_delete on public.docs for delete to authenticated using (
   public.is_admin(team_id)
-  or (public.is_member(team_id) and coll in ('rsvp','payreq','uvote','guestreq') and id = auth.uid()::text)
+  or (public.is_member(team_id) and coll in ('payreq','guestreq') and id = auth.uid()::text)
 );
 
 -- 문서 일부만 고치기 (객체는 안쪽까지 합침) -----------------------------------------
@@ -151,7 +155,7 @@ begin
   agg as (
     select key, count(*)::int as n,
            coalesce((select jsonb_object_agg(val, c) from (select val, count(*)::int as c from v v2 where v2.key = v1.key and val <> '' group by val) cc), '{}'::jsonb) as c,
-           jsonb_agg(u order by u) as voters
+           case when key like 'seen-%' then jsonb_agg(u order by u) else '[]'::jsonb end as voters
       from v v1 group by key
   ),
   up as (
@@ -193,6 +197,7 @@ language plpgsql security definer set search_path = public as $$
 declare tid uuid;
 begin
   if auth.uid() is null then raise exception 'not_signed_in'; end if;
+  if (select count(*) from public.teams where created_by = auth.uid()) >= 5 then raise exception 'team_limit'; end if;
   insert into public.teams (name, created_by) values (left(trim(p_name), 40), auth.uid()) returning id into tid;
   insert into public.members (team_id, user_id, role, display_name) values (tid, auth.uid(), 'owner', coalesce(public.my_name(), ''));
   insert into public.docs (team_id, coll, id, data) values (tid, 'team', 'settings', jsonb_build_object('teamName', left(trim(p_name), 40), 'cap', 14, 'fee', 20000));
@@ -274,18 +279,178 @@ begin
   return c;
 end $$;
 
+-- 보안 보강 (2026-11-10) ------------------------------------------------------
+-- 일정 시작 시각 (한국 시간). 시간이 없으면 그날 23:59
+create or replace function public.event_start(ev jsonb) returns timestamptz
+language sql immutable as $$
+  select ((ev ->> 'date') || ' ' || case when coalesce(ev ->> 'time', '') ~ '^\d{2}:\d{2}$' then ev ->> 'time' else '23:59' end)::timestamp at time zone 'Asia/Seoul'
+$$;
+
+-- 팀원이 쓰는 문서(참석, MOM, 설문)의 규칙을 서버에서 지킨다. 운영진은 그대로 쓴다
+create or replace function public.docs_member_guard() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare
+  o jsonb := case when tg_op = 'UPDATE' then old.data else '{}'::jsonb end;
+  n jsonb := new.data;
+  k text; ne jsonb; oe jsonb; ev jsonb; nowiso text; keep_at text; pid text;
+begin
+  if auth.uid() is null or public.is_admin(new.team_id) then return new; end if;
+  nowiso := to_char(clock_timestamp() at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"');
+  if new.coll = 'rsvp' then
+    pid := coalesce(n ->> 'pid', '');
+    -- 선수 연결: 비어 있을 때만, 다른 계정이 연결한 선수는 못 고른다
+    if pid <> coalesce(o ->> 'pid', '') and pid <> '' then
+      if coalesce(o ->> 'pid', '') <> '' then raise exception 'pid_locked' using errcode = '42501'; end if;
+      if not exists (select 1 from public.docs where team_id = new.team_id and coll = 'players' and id = pid) then raise exception 'no_player' using errcode = '42501'; end if;
+      if exists (select 1 from public.docs where team_id = new.team_id and coll = 'rsvp' and id <> new.id and data ->> 'pid' = pid) then raise exception 'pid_taken' using errcode = '42501'; end if;
+    end if;
+    -- 포지션 변경 요청은 본인이 승인하거나 반려할 수 없다
+    if jsonb_typeof(n -> 'posReq') = 'object' and (n -> 'posReq' ->> 'status') is distinct from (o -> 'posReq' ->> 'status')
+       and coalesce(n -> 'posReq' ->> 'status', 'req') <> 'req' then raise exception 'not_allowed' using errcode = '42501'; end if;
+    -- 참석 응답: 경기 시작 전까지, 순서와 시각은 서버가 적는다
+    if jsonb_typeof(n -> 'ev') = 'object' then
+      for k, ne in select * from jsonb_each(n -> 'ev') loop
+        oe := o -> 'ev' -> k;
+        if ne is not distinct from oe then continue; end if;
+        if jsonb_typeof(ne) <> 'object' then raise exception 'bad_vote' using errcode = '42501'; end if;
+        select data into ev from public.docs where team_id = new.team_id and coll = 'events' and id = k;
+        if ev is null then raise exception 'no_event' using errcode = '42501'; end if;
+        if clock_timestamp() >= public.event_start(ev) then raise exception 'vote_closed' using errcode = '42501'; end if;
+        if coalesce(ne ->> 's', '') not in ('yes', 'late', 'no', '') then raise exception 'bad_vote' using errcode = '42501'; end if;
+        if coalesce(ne ->> 'q', '0') !~ '^[0-8]$' then raise exception 'bad_vote' using errcode = '42501'; end if;
+        ne := jsonb_set(ne, '{upd}', to_jsonb(nowiso));
+        if ne ->> 's' in ('yes', 'late') then
+          keep_at := case when jsonb_typeof(oe) = 'object' and oe ->> 's' in ('yes', 'late') then nullif(oe ->> 'at', '') end;
+          if keep_at is null and ev -> 'att' ->> pid in ('yes', 'late') then keep_at := nullif(ev -> 'attAt' ->> pid, ''); end if;
+          ne := jsonb_set(ne, '{at}', to_jsonb(coalesce(keep_at, nowiso)));
+        else
+          ne := jsonb_set(ne, '{at}', '""'::jsonb);
+          if ne ->> 's' = 'no' and ((jsonb_typeof(oe) = 'object' and oe ->> 's' in ('yes', 'late')) or (jsonb_typeof(oe) is distinct from 'object' and ev -> 'att' ->> pid in ('yes', 'late'))) then
+            ne := jsonb_set(ne, '{cancelAt}', to_jsonb(nowiso));
+          elsif jsonb_typeof(oe) = 'object' then
+            ne := jsonb_set(jsonb_set(ne, '{cancelAt}', coalesce(oe -> 'cancelAt', '""'::jsonb)), '{cancelIn}', coalesce(oe -> 'cancelIn', 'false'::jsonb));
+          end if;
+        end if;
+        n := jsonb_set(n, array['ev', k], ne);
+      end loop;
+    end if;
+  elsif new.coll = 'uvote' then
+    -- MOM: 경기 뒤부터 다음 날 12시까지, 한 번만
+    if jsonb_typeof(n -> 'mom') = 'object' then
+      for k, ne in select * from jsonb_each(n -> 'mom') loop
+        oe := o -> 'mom' -> k;
+        if ne is not distinct from oe then continue; end if;
+        if coalesce(oe #>> '{}', '') <> '' then raise exception 'mom_locked' using errcode = '42501'; end if;
+        select data into ev from public.docs where team_id = new.team_id and coll = 'events' and id = k;
+        if ev is null or coalesce(ev ->> 'type', '') not in ('match', 'scrim') then raise exception 'no_event' using errcode = '42501'; end if;
+        if clock_timestamp() < public.event_start(ev)
+           or clock_timestamp() >= (((ev ->> 'date')::date + 1) + time '12:00') at time zone 'Asia/Seoul' then raise exception 'mom_closed' using errcode = '42501'; end if;
+        if coalesce(ne #>> '{}', '') <> '' and not exists (select 1 from public.docs where team_id = new.team_id and coll = 'players' and id = ne #>> '{}') then raise exception 'no_player' using errcode = '42501'; end if;
+      end loop;
+    end if;
+    -- 낸 MOM 표는 지우거나 빼서 되돌릴 수 없다
+    for k, oe in select * from jsonb_each(case when jsonb_typeof(o -> 'mom') = 'object' then o -> 'mom' else '{}'::jsonb end) loop
+      if coalesce(oe #>> '{}', '') <> '' and coalesce(n -> 'mom' ->> k, '') = '' then raise exception 'mom_locked' using errcode = '42501'; end if;
+    end loop;
+    -- 설문: 마감 전까지, 있는 보기만
+    if jsonb_typeof(n -> 'poll') = 'object' then
+      for k, ne in select * from jsonb_each(n -> 'poll') loop
+        oe := o -> 'poll' -> k;
+        if ne is not distinct from oe then continue; end if;
+        select data into ev from public.docs where team_id = new.team_id and coll = 'notices' and id = k;
+        if ev is null or jsonb_typeof(ev -> 'poll') <> 'object' then raise exception 'no_poll' using errcode = '42501'; end if;
+        if coalesce(ev -> 'poll' ->> 'until', '') <> '' and clock_timestamp() >= (ev -> 'poll' ->> 'until')::timestamptz then raise exception 'poll_closed' using errcode = '42501'; end if;
+        if coalesce(ne #>> '{}', '') <> '' and not exists (select 1 from jsonb_array_elements(coalesce(ev -> 'poll' -> 'opts', '[]'::jsonb)) x where x ->> 'id' = ne #>> '{}') then raise exception 'no_option' using errcode = '42501'; end if;
+      end loop;
+    end if;
+  end if;
+  new.data := n;
+  return new;
+end $$;
+drop trigger if exists docs_member_guard on public.docs;
+create trigger docs_member_guard before insert or update on public.docs
+  for each row when (new.coll in ('rsvp', 'uvote')) execute function public.docs_member_guard();
+
+-- 지운 문서와 내보낸 멤버를 같은 팀 사람에게만 알린다 (실시간 삭제 알림은 다른 팀에도 키가 가므로 쓰지 않는다)
+create or replace function public.docs_gone() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  begin
+    if tg_table_name = 'members' then
+      insert into public.docs (team_id, coll, id, data) values (old.team_id, 'gone', left('member:' || old.user_id::text, 80), jsonb_build_object('at', now()))
+      on conflict (team_id, coll, id) do update set data = excluded.data;
+    elsif old.coll <> 'gone' then
+      insert into public.docs (team_id, coll, id, data) values (old.team_id, 'gone', left(old.coll || ':' || old.id, 80), jsonb_build_object('at', now()))
+      on conflict (team_id, coll, id) do update set data = excluded.data;
+    end if;
+    delete from public.docs where team_id = old.team_id and coll = 'gone' and updated_at < now() - interval '30 days';
+  exception when foreign_key_violation then null; -- 팀째 지우는 중
+  end;
+  return null;
+end $$;
+drop trigger if exists docs_gone on public.docs;
+create trigger docs_gone after delete on public.docs for each row when (old.coll <> 'gone') execute function public.docs_gone();
+drop trigger if exists members_gone on public.members;
+create trigger members_gone after delete on public.members for each row execute function public.docs_gone();
+-- 다시 쓰인 문서는 지움 표시를 걷는다
+create or replace function public.docs_ungone() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  delete from public.docs where team_id = new.team_id and coll = 'gone' and id = left(new.coll || ':' || new.id, 80);
+  return null;
+end $$;
+drop trigger if exists docs_ungone on public.docs;
+create trigger docs_ungone after insert on public.docs for each row when (new.coll <> 'gone') execute function public.docs_ungone();
+
+-- 초대 코드는 운영진만
+create or replace function public.team_invite_code(p_team uuid) returns text
+language sql stable security definer set search_path = public as $$
+  select invite_code from public.teams where id = p_team and public.is_admin(p_team)
+$$;
+
+-- 팀장 넘기기: 팀장만, 팀 안의 멤버에게. 넘긴 사람은 운영진이 된다
+create or replace function public.transfer_owner(p_team uuid, p_user uuid) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if coalesce(public.team_role(p_team), '') <> 'owner' then raise exception 'owner_only'; end if;
+  if p_user = auth.uid() then raise exception 'not_self'; end if;
+  if not exists (select 1 from public.members where team_id = p_team and user_id = p_user) then raise exception 'no_member'; end if;
+  update public.members set role = 'admin' where team_id = p_team and user_id = auth.uid();
+  update public.members set role = 'owner', admin_req = null where team_id = p_team and user_id = p_user;
+end $$;
+
+-- 회원 탈퇴: 내 계정과 내가 쓴 개인 문서를 지운다. 팀원이 남은 팀의 팀장은 먼저 팀장을 넘겨야 한다
+create or replace function public.delete_my_account() returns void
+language plpgsql security definer set search_path = public as $$
+declare me uuid := auth.uid();
+begin
+  if me is null then raise exception 'not_signed_in'; end if;
+  if exists (select 1 from public.members m where m.user_id = me and m.role = 'owner'
+             and exists (select 1 from public.members x where x.team_id = m.team_id and x.user_id <> me)) then
+    raise exception 'owner_has_members';
+  end if;
+  delete from public.teams where id in (select team_id from public.members where user_id = me and role = 'owner');
+  delete from public.docs where coll in ('rsvp', 'mydues', 'payreq', 'uvote', 'guestreq') and id = me::text;
+  delete from public.members where user_id = me;
+  delete from auth.users where id = me;
+end $$;
+
 -- 함수와 표 권한: 로그인한 사람만, 필요한 만큼만 (Supabase 기본 권한을 먼저 거둔다)
 revoke execute on all functions in schema public from public, anon, authenticated;
 revoke all on public.teams, public.members, public.docs from anon, authenticated;
 revoke all on function public.recount_tally(uuid) from public, anon, authenticated;
 revoke all on function public.on_uvote_change() from public, anon, authenticated;
+revoke all on function public.docs_member_guard(), public.docs_gone(), public.docs_ungone(), public.event_start(jsonb) from public, anon, authenticated;
 grant execute on function public.create_team(text), public.join_team(text, text), public.team_by_code(text), public.set_my_name(uuid, text),
   public.set_member_role(uuid, uuid, text), public.remove_member(uuid, uuid), public.new_invite_code(uuid), public.doc_patch(uuid, text, text, jsonb),
   public.team_role(uuid), public.is_member(uuid), public.is_admin(uuid), public.jsonb_deep_merge(jsonb, jsonb),
-  public.request_admin(uuid), public.cancel_admin_request(uuid), public.answer_admin_request(uuid, uuid, boolean) to authenticated;
+  public.request_admin(uuid), public.cancel_admin_request(uuid), public.answer_admin_request(uuid, uuid, boolean),
+  public.team_invite_code(uuid), public.transfer_owner(uuid, uuid), public.delete_my_account() to authenticated;
 -- 로그인 전 화면에서도 초대받은 팀 이름을 보여 준다 (코드를 아는 사람만)
 grant execute on function public.team_by_code(text) to anon;
-grant select, update (name) on public.teams to authenticated;
+-- 초대 코드는 운영진만 (team_invite_code 함수로) 본다
+revoke select on public.teams from authenticated;
+grant select (id, name, created_by, created_at), update (name) on public.teams to authenticated;
 grant select on public.members to authenticated;
 grant select, insert, update, delete on public.docs to authenticated;
 
@@ -297,4 +462,9 @@ do $$ begin
   if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'members') then
     alter publication supabase_realtime add table public.members;
   end if;
+end $$;
+
+-- 예전 집계에 남아 있던 투표자 목록을 지우도록 모든 팀의 집계를 한 번 다시 센다
+do $$ declare t uuid; begin
+  for t in select id from public.teams loop perform public.recount_tally(t); end loop;
 end $$;
