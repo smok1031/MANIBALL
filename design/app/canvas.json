@@ -350,27 +350,11 @@
       "y": 15006
     },
     "Home5.dc.html": {
-      "h": 974,
+      "h": 844,
       "is_interactive": true,
       "title": "팀원 화면 1-1",
       "w": 390,
       "x": 52,
-      "y": 11481
-    },
-    "Home5Absent.dc.html": {
-      "h": 974,
-      "is_interactive": true,
-      "title": "팀원 화면 1-3 불참 눌렀을 때",
-      "w": 390,
-      "x": 992,
-      "y": 11481
-    },
-    "Home5Late.dc.html": {
-      "h": 974,
-      "is_interactive": true,
-      "title": "팀원 화면 1-2 늦참 눌렀을 때",
-      "w": 390,
-      "x": 522,
       "y": 11481
     },
     "HomeAdmin.dc.html": {
@@ -458,7 +442,7 @@
       "is_interactive": true,
       "title": "팀원 화면 1-4 알림",
       "w": 390,
-      "x": 1462,
+      "x": 522,
       "y": 11481
     },
     "PlayersAdmin.dc.html": {
@@ -902,8 +886,6 @@
     "InviteRoster.dc.html",
     "Home5.dc.html",
     "HomeAdmin.dc.html",
-    "Home5Late.dc.html",
-    "Home5Absent.dc.html",
     "ScheduleAdmin.dc.html",
     "ScheduleMember.dc.html",
     "ScheduleMemberAttend.dc.html",

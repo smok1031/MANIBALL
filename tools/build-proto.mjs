@@ -17,7 +17,7 @@ const GROUPS = [
   ["운영진 기록", ["RecordAdmin", "RecordAdminSeason", "RecordAdminPlayers", "RecordAdminMatch", "RecordAdminScrim", "RecordAdminResult", "RecordAdminVoting", "RecordAdminEditScrim", "RecordAdminEditGame", "RecordAdminEditDraw"]],
   ["운영진 회비", ["DuesAdmin", "DuesAdminSettings", "DuesAdminConfirmed", "DuesAdminRemind", "DuesAdminReminded", "DuesAdminLedger", "DuesAdminSpend", "DuesAdminUpload", "DuesAdminMatched", "DuesAdminApplied"]],
   ["운영진 선수", ["PlayersAdmin", "PlayersAdminInvite", "PlayersAdminRules", "PlayersAdminDetail", "PlayersAdminPromote", "PlayersAdminPromoted", "PlayersAdminRemove", "PlayersAdminRemoved", "PlayersAdminUniform"]],
-  ["팀원 홈", ["Home5", "Home5Late", "Home5Absent", "NotifyMember"]],
+  ["팀원 홈", ["Home5", "NotifyMember"]],
   ["팀원 일정", ["ScheduleMember", "ScheduleMemberAttend", "ScheduleMemberLate", "ScheduleMemberAbsent", "ScheduleMemberChange", "ScheduleMemberCalendar", "ScheduleMemberRoster", "ScheduleMemberGuest", "ScheduleMemberGuestSent"]],
   ["팀원 기록", ["RecordMember", "RecordMemberSeason", "RecordMemberMatch", "RecordMemberScrim", "RecordMemberPending", "RecordMemberScrimView", "RecordMemberGame", "RecordMemberMissed"]],
   ["팀원 회비", ["DuesMember", "DuesMemberPay", "DuesMemberSent", "DuesMemberLedger"]],
