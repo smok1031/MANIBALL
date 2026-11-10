@@ -1,6 +1,6 @@
-// 디자인 시안 A(design/home/Main.dc.html)와 예시 화면 5장을 한 장짜리 정적 페이지로 묶는다.
+// 디자인 시안 A(design/home/Main.dc.html)에 실제 앱 화면 사진 5장을 넣어 한 장짜리 정적 페이지로 묶는다.
 // 결과: public/v2/index.html (vite가 dist/v2/로 복사)
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from "node:fs";
 
 const ACCENT = "#15803D";
 const APP_URL = "team/"; // 새 디자인 화면(눌러 보기용). 실제 앱이 붙으면 여기만 바꾼다.
@@ -14,10 +14,15 @@ const body = src => {
 const screens = {};
 for (const n of ["AppVote", "AppLineup", "AppCheck", "AppDues", "AppEvent"]) screens[n] = body(read(`${n}.dc.html`));
 
+// 예시 화면 자리에는 실제 앱 화면을 찍은 사진(design/home/shots)을 넣는다. 설명 문구는 시안의 aria-label을 쓴다
+const SHOTS = new URL("../design/home/shots/", import.meta.url); let shotN = 0;
+mkdirSync(new URL("../public/v2/shots/", import.meta.url), { recursive: true });
 let main = body(read("Main.dc.html"))
   .replace(/<dc-import name="(\w+)"[^>]*><\/dc-import>/g, (_, n) => {
     if (!screens[n]) throw new Error("screen missing: " + n);
-    return `<div class="phone">${screens[n]}</div>`;
+    const alt = (screens[n].match(/aria-label="([^"]*)"/) || [])[1] || "매니볼 실제 화면";
+    for (const ext of ["webp", "png"]) copyFileSync(new URL(`${n}.${ext}`, SHOTS), new URL(`../public/v2/shots/${n}.${ext}`, import.meta.url));
+    return `<div class="phone"><div style="width: 320px; height: 660px; box-sizing: border-box; border-radius: 44px; background: #111111; padding: 10px; box-shadow: 0 24px 50px rgba(0,0,0,0.18)"><picture><source srcset="shots/${n}.webp" type="image/webp"><img src="shots/${n}.png" alt="${alt.replace("화면 예시", "실제 화면")}" width="300" height="640" loading="${shotN++ < 2 ? "eager" : "lazy"}" style="display: block; width: 300px; height: 640px; border-radius: 34px; background: #F6F7F9"></picture></div></div>`;
   })
   .replaceAll("{{accent}}", "var(--accent)")
   .replaceAll("rgb(21, 128, 61)", "var(--accent)");
