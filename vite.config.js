@@ -21,6 +21,6 @@ const ver = createHash("sha256").update(readFileSync("public/app.js")).update(re
 export default defineConfig({
   base: "./",
   define: { __APP_VER__: JSON.stringify(ver) },
-  build: { outDir: "dist", emptyOutDir: true, target: "es2020" },
+  build: { outDir: "dist", emptyOutDir: true, target: "es2020", rollupOptions: { input: { main: "index.html", team: "v2/team/index.html" } } },
   plugins: [{ name: "kei-ver", transformIndexHtml: { order: "post", handler: html => html.replace(/href="(\.?\/)style\.css"/, `href="$1style.css?v=${ver}"`).replace("<meta charset=\"utf-8\">", `<meta charset="utf-8">\n<meta http-equiv="Content-Security-Policy" content="${CSP}">`) } }],
 });

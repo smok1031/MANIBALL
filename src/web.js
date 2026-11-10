@@ -100,6 +100,12 @@ async function boot() {
     screen("loading", `<div class="loading">카카오 로그인 중입니다</div>`);
     try { session = await kakaoFinish(kakao); } catch (e) { session = null; urlErr = String((e && e.message) || "kakao"); }
   }
+  // 매니볼 새 앱(v2)에서 시작한 카카오 로그인이면, 끝난 뒤 그 화면으로 돌려보낸다 (같은 주소 안에서만)
+  if (kakao) {
+    let next = ""; try { next = sessionStorage.getItem("mb-next") || ""; sessionStorage.removeItem("mb-next"); } catch (e) { next = ""; }
+    let ok = false; try { ok = !!next && new URL(next).origin === location.origin; } catch (e) { ok = false; }
+    if (ok) { location.replace(session ? next : next + (next.includes("?") ? "&" : "?") + "login_error=" + encodeURIComponent(urlErr || "kakao")); return; }
+  }
   if (!session) { try { ({ data: { session } } = await sb.auth.getSession()); } catch (e) { session = null; } }
   if (location.search) history.replaceState(null, "", APP_URL + location.hash);
   sb.auth.onAuthStateChange((ev, s) => {
