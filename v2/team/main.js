@@ -154,6 +154,8 @@ const myVote = e => (((S.rsvp[S.uid] || {}).ev || {})[e.id]) || {};
 function closeAt(e) { if (e.voteClose === "eve21") return new Date(e.date + "T21:00:00+09:00").getTime() - 864e5; if (e.voteClose === "day06") return new Date(e.date + "T06:00:00+09:00").getTime(); return evStart(e); }
 const voteState = e => started(e) ? "done" : (e.openAt && Date.now() < Date.parse(e.openAt)) ? "soon" : Date.now() >= closeAt(e) ? "closed" : "open";
 const closeText = e => e.voteClose === "eve21" ? "경기 전날 21:00 마감" : e.voteClose === "day06" ? "경기 당일 06:00 마감" : "경기 시작 전까지";
+// 동그라미 안 글자: 괄호 같은 기호는 건너뛴다
+const ini = n => (String(n || "").replace(/[^0-9A-Za-z\uAC00-\uD7A3]/g, "")[0] || "?");
 const upcoming = () => Object.values(S.events).filter(e => !started(e) || (Date.now() - evStart(e)) < 3 * 3600e3).sort((a, b) => evStart(a) - evStart(b));
 const past = () => Object.values(S.events).filter(e => started(e)).sort((a, b) => evStart(b) - evStart(a));
 
@@ -447,7 +449,7 @@ function vLineup(id) {
   const fkey = (L && L.fkey) || Object.keys(FORMS[sport()])[0]; const a = att(e);
   const rows = [4, 3, 2, 1, 0].map(ln => (L ? L.formation : []).map((pos, i) => ({ pos, i })).filter(x => LINE(x.pos) === ln)).filter(r => r.length);
   const spot = x => { const u = q[x.i]; const sel = UI.sel === x.i; const me = u === S.uid;
-    return `<button ${edit ? `data-act="lineSpot" data-i="${x.i}"` : "disabled"} style="border:0;background:none;color:#FFFFFF;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:60px;opacity:1"><span style="width:44px;height:44px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;${sel ? "background:#F5B841;color:#1E6B45" : me ? "background:#F5B841;color:#1E6B45" : "background:#FFFFFF;color:#1E6B45"}">${esc(nm(u).slice(0, 1) || "+")}</span><span style="font-size:12px;font-weight:700">${esc(x.pos)}</span><span style="font-size:11px;opacity:.9">${esc(nm(u) || "비어 있음")}</span></button>`; };
+    return `<button ${edit ? `data-act="lineSpot" data-i="${x.i}"` : "disabled"} style="border:0;background:none;color:#FFFFFF;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:60px;opacity:1"><span style="width:44px;height:44px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;${sel ? "background:#F5B841;color:#1E6B45" : me ? "background:#F5B841;color:#1E6B45" : "background:#FFFFFF;color:#1E6B45"}">${u ? esc(((u.startsWith("g:") ? "" : (profileOf(u) || {}).num) || ini(nm(u)))) : "+"}</span><span style="font-size:12px;font-weight:700">${esc(x.pos)}</span><span style="font-size:11px;opacity:.9">${esc(nm(u) || "비어 있음")}</span></button>`; };
   return `${top("라인업" + (edit ? " 짜기" : ""), "#/event/" + e.id, edit && L ? `<button class="btn sm pri" data-act="saveLineup" data-eid="${esc(e.id)}">저장</button>` : "")}<div class="body">
     <div class="card" style="gap:6px"><b>${esc(md(e.date) + " " + wd(e.date) + " " + (e.time || "") + " " + evName(e))}</b><span class="hint">참석 ${a.yes.length}명${a.late.length ? ", 늦참 " + a.late.length + "명" : ""}${guestsOf(e).length ? ", 용병 " + guestsOf(e).length + "명" : ""}</span>
       ${edit ? `<button class="btn sm" data-act="lineForm" data-eid="${esc(e.id)}" style="align-self:flex-start">${sport() === "soccer" ? "11대11" : FORMS.futsal[fkey].length + "대" + FORMS.futsal[fkey].length}, ${esc(fkey)} ▾</button>` : ""}</div>
@@ -856,7 +858,7 @@ const ACT = {
   },
   delEvent: t => confirmBox("일정 지우기", "이 일정과 참석 응답이 모두 사라져요. 되돌릴 수 없어요.", "지우기", async () => { try { await delDoc("events", t.dataset.eid); toast("지웠어요"); location.hash = "#/schedule"; } catch (e) { fail(e); } }, true),
   switchTeam: () => {
-    sheet(`<h3>팀 고르기</h3><div class="list">${S.teams.map(t => `<button class="li" style="border:0;background:none;text-align:left;width:100%" data-act="enterTeam" data-id="${esc(t.id)}"><span class="av">${esc(t.name.slice(0, 1))}</span><span style="flex:1"><b>${esc(t.name)}</b><br><span class="hint">${ROLE[t.role] || ""}</span></span></button>`).join("")}</div><a class="btn" href="#" data-act="newTeam">+ 새 팀 만들기</a>`);
+    sheet(`<h3>팀 고르기</h3><div class="list">${S.teams.map(t => `<button class="li" style="border:0;background:none;text-align:left;width:100%" data-act="enterTeam" data-id="${esc(t.id)}"><span class="av">${esc(ini(t.name))}</span><span style="flex:1"><b>${esc(t.name)}</b><br><span class="hint">${ROLE[t.role] || ""}</span></span></button>`).join("")}</div><a class="btn" href="#" data-act="newTeam">+ 새 팀 만들기</a>`);
   },
   enterTeam: async t => { closeSheet(); S.ready = false; render(); await enter(t.dataset.id); },
   newTeam: () => { closeSheet(); startCreate(); },
@@ -955,4 +957,4 @@ function vRest(id) {
 }
 
 // member.js와 admin.js가 같이 쓰는 것
-export { $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };
+export { $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };
