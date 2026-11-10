@@ -15,7 +15,7 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const ls = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) { /* 없어도 된다 */ } } };
 const WD = "일월화수목금토";
-const POS = { futsal: ["GK", "DF", "LW", "RW", "FW"], soccer: ["GK", "LB", "CB", "RB", "CM", "LW", "RW", "ST"] };
+const POS = { futsal: ["GK", "DF", "LW", "RW", "FW"], soccer: ["GK", "LB", "LWB", "CB", "RB", "RWB", "CDM", "CM", "CAM", "LW", "RW", "ST"] };
 const QN = { futsal: 8, soccer: 4 };
 const ROLE = { owner: "팀장", admin: "운영진", member: "팀원" };
 const KIT = [["#164F33", "초록"], ["#111827", "검정"], ["#1E3A8A", "파랑"], ["#991B1B", "빨강"], ["#F5B841", "노랑"], ["#F3F4F6", "흰색"]];
@@ -314,6 +314,7 @@ function vHomeAdmin() {
   if (!S.members.some(m => m.user_id !== S.uid)) todo.push(["팀원을 초대해 주세요", "초대 링크를 단톡방에 올리면 돼요", "#/invite", "초대하기"]);
   if (!next) todo.push(["다가오는 일정이 없어요", "일정을 올리면 팀원이 참석을 눌러요", "#/new", "일정 만들기"]);
   if (next && a.none.length) todo.push([`참석 미응답 ${a.none.length}명`, `${md(next.date)} ${wd(next.date)} ${next.type === "match" ? "경기" : "훈련"}`, "#/event/" + next.id, "보기"]);
+  if (unclaimed().length) todo.push([`아직 앱에 안 들어온 선수 ${unclaimed().length}명`, "초대 링크를 단톡방에 올리면 명단에서 이름만 고르면 돼요", "#/invite", "초대하기"]);
   if (noProfile) todo.push([`선수 등록을 안 한 멤버 ${noProfile}명`, "들어와서 이름과 번호를 적으면 명단에 보여요", "#/players", "보기"]);
   const pr = Object.values(D("payreq")).reduce((n, d) => n + Object.values((d && d.items) || {}).filter(it => it && it.status === "req").length, 0);
   if (pr) todo.push([`입금 확인 요청 ${pr}건`, "통장에 들어왔는지 보고 확인을 눌러 주세요", "#/dues", "확인"]);
@@ -336,7 +337,7 @@ function vHomeAdmin() {
     <div class="row" style="gap:8px"><a class="btn block" href="#/new">+ 일정 만들기</a><a class="btn block" href="#/invite">팀원 초대</a></div>
     <a class="btn" href="#/notices">공지와 설문</a>
     ${myProfile() ? `<a class="btn" href="#/member">내 선수 카드 보기 (팀원 화면)</a>` : ""}
-    ${myProfile() ? "" : `<div class="card"><b>나도 선수로 등록하기</b><span class="hint">팀장도 선수로 등록하면 참석을 누르고 명단에 보여요.</span><a class="btn" href="#/me">선수 등록</a></div>`}
+    ${myProfile() ? "" : `<div class="card"><b>나도 선수로 등록하기</b><span class="hint">팀장도 선수로 등록하면 참석을 누르고 명단에 보여요.</span><a class="btn" href="${unclaimed().length ? "#/claim" : "#/me"}">선수 등록</a></div>`}
   </div>${nav("홈")}`;
 }
 
@@ -366,7 +367,7 @@ function vEvent(id) {
     ${tools.length ? `<div class="row" style="flex-wrap:wrap">${tools.join("")}</div>` : ""}
     ${e.memo ? `<div class="card"><b>메모</b><div class="hint" style="white-space:pre-wrap;color:#374151">${esc(e.memo)}</div></div>` : ""}
     ${e.type === "scrim" ? grp("A팀 (조끼)", [...a.yes, ...a.late, ...a.wait].filter(x => T[x.uid] === "A")) + grp("B팀", [...a.yes, ...a.late, ...a.wait].filter(x => T[x.uid] === "B")) : ""}
-    ${grp("참석", a.yes)}${grp("늦참", a.late, x => x.q ? `, ${x.q}Q부터` : "")}${a.cap ? grp("대기", a.wait, () => "") : ""}${grp("불참", a.no)}${grp("미응답", a.none)}
+    ${grp("참석", a.yes)}${grp("늦참", a.late, x => x.q ? `, ${x.q}Q부터` : "")}${a.cap ? grp("대기", a.wait, () => "") : ""}${grp("불참", a.no)}${grp("미응답", a.none)}${unclaimed().length ? `<span class="hint">아직 앱에 안 들어온 선수 ${unclaimed().length}명은 참석을 누를 수 없어요. 초대 링크로 들어와 이름을 고르면 돼요.</span>` : ""}
     ${a.cap ? `<span class="hint">정원이 차면 다음 신청은 대기로 들어가고, 자리가 나면 순서대로 올라가요.</span>` : ""}
     ${e.type !== "training" ? `<div class="card"><div class="spread"><b>용병</b><span class="hint">${gs.length}명</span></div>
       ${gs.length ? `<div class="list">${gs.map(g => `<div class="li"><span style="flex:1"><b>${esc(g.name)}</b><br><span class="hint">${esc([g.pos, nameOf(g.by) + " 님 지인"].filter(Boolean).join(", "))}</span></span>${adm ? `<button class="iconbtn" data-act="guestDel" data-eid="${esc(e.id)}" data-g="${esc(g.id)}" aria-label="빼기">✕</button>` : ""}</div>`).join("")}</div>` : ""}
@@ -394,12 +395,19 @@ function vEventForm(id) {
 
 /* ---------- 선수, 준비 중 탭 ---------- */
 function vPlayers() {
-  const ps = people().sort((a, b) => (a.role === "member") - (b.role === "member") || a.name.localeCompare(b.name, "ko"));
+  const num = x => Number(x) || 999;
+  const ps = people().map(x => ({ ...x, kind: "m" }));
+  const un = unclaimed().map(p => ({ kind: "p", uid: "", pid: p.id, role: "member", name: p.name, p }));
+  const all = ps.concat(un).sort((a, b) => num(a.p.num) - num(b.p.num) || a.name.localeCompare(b.name, "ko"));
+  const row = x => x.kind === "p"
+    ? `<div class="li" data-act="rosterOpen" data-pid="${esc(x.pid)}" role="button" tabindex="0" style="cursor:pointer"><span class="av" style="background:#F3F4F6;color:#6B7280">${esc(x.p.num || x.name.slice(0, 1))}</span><span style="flex:1;min-width:0"><b>${esc(x.name)}</b><br><span class="hint">${x.p.num ? esc(x.p.num) + "번, " : ""}${esc([x.p.pos1, x.p.pos2].filter(Boolean).join(", "))}</span></span><span class="tag gray">가입 전</span></div>`
+    : `<div class="li" ${isAdmin() || x.uid === S.uid ? `data-act="playerOpen" data-u="${esc(x.uid)}" role="button" tabindex="0" style="cursor:pointer"` : ""}><span class="av">${esc(x.p.num || x.name.slice(0, 1))}</span><span style="flex:1;min-width:0"><b>${esc(x.name)}</b>${x.uid === S.uid ? ` <span class="hint">나</span>` : ""}<br><span class="hint">${x.p.num ? esc(x.p.num) + "번, " : ""}${esc([x.p.pos1, x.p.pos2].filter(Boolean).join(", ") || (profileOf(x.uid) ? "포지션 미정" : "선수 등록 전"))}</span></span>${isAdmin() && ((S.rsvp[x.uid] || {}).posReq || {}).status === "req" ? `<span class="tag blue">포지션 요청</span>` : ""}${S.role === "owner" && x.role === "member" && (S.members.find(m => m.user_id === x.uid) || {}).admin_req ? `<span class="tag blue">운영진 신청</span>` : ""}${x.role !== "member" ? `<span class="tag">${ROLE[x.role]}</span>` : ""}</div>`;
   return `<header class="top"><span style="width:8px"></span><h1>선수</h1>${isAdmin() ? `<a class="btn sm" href="#/settings">팀 설정</a><a class="btn sm pri" href="#/invite">+ 초대</a>` : ""}</header><div class="body">
-    <div class="card"><div class="spread"><b>${ps.length}명</b><span class="hint">운영진 ${ps.filter(x => x.role !== "member").length}명</span></div>
-      <div class="list">${ps.map(x => `<div class="li" ${isAdmin() || x.uid === S.uid ? `data-act="playerOpen" data-u="${esc(x.uid)}" role="button" tabindex="0" style="cursor:pointer"` : ""}><span class="av">${esc(x.p.num || x.name.slice(0, 1))}</span><span style="flex:1;min-width:0"><b>${esc(x.name)}</b>${x.uid === S.uid ? ` <span class="hint">나</span>` : ""}<br><span class="hint">${x.p.num ? esc(x.p.num) + "번, " : ""}${esc([x.p.pos1, x.p.pos2].filter(Boolean).join(", ") || (profileOf(x.uid) ? "포지션 미정" : "선수 등록 전"))}</span></span>${isAdmin() && ((S.rsvp[x.uid] || {}).posReq || {}).status === "req" ? `<span class="tag blue">포지션 요청</span>` : ""}${S.role === "owner" && x.role === "member" && (S.members.find(m => m.user_id === x.uid) || {}).admin_req ? `<span class="tag blue">운영진 신청</span>` : ""}${x.role !== "member" ? `<span class="tag">${ROLE[x.role]}</span>` : ""}</div>`).join("")}</div>
-      <span class="hint">${isAdmin() ? "이름을 누르면 권한, 요청, 내보내기를 볼 수 있어요." : "내 이름을 누르면 프로필과 운영진 신청을 볼 수 있어요."}</span>
+    <div class="card"><div class="spread"><b>${all.length}명</b><span class="hint">앱에 들어옴 ${ps.length}명${un.length ? `, 가입 전 ${un.length}명` : ""}</span></div>
+      <div class="list">${all.map(row).join("")}</div>
+      <span class="hint">${isAdmin() ? "이름을 누르면 권한, 요청, 내보내기를 볼 수 있어요. 가입 전 선수는 초대 링크로 들어와 자기 이름을 고르면 연결돼요." : "내 이름을 누르면 프로필과 운영진 신청을 볼 수 있어요."}</span>
     </div>
+    ${isAdmin() ? `<a class="btn" href="#/roster-import">명단 붙여 넣어 한 번에 등록</a>` : ""}
     ${myProfile() && !isAdmin() ? `<a class="btn" href="#/posreq">포지션 변경 요청</a>` : ""}
     ${S.settings.rules && S.settings.rules.length ? `<div class="card"><b>우리 팀 수칙</b><div class="list">${S.settings.rules.map(r => `<div class="li"><span style="flex:1">${esc(r.label)}</span>${Number(r.amount) ? `<b>${won(r.amount)}</b>` : ""}</div>`).join("")}</div></div>` : ""}
     <div class="card"><div class="row" style="justify-content:space-between"><span class="hint">로그인: 카카오</span><span class="row"><button class="btn sm" data-act="switchTeam">다른 팀, 새 팀</button><button class="btn sm" data-act="logout">로그아웃</button></span></div><a class="hint" href="../../privacy.html">개인정보처리방침과 이용약관</a></div>
@@ -605,7 +613,9 @@ function guestSheet(eid) {
 }
 
 /* ---------- 라인업 ---------- */
-const FORM = { futsal: ["GK", "DF", "LW", "RW", "FW"], soccer: ["GK", "LB", "CB", "CB", "RB", "LM", "CM", "CM", "RM", "ST", "ST"] };
+const FORM = { futsal: ["GK", "DF", "LW", "RW", "FW"], soccer: ["GK", "LB", "CB", "CB", "RB", "CDM", "CDM", "LW", "CAM", "RW", "ST"] };
+// 자리와 비슷한 포지션 (정확히 맞는 사람이 없을 때 다음으로 고른다)
+const NEAR = { LB: ["LWB"], RB: ["RWB"], LWB: ["LB"], RWB: ["RB"], CB: ["CDM"], CDM: ["CM", "CB"], CM: ["CDM", "CAM"], CAM: ["CM", "ST"], LW: ["LM", "RW"], RW: ["RM", "LW"], ST: ["FW", "CAM"], DF: ["CB"], FW: ["ST"] };
 function lineupPlayers(e, side) {
   const a = att(e);
   let ps = [...a.yes, ...a.late].map(x => ({ uid: x.uid, name: x.name, from: x.s === "late" ? (x.q || 1) : 1, pos: [x.p.pos1, x.p.pos2] }));
@@ -624,7 +634,8 @@ function autoLineup(e, side) {
     const field = avail.filter(p => !pick.includes(p.uid)).sort((x, y) => cnt[x.uid] - cnt[y.uid] || Math.random() - 0.5);
     const chosen = field.slice(0, slots.length - pick.length);
     // 포지션이 맞는 사람부터 자리에 앉힌다
-    slots.forEach((pos, i) => { if (q[i]) return; const j = chosen.findIndex(p => p.pos[0] === pos) >= 0 ? chosen.findIndex(p => p.pos[0] === pos) : chosen.findIndex(p => p.pos[1] === pos); const p = j >= 0 ? chosen.splice(j, 1)[0] : null; if (p) q[i] = p.uid; });
+    const fit = [p => p.pos[0] === pos0, p => p.pos[1] === pos0, p => (NEAR[pos0] || []).includes(p.pos[0]), p => (NEAR[pos0] || []).includes(p.pos[1])]; let pos0 = "";
+    for (const f of fit) slots.forEach((pos, i) => { if (q[i]) return; pos0 = pos; const j = chosen.findIndex(f); if (j >= 0) q[i] = chosen.splice(j, 1)[0].uid; });
     slots.forEach((pos, i) => { if (!q[i] && chosen.length) q[i] = chosen.shift().uid; });
     Object.values(q).forEach(u => { cnt[u] = (cnt[u] || 0) + 1; });
     out[k] = q;
@@ -667,7 +678,7 @@ function vSquad(id) {
 function playerSheet(u) {
   const x = people().find(p => p.uid === u); if (!x) return; const me = S.members.find(m => m.user_id === S.uid) || {};
   const owner = S.role === "owner"; const isMe = u === S.uid; const req = (S.rsvp[u] || {}).posReq;
-  sheet(`<h3>${esc(x.name)}</h3><span class="hint">${esc(ROLE[x.role])}${x.p.num ? ", " + esc(x.p.num) + "번" : ""}${x.p.pos1 ? ", " + esc([x.p.pos1, x.p.pos2].filter(Boolean).join(", ")) : ""}</span>
+  sheet(`<h3>${esc(x.name)}</h3><span class="hint">${esc(ROLE[x.role])}${x.p.num ? ", " + esc(x.p.num) + "번" : ""}${x.p.pos1 ? ", " + esc([x.p.pos1, x.p.pos2].filter(Boolean).join(", ")) : ""}${joinedOf(u) ? ", 가입 " + dotDate(joinedOf(u)) : ""}</span>
     ${isAdmin() && req && req.status === "req" ? `<div class="card" style="background:#F9FAFB"><b>포지션 변경 요청</b><span class="hint">${esc([req.pos1, req.pos2].filter(Boolean).join(", "))}${req.note ? ", " + esc(req.note) : ""}</span><div class="row"><button class="btn block" data-act="posNo" data-u="${esc(u)}">거절</button><button class="btn pri block" data-act="posOk" data-u="${esc(u)}">수락</button></div></div>` : ""}
     ${owner && (S.members.find(m => m.user_id === u) || {}).admin_req && x.role === "member" ? `<div class="card" style="background:#F9FAFB"><b>운영진 신청</b><div class="row"><button class="btn block" data-act="adminAns" data-u="${esc(u)}" data-ok="">거절</button><button class="btn pri block" data-act="adminAns" data-u="${esc(u)}" data-ok="1">수락</button></div></div>` : ""}
     ${owner && !isMe ? `<div class="row">${x.role === "member" ? `<button class="btn block" data-act="setRole" data-u="${esc(u)}" data-v="admin">운영진으로</button>` : x.role === "admin" ? `<button class="btn block" data-act="setRole" data-u="${esc(u)}" data-v="member">팀원으로</button>` : ""}<button class="btn block" data-act="giveOwner" data-u="${esc(u)}">팀장 넘기기</button></div><button class="btn danger" data-act="kick" data-u="${esc(u)}">팀에서 내보내기</button>` : ""}
@@ -684,6 +695,85 @@ function vPosReq() {
   </div><div class="cta"><button class="btn pri block" data-act="posSend">요청 보내기</button></div>`;
 }
 
+/* ---------- 미리 등록한 명단 ---------- */
+// 운영진이 명단(players)을 넣어 두면, 팀원은 처음 들어올 때 자기 이름을 골라 연결한다 (rsvp.pid)
+const rosterAll = () => Object.entries(D("players")).map(([id, p]) => ({ id, ...p }));
+const claimedPids = () => new Set(S.members.map(m => (S.rsvp[m.user_id] || {}).pid).filter(Boolean));
+const unclaimed = () => { const c = claimedPids(); return rosterAll().filter(p => !c.has(p.id)).sort((a, b) => (Number(a.num) || 999) - (Number(b.num) || 999)); };
+const joinedOf = u => { const pid = (S.rsvp[u] || {}).pid; return pid && D("players")[pid] ? D("players")[pid].joined || "" : ""; };
+const dotDate = d => d ? d.slice(0, 4) + "." + Number(d.slice(5, 7)) + "." + Number(d.slice(8, 10)) : "";
+function vClaim() {
+  const list = unclaimed();
+  return `${top("명단에서 내 이름 고르기", S.flow ? "" : "#/")}<div class="body">
+    <div class="card"><b style="font-size:18px">${esc(S.team ? S.team.name : "")} 명단이에요</b><span class="hint">운영진이 미리 올려 둔 명단이에요. 내 이름을 누르면 번호와 포지션이 그대로 들어가요.</span></div>
+    <div class="card"><div class="list">${list.map(p => `<button class="li" style="border:0;border-bottom:1px solid #F3F4F6;background:none;text-align:left;width:100%" data-act="claim" data-pid="${esc(p.id)}"><span class="av">${esc(p.num || p.name.slice(0, 1))}</span><span style="flex:1"><b>${esc(p.name)}</b><br><span class="hint">${esc([p.num ? p.num + "번" : "", p.pos1, p.pos2].filter(Boolean).join(", "))}</span></span></button>`).join("") || `<span class="hint">남은 이름이 없어요.</span>`}</div></div>
+    <button class="btn" data-act="noClaim">명단에 내 이름이 없어요</button>
+  </div>`;
+}
+const POS_ALL = ["GK", "LB", "LWB", "CB", "RB", "RWB", "CDM", "CM", "CAM", "LM", "RM", "LW", "RW", "ST", "DF", "FW"];
+function parseRoster(text) {
+  const rows = []; const bad = [];
+  String(text || "").split(/\r?\n/).forEach((line, i) => {
+    const raw = line.trim(); if (!raw) return;
+    let f = raw.split(/\t|,/).map(x => x.trim());
+    if (f.length < 3) f = raw.split(/\s+/);
+    const name = (f[0] || "").replace(/\s+/g, "");
+    const up = x => String(x || "").toUpperCase().replace(/\s/g, "");
+    const pos1 = up(f[1]), pos2 = up(f[2]); const num = String(f[3] || "").replace(/\D/g, "").slice(0, 3);
+    const dm = String(f.slice(4).join(" ")).match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+    const joined = dm ? `${dm[1]}-${dm[2].padStart(2, "0")}-${dm[3].padStart(2, "0")}` : "";
+    if (!name || (pos1 && !POS_ALL.includes(pos1)) || (pos2 && !POS_ALL.includes(pos2))) { bad.push(i + 1); return; }
+    rows.push({ name: name.slice(0, 20), pos1, pos2, num, joined });
+  });
+  return { rows, bad };
+}
+function vRosterImport() {
+  const { rows, bad } = parseRoster(S.form.text);
+  return `${top("명단 붙여 넣기", "#/players")}<div class="body">
+    <div class="card"><span class="hint">한 줄에 한 명씩: 이름, 1선호, 2선호, 등번호, 가입일. 엑셀에서 복사해 그대로 붙여 넣어도 돼요.</span>
+      <textarea class="inp" data-bind="text" style="min-height:200px" placeholder="김성우&#9;ST&#9;CAM&#9;1&#9;2025. 9. 10">${esc(S.form.text || "")}</textarea>
+      <button class="btn sm" data-act="rosterPreview" style="align-self:flex-start">확인하기</button></div>
+    ${rows.length ? `<div class="card"><div class="spread"><b>${rows.length}명</b>${bad.length ? `<span class="hint" style="color:#B91C1C">${bad.join(", ")}번째 줄은 읽지 못했어요</span>` : ""}</div><div class="list">${rows.map(r => `<div class="li"><span class="av">${esc(r.num || r.name.slice(0, 1))}</span><span style="flex:1"><b>${esc(r.name)}</b><br><span class="hint">${esc([r.pos1, r.pos2].filter(Boolean).join(", "))}${r.joined ? ", 가입 " + dotDate(r.joined) : ""}</span></span></div>`).join("")}</div><span class="hint">이미 들어온 팀원과 이름이 같으면 그 팀원에게 연결하고 번호와 포지션을 맞춰요. 같은 이름의 명단이 있으면 고쳐 써요.</span></div>` : ""}
+  </div><div class="cta"><button class="btn pri block" data-act="rosterSave" ${rows.length ? "" : "disabled"}>${rows.length ? rows.length + "명 등록하기" : "명단을 붙여 넣어 주세요"}</button></div>`;
+}
+function rosterSheet(pid) {
+  const p = D("players")[pid]; if (!p) return;
+  sheet(`<h3>${esc(p.name)}</h3><span class="hint">${esc([p.num ? p.num + "번" : "", p.pos1, p.pos2].filter(Boolean).join(", "))}${p.joined ? ", 가입 " + dotDate(p.joined) : ""}</span><span class="hint">아직 앱에 들어오지 않았어요. 초대 링크로 들어와 이 이름을 고르면 연결돼요.</span>
+    ${isAdmin() ? `<button class="btn danger" data-act="rosterDel" data-pid="${esc(pid)}">명단에서 빼기</button>` : ""}<button class="btn" data-act="closeSheet">닫기</button>`);
+}
+const ACT3 = {
+  claim: t => {
+    const p = D("players")[t.dataset.pid]; if (!p) return;
+    confirmBox("내 이름이 맞나요?", `${p.name}${p.num ? ", " + p.num + "번" : ""}${p.pos1 ? ", " + [p.pos1, p.pos2].filter(Boolean).join(", ") : ""}`, "맞아요", async () => {
+      try {
+        const profile = { name: p.name, num: p.num || "", pos1: p.pos1 || "", pos2: p.pos2 || "" };
+        await patchDoc("rsvp", S.uid, { pid: t.dataset.pid, profile });
+        await sb.rpc("set_my_name", { p_team: S.tid, p_name: profile.name });
+        if (S.flow) { if (!isAdmin() && !(S.rsvp[S.uid] || {}).agreedAt) { S.flow = "rules"; render(); return; } S.flow = ""; S.ready = true; }
+        toast("연결했어요"); location.hash = "#/"; render();
+      } catch (e) { fail(e); }
+    });
+  },
+  noClaim: () => { S.afterProfile = ""; startProfile(); },
+  rosterPreview: () => render(),
+  rosterOpen: t => rosterSheet(t.dataset.pid),
+  rosterDel: t => { closeSheet(); confirmBox("명단에서 빼기", "이 이름을 명단에서 뺄까요?", "빼기", async () => { try { await delDoc("players", t.dataset.pid); render(); } catch (e) { fail(e); } }, true); },
+  rosterSave: async t => {
+    const { rows } = parseRoster(S.form.text); if (!rows.length) return; t.disabled = true;
+    try {
+      const byName = {}; rosterAll().forEach(p => { byName[p.name] = p.id; });
+      let linked = 0;
+      for (const r of rows) {
+        const pid = byName[r.name] || uid36("p");
+        await setDoc("players", pid, { ...(D("players")[pid] || {}), ...r });
+        // 이미 들어온 팀원과 이름이 같으면 연결하고 번호와 포지션을 맞춘다
+        const m = S.members.find(x => nameOf(x.user_id) === r.name);
+        if (m) { const cur = S.rsvp[m.user_id] || {}; if (!cur.pid || cur.pid === pid) { await patchDoc("rsvp", m.user_id, { pid, profile: { ...(cur.profile || {}), name: r.name, num: r.num, pos1: r.pos1, pos2: r.pos2 } }); linked++; } }
+      }
+      toast(`${rows.length}명을 등록했어요${linked ? `. ${linked}명은 이미 들어온 팀원과 연결했어요` : ""}`); S.form = {}; location.hash = "#/players";
+    } catch (e) { t.disabled = false; fail(e); }
+  },
+};
 const ACT2 = {
   goTo: t => { closeSheet(); location.hash = t.dataset.h; },
   duesRef: t => { UI.ref = t.dataset.v; render(); },
@@ -804,6 +894,7 @@ function render() {
   else if (S.flow === "create") html = vCreate();
   else if (S.flow === "profile") html = vProfile(false);
   else if (S.flow === "rules") html = vRules();
+  else if (S.flow === "claim") html = vClaim();
   else if (!S.ready) html = `<div class="loading">불러오는 중이에요</div>`;
   else {
     const r = route(); let m;
@@ -829,6 +920,8 @@ function render() {
     else if (r === "/notices") html = vNotices();
     else if (r === "/notice-new" && isAdmin()) html = vNoticeNew();
     else if (r === "/posreq") html = vPosReq();
+    else if (r === "/claim" && !(S.rsvp[S.uid] || {}).pid) html = vClaim();
+    else if (r === "/roster-import" && isAdmin()) html = vRosterImport();
     else html = isAdmin() ? vHomeAdmin() : vHomeMember();
   }
   // 입력 중인 칸은 그대로 두려고, 같은 화면이면 포커스와 커서를 되돌린다
@@ -855,6 +948,7 @@ function onRoute(force) {
   else if ((m = r.match(/^\/result\/(.+)$/)) && S.events[decodeURIComponent(m[1])]) { const e = S.events[decodeURIComponent(m[1])]; S.form = { us: (e.score || {}).us || 0, them: (e.score || {}).them || 0, goals: (e.goals || []).map(g => ({ uid: g.uid })) }; }
   else if (/^\/(lineup|game)\//.test(r)) { S.form = {}; UI.q = 1; UI.mom = ""; }
   else if (r === "/notices") markSeen();
+  else if (r === "/roster-import") S.form = { text: "" };
   else if (r === "/settings") { const st = S.settings; S.form = { name: (S.team && S.team.name) || st.teamName || "", sport: st.sport || "futsal", feeMode: st.feeMode || "none", fee: st.fee ? String(st.fee) : "", dueDay: st.dueDay || "5", kit: st.uniformColor || "#164F33", rules: (st.rules || []).map(r => ({ label: r.label, amount: r.amount ? String(r.amount) : "" })) }; }
   render(); window.scrollTo(0, 0);
 }
@@ -970,7 +1064,7 @@ const ACT = {
   }, true),
   logout: () => confirmBox("로그아웃", "이 기기에서 로그아웃할까요?", "로그아웃", async () => { try { await sb.auth.signOut(); } catch (e) { /* 그래도 처음으로 */ } ls.set("mb-team", null); location.replace(APP); }),
 };
-Object.assign(ACT, ACT2);
+Object.assign(ACT, ACT2, ACT3);
 document.addEventListener("click", ev => {
   const t = ev.target.closest("[data-act]"); if (!t) return;
   const f = ACT[t.dataset.act]; if (!f) return;
@@ -985,7 +1079,7 @@ function suggestedName() { const m = (S.session && S.session.user.user_metadata)
 async function enter(tid) {
   try { await loadTeam(tid); } catch (e) { fail(e); S.flow = "create"; startCreate(); return; }
   if (!S.role) { ls.set("mb-team", null); await loadTeams(); if (S.teams.length) return enter(S.teams[0].id); return startCreate(); }
-  if (!myProfile() && !isAdmin()) { S.afterProfile = ""; startProfile(); return; }
+  if (!myProfile() && !isAdmin()) { S.afterProfile = ""; if (unclaimed().length) { S.flow = "claim"; render(); return; } startProfile(); return; }
   if (!isAdmin() && !(S.rsvp[S.uid] || {}).agreedAt) { S.flow = "rules"; render(); return; }
   S.flow = ""; S.ready = true; onRoute(true);
   syncMyDues().catch(() => {});
