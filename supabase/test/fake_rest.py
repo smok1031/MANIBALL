@@ -9,9 +9,9 @@ import psycopg2, psycopg2.extras
 
 PORT, DSN = int(sys.argv[1]), sys.argv[2]
 COLS = {"docs": {"team_id", "coll", "id", "data", "updated_at", "updated_by"},
-        "members": {"team_id", "user_id", "role", "display_name", "joined_at"},
+        "members": {"team_id", "user_id", "role", "display_name", "joined_at", "admin_req"},
         "teams": {"id", "name", "invite_code", "created_by", "created_at"}}
-FNS = {"create_team", "team_by_code", "join_team", "set_my_name", "set_member_role", "remove_member", "new_invite_code", "doc_patch", "my_name", "request_admin", "cancel_admin_request", "answer_admin_request", "team_invite_code", "transfer_owner", "delete_my_account"}
+FNS = {"create_team", "team_by_code", "join_team", "set_my_name", "set_member_role", "remove_member", "new_invite_code", "doc_patch", "my_name", "request_admin", "cancel_admin_request", "answer_admin_request", "team_invite_code", "transfer_owner", "delete_my_account", "delete_team"}
 IDENT = re.compile(r"^[a-z_]+$")
 
 def claims(h):
@@ -82,6 +82,7 @@ class H(BaseHTTPRequestHandler):
             assert k in COLS[table], k
             op, _, val = v.partition(".")
             if op == "eq": sql.append(f"{k}::text = %s"); args.append(val)
+            elif op == "neq": sql.append(f"{k}::text <> %s"); args.append(val)
             elif op == "in": sql.append(f"{k}::text = any(%s)"); args.append([x.strip('"') for x in val.strip("()").split(",") if x])
             else: raise AssertionError(op)
         cols = [c.strip() for c in sel.split(",")] if sel != "*" else ["*"]

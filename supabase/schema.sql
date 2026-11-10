@@ -345,7 +345,7 @@ begin
         if ev is null or coalesce(ev ->> 'type', '') not in ('match', 'scrim') then raise exception 'no_event' using errcode = '42501'; end if;
         if clock_timestamp() < public.event_start(ev)
            or clock_timestamp() >= (((ev ->> 'date')::date + 1) + time '12:00') at time zone 'Asia/Seoul' then raise exception 'mom_closed' using errcode = '42501'; end if;
-        if coalesce(ne #>> '{}', '') <> '' and not exists (select 1 from public.docs where team_id = new.team_id and coll = 'players' and id = ne #>> '{}') then raise exception 'no_player' using errcode = '42501'; end if;
+        if coalesce(ne #>> '{}', '') <> '' and not exists (select 1 from public.members where team_id = new.team_id and user_id::text = ne #>> '{}') then raise exception 'no_player' using errcode = '42501'; end if;
       end loop;
     end if;
     -- 낸 MOM 표는 지우거나 빼서 되돌릴 수 없다
@@ -435,6 +435,14 @@ begin
   delete from auth.users where id = me;
 end $$;
 
+-- 팀 지우기: 팀장만. 일정, 참석, 회비, 멤버가 모두 함께 지워진다
+create or replace function public.delete_team(p_team uuid) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if coalesce(public.team_role(p_team), '') <> 'owner' then raise exception 'owner_only'; end if;
+  delete from public.teams where id = p_team;
+end $$;
+
 -- 함수와 표 권한: 로그인한 사람만, 필요한 만큼만 (Supabase 기본 권한을 먼저 거둔다)
 revoke execute on all functions in schema public from public, anon, authenticated;
 revoke all on public.teams, public.members, public.docs from anon, authenticated;
@@ -445,7 +453,7 @@ grant execute on function public.create_team(text), public.join_team(text, text)
   public.set_member_role(uuid, uuid, text), public.remove_member(uuid, uuid), public.new_invite_code(uuid), public.doc_patch(uuid, text, text, jsonb),
   public.team_role(uuid), public.is_member(uuid), public.is_admin(uuid), public.jsonb_deep_merge(jsonb, jsonb),
   public.request_admin(uuid), public.cancel_admin_request(uuid), public.answer_admin_request(uuid, uuid, boolean),
-  public.team_invite_code(uuid), public.transfer_owner(uuid, uuid), public.delete_my_account() to authenticated;
+  public.team_invite_code(uuid), public.transfer_owner(uuid, uuid), public.delete_my_account(), public.delete_team(uuid) to authenticated;
 -- 로그인 전 화면에서도 초대받은 팀 이름을 보여 준다 (코드를 아는 사람만)
 grant execute on function public.team_by_code(text) to anon;
 -- 초대 코드는 운영진만 (team_invite_code 함수로) 본다
