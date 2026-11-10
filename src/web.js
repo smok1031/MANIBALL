@@ -9,7 +9,8 @@ const KEY_ = import.meta.env.VITE_SUPABASE_KEY || SUPABASE_KEY;
 const BASE = import.meta.env.BASE_URL;
 const LS = { team: "kei-web-team", join: "kei-web-join", pick: "kei-web-pick" };
 const qs = new URLSearchParams(location.search);
-const APP_URL = location.origin + location.pathname;
+// 카카오에 등록한 리다이렉트 주소와 늘 같도록 index.html은 떼고 폴더 주소로 맞춘다
+const APP_URL = location.origin + location.pathname.replace(/index\.html$/, "");
 window.__SHARE_LINK = APP_URL;
 
 const $ = s => document.querySelector(s);

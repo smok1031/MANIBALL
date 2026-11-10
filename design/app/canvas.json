@@ -2,6 +2,14 @@
   "v": 3,
   "attachments": {},
   "boards": {
+    "AdminCalendar.dc.html": {
+      "h": 1000,
+      "is_interactive": true,
+      "title": "운영진 일정 2-26 달력으로 보기",
+      "w": 390,
+      "x": 18567,
+      "y": 124
+    },
     "AdminCheckIn.dc.html": {
       "h": 1180,
       "is_interactive": true,
@@ -206,36 +214,36 @@
       "h": 660,
       "title": "예시 화면 3 현장 출석과 벌금",
       "w": 320,
-      "x": 800,
-      "y": 0
+      "x": 645,
+      "y": 5447
     },
     "AppDues.dc.html": {
       "h": 660,
       "title": "예시 화면 4 회비",
       "w": 320,
-      "x": 1200,
-      "y": 0
+      "x": 1045,
+      "y": 5447
     },
     "AppEvent.dc.html": {
       "h": 660,
       "title": "예시 화면 5 공지와 MOM",
       "w": 320,
-      "x": 1600,
-      "y": 0
+      "x": 1445,
+      "y": 5447
     },
     "AppLineup.dc.html": {
       "h": 660,
       "title": "예시 화면 2 포지션과 휴식",
       "w": 320,
-      "x": 400,
-      "y": 0
+      "x": 245,
+      "y": 5447
     },
     "AppVote.dc.html": {
       "h": 660,
       "title": "예시 화면 1 참석 집계",
       "w": 320,
-      "x": 0,
-      "y": 0
+      "x": -155,
+      "y": 5447
     },
     "DuesAdmin.dc.html": {
       "h": 1780,
@@ -322,40 +330,40 @@
       "is_interactive": true,
       "title": "팀원 회비 4-1",
       "w": 390,
-      "x": 52,
-      "y": 15006
+      "x": 6479,
+      "y": 14426
     },
     "DuesMemberLedger.dc.html": {
       "h": 1100,
       "is_interactive": true,
       "title": "팀원 회비 4-4 팀 통장 내역",
       "w": 390,
-      "x": 1462,
-      "y": 15006
+      "x": 7889,
+      "y": 14426
     },
     "DuesMemberPay.dc.html": {
       "h": 844,
       "is_interactive": true,
       "title": "팀원 회비 4-2 입금하기",
       "w": 390,
-      "x": 522,
-      "y": 15006
+      "x": 6949,
+      "y": 14426
     },
     "DuesMemberSent.dc.html": {
       "h": 1200,
       "is_interactive": true,
       "title": "팀원 회비 4-3 보냈어요 누른 뒤",
       "w": 390,
-      "x": 992,
-      "y": 15006
+      "x": 7419,
+      "y": 14426
     },
     "Home5.dc.html": {
       "h": 844,
       "is_interactive": true,
       "title": "팀원 화면 1-1",
       "w": 390,
-      "x": 52,
-      "y": 11481
+      "x": 6479,
+      "y": 10901
     },
     "HomeAdmin.dc.html": {
       "h": 1130,
@@ -370,48 +378,48 @@
       "is_interactive": true,
       "title": "초대 2-1",
       "w": 390,
-      "x": 2488,
-      "y": 1378
+      "x": 2333,
+      "y": 6825
     },
     "InviteRoster.dc.html": {
       "h": 844,
       "is_interactive": true,
       "title": "초대 2-2",
       "w": 390,
-      "x": 2932,
-      "y": 1378
+      "x": 2777,
+      "y": 6825
     },
     "JoinInvite.dc.html": {
       "h": 844,
       "is_interactive": true,
       "title": "팀원 가입 1 초대 링크로 들어왔을 때",
       "w": 390,
-      "x": 2488,
-      "y": 2449
+      "x": 2333,
+      "y": 7896
     },
     "JoinProfile.dc.html": {
       "h": 1340,
       "is_interactive": true,
       "title": "팀원 가입 2 카카오 로그인 뒤 선수 등록",
       "w": 390,
-      "x": 2958,
-      "y": 2449
+      "x": 2803,
+      "y": 7896
     },
     "JoinRules.dc.html": {
       "h": 1060,
       "is_interactive": true,
       "title": "팀원 가입 3 팀 수칙 동의",
       "w": 390,
-      "x": 3428,
-      "y": 2449
+      "x": 3273,
+      "y": 7896
     },
     "Main.dc.html": {
       "expand": "fill",
       "h": 4700,
       "title": "A",
       "w": 1520,
-      "x": 0,
-      "y": 1100
+      "x": -155,
+      "y": 6547
     },
     "NoticeAdmin.dc.html": {
       "h": 900,
@@ -438,12 +446,12 @@
       "y": -1174
     },
     "NotifyMember.dc.html": {
-      "h": 980,
+      "h": 844,
       "is_interactive": true,
       "title": "팀원 화면 1-4 알림",
       "w": 390,
-      "x": 522,
-      "y": 11481
+      "x": 6949,
+      "y": 10901
     },
     "PlayersAdmin.dc.html": {
       "h": 2300,
@@ -522,40 +530,40 @@
       "is_interactive": true,
       "title": "팀원 선수 5-1",
       "w": 390,
-      "x": 52,
-      "y": 16506
+      "x": 6479,
+      "y": 15926
     },
     "PlayersMemberEdit.dc.html": {
       "h": 1080,
       "is_interactive": true,
       "title": "팀원 선수 5-3 프로필 수정",
       "w": 390,
-      "x": 992,
-      "y": 16506
+      "x": 7419,
+      "y": 15926
     },
     "PlayersMemberPosition.dc.html": {
       "h": 900,
       "is_interactive": true,
       "title": "팀원 선수 5-4 포지션 변경 요청",
       "w": 390,
-      "x": 1462,
-      "y": 16506
+      "x": 7889,
+      "y": 15926
     },
     "PlayersMemberProfile.dc.html": {
       "h": 920,
       "is_interactive": true,
       "title": "팀원 선수 5-2 선수 정보",
       "w": 390,
-      "x": 522,
-      "y": 16506
+      "x": 6949,
+      "y": 15926
     },
     "PlayersMemberRequested.dc.html": {
       "h": 2060,
       "is_interactive": true,
       "title": "팀원 선수 5-5 요청 보낸 뒤",
       "w": 390,
-      "x": 1932,
-      "y": 16506
+      "x": 8359,
+      "y": 15926
     },
     "RecordAdmin.dc.html": {
       "h": 1420,
@@ -642,64 +650,64 @@
       "is_interactive": true,
       "title": "팀원 기록 3-1",
       "w": 390,
-      "x": 52,
-      "y": 13606
+      "x": 6479,
+      "y": 13026
     },
     "RecordMemberGame.dc.html": {
       "h": 1060,
       "is_interactive": true,
       "title": "팀원 기록 3-7 경기 보기",
       "w": 390,
-      "x": 2872,
-      "y": 13606
+      "x": 9299,
+      "y": 13026
     },
     "RecordMemberMatch.dc.html": {
       "h": 1240,
       "is_interactive": true,
       "title": "팀원 기록 3-3 경기만 보기",
       "w": 390,
-      "x": 992,
-      "y": 13606
+      "x": 7419,
+      "y": 13026
     },
     "RecordMemberMissed.dc.html": {
       "h": 900,
       "is_interactive": true,
       "title": "팀원 기록 3-8 불참한 경기 보기",
       "w": 390,
-      "x": 3342,
-      "y": 13606
+      "x": 9769,
+      "y": 13026
     },
     "RecordMemberPending.dc.html": {
       "h": 844,
       "is_interactive": true,
       "title": "팀원 기록 3-5 결과 대기 경기",
       "w": 390,
-      "x": 1932,
-      "y": 13606
+      "x": 8359,
+      "y": 13026
     },
     "RecordMemberScrim.dc.html": {
       "h": 1240,
       "is_interactive": true,
       "title": "팀원 기록 3-4 내전만 보기",
       "w": 390,
-      "x": 1462,
-      "y": 13606
+      "x": 7889,
+      "y": 13026
     },
     "RecordMemberScrimView.dc.html": {
       "h": 1000,
       "is_interactive": true,
       "title": "팀원 기록 3-6 내전 보기",
       "w": 390,
-      "x": 2402,
-      "y": 13606
+      "x": 8829,
+      "y": 13026
     },
     "RecordMemberSeason.dc.html": {
       "h": 844,
       "is_interactive": true,
       "title": "팀원 기록 3-2 시즌 고르기",
       "w": 390,
-      "x": 522,
-      "y": 13606
+      "x": 6949,
+      "y": 13026
     },
     "ScheduleAdmin.dc.html": {
       "h": 1000,
@@ -714,88 +722,80 @@
       "is_interactive": true,
       "title": "팀원 일정 2-1",
       "w": 390,
-      "x": 52,
-      "y": 12483
+      "x": 6479,
+      "y": 11903
     },
     "ScheduleMemberAbsent.dc.html": {
       "h": 880,
       "is_interactive": true,
       "title": "팀원 일정 2-4 불참 눌렀을 때",
       "w": 390,
-      "x": 1462,
-      "y": 12483
+      "x": 7889,
+      "y": 11903
     },
     "ScheduleMemberAttend.dc.html": {
       "h": 844,
       "is_interactive": true,
       "title": "팀원 일정 2-2 참석 눌렀을 때",
       "w": 390,
-      "x": 522,
-      "y": 12483
+      "x": 6949,
+      "y": 11903
     },
     "ScheduleMemberCalendar.dc.html": {
       "h": 960,
       "is_interactive": true,
       "title": "팀원 일정 2-6 달력으로 보기",
       "w": 390,
-      "x": 2402,
-      "y": 12483
+      "x": 8829,
+      "y": 11903
     },
     "ScheduleMemberChange.dc.html": {
       "h": 880,
       "is_interactive": true,
       "title": "팀원 일정 2-5 바꾸기 눌렀을 때",
       "w": 390,
-      "x": 1932,
-      "y": 12483
+      "x": 8359,
+      "y": 11903
     },
     "ScheduleMemberGuest.dc.html": {
       "h": 844,
       "is_interactive": true,
       "title": "팀원 일정 2-8 용병 신청",
       "w": 390,
-      "x": 3342,
-      "y": 12483
+      "x": 9769,
+      "y": 11903
     },
     "ScheduleMemberGuestSent.dc.html": {
       "h": 900,
       "is_interactive": true,
       "title": "팀원 일정 2-9 용병 신청한 뒤",
       "w": 390,
-      "x": 3812,
-      "y": 12483
+      "x": 10239,
+      "y": 11903
     },
     "ScheduleMemberLate.dc.html": {
       "h": 960,
       "is_interactive": true,
       "title": "팀원 일정 2-3 늦참 눌렀을 때",
       "w": 390,
-      "x": 992,
-      "y": 12483
+      "x": 7419,
+      "y": 11903
     },
     "ScheduleMemberRoster.dc.html": {
       "h": 980,
       "is_interactive": true,
       "title": "팀원 일정 2-7 참석 명단",
       "w": 390,
-      "x": 2872,
-      "y": 12483
+      "x": 9299,
+      "y": 11903
     },
     "TeamSplit.dc.html": {
       "h": 1720,
       "is_interactive": true,
       "title": "팀 만들기 1-1",
       "w": 390,
-      "x": 1768,
-      "y": 1378
-    },
-    "AdminCalendar.dc.html": {
-      "h": 1000,
-      "is_interactive": true,
-      "title": "운영진 일정 2-26 달력으로 보기",
-      "w": 390,
-      "x": 18567,
-      "y": 124
+      "x": 1613,
+      "y": 6825
     }
   },
   "createdOnFiles": {
@@ -822,16 +822,16 @@
       "size": 24,
       "text": "",
       "w": 240,
-      "x": -211,
-      "y": 11423
+      "x": 6216,
+      "y": 10843
     },
     "note-qskc3w": {
       "kind": "title1",
       "maxW": 2740,
       "text": "메인 화면 \\[팀원\\] ",
       "w": 240,
-      "x": 17,
-      "y": 11212
+      "x": 6444,
+      "y": 10632
     },
     "tHome": {
       "kind": "title1",
@@ -846,32 +846,32 @@
       "maxW": 834,
       "text": "팀원 초대 화면",
       "w": 240,
-      "x": 2488,
-      "y": 1106
+      "x": 2333,
+      "y": 6553
     },
     "tPages": {
       "kind": "title1",
       "maxW": 2808,
       "text": "홈페이지 시안  A",
       "w": 240,
-      "x": 0,
-      "y": 800
+      "x": -155,
+      "y": 6247
     },
     "tScreens": {
       "kind": "title1",
       "maxW": 1920,
       "text": "홈페이지에 들어가는 예시 화면 5장",
       "w": 240,
-      "x": 0,
-      "y": -300
+      "x": -155,
+      "y": 5147
     },
     "tTeam": {
       "kind": "title1",
       "maxW": 1280,
       "text": "우리 팀 만들기 화면 ",
       "w": 240,
-      "x": 1768,
-      "y": 1100
+      "x": 1613,
+      "y": 6547
     }
   },
   "order": [

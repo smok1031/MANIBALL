@@ -50,7 +50,7 @@ for (const f of readdirSync(SRC).filter(f => f.endsWith(".dc.html"))) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>${title} | 매니볼</title>
+<title>${title !== name ? title : (boardTitles[name] || name)} | 매니볼</title>
 <meta name="robots" content="noindex">
 ${helmet.trim()}
 <style>html{background:#E5E7EB}body{background:#E5E7EB}a{-webkit-tap-highlight-color:transparent}a[href="#"]{cursor:default}</style>
