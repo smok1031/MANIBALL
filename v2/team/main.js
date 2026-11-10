@@ -355,7 +355,7 @@ function vPlayers() {
       <div class="list">${ps.map(x => `<div class="li"><span class="av">${esc(x.p.num || x.name.slice(0, 1))}</span><span style="flex:1;min-width:0"><b>${esc(x.name)}</b>${x.uid === S.uid ? ` <span class="hint">나</span>` : ""}<br><span class="hint">${x.p.num ? esc(x.p.num) + "번, " : ""}${esc([x.p.pos1, x.p.pos2].filter(Boolean).join(", ") || (profileOf(x.uid) ? "포지션 미정" : "선수 등록 전"))}</span></span>${x.role !== "member" ? `<span class="tag">${ROLE[x.role]}</span>` : ""}</div>`).join("")}</div>
     </div>
     ${S.settings.rules && S.settings.rules.length ? `<div class="card"><b>우리 팀 수칙</b><div class="list">${S.settings.rules.map(r => `<div class="li"><span style="flex:1">${esc(r.label)}</span>${Number(r.amount) ? `<b>${won(r.amount)}</b>` : ""}</div>`).join("")}</div></div>` : ""}
-    <div class="card"><div class="row" style="justify-content:space-between"><span class="hint">로그인: 카카오</span><button class="btn sm" data-act="logout">로그아웃</button></div><a class="hint" href="../../privacy.html">개인정보처리방침과 이용약관</a></div>
+    <div class="card"><div class="row" style="justify-content:space-between"><span class="hint">로그인: 카카오</span><span class="row"><button class="btn sm" data-act="switchTeam">다른 팀, 새 팀</button><button class="btn sm" data-act="logout">로그아웃</button></span></div><a class="hint" href="../../privacy.html">개인정보처리방침과 이용약관</a></div>
   </div>${nav("선수")}`;
 }
 const vSoon = (t, on) => `<header class="top"><span style="width:8px"></span><h1>${t}</h1></header><div class="body"><div class="card empty"><b>${t}은 다음 단계에서 열려요</b><span class="hint">지금은 팀 만들기, 초대, 선수 등록, 일정과 참석 투표를 점검할 수 있어요.</span></div></div>${nav(on)}`;
