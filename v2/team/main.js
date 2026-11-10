@@ -2,6 +2,7 @@
 // 서버는 Supabase(teams, members, docs). 예시 데이터는 없다.
 import { createClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_KEY } from "../../src/config.js";
+import { memberRoute, memberForm, MACT } from "./member.js";
 
 const URL_ = import.meta.env.VITE_SUPABASE_URL || SUPABASE_URL;
 const KEY_ = import.meta.env.VITE_SUPABASE_KEY || SUPABASE_KEY;
@@ -22,6 +23,9 @@ const KIT = [["#164F33", "초록"], ["#111827", "검정"], ["#1E3A8A", "파랑"]
 const numColor = c => ["#F5B841", "#F3F4F6"].includes(c) ? "#111827" : "#FFFFFF";
 
 const S = { d: {}, session: null, uid: "", teams: [], tid: "", role: "", team: null, members: [], invite: "", settings: {}, events: {}, rsvp: {}, ready: false, flow: "", form: {}, ch: null };
+// 운영진 화면과 팀원 화면은 따로 그린다. 운영진도 "팀원 화면 보기"로 자기 참석과 카드를 본다
+const viewMode = () => (isAdmin() && ls.get("mb-view") !== "member") ? "admin" : "member";
+function setView(v) { ls.set("mb-view", v === "member" ? "member" : null); }
 const isAdmin = () => S.role === "owner" || S.role === "admin";
 
 /* ---------- 작은 도구 ---------- */
@@ -202,9 +206,10 @@ function vInvite(teamName, err) {
       <b style="font-size:22px">${esc(teamName || "팀")}</b>
       <span class="hint">팀 초대를 받았어요. 카카오로 로그인하면 바로 팀원이 돼요.</span>
     </div>
+    <div class="card"><div class="list">${[["카카오로 로그인", "비밀번호 없이 바로 들어와요"], ["선수 등록", "명단에서 내 이름을 고르거나 이름, 등번호, 포지션을 적어요"], ["팀 수칙 동의", "벌금 규칙과 회비 안내"]].map(([a, b], i) => `<div class="li"><span class="av" style="width:32px;height:32px">${i + 1}</span><span style="flex:1"><b>${a}</b><br><span class="hint">${b}</span></span></div>`).join("")}</div><span class="hint" style="text-align:center">1분이면 끝나요</span></div>
     ${err ? `<div class="err" role="alert">로그인하지 못했어요. 다시 시도해 주세요.</div>` : ""}
     <button class="btn kakao block" data-act="kakao">${KAKAO}카카오로 시작하기</button>
-    <span class="hint" style="text-align:center">앱 설치는 필요 없어요. <a href="../../privacy.html">개인정보처리방침과 이용약관</a></span>
+    <span class="hint" style="text-align:center">처음 한 번만 하면 다음부터는 바로 들어와요. 앱 설치는 필요 없어요. <a href="../../privacy.html">개인정보처리방침과 이용약관</a></span>
   </div>`;
 }
 
@@ -237,7 +242,9 @@ function vCreate(edit) {
 function vProfile(editing) {
   const f = S.form; const pos = POS[sport()];
   const pchip = (k, v) => `<button class="chip ${f[k] === v ? "on" : ""}" data-act="pick" data-k="${k}" data-v="${v}">${v}</button>`;
-  return `${top(editing ? "프로필 수정" : "선수 등록", editing ? "#/" : "")}<div class="body">
+  const nick = suggestedName();
+  return `${top(editing ? "프로필 수정" : "선수 등록 1/2", editing ? "#/" : "")}<div class="body">
+    ${!editing && nick ? `<div class="hint" style="background:#F0FDF4;color:#166534;border-radius:12px;padding:10px 12px">카카오 로그인이 끝났어요. 닉네임 ${esc(nick)}을(를) 불러왔어요.</div>` : ""}
     <div class="hero" style="border-radius:20px;padding:20px;display:flex;align-items:center;gap:16px">
       ${jersey(96, f.num, S.settings.uniformColor)}
       <span style="display:flex;flex-direction:column;gap:6px;min-width:0"><b data-live="name" style="font-size:22px;font-weight:900">${esc(f.name || "이름")}</b><span style="font-size:13px;color:#BBF7D0">${esc(S.team ? S.team.name : "")}</span><span class="row" style="gap:6px"><span class="pill" style="background:#FFFFFF;color:#1E6B45;font-size:13px"><span style="opacity:.7">1선호</span><b>${esc(f.pos1 || "-")}</b></span>${f.pos2 ? `<span class="pill" style="background:rgba(255,255,255,.16);color:#FFFFFF;font-size:13px"><span style="opacity:.7">2선호</span><b>${esc(f.pos2)}</b></span>` : ""}</span></span>
@@ -245,19 +252,23 @@ function vProfile(editing) {
     <div class="card">
       <label class="field"><span class="lab">팀에서 부를 이름</span><input class="inp" data-bind="name" data-live-src="name" value="${esc(f.name || "")}" maxlength="20" placeholder="예: 이서준"></label>
       <label class="field"><span class="lab">등번호</span><input class="inp" data-bind="num" data-live-src="num" value="${esc(f.num || "")}" inputmode="numeric" maxlength="3" placeholder="예: 7"></label>
+      ${(() => { const taken = new Set(people().filter(x => x.uid !== S.uid).map(x => String(x.p.num || "")).concat(unclaimed().map(x => String(x.num || "")))); const free = []; for (let i = 1; i <= 99 && free.length < 8; i++) if (!taken.has(String(i))) free.push(i); return taken.has(String(f.num || "-")) ? `<span class="err">다른 팀원이 쓰는 번호예요</span>` : `<span class="hint">비어 있는 번호 ${free.join(", ")}</span>`; })()}
       <div class="field"><span class="lab">1선호 포지션</span><div class="chips">${pos.map(p => pchip("pos1", p)).join("")}</div></div>
       <div class="field"><span class="lab">2선호 포지션</span><div class="chips">${pos.filter(p => p !== f.pos1).map(p => pchip("pos2", p)).join("")}<button class="chip ${!f.pos2 ? "on" : ""}" data-act="pick" data-k="pos2" data-v="">없음</button></div></div>
+      <div class="field"><span class="lab">주발</span><div class="chips">${["오른발", "왼발", "양발"].map(x => pchip("foot", x)).join("")}</div></div>
     </div>
   </div><div class="cta"><button class="btn pri block" data-act="saveProfile">${editing ? "저장" : "다음"}</button></div>`;
 }
 function vRules() {
-  const rules = S.settings.rules || [];
-  return `${top("팀 수칙", "")}<div class="body">
-    <div class="card"><b style="font-size:18px">${esc(S.team ? S.team.name : "")} 수칙이에요</b>
-      ${rules.length ? `<div class="list">${rules.map(r => `<div class="li"><span style="flex:1">${esc(r.label)}</span>${Number(r.amount) ? `<b>${won(r.amount)}</b>` : ""}</div>`).join("")}</div>` : `<span class="hint">아직 정한 수칙이 없어요.</span>`}
-      ${S.settings.feeMode && S.settings.feeMode !== "none" ? `<div class="spread" style="background:#F9FAFB;border-radius:12px;padding:12px"><span>회비</span><b>${won(S.settings.fee)}${S.settings.feeMode === "per_game" ? " / 경기" : " / 월"}</b></div>` : ""}
+  const rules = S.settings.rules || []; const st = S.settings; const bk = st.bank || {};
+  return `${top("팀 수칙 2/2", "")}<div class="body">
+    <div class="card"><b style="font-size:18px">${esc(S.team ? S.team.name : "")} 수칙이에요</b><span class="hint">읽고 동의하면 바로 시작해요.</span>
+      <span class="lab">벌금과 수칙</span>${rules.length ? `<div class="list">${rules.map(r => `<div class="li"><span style="flex:1">${esc(r.label)}</span>${Number(r.amount) ? `<b>${won(r.amount)}</b>` : `<span class="hint">글 수칙</span>`}</div>`).join("")}</div>` : `<span class="hint">아직 정한 수칙이 없어요.</span>`}
+      ${st.feeMode && st.feeMode !== "none" ? `<span class="lab">회비</span><div style="background:#F9FAFB;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px"><b>${won(st.fee)}${st.feeMode === "per_game" ? " / 경기" : " / 월" + (st.dueDay ? ", 매월 " + st.dueDay + "일까지" : "")}</b>${bk.account ? `<span class="hint">${esc([bk.bank, bk.holder ? "예금주 " + bk.holder : ""].filter(Boolean).join(", "))}</span>` : ""}</div>` : ""}
+      <label class="row" style="gap:10px;min-height:44px;cursor:pointer"><input type="checkbox" data-bind="agreeChk" ${S.form.agreeChk ? "checked" : ""} style="width:22px;height:22px;accent-color:#15803D"><b>수칙을 읽었고 지킬게요</b></label>
     </div>
-  </div><div class="cta"><button class="btn pri block" data-act="agree">확인했어요</button></div>`;
+    <span class="hint" style="text-align:center">수칙이 바뀌면 알림으로 알려 드려요</span>
+  </div><div class="cta"><button class="btn pri block" data-act="agree">${esc(S.team ? S.team.name : "")} 시작하기</button></div>`;
 }
 
 /* ---------- 초대 ---------- */
@@ -338,7 +349,7 @@ function vHomeAdmin() {
     ${homeExtras()}
     <div class="row" style="gap:8px"><a class="btn block" href="#/new">+ 일정 만들기</a><a class="btn block" href="#/invite">팀원 초대</a></div>
     <a class="btn" href="#/notices">공지와 설문</a>
-    ${myProfile() ? `<a class="btn" href="#/member">내 선수 카드 보기 (팀원 화면)</a>` : ""}
+    ${myProfile() ? `<button class="btn" data-act="viewMember">팀원 화면 보기 (내 참석, 내 선수 카드)</button>` : ""}
     ${myProfile() ? "" : `<div class="card"><b>나도 선수로 등록하기</b><span class="hint">팀장도 선수로 등록하면 참석을 누르고 명단에 보여요.</span><a class="btn" href="${unclaimed().length ? "#/claim" : "#/me"}">선수 등록</a></div>`}
   </div>${nav("홈")}`;
 }
@@ -491,7 +502,8 @@ async function syncMyDues(only) {
   for (const m of S.members) {
     const u = m.user_id; if (only && !only.includes(u)) continue;
     const dues = {}; keys.forEach(k => { if (feeMode() === "per_game") { const e = S.events[k.slice(2)]; if (!e || !cameTo(e, u)) return; } dues[k] = paidOf(k, u) ? "paid" : ""; });
-    const data = { dues, fines: finesOf(u).map(f => ({ id: f.id, date: f.date, reason: f.reason, amount: f.amount, paid: !!f.paid })), fee: Number(S.settings.fee) || 0, mode: feeMode() };
+    const paidAt = {}; Object.keys(dues).forEach(k => { const at = ((D("dues")[k] || {})._at || {})[u]; if (at && dues[k] === "paid") paidAt[k] = at; });
+    const data = { dues, paidAt, fines: finesOf(u).map(f => ({ id: f.id, date: f.date, eventId: f.eventId || "", reason: f.reason, amount: f.amount, paid: !!f.paid, paidAt: f.paidAt || "" })), fee: Number(S.settings.fee) || 0, mode: feeMode() };
     if (JSON.stringify(D("mydues")[u] || null) !== JSON.stringify(data)) { try { await setDoc("mydues", u, data); } catch (e) { console.error(e); } }
   }
 }
@@ -836,7 +848,7 @@ const ACT3 = {
 const ACT2 = {
   goTo: t => { closeSheet(); location.hash = t.dataset.h; },
   duesRef: t => { UI.ref = t.dataset.v; render(); },
-  duesToggle: async t => { const key = t.dataset.key, u = t.dataset.u; const cur = { ...(D("dues")[key] || {}) }; cur[u] = cur[u] === "paid" ? "" : "paid"; try { await setDoc("dues", key, cur); render(); await syncMyDues([u]); } catch (e) { fail(e); } },
+  duesToggle: async t => { const key = t.dataset.key, u = t.dataset.u; const cur = { ...(D("dues")[key] || {}) }; cur[u] = cur[u] === "paid" ? "" : "paid"; cur._at = { ...(cur._at || {}), [u]: cur[u] ? todayStr() : "" }; try { await setDoc("dues", key, cur); render(); await syncMyDues([u]); } catch (e) { fail(e); } },
   duesRemind: async () => {
     const mode = feeMode(); const key = duesKey(UI.ref); const ev = S.events[UI.ref];
     const un = people().filter(x => (mode === "monthly" || (ev && cameTo(ev, x.uid))) && !paidOf(key, x.uid)).map(x => x.name);
@@ -847,12 +859,12 @@ const ACT2 = {
   payOk: async t => {
     const u = t.dataset.u, k = t.dataset.k; const it = (((D("payreq")[u] || {}).items) || {})[k]; if (!it) return;
     try {
-      for (const ref of it.refs || []) { if (ref.kind === "dues") { const cur = { ...(D("dues")[ref.key] || {}) }; cur[u] = "paid"; await setDoc("dues", ref.key, cur); } else if (ref.kind === "fine" && D("fines")[ref.id]) await setDoc("fines", ref.id, { ...D("fines")[ref.id], paid: true }); }
+      for (const ref of it.refs || []) { if (ref.kind === "dues") { const cur = { ...(D("dues")[ref.key] || {}) }; cur[u] = "paid"; cur._at = { ...(cur._at || {}), [u]: todayStr() }; await setDoc("dues", ref.key, cur); } else if (ref.kind === "fine" && D("fines")[ref.id]) await setDoc("fines", ref.id, { ...D("fines")[ref.id], paid: true, paidAt: todayStr() }); }
       await patchDoc("payreq", u, { items: { [k]: { status: "ok", doneAt: new Date().toISOString() } } }); render(); await syncMyDues([u]); toast("확인했어요. 납부로 바뀌었어요");
     } catch (e) { fail(e); }
   },
   payNo: async t => { try { await patchDoc("payreq", t.dataset.u, { items: { [t.dataset.k]: { status: "no", doneAt: new Date().toISOString() } } }); render(); toast("확인 안 됨으로 표시했어요"); } catch (e) { fail(e); } },
-  fineToggle: async t => { const f = D("fines")[t.dataset.id]; if (!f) return; try { await setDoc("fines", t.dataset.id, { ...f, paid: !f.paid }); render(); await syncMyDues([f.uid]); } catch (e) { fail(e); } },
+  fineToggle: async t => { const f = D("fines")[t.dataset.id]; if (!f) return; try { await setDoc("fines", t.dataset.id, { ...f, paid: !f.paid, paidAt: f.paid ? "" : todayStr() }); render(); await syncMyDues([f.uid]); } catch (e) { fail(e); } },
   paySheet: () => {
     const my = D("mydues")[S.uid] || {}; const b = S.settings.bank || {};
     const refs = []; let total = 0;
@@ -885,7 +897,7 @@ const ACT2 = {
   score: t => { S.form[t.dataset.k] = Math.max(0, (Number(S.form[t.dataset.k]) || 0) + Number(t.dataset.d)); render(); },
   goalAdd: t => { (S.form.goals = S.form.goals || []).push({ uid: t.dataset.u }); render(); },
   goalDel: t => { S.form.goals.splice(Number(t.dataset.i), 1); render(); },
-  saveResult: async t => { const e = S.events[t.dataset.eid]; if (!e) return; t.disabled = true; try { await setDoc("events", e.id, { ...e, score: { us: Number(S.form.us) || 0, them: Number(S.form.them) || 0 }, goals: (S.form.goals || []).map(g => ({ uid: g.uid })) }); await syncMyDues(); toast("저장했어요. MOM 투표가 열렸어요"); location.hash = "#/game/" + e.id; } catch (err) { t.disabled = false; fail(err); } },
+  saveResult: async t => { const e = S.events[t.dataset.eid]; if (!e) return; t.disabled = true; try { await setDoc("events", e.id, { ...e, score: { us: Number(S.form.us) || 0, them: Number(S.form.them) || 0 }, scoredAt: e.scoredAt || new Date().toISOString(), goals: (S.form.goals || []).map(g => ({ uid: g.uid })) }); await syncMyDues(); toast("저장했어요. MOM 투표가 열렸어요"); location.hash = "#/game/" + e.id; } catch (err) { t.disabled = false; fail(err); } },
   momPick: t => { UI.mom = t.dataset.u; render(); },
   momSend: async t => { const e = S.events[t.dataset.eid]; if (!e || !UI.mom) return; t.disabled = true; try { await patchDoc("uvote", S.uid, { mom: { [e.id]: UI.mom } }); UI.mom = ""; render(); toast("투표했어요"); } catch (err) { t.disabled = false; fail(err); } },
   pollVote: async t => { const nid = t.dataset.nid, opt = t.dataset.opt; const cur = (myUv().poll || {})[nid]; try { await patchDoc("uvote", S.uid, { poll: { [nid]: cur === opt ? "" : opt } }); setTimeout(refreshTally, 500); render(); } catch (e) { fail(e); } },
@@ -901,15 +913,15 @@ const ACT2 = {
   guestReq: t => guestSheet(t.dataset.eid),
   guestOk: async t => {
     const e = S.events[t.dataset.eid]; const g = (((D("guestreq")[t.dataset.u] || {}).items) || {})[t.dataset.k]; if (!e || !g) return;
-    try { await setDoc("events", e.id, { ...e, guests: { ...(e.guests || {}), [t.dataset.k]: { name: g.name, pos: g.pos || "", by: t.dataset.u, at: new Date().toISOString() } } }); await patchDoc("guestreq", t.dataset.u, { items: { [t.dataset.k]: { status: "ok" } } }); render(); toast("명단에 넣었어요"); } catch (err) { fail(err); }
+    try { await setDoc("events", e.id, { ...e, guests: { ...(e.guests || {}), [t.dataset.k]: { name: g.name, pos: g.pos || "", by: t.dataset.u, at: new Date().toISOString() } } }); await patchDoc("guestreq", t.dataset.u, { items: { [t.dataset.k]: { status: "ok", doneAt: new Date().toISOString() } } }); render(); toast("명단에 넣었어요"); } catch (err) { fail(err); }
   },
-  guestNo: async t => { try { await patchDoc("guestreq", t.dataset.u, { items: { [t.dataset.k]: { status: "no" } } }); render(); toast("거절했어요"); } catch (e) { fail(e); } },
+  guestNo: async t => { try { await patchDoc("guestreq", t.dataset.u, { items: { [t.dataset.k]: { status: "no", doneAt: new Date().toISOString() } } }); render(); toast("거절했어요"); } catch (e) { fail(e); } },
   guestDel: async t => { const e = S.events[t.dataset.eid]; if (!e) return; const gs = { ...(e.guests || {}) }; delete gs[t.dataset.g]; try { await setDoc("events", e.id, { ...e, guests: gs }); render(); } catch (err) { fail(err); } },
   lineQ: t => { UI.q = Number(t.dataset.v); render(); },
   lineSide: t => { UI.side = t.dataset.v; S.form.lineup = null; render(); },
   autoLineup: t => { const e = S.events[t.dataset.eid]; if (!e) return; const side = e.type === "scrim" ? UI.side : "main"; S.form.lineup = autoLineup(e, side); S.form.lineupFor = e.id + side; UI.q = 1; render(); toast("자동으로 짰어요. 저장해야 팀원에게 보여요"); },
-  saveLineup: async t => { const e = S.events[t.dataset.eid]; if (!e) return; const side = e.type === "scrim" ? UI.side : "main"; const L = S.form.lineupFor === e.id + side ? S.form.lineup : (e.lineup || {})[side]; if (!L) return; try { await setDoc("events", e.id, { ...e, lineup: { ...(e.lineup || {}), [side]: L } }); S.form.lineup = null; render(); toast("저장했어요. 팀원 라인업 화면에 보여요"); } catch (err) { fail(err); } },
-  scrimConvert: t => confirmBox("내전으로 바꾸기", "상대팀 없이 우리끼리 A팀과 B팀으로 나눠서 해요. 대기자도 모두 참석으로 올라가고, 신청한 사람 모두에게 보여요.", "바꾸기", async () => { const e = S.events[t.dataset.eid]; try { await setDoc("events", e.id, { ...e, type: "scrim", cap: 0, teams: {} }); toast("내전으로 바꿨어요. 스쿼드를 나눠 주세요"); location.hash = "#/squad/" + e.id; } catch (err) { fail(err); } }),
+  saveLineup: async t => { const e = S.events[t.dataset.eid]; if (!e) return; const side = e.type === "scrim" ? UI.side : "main"; const L = S.form.lineupFor === e.id + side ? S.form.lineup : (e.lineup || {})[side]; if (!L) return; try { await setDoc("events", e.id, { ...e, lineup: { ...(e.lineup || {}), [side]: L }, lineupAt: new Date().toISOString() }); S.form.lineup = null; render(); toast("저장했어요. 팀원 라인업 화면에 보여요"); } catch (err) { fail(err); } },
+  scrimConvert: t => confirmBox("내전으로 바꾸기", "상대팀 없이 우리끼리 A팀과 B팀으로 나눠서 해요. 대기자도 모두 참석으로 올라가고, 신청한 사람 모두에게 보여요.", "바꾸기", async () => { const e = S.events[t.dataset.eid]; try { await setDoc("events", e.id, { ...e, type: "scrim", cap: 0, teams: {}, scrimAt: new Date().toISOString() }); toast("내전으로 바꿨어요. 스쿼드를 나눠 주세요"); location.hash = "#/squad/" + e.id; } catch (err) { fail(err); } }),
   squadSet: async t => { const e = S.events[t.dataset.eid]; const T = { ...(e.teams || {}) }; T[t.dataset.u] = T[t.dataset.u] === t.dataset.v ? "" : t.dataset.v; try { await setDoc("events", e.id, { ...e, teams: T }); render(); } catch (err) { fail(err); } },
   squadAuto: async t => {
     const e = S.events[t.dataset.eid]; const a = att(e); const ps = [...a.yes, ...a.late, ...a.wait];
@@ -957,7 +969,10 @@ function render() {
   else if (!S.ready) html = `<div class="loading">불러오는 중이에요</div>`;
   else {
     const r = route(); let m;
-    if (r === "/" || r === "") html = isAdmin() ? vHomeAdmin() : vHomeMember();
+    const mv = viewMode() === "member" ? memberRoute(r) : null;
+    if (mv) html = mv;
+    else if (viewMode() === "member" && !/^\/(notices|lineup\/.+|claim)$/.test(r)) html = memberRoute("/");
+    else if (r === "/" || r === "") html = vHomeAdmin();
     else if (r === "/schedule") html = vSchedule();
     else if ((m = r.match(/^\/event\/(.+)$/))) html = vEvent(decodeURIComponent(m[1]));
     else if (r === "/new" && isAdmin()) html = vEventForm("");
@@ -965,7 +980,6 @@ function render() {
     else if (r === "/players") html = vPlayers();
     else if (r === "/invite" && isAdmin()) html = vInviteMsg();
     else if (r === "/me") html = vProfile(true);
-    else if (r === "/member") html = vHomeMember();
     else if (r === "/settings" && isAdmin()) html = vCreate(true);
     else if (r === "/records") html = vRecords();
     else if ((m = r.match(/^\/game\/(.+)$/))) html = vGame(decodeURIComponent(m[1]));
@@ -981,7 +995,7 @@ function render() {
     else if (r === "/posreq") html = vPosReq();
     else if (r === "/claim" && !(S.rsvp[S.uid] || {}).pid) html = vClaim();
     else if (r === "/roster-import" && isAdmin()) html = vRosterImport();
-    else html = isAdmin() ? vHomeAdmin() : vHomeMember();
+    else html = vHomeAdmin();
   }
   // 입력 중인 칸은 그대로 두려고, 같은 화면이면 포커스와 커서를 되돌린다
   const act = document.activeElement; const d = (act && act.dataset) || {};
@@ -996,6 +1010,7 @@ function onRoute(force) {
   const r = route(); if (r === lastRoute && !force) return; lastRoute = r;
   // 폼 화면에 들어올 때 폼 값을 채운다
   let m;
+  if (viewMode() === "member" && memberForm(r)) { render(); window.scrollTo(0, 0); return; }
   if (r === "/new") S.form = { type: "match", date: "", time: "", end: "", place: "", opponent: "", cap: sport() === "soccer" ? 22 : 12, memo: "" };
   else if ((m = r.match(/^\/edit\/(.+)$/)) && S.events[decodeURIComponent(m[1])]) { const e = S.events[decodeURIComponent(m[1])]; S.form = { type: e.type, date: e.date, time: e.time, end: e.end || "", place: e.place || "", opponent: e.opponent || "", cap: Number(e.cap) || 0, memo: e.memo || "" }; }
   else if (r === "/me") { const p = myProfile() || {}; S.form = { name: p.name || nameOf(S.uid), num: p.num || "", pos1: p.pos1 || "", pos2: p.pos2 || "" }; }
@@ -1016,7 +1031,7 @@ function onRoute(force) {
 document.addEventListener("input", ev => {
   const t = ev.target;
   if (t.dataset.bind) {
-    S.form[t.dataset.bind] = t.value;
+    S.form[t.dataset.bind] = t.type === "checkbox" ? t.checked : t.value;
     if (t.dataset.liveSrc) document.querySelectorAll(`[data-live="${t.dataset.liveSrc}"]`).forEach(el => { el.textContent = t.value || (t.dataset.liveSrc === "name" ? "이름" : ""); });
   } else if (t.dataset.rule != null) { const r = (S.form.rules || [])[Number(t.dataset.rule)]; if (r) r[t.dataset.f] = t.value; }
   else if (t.dataset.opt != null) { const o = (S.form.opts || [])[Number(t.dataset.opt)]; if (o) o.label = t.value; }
@@ -1054,7 +1069,9 @@ const ACT = {
     if (!name) { toast("팀 이름을 적어 주세요"); return; }
     t.disabled = true;
     try {
-      await setDoc("team", "settings", { ...S.settings, app: "maniball", teamName: name, sport: f.sport, feeMode: f.feeMode, fee: f.feeMode === "none" ? 0 : Number(String(f.fee || "").replace(/\D/g, "")) || 0, dueDay: f.feeMode === "monthly" ? f.dueDay : "", rules: (f.rules || []).filter(r => String(r.label).trim()).map(r => ({ label: String(r.label).trim().slice(0, 40), amount: Number(String(r.amount || "").replace(/\D/g, "")) || 0 })), uniformColor: f.kit || "#164F33" });
+      const newRules = (f.rules || []).filter(r => String(r.label).trim()).map(r => ({ label: String(r.label).trim().slice(0, 40), amount: Number(String(r.amount || "").replace(/\D/g, "")) || 0 }));
+      const rulesAt = JSON.stringify(newRules) !== JSON.stringify(S.settings.rules || []) && (S.settings.rules || []).length ? new Date().toISOString() : (S.settings.rulesAt || "");
+      await setDoc("team", "settings", { ...S.settings, rulesAt, app: "maniball", teamName: name, sport: f.sport, feeMode: f.feeMode, fee: f.feeMode === "none" ? 0 : Number(String(f.fee || "").replace(/\D/g, "")) || 0, dueDay: f.feeMode === "monthly" ? f.dueDay : "", rules: (f.rules || []).filter(r => String(r.label).trim()).map(r => ({ label: String(r.label).trim().slice(0, 40), amount: Number(String(r.amount || "").replace(/\D/g, "")) || 0 })), uniformColor: f.kit || "#164F33" });
       if (S.team && name !== S.team.name) { const { error } = await sb.from("teams").update({ name: name.slice(0, 40) }).eq("id", S.tid); if (!error) S.team.name = name.slice(0, 40); }
       toast("저장했어요"); location.hash = "#/players";
     } catch (e) { t.disabled = false; fail(e); }
@@ -1065,7 +1082,7 @@ const ACT = {
     if (!f.pos1) { toast("1선호 포지션을 골라 주세요"); return; }
     t.disabled = true;
     try {
-      const profile = { name: name.slice(0, 20), num: String(f.num || "").replace(/\D/g, "").slice(0, 3), pos1: f.pos1, pos2: f.pos2 || "" };
+      const profile = { ...(myProfile() || {}), name: name.slice(0, 20), num: String(f.num || "").replace(/\D/g, "").slice(0, 3), pos1: f.pos1, pos2: f.pos2 || "", foot: f.foot || "" };
       await patchDoc("rsvp", S.uid, { profile });
       await sb.rpc("set_my_name", { p_team: S.tid, p_name: profile.name });
       if (S.flow === "profile") {
@@ -1076,7 +1093,7 @@ const ACT = {
       toast("저장했어요"); location.hash = "#/";
     } catch (e) { t.disabled = false; fail(e); }
   },
-  agree: async t => { t.disabled = true; try { await patchDoc("rsvp", S.uid, { agreedAt: new Date().toISOString() }); S.flow = ""; S.ready = true; location.hash = "#/"; render(); } catch (e) { t.disabled = false; fail(e); } },
+  agree: async t => { if (!S.form.agreeChk) { toast("수칙을 읽고 체크해 주세요"); return; } t.disabled = true; try { await patchDoc("rsvp", S.uid, { agreedAt: new Date().toISOString() }); S.flow = ""; S.ready = true; location.hash = "#/"; render(); } catch (e) { t.disabled = false; fail(e); } },
   copyLink: async () => { try { await navigator.clipboard.writeText(inviteUrl()); toast("링크를 복사했어요"); } catch (e) { toast("길게 눌러 복사해 주세요"); } },
   share: async () => {
     const text = (S.form.msg ?? `${S.team.name} 팀 관리 앱이에요. 링크 누르고 카카오로 로그인하면 끝! 이제 참석은 여기서 눌러 주세요.`) + "\n" + inviteUrl();
@@ -1123,7 +1140,7 @@ const ACT = {
   }, true),
   logout: () => confirmBox("로그아웃", "이 기기에서 로그아웃할까요?", "로그아웃", async () => { try { await sb.auth.signOut(); } catch (e) { /* 그래도 처음으로 */ } ls.set("mb-team", null); location.replace(APP); }),
 };
-Object.assign(ACT, ACT2, ACT3, ACT4);
+Object.assign(ACT, ACT2, ACT3, ACT4, MACT, { viewMember: () => { setView("member"); location.hash = "#/"; render(); } });
 document.addEventListener("click", ev => {
   const t = ev.target.closest("[data-act]"); if (!t) return;
   const f = ACT[t.dataset.act]; if (!f) return;
@@ -1133,7 +1150,7 @@ document.addEventListener("click", ev => {
 
 /* ---------- 시작 ---------- */
 function startCreate() { S.flow = "create"; S.form = { name: "", sport: "futsal", feeMode: "monthly", fee: "", dueDay: "5", kit: "#164F33", rules: [{ label: "지각 (킥오프 10분 전 기준)", amount: "" }, { label: "무단 결석", amount: "" }] }; render(); }
-function startProfile() { const p = myProfile() || {}; S.flow = "profile"; S.form = { name: p.name || nameOf(S.uid) || suggestedName(), num: p.num || "", pos1: p.pos1 || "", pos2: p.pos2 || "" }; render(); }
+function startProfile() { const p = myProfile() || {}; S.flow = "profile"; S.form = { name: p.name || nameOf(S.uid) || suggestedName(), num: p.num || "", pos1: p.pos1 || "", pos2: p.pos2 || "", foot: p.foot || "" }; render(); }
 function suggestedName() { const m = (S.session && S.session.user.user_metadata) || {}; return String(m.nickname || m.name || m.full_name || "").slice(0, 20); }
 async function enter(tid) {
   try { await loadTeam(tid); } catch (e) { fail(e); S.flow = "create"; startCreate(); return; }
@@ -1191,3 +1208,6 @@ async function boot() {
 }
 sb.auth.onAuthStateChange((ev) => { if (ev === "SIGNED_OUT") location.replace(APP); });
 boot();
+
+// 팀원 화면(member.js)이 같이 쓰는 것
+export { S, D, esc, POS, QN, ROLE, jersey, LOGO, top, nav, toast, sheet, closeSheet, confirmBox, fail, setDoc, patchDoc, delDoc, uid36, won, todayStr, evStart, started, wd, md, sport, profileOf, myProfile, nameOf, people, att, myVote, upcoming, past, isAdmin, cameTo, momWinners, momOpen, momClosed, momDeadline, myUv, noticesList, guestReqs, guestsOf, unclaimed, joinedOf, dotDate, feeMode, ruleAmt, ruleKind, remindInfo, isPlay, evName, ym, mLabel, render, UI, refreshTally, sb, $, setView };
