@@ -205,31 +205,42 @@ function vLedger() {
   </div>`;
 }
 function vCheck(id) {
-  const e = S.events[id]; if (!e) return vEvent(id);
-  const a = att(e); const list = [...a.yes, ...a.late, ...a.no, ...a.none, ...a.wait];
-  const ck = e.check || {}; const cnt = { in: 0, late: 0, absent: 0 }; Object.values(ck).forEach(v => { if (cnt[v] != null) cnt[v]++; });
-  const late = ruleAmt("late"), abs = ruleAmt("absent");
-  const b = (u, v, l) => `<button class="chip sm ${ck[u] === v ? "on" : ""}" data-act="checkSet" data-eid="${esc(e.id)}" data-u="${esc(u)}" data-v="${v}">${l}</button>`;
+  const e = S.events[id]; if (!e) return vSchedule(); const ck = e.check || {}; const at = e.checkAt || {};
+  const before = Number(S.settings.checkBefore) || 10; const lim = new Date(evStart(e) - before * 60000 + 9 * 3600e3).toISOString().slice(11, 16);
+  const { rows, others } = checkRows(e); const cnt = { in: 0, late: 0, absent: 0 }; Object.values(ck).forEach(v => { if (cnt[v] != null) cnt[v]++; });
+  const fc = fineCalc(e);
+  const b = (u, v, l) => `<button class="vote ${ck[u] === v ? "on " + (v === "in" ? "yes" : v === "late" ? "late" : "no") : ""}" style="padding:8px 0;min-height:40px;font-size:13px" data-act="checkSet" data-eid="${esc(e.id)}" data-u="${esc(u)}" data-v="${v}">${l}</button>`;
   return `${top("현장 출석", "#/event/" + e.id)}<div class="body">
-    <div class="card"><b>${esc(md(e.date) + " " + wd(e.date) + " " + (e.time || "") + " " + evName(e))}</b><div class="stat"><span><b>${cnt.in}</b><span>출석</span></span><span><b>${cnt.late}</b><span>지각</span></span><span><b>${cnt.absent}</b><span>결석</span></span></div><span class="hint">참석이라고 한 사람이 먼저 나와요. 온 사람은 출석, 늦게 온 사람은 지각, 안 온 사람은 결석으로 눌러요.</span></div>
-    <div class="card"><div class="list">${list.map(x => `<div class="li" style="flex-wrap:wrap"><span style="flex:1;min-width:120px"><b>${esc(x.name)}</b><br><span class="hint">${x.s === "late" ? "늦참 신청" + (x.q ? ", " + x.q + "Q부터" : "") : a.yes.includes(x) ? "참석 신청" : a.no.includes(x) ? "불참" : a.wait.includes(x) ? "대기" : "미응답"}</span></span><span class="chips">${b(x.uid, "in", "출석")}${b(x.uid, "late", "지각")}${b(x.uid, "absent", "결석")}</span></div>`).join("")}</div></div>
-    <div class="card"><b>팀 수칙대로 벌금</b><span class="hint">지각 ${won(late)}, 결석 ${won(abs)} (참석이나 늦참이라고 했는데 안 온 사람만)</span><button class="btn pri" data-act="finesApply" data-eid="${esc(e.id)}">벌금 매기기</button></div>
-  </div>`;
+    <div class="card" style="gap:6px"><b>${esc(md(e.date) + " " + wd(e.date) + " " + (e.time || "") + " " + evName(e))}</b><div class="spread hint"><span>지금 <b style="color:#111827">${hhmmNow()}</b></span><span>지각 기준 <b style="color:#111827">${lim}</b> (킥오프 ${before}분 전)</span></div>
+      ${tilesA([tileA(cnt.in, "출석"), tileA(cnt.late, "지각", "#B45309"), tileA(cnt.absent, "결석", "#B91C1C")])}</div>
+    <div class="spread"><b>참석 신청 ${rows.length}명</b><button class="btn sm" data-act="aGuestAddCheck" data-eid="${esc(e.id)}">+ 용병 추가</button></div>
+    <div class="card" style="padding:4px 16px"><div class="list">${rows.map(x => `<div class="li" style="flex-wrap:wrap;gap:8px"><span style="flex:1;min-width:110px"><b>${esc(x.name)}</b><br><span class="hint">${at[x.uid] ? at[x.uid] + (ck[x.uid] === "late" ? " 도착, 지각" : " 도착") : ck[x.uid] === "absent" ? "도착 안 함" : x.sub || "아직"}</span></span><span style="display:grid;grid-template-columns:repeat(3,56px);gap:6px">${b(x.uid, "in", "출석")}${b(x.uid, "late", "지각")}${b(x.uid, "absent", "결석")}</span></div>`).join("")}</div></div>
+    ${others.length ? `<details class="card"><summary style="cursor:pointer;font-weight:700">신청 안 한 사람 ${others.length}명 (왔으면 눌러요)</summary><div class="list">${others.map(x => `<div class="li"><span style="flex:1">${esc(x.name)}</span><span style="display:grid;grid-template-columns:repeat(2,56px);gap:6px">${b(x.uid, "in", "출석")}${b(x.uid, "late", "지각")}</span></div>`).join("")}</div></details>` : ""}
+    <div class="card" style="background:#FFFBEB"><div class="spread"><b style="color:#92400E">벌금</b><b style="color:#92400E">${won(fc.total)}</b></div><span class="hint" style="color:#92400E">지각 ${fc.late.length}명${ruleAmt("late") ? " (" + won(ruleAmt("late")) + ")" : ""}, 결석 ${fc.abs.length}명${ruleAmt("absent") ? " (" + won(ruleAmt("absent")) + ")" : ""}. 결석은 참석이라고 했는데 안 온 사람만이에요.</span></div>
+  </div><div class="cta"><button class="btn pri block" data-act="finesApply" data-eid="${esc(e.id)}">벌금 부과하고 단톡방에 공유</button></div>`;
 }
 function vRecords() {
-  const year = todayStr().slice(0, 4);
-  const evs = past().filter(e => e.date.startsWith(year));
-  const games = evs.filter(e => e.type === "match" && e.score);
-  const w = games.filter(e => +e.score.us > +e.score.them).length, d = games.filter(e => +e.score.us === +e.score.them).length, l = games.length - w - d;
-  const attRank = people().map(x => ({ ...x, n: evs.filter(e => cameTo(e, x.uid)).length })).sort((a, b) => b.n - a.n).slice(0, 5);
-  const momC = {}; evs.filter(momClosed).forEach(e => momWinners(e).forEach(u => { momC[u] = (momC[u] || 0) + 1; }));
-  const mine = evs.filter(e => cameTo(e, S.uid)).length;
-  return `<header class="top"><span style="width:8px"></span><h1>기록</h1></header><div class="body">
-    <div class="card"><span class="hint">${year} 시즌</span><div class="stat"><span><b>${games.length}</b><span>경기</span></span><span><b style="font-size:19px;line-height:1.6">${w}승 ${d}무 ${l}패</b><span>전적</span></span><span><b>${mine}</b><span>내 출석</span></span></div></div>
-    <b>지난 일정</b>
-    ${evs.length ? evs.map(e => { const win = momWinners(e); return `<a class="card" href="#/game/${esc(e.id)}" style="text-decoration:none;color:inherit"><div class="row" style="gap:12px"><span class="datebox gray"><span>${wd(e.date)}</span><b>${Number(e.date.slice(8, 10))}</b></span><span style="flex:1;min-width:0"><span class="row" style="gap:6px"><span class="tag ${e.type === "match" ? "" : "blue"}">${e.type === "match" ? "경기" : e.type === "scrim" ? "내전" : "훈련"}</span><b>${e.score ? (e.type === "scrim" ? `A팀 ${e.score.us} : ${e.score.them} B팀` : `${e.score.us} : ${e.score.them}`) : isPlay(e) ? "결과 대기" : esc(e.place || "")}</b></span><br><span class="hint">${esc(evName(e))}${momOpen(e) ? ", MOM 투표 중" : win.length && momClosed(e) ? ", MOM " + win.map(nameOf).join(", ") : ""}${cameTo(e, S.uid) ? ", 나 출석" : ""}</span></span>${isAdmin() && isPlay(e) && !e.score ? `<span class="tag gray">입력</span>` : ""}</div></a>`; }).join("") : `<div class="card empty"><b>아직 지난 일정이 없어요</b></div>`}
-    <div class="card"><b>출석 순위</b><div class="list">${attRank.map((x, i) => `<div class="li"><b style="width:20px">${i + 1}</b><span style="flex:1">${esc(x.name)}</span><span class="hint">${x.n} / ${evs.length}</span></div>`).join("")}</div></div>
-    ${Object.keys(momC).length ? `<div class="card"><b>MOM</b><div class="list">${Object.entries(momC).sort((a, b) => b[1] - a[1]).map(([u, n]) => `<div class="li"><span style="flex:1">${esc(nameOf(u))}</span><b>${n}회</b></div>`).join("")}</div></div>` : ""}
+  const y = UI.season || todayStr().slice(0, 4); const evs = past().filter(e => e.date.startsWith(y)); const tab = UI.rtab || "game"; const f = UI.rf || "all";
+  const games = evs.filter(e => e.type === "match" && e.score); const w = games.filter(e => +e.score.us > +e.score.them).length, d2 = games.filter(e => +e.score.us === +e.score.them).length, l = games.length - w - d2;
+  const avg = evs.length ? (evs.reduce((n, e) => n + people().filter(x => cameTo(e, x.uid)).length, 0) / evs.length) : 0;
+  const fineSum = Object.values(D("fines")).filter(x => String(x.date || "").startsWith(y)).reduce((n, x) => n + (Number(x.amount) || 0), 0);
+  const scr = evs.filter(e => e.type === "scrim").length, pend = evs.filter(e => isPlay(e) && !e.score).length;
+  const ps = people(); const rows = ps.map(x => ({ ...x, n: evs.filter(e => cameTo(e, x.uid)).length, late: evs.filter(e => (e.check || {})[x.uid] === "late").length, abs: evs.filter(e => (e.check || {})[x.uid] === "absent").length, mom: evs.filter(momClosed).filter(e => momWinners(e).includes(x.uid)).length })).sort((a, b) => b.n - a.n);
+  const half = r => evs.length && r.n * 2 <= evs.length;
+  const list = evs.filter(e => f === "all" ? true : f === "match" ? e.type === "match" : e.type === "scrim");
+  const evRow = e => { const ck = e.check || {}; const nIn = people().filter(x => cameTo(e, x.uid)).length; const nl = Object.values(ck).filter(v => v === "late").length, na = Object.values(ck).filter(v => v === "absent").length;
+    const fn = Object.values(D("fines")).filter(x => x.eventId === e.id).length; const t = D("tally")["mom-" + e.id] || {}; const win = momClosed(e) ? momWinners(e) : [];
+    return `<div class="card" style="gap:8px"><div class="row" style="gap:12px;align-items:flex-start"><span class="datebox" style="${e.type === "scrim" ? "background:#EEF2FF;color:#3730A3" : e.score ? "" : "background:#F3F4F6;color:#6B7280"}"><span>${wd(e.date)}</span><b style="font-size:15px">${e.date.slice(5, 7)}.${e.date.slice(8, 10)}</b></span><span style="flex:1;min-width:0"><span class="row" style="gap:6px"><span class="tag ${e.type === "training" ? "blue" : ""}">${e.type === "match" ? "경기" : e.type === "scrim" ? "내전" : "훈련"}</span><b>${e.score ? (e.type === "scrim" ? `A팀 ${e.score.us} : ${e.score.them} B팀` : `${e.score.us} : ${e.score.them} ${+e.score.us > +e.score.them ? "승" : +e.score.us < +e.score.them ? "패" : "무"}`) : esc(e.place || "")}</b></span><br><span class="hint">${esc([e.type === "match" && e.opponent ? "vs " + e.opponent : "", "참석 " + nIn, nl ? "지각 " + nl : "", na ? "결석 " + na : ""].filter(Boolean).join(", "))}</span></span>${isPlay(e) ? `<a class="btn sm ${e.score ? "" : "pri"}" href="#/result/${esc(e.id)}">${e.score ? "수정" : "결과 입력"}</a>` : ""}</div>
+      <div class="spread hint" style="font-size:12px"><span>${win.length ? "MOM " + esc(win.map(nameOf).join(", ")) : momOpen(e) ? `MOM 투표 중, 참석한 ${nIn}명 중 ${t.n || 0}명 투표` : isPlay(e) && !e.score ? "결과를 넣어야 MOM 투표가 열려요" : ""}</span><span>${fn ? "벌금 " + fn + "건" : "벌금 없음"}</span></div></div>`; };
+  return `<header class="top" style="padding:10px 12px">${LOGO(32)}<h1 style="font-size:20px;font-weight:900">기록</h1><button class="btn sm" data-act="aSeason">${y} 시즌 ▾</button></header><div class="body">
+    <div class="chips"><button class="chip ${tab === "game" ? "on" : ""}" data-act="aRtab" data-v="game">경기별</button><button class="chip ${tab === "player" ? "on" : ""}" data-act="aRtab" data-v="player">선수별</button></div>
+    ${tab === "game" ? `<div class="card"><b>시즌 요약</b>${tilesA([tileA(games.length + scr, "경기"), tileA(`${w}승 ${d2}무 ${l}패`, "전적"), tileA(Math.round(avg * 10) / 10, "평균 참석"), tileA(won(fineSum).replace("원", ""), "벌금 누적")])}${scr || pend ? `<span class="hint">${[scr ? "내전 " + scr + "번" : "", pend ? "결과 대기 " + pend + "경기" : ""].filter(Boolean).join("과 ")}은 승패에서 빠져 있어요</span>` : ""}</div>
+      <div class="spread"><b>경기 기록</b><span class="chips">${[["all", "전체"], ["match", "경기"], ["scrim", "내전"]].map(([k2, l2]) => `<button class="chip sm ${f === k2 ? "on" : ""}" data-act="aRf" data-v="${k2}">${l2}</button>`).join("")}</span></div>
+      ${list.length ? list.map(evRow).join("") : `<div class="card empty"><b>아직 지난 경기가 없어요</b></div>`}
+      <div class="card"><div class="spread"><b>선수별 출석</b><button class="btn sm" data-act="aRtab" data-v="player">전체</button></div><div class="list">${rows.slice(0, 5).map(r => `<div class="li" style="${half(r) ? "background:#FFFBEB;margin:0 -16px;padding:12px 16px" : ""}"><span style="flex:1">${esc(r.name)}</span><b>${r.n}/${evs.length}</b><span class="hint">지각 ${r.late}</span></div>`).join("")}</div><span class="hint">출석이 절반 이하인 선수는 노란색으로 보여요</span></div>`
+    : `<div class="card"><b>선수 ${ps.length}명</b>${tilesA([tileA(evs.length ? Math.round(rows.reduce((n, r) => n + r.n, 0) * 100 / (evs.length * Math.max(1, ps.length))) + "%" : "-", "평균 출석률"), tileA(rows.filter(half).length + "명", "절반 이하", "#B45309"), tileA(rows.filter(r => !r.late).length + "명", "지각 0회")])}</div>
+      <div class="card" style="overflow-x:auto;padding:12px"><table style="border-collapse:collapse;width:100%;font-size:14px;text-align:center"><thead><tr style="color:#6B7280;font-size:12px"><th style="text-align:left;padding:6px">이름</th><th>출석</th><th>지각</th><th>결석</th><th>MOM</th></tr></thead><tbody>${rows.map(r => `<tr style="border-top:1px solid #F3F4F6;${half(r) ? "background:#FFFBEB" : ""}"><td style="text-align:left;padding:10px 6px">${esc(r.name)}${r.uid === S.uid ? ` <span class="hint">나</span>` : ""}</td><td><b>${r.n}/${evs.length}</b></td><td>${r.late}</td><td>${r.abs}</td><td>${r.mom}</td></tr>`).join("")}</tbody></table></div>
+      <span class="hint">모임 ${evs.length}번 기준이에요. 출석이 절반 이하인 선수는 노란색이고, 결석은 연락 없이 빠진 횟수예요.</span>`}
   </div>${nav("기록")}`;
 }
 function vGame(id) {
@@ -246,15 +257,19 @@ function vGame(id) {
   </div>`;
 }
 function vResult(id) {
-  const e = S.events[id]; if (!e) return vRecords(); const f = S.form;
-  const came = people().filter(x => cameTo(e, x.uid));
-  return `${top("결과 입력", "#/game/" + e.id)}<div class="body">
-    <div class="card"><b>${e.type === "scrim" ? "A팀 대 B팀" : "우리 대 " + esc(e.opponent || "상대")}</b>
-      <div class="row" style="justify-content:center;gap:16px">${["us", "them"].map(k => `<span style="display:flex;flex-direction:column;align-items:center;gap:6px"><span class="hint">${k === "us" ? (e.type === "scrim" ? "A팀" : "우리") : (e.type === "scrim" ? "B팀" : "상대")}</span><span class="row"><button class="btn sm" data-act="score" data-k="${k}" data-d="-1" aria-label="줄이기">−</button><b style="font-size:32px;min-width:40px;text-align:center">${Number(f[k]) || 0}</b><button class="btn sm" data-act="score" data-k="${k}" data-d="1" aria-label="늘리기">+</button></span></span>`).join("")}</div></div>
-    <div class="card"><b>골 넣은 사람</b><span class="hint">누를 때마다 한 골씩 더해요. 골 칩을 누르면 빠져요.</span><div class="chips">${came.map(x => `<button class="chip sm" data-act="goalAdd" data-u="${esc(x.uid)}">${esc(x.name)}</button>`).join("")}</div>
-      <div class="chips">${(f.goals || []).map((g, i) => `<button class="chip sm on" data-act="goalDel" data-i="${i}">${esc(nameOf(g.uid))} ✕</button>`).join("")}</div></div>
-    <span class="hint">결과를 저장하면 출석한 팀원이 다음 날 12시까지 MOM 투표를 할 수 있어요.</span>
-  </div><div class="cta"><button class="btn pri block" data-act="saveResult" data-eid="${esc(e.id)}">저장</button></div>`;
+  const e = S.events[id]; if (!e) return vRecords(); const f = S.form; const came = people().filter(x => cameTo(e, x.uid));
+  const gc = {}; (f.goals || []).forEach(g => { gc[g.uid] = (gc[g.uid] || 0) + 1; }); const total = (Number(f.us) || 0) + (e.type === "scrim" ? (Number(f.them) || 0) : 0); const entered = (f.goals || []).length;
+  const step = (k, label) => `<span style="display:flex;flex-direction:column;align-items:center;gap:6px"><b style="font-size:13px">${esc(label)}</b><span class="row"><button class="btn sm" data-act="score" data-k="${k}" data-d="-1" aria-label="${esc(label)} 줄이기">−</button><b style="font-size:32px;min-width:40px;text-align:center">${Number(f[k]) || 0}</b><button class="btn sm" data-act="score" data-k="${k}" data-d="1" aria-label="${esc(label)} 늘리기">+</button></span></span>`;
+  const gRow = x => `<div class="li"><span style="flex:1">${esc(x.name)}${x.uid === S.uid ? ` <span class="hint">나</span>` : ""}</span><button class="btn sm" data-act="aGoal" data-u="${esc(x.uid)}" data-d="-1" aria-label="${esc(x.name)} 골 빼기">−</button><b style="min-width:28px;text-align:center">${gc[x.uid] || 0}</b><button class="btn sm" data-act="aGoal" data-u="${esc(x.uid)}" data-d="1" aria-label="${esc(x.name)} 골 더하기">+</button></div>`;
+  const T = e.teams || {}; const win = momClosed(e) ? momWinners(e) : []; const t = D("tally")["mom-" + e.id] || {};
+  return `${top(e.score ? "결과 수정" : "결과 입력", "#/records")}<div class="body">
+    <div class="card" style="gap:6px"><span class="tag ${e.type === "scrim" ? "blue" : ""}" style="align-self:flex-start">${e.type === "scrim" ? "내전" : "경기"}</span><b>${esc(md(e.date) + " " + wd(e.date) + ", " + (e.place || ""))}</b><span class="hint">참석 ${came.length}</span></div>
+    <div class="card"><b>스코어</b><div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px">${step("us", e.type === "scrim" ? "A팀" : S.team.name)}<b style="font-size:24px">:</b>${step("them", e.type === "scrim" ? "B팀" : (e.opponent || "상대"))}</div></div>
+    <div class="card"><div class="spread"><b>골 넣은 사람</b><span class="hint" style="${entered !== total ? "color:#B45309" : ""}">${total}골 중 ${entered}골 입력</span></div>
+      ${e.type === "scrim" ? ["A", "B"].map(sd => `<span class="lab">${sd}팀</span><div class="list">${came.filter(x => T[x.uid] === sd).map(gRow).join("") || `<span class="hint">스쿼드에서 ${sd}팀을 골라 주세요</span>`}</div>`).join("") : `<div class="list">${came.map(gRow).join("") || `<span class="hint">출석 기록이 없어요. 현장 출석을 먼저 불러 주세요</span>`}</div>`}</div>
+    <div class="card"><b>MOM 투표</b>${win.length ? `<div class="spread"><b>${esc(win.map(nameOf).join(", "))}</b><span class="hint">투표 마감, ${came.length}명 중 ${t.n || 0}명 투표</span></div><span class="hint">투표 결과는 바꿀 수 없어요.</span>` : e.score ? `<span class="hint">투표 중이에요. 다음 날 12:00에 마감돼요. ${t.n || 0}명 투표했어요.</span>` : `<span class="hint">저장하면 투표가 열려요. 참석한 ${came.length}명만 투표할 수 있고, 다음 날 12:00에 마감돼요.</span>`}</div>
+    <span class="hint">벌금은 일정의 현장 출석에서 바꿀 수 있어요</span>
+  </div><div class="cta"><button class="btn pri block" data-act="saveResult" data-eid="${esc(e.id)}">${e.score ? "저장하기" : "결과 저장하기"}</button><span class="hint" style="text-align:center">저장하면 팀원 기록에도 바로 보여요</span></div>`;
 }
 function vNoticeNew() {
   const f = S.form;
@@ -266,13 +281,15 @@ function vNoticeNew() {
   </div></div><div class="cta"><button class="btn pri block" data-act="noticeSave">올리기</button></div>`;
 }
 function vSquad(id) {
-  const e = S.events[id]; if (!e) return vSchedule();
-  const a = att(e); const ps = [...a.yes, ...a.late, ...a.wait]; const T = e.teams || {};
-  const nA = ps.filter(p => (T[p.uid] || "") === "A").length, nB = ps.filter(p => (T[p.uid] || "") === "B").length;
-  return `${top("내전 스쿼드", "#/event/" + e.id, `<button class="btn sm" data-act="squadAuto" data-eid="${esc(e.id)}">자동으로 나누기</button>`)}<div class="body">
-    <div class="card"><div class="stat"><span><b>${ps.length}</b><span>전체</span></span><span><b>${nA}</b><span>A팀 조끼</span></span><span><b>${nB}</b><span>B팀</span></span></div></div>
-    <div class="card"><div class="list">${ps.map(p => `<div class="li"><span style="flex:1"><b>${esc(p.name)}</b><br><span class="hint">${esc([p.p.pos1, p.p.pos2].filter(Boolean).join(", "))}</span></span><button class="chip sm ${T[p.uid] === "A" ? "on" : ""}" data-act="squadSet" data-eid="${esc(e.id)}" data-u="${esc(p.uid)}" data-v="A">A 조끼</button><button class="chip sm ${T[p.uid] === "B" ? "on" : ""}" data-act="squadSet" data-eid="${esc(e.id)}" data-u="${esc(p.uid)}" data-v="B">B 일반</button></div>`).join("")}</div></div>
-  </div>`;
+  const e = S.events[id]; if (!e) return vSchedule(); const T = e.teams || {}; const a = att(e); const going = new Set([...a.yes, ...a.late, ...a.wait].map(x => x.uid));
+  const all = people().map(x => ({ uid: x.uid, name: x.name, pos: x.p.pos1 || "", going: going.has(x.uid) })).concat(guestsOf(e).map(g => ({ uid: "g:" + g.id, name: g.name + " (용병)", pos: g.pos || "", going: true })));
+  all.sort((x, y) => (y.going - x.going) || x.name.localeCompare(y.name, "ko"));
+  const sel = all.filter(x => T[x.uid]); const nA = sel.filter(x => T[x.uid] === "A").length, nB = sel.length - nA;
+  return `${top("내전 스쿼드 고르기", "#/event/" + id)}<div class="body">
+    <div class="card" style="gap:6px"><b>${esc(md(e.date) + " " + wd(e.date) + " " + (e.time || "") + " 내전")}</b><span class="hint">투표와 상관없이 골라요. 참석이라고 한 사람이 위에 있어요.</span>${tilesA([tileA(sel.length, "선택"), tileA(nA, "A 조끼", "#15803D"), tileA(nB, "B 일반", "#3730A3")])}</div>
+    <div class="row"><button class="btn block" data-act="squadAuto" data-eid="${esc(id)}">팀 실력 비슷하게 자동으로 나누기</button></div>
+    <div class="card" style="padding:4px 16px"><div class="spread" style="padding-top:10px"><b>전체 선수 ${all.length}명</b><button class="btn sm" data-act="aSquadAll" data-eid="${esc(id)}">${sel.length === all.length ? "모두 빼기" : "모두 선택"}</button></div><div class="list">${all.map(x => `<div class="li"><span style="flex:1;${T[x.uid] ? "" : "opacity:.55"}"><b>${esc(x.name)}</b><br><span class="hint">${esc([x.pos, x.going ? "참석 신청" : ""].filter(Boolean).join(", "))}</span></span>${T[x.uid] ? "" : `<span class="hint">빠짐</span>`}<button class="chip sm ${T[x.uid] === "A" ? "on" : ""}" data-act="squadSet" data-eid="${esc(id)}" data-u="${esc(x.uid)}" data-v="A">A 조끼</button><button class="chip sm ${T[x.uid] === "B" ? "on" : ""}" data-act="squadSet" data-eid="${esc(id)}" data-u="${esc(x.uid)}" data-v="B" style="${T[x.uid] === "B" ? "background:#3730A3;border-color:#3730A3" : ""}">B 일반</button></div>`).join("")}</div></div>
+  </div><div class="cta"><a class="btn pri block" href="#/lineup/${esc(id)}">다음: 팀별 라인업 짜기</a></div>`;
 }
 function playerSheet(u) {
   const x = people().find(p => p.uid === u); if (!x) return; const me = S.members.find(m => m.user_id === S.uid) || {};
@@ -441,4 +458,46 @@ const AACT1 = {
     }); },
 };
 
-export { AACT1, eventFormInit, playerSheet, remindLeft, remindSheet, rosterSheet, vCalendarAdmin, vCheck, vDues, vDuesSettings, vEvent, vEventForm, vGame, vGuests, vHomeAdmin, vLedger, vNoticeNew, vNotifyAdmin, vPlayers, vPosReq, vRecords, vResult, vRosterImport, vSchedule, vScrim, vSquad };
+function checkRows(e) {
+  const a = att(e); const rows = [...a.yes, ...a.late].map(x => ({ uid: x.uid, name: x.name, sub: x.s === "late" ? `늦참 신고, ${x.q || 1}Q부터` : "" }));
+  guestsOf(e).forEach(g => rows.push({ uid: "g:" + g.id, name: g.name, sub: "용병" }));
+  const extra = [...a.no, ...a.none].filter(x => (e.check || {})[x.uid]).map(x => ({ uid: x.uid, name: x.name, sub: "신청 안 함" }));
+  return { rows: rows.concat(extra), others: [...a.no, ...a.none].filter(x => !(e.check || {})[x.uid]) };
+}
+function fineCalc(e) {
+  const ck = e.check || {}; const a = att(e); const going = new Set([...a.yes, ...a.late].map(x => x.uid));
+  const late = Object.keys(ck).filter(u => ck[u] === "late" && !u.startsWith("g:")), abs = Object.keys(ck).filter(u => ck[u] === "absent" && going.has(u));
+  return { late, abs, total: late.length * ruleAmt("late") + abs.length * ruleAmt("absent") };
+}
+function fineText(e) {
+  const fc = fineCalc(e); const lines = [`[${S.team.name}] ${md(e.date)} ${evName(e)} 벌금 안내`];
+  if (fc.late.length) lines.push(`지각 ${won(ruleAmt("late"))}: ${fc.late.map(nameOf).join(", ")}`);
+  if (fc.abs.length) lines.push(`무단 결석 ${won(ruleAmt("absent"))}: ${fc.abs.map(nameOf).join(", ")}`);
+  if (!fc.late.length && !fc.abs.length) lines.push("이번엔 벌금이 없어요");
+  lines.push("매니볼 회비 탭에서 확인하고 보내 주세요."); return lines.join("\n");
+}
+function vCheckDone(id) {
+  const e = S.events[id]; if (!e) return vSchedule(); const ck = e.check || {}; const cnt = { in: 0, late: 0, absent: 0 }; Object.values(ck).forEach(v => { if (cnt[v] != null) cnt[v]++; });
+  return `${top("현장 출석", "#/event/" + id)}<div class="body">
+    <div class="hint" style="background:#F0FDF4;color:#166534;border-radius:12px;padding:10px 12px">벌금을 매기고 팀원 회비 탭과 알림함에 보이게 했어요</div>
+    <div class="card"><b>${esc(md(e.date) + " " + evName(e))} 출석 마감</b>${tilesA([tileA(cnt.in, "출석"), tileA(cnt.late, "지각", "#B45309"), tileA(cnt.absent, "결석", "#B91C1C")])}<div class="spread"><span>매긴 벌금</span><b>${won(fineCalc(e).total)}</b></div></div>
+    <div class="card"><b>단톡방에 올릴 문구</b><div class="hint" style="white-space:pre-wrap;background:#F9FAFB;border-radius:12px;padding:12px;color:#374151">${esc(fineText(e))}</div><button class="btn" data-act="aCopyFine" data-eid="${esc(id)}">문구 복사</button></div>
+    <div class="row"><a class="btn block" href="#/dues">회비에서 보기</a><a class="btn block" href="#/schedule">일정으로</a></div>
+  </div>`;
+}
+const tileA = (v, l, c) => `<span style="background:#F9FAFB;border-radius:14px;padding:12px 4px;text-align:center;display:flex;flex-direction:column;gap:2px"><b style="font-size:22px;${c ? "color:" + c : ""}">${v}</b><span style="font-size:12px;color:#6B7280">${l}</span></span>`;
+const tilesA = arr => `<div style="display:grid;grid-template-columns:repeat(${arr.length},minmax(0,1fr));gap:8px">${arr.join("")}</div>`;
+const AACT2 = {
+  aCopyFine: async t => { const e = S.events[t.dataset.eid]; try { await navigator.clipboard.writeText(fineText(e)); toast("문구를 복사했어요. 단톡방에 붙여 넣어 주세요"); } catch (err) { toast("길게 눌러 복사해 주세요"); } },
+  aSquadAll: async t => { const e = S.events[t.dataset.eid]; if (!e) return; const T = e.teams || {}; const ids = people().map(x => x.uid).concat(guestsOf(e).map(g => "g:" + g.id));
+    const allOn = ids.every(u => T[u]); const N = {}; if (!allOn) ids.forEach((u, i) => { N[u] = T[u] || (i % 2 ? "B" : "A"); });
+    try { await setDoc("events", e.id, { ...e, teams: N }); render(); } catch (err) { fail(err); } },
+  aRtab: t => { UI.rtab = t.dataset.v; render(); window.scrollTo(0, 0); },
+  aRf: t => { UI.rf = t.dataset.v; render(); },
+  aSeason: () => { const years = [...new Set(past().map(e => e.date.slice(0, 4)).concat([todayStr().slice(0, 4)]))].sort().reverse();
+    sheet(`<h3>시즌 고르기</h3><div class="list">${years.map(y => `<button class="li" data-act="aSeasonPick" data-y="${y}" style="border:0;border-bottom:1px solid #F3F4F6;background:none;text-align:left;width:100%"><span style="flex:1"><b>${y} 시즌</b><br><span class="hint">모임 ${past().filter(e => e.date.startsWith(y)).length}번</span></span>${(UI.season || todayStr().slice(0, 4)) === y ? "✓" : ""}</button>`).join("")}</div><span class="hint">시즌은 매년 1월 1일에 새로 시작해요</span><button class="btn" data-act="closeSheet">닫기</button>`); },
+  aSeasonPick: t => { UI.season = t.dataset.y; closeSheet(); render(); },
+  aGoal: t => { const g = S.form.goals = S.form.goals || []; if (Number(t.dataset.d) > 0) g.push({ uid: t.dataset.u }); else { const i = g.map(x => x.uid).lastIndexOf(t.dataset.u); if (i >= 0) g.splice(i, 1); } render(); },
+};
+
+export { AACT1, AACT2, eventFormInit, playerSheet, remindLeft, remindSheet, rosterSheet, vCalendarAdmin, vCheck, vCheckDone, vDues, vDuesSettings, vEvent, vEventForm, vGame, vGuests, vHomeAdmin, vLedger, vNoticeNew, vNotifyAdmin, vPlayers, vPosReq, vRecords, vResult, vRosterImport, vSchedule, vScrim, vSquad };
