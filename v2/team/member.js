@@ -394,7 +394,7 @@ export function memberForm(r) {
 let undoT = 0;
 function toastUndo(msg, fn) {
   const L = document.getElementById("layer"); clearTimeout(undoT);
-  const el = document.createElement("div"); el.className = "toast"; el.setAttribute("role", "status"); el.style.display = "flex"; el.style.gap = "12px"; el.style.alignItems = "center";
+  const el = document.createElement("div"); el.className = "toast"; el.setAttribute("role", "status"); el.style.display = "flex"; el.style.gap = "12px"; el.style.alignItems = "center"; el.style.width = "max-content";
   el.innerHTML = `<span>${esc(msg)}</span><button style="border:0;background:none;color:#86EFAC;font-weight:700;padding:4px">되돌리기</button>`;
   document.querySelectorAll(".toast").forEach(x => x.remove()); L.appendChild(el);
   el.querySelector("button").onclick = () => { el.remove(); fn(); };
