@@ -283,6 +283,8 @@ function seasonStats(u) {
 }
 function homeExtras() {
   const out = [];
+  const rm = remindInfo(); const re = rm && S.events[rm.eid];
+  if (!isAdmin() && re && !started(re) && Date.now() - Date.parse(rm.at) < 2 * 864e5 && !myVote(re).s && myProfile()) out.push(`<a class="card" href="#/event/${esc(re.id)}" style="text-decoration:none;color:inherit;background:#FEF2F2"><b style="color:#B91C1C">참석 응답을 기다리고 있어요</b><span class="hint">${esc(md(re.date) + " " + wd(re.date) + " " + (re.time || "") + " " + evName(re))}, 운영진이 미응답 알림을 보냈어요</span></a>`);
   const n = noticesList()[0];
   if (n) out.push(`<div class="spread"><b>공지</b><a href="#/notices" class="hint" style="text-decoration:none">전체</a></div>${noticeCard(n, false)}`);
   else if (!isAdmin()) out.push(`<a class="btn" href="#/notices">공지와 설문</a>`);
@@ -332,7 +334,7 @@ function vHomeAdmin() {
     <div class="card"><div class="spread"><b style="font-size:16px">운영진이 할 일</b><span class="hint">${todo.length}개</span></div>
       ${todo.length ? `<div class="list">${todo.map(t => `<div class="li"><span style="flex:1;min-width:0"><b style="font-size:15px">${esc(t[0])}</b><br><span class="hint">${esc(t[1])}</span></span><a class="btn sm" href="${t[2]}">${esc(t[3])}</a></div>`).join("")}</div>` : `<span class="hint">지금은 할 일이 없어요.</span>`}
     </div>
-    ${next ? `<div class="spread"><b>다음 일정</b><a href="#/schedule" class="hint" style="text-decoration:none">전체</a></div>${eventCard(next)}` : ""}
+    ${next ? `<div class="spread"><b>다음 일정</b><a href="#/schedule" class="hint" style="text-decoration:none">전체</a></div>${adminEventCard(next)}` : ""}
     ${homeExtras()}
     <div class="row" style="gap:8px"><a class="btn block" href="#/new">+ 일정 만들기</a><a class="btn block" href="#/invite">팀원 초대</a></div>
     <a class="btn" href="#/notices">공지와 설문</a>
@@ -343,11 +345,53 @@ function vHomeAdmin() {
 
 /* ---------- 일정 ---------- */
 function vSchedule() {
+  if (isAdmin()) return vScheduleAdmin();
   const ev = upcoming();
-  return `<header class="top"><span style="width:8px"></span><h1>일정</h1>${isAdmin() ? `<a class="btn sm pri" href="#/new">+ 일정 만들기</a>` : ""}</header><div class="body">
-    ${ev.length ? ev.map(e => eventCard(e)).join("") : `<div class="card empty"><b>다가오는 일정이 없어요</b><span class="hint">${isAdmin() ? "일정을 만들면 팀원이 참석을 눌러요." : "운영진이 일정을 올리면 여기에 보여요."}</span>${isAdmin() ? `<a class="btn pri" href="#/new">일정 만들기</a>` : ""}</div>`}
+  return `<header class="top"><span style="width:8px"></span><h1>일정</h1></header><div class="body">
+    ${ev.length ? ev.map(e => eventCard(e)).join("") : `<div class="card empty"><b>다가오는 일정이 없어요</b><span class="hint">운영진이 일정을 올리면 여기에 보여요.</span></div>`}
     ${past().length ? `<b style="margin-top:8px">지난 일정</b>${past().slice(0, 10).map(e => eventCard(e, { noVote: true })).join("")}` : ""}
   </div>${nav("일정")}`;
+}
+/* ---------- 운영진 일정: 참석 현황과 운영 버튼 (팀원처럼 투표 버튼을 두지 않는다) ---------- */
+const REMIND_GAP = 3600e3; // 미응답 알림: 운영진 모두 합쳐 1시간에 한 번 (바꿀 수 없음)
+const remindInfo = () => D("team").remind || null;
+const remindLeft = () => { const r = remindInfo(); return r && r.at ? Math.max(0, Date.parse(r.at) + REMIND_GAP - Date.now()) : 0; };
+function adminEventCard(e, opt = {}) {
+  const a = att(e); const closed = started(e); const pct = a.cap ? Math.min(100, Math.round(a.in * 100 / a.cap)) : 0;
+  const greq = guestReqs(e).filter(g => g.status === "req").length; const un = unclaimed().length;
+  const sub = e.type === "match" ? (e.opponent ? "vs " + e.opponent : "상대팀 미정") : e.type === "scrim" ? "내전 (A팀 대 B팀)" : "훈련";
+  return `<div class="card">
+    <div class="row" style="gap:12px"><a href="#/event/${esc(e.id)}" style="text-decoration:none;color:inherit;display:flex;gap:12px;align-items:center;flex:1;min-width:0"><span class="datebox ${closed ? "gray" : ""}"><span>${wd(e.date)}</span><b>${Number(e.date.slice(8, 10))}</b></span><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><span class="row" style="gap:6px"><span class="tag ${e.type === "training" ? "blue" : ""}">${e.type === "match" ? "경기" : e.type === "scrim" ? "내전" : "훈련"}</span><b style="font-size:16px">${esc(e.time || "")}${e.end ? " ~ " + esc(e.end) : ""}</b></span><span class="hint">${esc(e.place || "장소 미정")}, ${esc(sub)}</span></span></a>${closed || opt.detail ? "" : `<a href="#/edit/${esc(e.id)}" class="hint" style="text-decoration:none;padding:8px 0;flex:none">수정</a>`}</div>
+    ${closed ? `<div class="spread hint"><span>출석 ${Object.values(e.check || {}).filter(v => v === "in" || v === "late").length}명${e.score ? `, 결과 ${e.score.us} : ${e.score.them}` : ""}</span>${isPlay(e) && !e.score ? `<a href="#/result/${esc(e.id)}" style="font-weight:700;text-decoration:none">결과 입력</a>` : `<a href="#/event/${esc(e.id)}" style="text-decoration:none">보기</a>`}</div>` : `
+    <div class="field" style="gap:6px"><div class="spread" style="font-size:13px"><span>참석 <b>${a.in}</b>${a.cap ? " / 정원 " + a.cap : ""}${a.late.length ? ", 늦참 " + a.late.length : ""}${a.no.length ? ", 불참 " + a.no.length : ""}${a.wait.length ? ", 대기 <b>" + a.wait.length + "</b>" : ""}</span><span style="color:#B91C1C;font-weight:700">미응답 ${a.none.length + un}</span></div>
+      ${a.cap ? `<div style="height:8px;border-radius:999px;background:#E5E7EB;overflow:hidden"><div style="width:${pct}%;height:100%;background:#15803D"></div></div>` : ""}
+      <span class="hint" style="font-size:12px">경기 시작 전까지 투표가 열려 있어요${un ? `. 미응답 중 ${un}명은 아직 앱에 안 들어왔어요` : ""}</span></div>
+    ${greq ? `<div class="spread" style="background:#FFFBEB;border-radius:12px;padding:10px 12px;font-size:13px;color:#92400E"><span><b>용병 신청 ${greq}건</b> 수락을 기다려요</span><a href="#/event/${esc(e.id)}" style="font-weight:700;text-decoration:none;color:#92400E">확인</a></div>` : ""}
+    ${scrimReady(e) ? `<div style="display:flex;flex-direction:column;gap:10px;background:#EEF2FF;border-radius:14px;padding:12px 14px"><span style="font-size:13px;color:#3730A3;line-height:1.5"><b>내전 가능</b> 상대팀이 미정이고 참석과 대기를 합쳐 ${a.in + a.wait.length}명이에요.</span><a class="btn sm" href="#/event/${esc(e.id)}" style="background:#3730A3;color:#FFFFFF">내전 검토하기</a></div>` : ""}
+    <div style="display:grid;grid-template-columns:repeat(${e.type === "training" ? 2 : 3},minmax(0,1fr));gap:8px"><button class="btn sm" data-act="remindOpen" data-eid="${esc(e.id)}" style="background:#FEF2F2;color:#B91C1C;font-size:13px;padding:8px 2px;white-space:nowrap">미응답 알리기</button>${e.type !== "training" ? `<a class="btn sm pri" href="#/lineup/${esc(e.id)}" style="font-size:13px;padding:8px 2px;white-space:nowrap">라인업 짜기</a>` : ""}<a class="btn sm" href="#/check/${esc(e.id)}" style="font-size:13px;padding:8px 2px;white-space:nowrap">현장 출석</a></div>`}
+  </div>`;
+}
+function vScheduleAdmin() {
+  const m = UI.month || ym(); const [y, mo] = m.split("-").map(Number);
+  const inMonth = e => e.date.slice(0, 7) === m;
+  const up = upcoming().filter(inMonth), done = past().filter(inMonth);
+  const later = upcoming().filter(e => e.date.slice(0, 7) > m).length;
+  return `<header class="top" style="padding:10px 12px">${LOGO(32)}<h1 style="font-size:20px;font-weight:900">일정</h1><a class="btn sm pri" href="#/new">+ 일정 만들기</a></header><div class="body">
+    <div class="spread card" style="padding:6px;flex-direction:row"><button class="iconbtn" data-act="monthGo" data-d="-1" aria-label="이전 달">‹</button><b style="font-size:16px">${y}년 ${mo}월</b><button class="iconbtn" data-act="monthGo" data-d="1" aria-label="다음 달">›</button></div>
+    <b style="font-size:15px;color:#374151">다가오는 일정</b>
+    ${up.length ? up.map(adminEventCard).join("") : `<div class="card empty"><b>${mo}월에 남은 일정이 없어요</b><span class="hint">${later ? `다음 달에 일정 ${later}개가 있어요.` : "일정을 만들면 팀원이 참석을 눌러요."}</span><a class="btn pri" href="#/new">일정 만들기</a></div>`}
+    ${done.length ? `<b style="font-size:15px;color:#374151;margin-top:8px">지난 일정</b>${done.map(adminEventCard).join("")}` : ""}
+  </div>${nav("일정")}`;
+}
+function remindSheet(eid) {
+  const e = S.events[eid]; if (!e) return; const a = att(e); const un = unclaimed();
+  const left = remindLeft(); const r = remindInfo();
+  const names = a.none.map(x => x.name).concat(un.map(p => p.name));
+  const ago = r && r.at ? Math.max(1, Math.round((Date.now() - Date.parse(r.at)) / 60000)) : 0;
+  sheet(`<h3>미응답 ${names.length}명에게 알려요</h3><span class="hint">${esc(md(e.date) + " " + wd(e.date) + " " + (e.time || "") + " " + evName(e))}, 경기 시작 전까지 투표</span>
+    <div class="list" style="max-height:38vh;overflow:auto">${a.none.map(x => `<div class="li"><b style="flex:1">${esc(x.name)}</b><span class="hint">앱 알림</span></div>`).join("")}${un.map(p => `<div class="li"><b style="flex:1">${esc(p.name)}</b><span class="tag gray">가입 전</span></div>`).join("") || ""}${names.length ? "" : `<span class="hint">미응답이 없어요.</span>`}</div>
+    <div style="background:#FFFBEB;border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.5;color:#92400E">${left ? `<b>${ago}분 전에 ${esc(nameOf(r.by))} 님이 알렸어요</b><br>미응답 알림은 운영진 모두 합쳐 1시간에 한 번만 보낼 수 있어요.` : `미응답 알림은 운영진 모두 합쳐 1시간에 한 번만 보낼 수 있어요.${r && r.at ? ` 마지막 알림은 ${esc(nameOf(r.by))} 님이 보냈어요.` : ""}`}<br>앱에 들어온 사람은 홈에 알림이 뜨고, 단톡방에 붙여 넣을 문구도 복사돼요.</div>
+    <div class="row"><button class="btn block" data-act="closeSheet">닫기</button>${left ? `<button class="btn block" disabled>${Math.ceil(left / 60000)}분 뒤 가능</button>` : `<button class="btn pri block" data-act="remindSend" data-eid="${esc(e.id)}" ${names.length ? "" : "disabled"}>알리기</button>`}</div>`);
 }
 function vEvent(id) {
   const e = S.events[id]; if (!e) return `${top("일정", "#/schedule")}<div class="body"><div class="card empty"><b>지워진 일정이에요</b></div></div>`;
@@ -356,13 +400,14 @@ function vEvent(id) {
   const gs = guestsOf(e); const greq = guestReqs(e); const myG = greq.filter(g => g.u === S.uid);
   const hasLine = e.lineup && Object.keys(e.lineup).length;
   const tools = [];
-  if (adm && day) tools.push(`<a class="btn block" href="#/check/${esc(e.id)}">현장 출석</a>`);
-  if (isPlay(e) && (adm || hasLine)) tools.push(`<a class="btn block" href="#/lineup/${esc(e.id)}">라인업</a>`);
+  if (adm && day && started(e)) tools.push(`<a class="btn block" href="#/check/${esc(e.id)}">현장 출석</a>`);
+  if (isPlay(e) && ((adm && started(e)) || (!adm && hasLine))) tools.push(`<a class="btn block" href="#/lineup/${esc(e.id)}">라인업</a>`);
   if (e.type === "scrim" && adm) tools.push(`<a class="btn block" href="#/squad/${esc(e.id)}">스쿼드 나누기</a>`);
   if (started(e) && isPlay(e)) tools.push(`<a class="btn block" href="#/game/${esc(e.id)}">결과와 MOM</a>`);
   const T = e.teams || {};
+  const mv = myVote(e);
   return `${top(md(e.date) + " " + wd(e.date) + " " + evName(e), "#/schedule", adm ? `<a class="btn sm" href="#/edit/${esc(e.id)}">수정</a>` : "")}<div class="body">
-    ${eventCard(e)}
+    ${adm ? adminEventCard(e, { detail: true }) + (myProfile() && !started(e) ? `<div class="card"><b>내 참석</b>${voteRow(e, mv)}${mv.s === "late" ? lateRow(e, mv) : ""}</div>` : "") : eventCard(e)}
     ${adm && scrimReady(e) ? `<div class="card" style="background:#FFFBEB"><b>내전을 할 수 있어요</b><span class="hint">상대팀이 미정이고 참석과 대기를 합쳐 ${a.in + a.wait.length}명이에요. 운영진끼리 상의해서 내전으로 바꾸면 팀원 모두에게 보여요.</span><button class="btn pri" data-act="scrimConvert" data-eid="${esc(e.id)}">내전으로 바꾸기</button></div>` : ""}
     ${tools.length ? `<div class="row" style="flex-wrap:wrap">${tools.join("")}</div>` : ""}
     ${e.memo ? `<div class="card"><b>메모</b><div class="hint" style="white-space:pre-wrap;color:#374151">${esc(e.memo)}</div></div>` : ""}
@@ -741,6 +786,20 @@ function rosterSheet(pid) {
   sheet(`<h3>${esc(p.name)}</h3><span class="hint">${esc([p.num ? p.num + "번" : "", p.pos1, p.pos2].filter(Boolean).join(", "))}${p.joined ? ", 가입 " + dotDate(p.joined) : ""}</span><span class="hint">아직 앱에 들어오지 않았어요. 초대 링크로 들어와 이 이름을 고르면 연결돼요.</span>
     ${isAdmin() ? `<button class="btn danger" data-act="rosterDel" data-pid="${esc(pid)}">명단에서 빼기</button>` : ""}<button class="btn" data-act="closeSheet">닫기</button>`);
 }
+const ACT4 = {
+  monthGo: t => { const [y, m] = (UI.month || ym()).split("-").map(Number); const d = new Date(Date.UTC(y, m - 1 + Number(t.dataset.d), 1)); UI.month = d.toISOString().slice(0, 7); render(); },
+  remindOpen: t => remindSheet(t.dataset.eid),
+  remindSend: async t => {
+    const e = S.events[t.dataset.eid]; if (!e) return; if (remindLeft()) { remindSheet(e.id); return; }
+    t.disabled = true; const a = att(e); const names = a.none.map(x => x.name).concat(unclaimed().map(p => p.name));
+    try {
+      await setDoc("team", "remind", { at: new Date().toISOString(), by: S.uid, eid: e.id, to: a.none.map(x => x.uid) });
+      closeSheet(); render();
+      const text = `[${S.team.name}] ${md(e.date)} ${wd(e.date)} ${e.time || ""} ${evName(e)} 참석 응답 부탁해요\n아직 안 누른 분: ${names.join(", ")}\n${APP}`;
+      try { await navigator.clipboard.writeText(text); toast("알렸어요. 단톡방 문구도 복사했어요"); } catch (err) { toast("알렸어요"); }
+    } catch (err) { t.disabled = false; fail(err); }
+  },
+};
 const ACT3 = {
   claim: t => {
     const p = D("players")[t.dataset.pid]; if (!p) return;
@@ -1064,7 +1123,7 @@ const ACT = {
   }, true),
   logout: () => confirmBox("로그아웃", "이 기기에서 로그아웃할까요?", "로그아웃", async () => { try { await sb.auth.signOut(); } catch (e) { /* 그래도 처음으로 */ } ls.set("mb-team", null); location.replace(APP); }),
 };
-Object.assign(ACT, ACT2, ACT3);
+Object.assign(ACT, ACT2, ACT3, ACT4);
 document.addEventListener("click", ev => {
   const t = ev.target.closest("[data-act]"); if (!t) return;
   const f = ACT[t.dataset.act]; if (!f) return;
