@@ -171,7 +171,9 @@ async function flush(path, retried) {
       return;
     }
     const [c, id] = path.split("/");
-    if (code === "invalid_argument" && op.t === "update" && !(R[c] && R[c][id])) toast("다른 운영진이 이미 삭제한 항목입니다.");
+    const why = e && e.reason ? GUARD_MSG[e.reason] : "";
+    if (why) toast(why); // 서버 규칙이 거절: 권한은 그대로 두고 이유만 알린다
+    else if (code === "invalid_argument" && op.t === "update" && !(R[c] && R[c][id])) toast("다른 운영진이 이미 삭제한 항목입니다.");
     else if (code === "invalid_argument" || code === "not_granted" || code === "permission_denied") { downgrade(path); }
     else if (code === "quota_exceeded") { Store.err = true; toast("저장 공간이 가득 찼습니다. 오래된 일정을 지워 주세요."); }
     else { Store.err = true; toast("저장하지 못했습니다. 잠시 후 다시 시도해 주세요."); }
@@ -185,6 +187,20 @@ async function flush(path, retried) {
   if (Store.pending.has(path)) { flush(path); return; }
   derive(); requestRender(); setSync();
 }
+const GUARD_MSG = {
+  vote_closed: "경기가 시작돼서 참석을 바꿀 수 없어요. 운영진에게 말해 주세요.",
+  pid_taken: "다른 팀원이 이미 이 선수로 연결했어요. 운영진에게 확인해 주세요.",
+  pid_locked: "이미 다른 선수와 연결돼 있어요. 연결을 해제한 뒤 다시 골라 주세요.",
+  mom_locked: "MOM 표는 한 번만 낼 수 있어요.",
+  mom_closed: "MOM 투표가 마감됐어요.",
+  poll_closed: "설문이 마감됐어요.",
+  not_allowed: "운영진만 할 수 있어요.",
+  no_event: "지워진 일정이에요. 새로고침해 주세요.", no_player: "지워진 선수예요. 새로고침해 주세요.",
+  no_poll: "지워진 설문이에요.", no_option: "없는 보기예요. 새로고침해 주세요.", bad_vote: "저장할 수 없는 응답이에요. 새로고침해 주세요.",
+};
+// 내가 방금 낸 표: 서버 집계에 들어오기 전까지만 화면에 더해 보여 준다 (집계에는 누가 냈는지 남지 않는다)
+const VOTE_PEND = {};
+function markVote(key, val, prev) { VOTE_PEND[key] = { val, prev, base: JSON.stringify((R.tally || {})[key] || null) }; }
 const anyBusy = () => Store.pending.size > 0 || Store.inflight.size > 0;
 // a refused write tells us this person has less access than we assumed
 function downgrade(path) {
@@ -316,6 +332,7 @@ async function initStore() {
   const arrived = (key, c, fromCache) => {
     Store.settled.forEach((_, p) => { if (p.startsWith(c + "/")) Store.settled.delete(p); });
     Store.got.add(key);
+    if (c === "tally") Object.keys(VOTE_PEND).forEach(k => { if (JSON.stringify((R.tally || {})[k] || null) !== VOTE_PEND[k].base) delete VOTE_PEND[k]; });
     if (!fromCache) Store.confirmed.add(key);
     if (Store.confirmed.size >= total) { clearTimeout(Store.loadTimer); Store.offline = false; }
     derive();
@@ -348,7 +365,7 @@ function scheduleSync() { if (!Store.canWrite || Store.mode !== "db" || syncTime
 /* 운영진: MOM 표, 설문 응답, 읽음 수를 모두가 볼 수 있는 집계(tally)로 맞춰 둔다. 누가 누구를 골랐는지는 담지 않는다 */
 function tallyNow() {
   const out = {};
-  const add = (key, val, u) => { const t = out[key] || (out[key] = { n: 0, c: {}, v: [] }); t.n++; t.v.push(u); if (val) t.c[val] = (t.c[val] || 0) + 1; };
+  const add = (key, val, u) => { const t = out[key] || (out[key] = { n: 0, c: {}, v: [] }); t.n++; if (key.startsWith("seen-")) t.v.push(u); if (val) t.c[val] = (t.c[val] || 0) + 1; };
   Object.keys(S.uvote).forEach(u => {
     const d = S.uvote[u] || {};
     Object.entries(d.mom || {}).forEach(([eid, pid]) => { if (pid && S.events[eid]) add("mom-" + eid, pid, u); });
@@ -723,8 +740,8 @@ function attendees(e) {
 function momTally(e) {
   const t = S.tally["mom-" + e.id] || { n: 0, c: {}, v: [] };
   const out = { n: t.n || 0, c: { ...(t.c || {}) } };
-  const mine = (myUvote().mom || {})[e.id]; const u = myUid();
-  if (mine && u && !(t.v || []).includes(u)) { out.n++; out.c[mine] = (out.c[mine] || 0) + 1; }
+  const p = VOTE_PEND["mom-" + e.id];
+  if (p && p.val) { out.n++; out.c[p.val] = (out.c[p.val] || 0) + 1; }
   return out;
 }
 function momWinners(e) { const t = momTally(e); const max = Math.max(0, ...Object.values(t.c)); return max ? Object.keys(t.c).filter(k => t.c[k] === max) : []; }
@@ -740,8 +757,11 @@ function pollOpen(n) { return !!(n.poll && n.poll.opts && n.poll.opts.length) &&
 function pollTally(n) {
   const t = S.tally["poll-" + n.id] || { n: 0, c: {}, v: [] };
   const out = { n: t.n || 0, c: { ...(t.c || {}) } };
-  const u = myUid(); const mine = (myUvote().poll || {})[n.id];
-  if (u && !Store.canWrite) { const counted = (t.v || []).includes(u); if (mine && !counted) { out.n++; out.c[mine] = (out.c[mine] || 0) + 1; } }
+  const p = VOTE_PEND["poll-" + n.id];
+  if (p) {
+    if (p.prev && out.c[p.prev] > 0) { out.c[p.prev]--; out.n = Math.max(0, out.n - 1); }
+    if (p.val) { out.n++; out.c[p.val] = (out.c[p.val] || 0) + 1; }
+  }
   return out;
 }
 const seenCount = n => (S.tally["seen-" + n.id] || {}).n || 0;
@@ -2477,11 +2497,11 @@ Object.assign(ACT, {
   guestRemove: t => { const e = curEvent(); if (!e) return; const g = guestsOf(e).find(x => x.id === t.dataset.gid); confirmSheet("게스트 빼기", `${g ? g.name : "게스트"}를 명단에서 뺄까요? 붙은 게스트비는 벌금 화면에서 따로 지워 주세요.`, "빼기", () => { evPatch(e.id, { guests: { [t.dataset.gid]: null } }); render(); }); },
   noticeNew: () => noticeSheet(null),
   noticeEdit: t => noticeSheet(S.notices.find(n => n.id === t.dataset.id)),
-  pollVote: t => { const nid = t.dataset.nid, opt = t.dataset.opt; const cur = (myUvote().poll || {})[nid]; uvPatch({ poll: { [nid]: cur === opt ? "" : opt } }); render(); },
+  pollVote: t => { const nid = t.dataset.nid, opt = t.dataset.opt; const cur = (myUvote().poll || {})[nid]; const nv = cur === opt ? "" : opt; if (!Store.preview) markVote("poll-" + nid, nv, cur || ""); uvPatch({ poll: { [nid]: nv } }); render(); },
   inboxRead: () => { uvPatch({ inboxAt: nowIso() }); render(); toast("모두 읽음으로 바꿨어요"); },
   inboxToggle: t => { const off = prefs().inboxOff || {}; off[t.dataset.k] = !off[t.dataset.k]; setPref("inboxOff", off); render(); },
   momPick: t => { ui.momPick[t.dataset.eid] = t.dataset.pid; render(); },
-  momSend: t => { const eid = t.dataset.eid; const pid = ui.momPick[eid]; const e = S.events[eid]; if (!pid || !e || !momOpen(e)) return; if ((myUvote().mom || {})[eid]) return; uvPatch({ mom: { [eid]: pid } }); render(); toast(`${pname(pid)} 선수에게 투표했어요`); },
+  momSend: t => { const eid = t.dataset.eid; const pid = ui.momPick[eid]; const e = S.events[eid]; if (!pid || !e || !momOpen(e)) return; if ((myUvote().mom || {})[eid]) return; if (!Store.preview) markVote("mom-" + eid, pid, ""); uvPatch({ mom: { [eid]: pid } }); render(); toast(`${pname(pid)} 선수에게 투표했어요`); },
   feeCharge: t => {
     const e = S.events[t.dataset.eid]; if (!e) return; const F = feeSplit(e); if (!F.ppl.length || !F.per) return;
     confirmSheet("구장비 청구", `${F.ppl.length}명에게 ${won(F.per)}씩 '구장비'로 청구할까요? 각자 내 회비 화면에 보여요.`, "청구", () => {
