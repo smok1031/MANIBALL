@@ -1,6 +1,6 @@
 // 운영진 화면: 디자인 시안 [운영진] 1-1 ~ 5-9. 팀원 화면은 member.js에 있다.
 import { mCalendar } from "./member.js";
-import { $, D, LOGO, POS, ROLE, S, UI, att, cameTo, closeSheet, closeText, confirmBox, dotDate, duesKey, esc, evName, evStart, eventCard, fail, feeMode, guestReqs, guestsOf, isAdmin, isPlay, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, profileOf, remindInfo, render, ruleAmt, scrimReady, setDoc, sheet, sport, started, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym } from "./main.js";
+import { $, D, KIT, LOGO, POS, ROLE, S, UI, att, cameTo, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, refreshMembers, remindInfo, render, ruleAmt, sb, scrimReady, setDoc, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym } from "./main.js";
 
 function homeExtras() {
   const out = [];
@@ -140,69 +140,67 @@ function vEventForm(id) {
   </div><div class="cta"><button class="btn pri block" data-act="aSaveEvent" data-eid="${esc(id || "")}">${isNew ? "일정 올리기" : "저장"}</button></div>`;
 }
 function vPlayers() {
-  const num = x => Number(x) || 999;
-  const ps = people().map(x => ({ ...x, kind: "m" }));
-  const un = unclaimed().map(p => ({ kind: "p", uid: "", pid: p.id, role: "member", name: p.name, p }));
-  const all = ps.concat(un).sort((a, b) => num(a.p.num) - num(b.p.num) || a.name.localeCompare(b.name, "ko"));
-  const row = x => x.kind === "p"
-    ? `<div class="li" data-act="rosterOpen" data-pid="${esc(x.pid)}" role="button" tabindex="0" style="cursor:pointer"><span class="av" style="background:#F3F4F6;color:#6B7280">${esc(x.p.num || x.name.slice(0, 1))}</span><span style="flex:1;min-width:0"><b>${esc(x.name)}</b><br><span class="hint">${x.p.num ? esc(x.p.num) + "번, " : ""}${esc([x.p.pos1, x.p.pos2].filter(Boolean).join(", "))}</span></span><span class="tag gray">가입 전</span></div>`
-    : `<div class="li" ${isAdmin() || x.uid === S.uid ? `data-act="playerOpen" data-u="${esc(x.uid)}" role="button" tabindex="0" style="cursor:pointer"` : ""}><span class="av">${esc(x.p.num || x.name.slice(0, 1))}</span><span style="flex:1;min-width:0"><b>${esc(x.name)}</b>${x.uid === S.uid ? ` <span class="hint">나</span>` : ""}<br><span class="hint">${x.p.num ? esc(x.p.num) + "번, " : ""}${esc([x.p.pos1, x.p.pos2].filter(Boolean).join(", ") || (profileOf(x.uid) ? "포지션 미정" : "선수 등록 전"))}</span></span>${isAdmin() && ((S.rsvp[x.uid] || {}).posReq || {}).status === "req" ? `<span class="tag blue">포지션 요청</span>` : ""}${S.role === "owner" && x.role === "member" && (S.members.find(m => m.user_id === x.uid) || {}).admin_req ? `<span class="tag blue">운영진 신청</span>` : ""}${x.role !== "member" ? `<span class="tag">${ROLE[x.role]}</span>` : ""}</div>`;
-  return `<header class="top"><span style="width:8px"></span><h1>선수</h1>${isAdmin() ? `<a class="btn sm" href="#/settings">팀 설정</a><a class="btn sm pri" href="#/invite">+ 초대</a>` : ""}</header><div class="body">
-    <div class="card"><div class="spread"><b>${all.length}명</b><span class="hint">앱에 들어옴 ${ps.length}명${un.length ? `, 가입 전 ${un.length}명` : ""}</span></div>
-      <div class="list">${all.map(row).join("")}</div>
-      <span class="hint">${isAdmin() ? "이름을 누르면 권한, 요청, 내보내기를 볼 수 있어요. 가입 전 선수는 초대 링크로 들어와 자기 이름을 고르면 연결돼요." : "내 이름을 누르면 프로필과 운영진 신청을 볼 수 있어요."}</span>
-    </div>
-    ${isAdmin() ? `<a class="btn" href="#/roster-import">명단 붙여 넣어 한 번에 등록</a>` : ""}
-    ${myProfile() && !isAdmin() ? `<a class="btn" href="#/posreq">포지션 변경 요청</a>` : ""}
-    ${S.settings.rules && S.settings.rules.length ? `<div class="card"><b>우리 팀 수칙</b><div class="list">${S.settings.rules.map(r => `<div class="li"><span style="flex:1">${esc(r.label)}</span>${Number(r.amount) ? `<b>${won(r.amount)}</b>` : ""}</div>`).join("")}</div></div>` : ""}
-    <div class="card"><div class="row" style="justify-content:space-between"><span class="hint">로그인: 카카오</span><span class="row"><button class="btn sm" data-act="switchTeam">다른 팀, 새 팀</button><button class="btn sm" data-act="logout">로그아웃</button></span></div><a class="hint" href="../../privacy.html">개인정보처리방침과 이용약관</a></div>
+  const ps = people(); const y = todayStr().slice(0, 4); const evs = past().filter(e => e.date.startsWith(y));
+  const attN = u => evs.filter(e => cameTo(e, u)).length; const low = ps.filter(x => evs.length && attN(x.uid) * 2 <= evs.length);
+  const dueTag = u => { const o = owedOf(u); return o.months > 1 ? `<span class="tag" style="background:#FEF2F2;color:#B91C1C">${o.months}달 미납</span>` : o.months ? `<span class="tag" style="background:#FEF2F2;color:#B91C1C">${Number(ym().slice(5))}월 미납</span>` : ""; };
+  const admins = ps.filter(x => x.role !== "member").sort((a, b) => (a.role === "owner" ? -1 : 1) - (b.role === "owner" ? -1 : 1));
+  const num = x => Number(x) || 999; const mem = ps.filter(x => x.role === "member").sort((a, b) => num(a.p.num) - num(b.p.num));
+  const row = x => `<a class="li" href="#/player/${esc(x.uid)}" style="text-decoration:none;color:inherit"><span class="av">${esc(x.name.slice(0, 1))}</span><span style="flex:1;min-width:0"><b>${esc(x.name)}</b> ${x.role !== "member" ? `<span class="tag">${ROLE[x.role]}</span>` : ""} ${dueTag(x.uid)}${x.uid === S.uid ? ` <span class="hint">나</span>` : ""}<br><span class="hint">${esc([x.p.num ? x.p.num + "번" : "", x.p.pos1, "출석 " + attN(x.uid) + "/" + evs.length].filter(Boolean).join(", "))}</span></span><span class="hint">›</span></a>`;
+  const posReqs = ps.filter(x => ((S.rsvp[x.uid] || {}).posReq || {}).status === "req"); const admReqs = S.role === "owner" ? S.members.filter(m => m.admin_req && m.role === "member") : [];
+  const rules = S.settings.rules || []; const un = unclaimed();
+  return `<header class="top" style="padding:10px 12px">${LOGO(32)}<h1 style="font-size:20px;font-weight:900">선수</h1><a class="btn sm pri" href="#/invite">+ 초대</a></header><div class="body">
+    ${tilesA([tileA(ps.length + un.length + "명", "전체"), tileA(admins.length + "명", "운영진"), tileA(low.length + "명", "출석 절반 이하", "#B45309")])}
+    <a class="card" href="#/uniform" style="text-decoration:none;color:inherit;flex-direction:row;align-items:center;gap:14px">${jersey(64, (myProfile() || {}).num || "7", S.settings.uniformColor)}<span style="flex:1"><b>팀 유니폼</b><br><span class="hint">팀원 선수 카드에 등번호와 같이 보여요</span></span><span class="btn sm">바꾸기</span></a>
+    ${posReqs.length + admReqs.length ? `<div class="card"><b>요청 ${posReqs.length + admReqs.length}건</b>${posReqs.map(x => { const r = S.rsvp[x.uid].posReq; return `<div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid #F3F4F6;padding-top:10px"><div class="row" style="gap:10px"><span class="av">${esc(x.name.slice(0, 1))}</span><span style="flex:1"><b>${esc(x.name)}</b> <span class="hint">포지션 변경 요청</span><br><span class="hint">${esc((x.p.pos1 || "-") + "에서 " + [r.pos1, r.pos2].filter(Boolean).join(", ") + (r.note ? ", " + r.note : ""))}</span></span></div><div class="row"><button class="btn block" data-act="posNo" data-u="${esc(x.uid)}">거절</button><button class="btn pri block" data-act="posOk" data-u="${esc(x.uid)}">수락</button></div></div>`; }).join("")}${admReqs.map(m => `<div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid #F3F4F6;padding-top:10px"><div class="row" style="gap:10px"><span class="av">${esc(nameOf(m.user_id).slice(0, 1))}</span><span style="flex:1"><b>${esc(nameOf(m.user_id))}</b> <span class="hint">운영진 신청</span><br><span class="hint">팀장만 수락할 수 있어요</span></span></div><div class="row"><button class="btn block" data-act="adminAns" data-u="${esc(m.user_id)}" data-ok="">거절</button><button class="btn pri block" data-act="adminAns" data-u="${esc(m.user_id)}" data-ok="1">수락</button></div></div>`).join("")}</div>` : ""}
+    <div class="card"><div class="spread"><b>운영진 ${admins.length}명</b></div><div class="list">${admins.map(row).join("")}</div></div>
+    <div class="card"><div class="spread"><b>팀원 ${mem.length}명</b></div><div class="list">${mem.map(row).join("")}</div></div>
+    ${un.length ? `<div class="card"><div class="spread"><b>가입 전 ${un.length}명</b><span class="hint">초대 링크로 들어와 이름을 고르면 연결돼요</span></div><div class="list">${un.map(p => `<div class="li" data-act="rosterOpen" data-pid="${esc(p.id)}" role="button" tabindex="0" style="cursor:pointer"><span class="av" style="background:#F3F4F6;color:#6B7280">${esc(p.name.slice(0, 1))}</span><span style="flex:1"><b>${esc(p.name)}</b><br><span class="hint">${esc([p.num ? p.num + "번" : "", p.pos1, p.pos2].filter(Boolean).join(", "))}</span></span><span class="tag gray">가입 전</span></div>`).join("")}</div></div>` : ""}
+    <a class="btn" href="#/roster-import">명단 붙여 넣어 한 번에 등록</a>
+    <div class="card"><div class="spread"><b>우리 팀 수칙</b><a class="btn sm" href="#/rules-edit">수정</a></div>${rules.length ? `<div class="list">${rules.map(r => `<div class="li"><span style="flex:1">${esc(r.label)}</span>${Number(r.amount) ? `<b>${won(r.amount)}</b>` : `<span class="hint">글 수칙</span>`}</div>`).join("")}</div>` : `<span class="hint">아직 정한 수칙이 없어요.</span>`}</div>
+    <div class="card"><div class="row" style="justify-content:space-between"><a class="btn sm" href="#/settings">팀 설정</a><span class="row"><button class="btn sm" data-act="switchTeam">다른 팀, 새 팀</button><button class="btn sm" data-act="logout">로그아웃</button></span></div><a class="hint" href="../../privacy.html">개인정보처리방침과 이용약관</a></div>
   </div>${nav("선수")}`;
 }
 function vDues() {
-  if (!isAdmin()) return vDuesMember();
-  const mode = feeMode(); const reqs = [];
-  Object.entries(D("payreq")).forEach(([u, d]) => Object.entries((d && d.items) || {}).forEach(([k, it]) => { if (it && it.status === "req") reqs.push({ u, k, ...it }); }));
-  let body = "";
-  if (mode === "none") body = `<div class="card"><b>회비를 받지 않는 팀이에요</b><span class="hint">팀 설정에서 월회비나 경기마다로 바꿀 수 있어요.</span><a class="btn sm" href="#/settings" style="align-self:flex-start">팀 설정</a></div>`;
-  else {
-    const refs = mode === "monthly" ? monthsList() : past().filter(isPlay).slice(0, 12).map(e => e.id);
-    if (!UI.ref || !refs.includes(UI.ref)) UI.ref = refs[0] || "";
-    const key = duesKey(UI.ref); const ev = mode === "per_game" ? S.events[UI.ref] : null;
-    const who = people().filter(x => mode === "monthly" || (ev && cameTo(ev, x.uid)));
-    const paid = who.filter(x => paidOf(key, x.uid));
-    body = `<div class="card"><div class="chips">${refs.map(r => `<button class="chip sm ${r === UI.ref ? "on" : ""}" data-act="duesRef" data-v="${esc(r)}">${mode === "monthly" ? mLabel(r) : esc(md(S.events[r].date) + " " + evName(S.events[r]))}</button>`).join("") || `<span class="hint">아직 끝난 경기가 없어요</span>`}</div>
-      ${UI.ref ? `<div class="spread"><span><b style="font-size:26px">${paid.length}</b> / ${who.length}명</span><b>${won(paid.length * (Number(S.settings.fee) || 0))}</b></div>
-      <div class="list">${who.map(x => `<div class="li"><span style="flex:1"><b>${esc(x.name)}</b></span>${paidOf(key, x.uid) ? `<span class="tag">납부</span>` : `<span class="tag gray">미납</span>`}<button class="btn sm" data-act="duesToggle" data-key="${esc(key)}" data-u="${esc(x.uid)}">${paidOf(key, x.uid) ? "취소" : "받음"}</button></div>`).join("")}</div>
-      ${who.length > paid.length ? `<button class="btn" data-act="duesRemind">미납 ${who.length - paid.length}명에게 보낼 문구 복사</button>` : ""}` : ""}</div>`;
-  }
-  const unpaidF = Object.entries(D("fines")).map(([id, f]) => ({ id, ...f })).filter(f => !f.paid).sort((a, b) => String(b.date).localeCompare(String(a.date)));
-  return `<header class="top"><span style="width:8px"></span><h1>회비</h1><a class="btn sm" href="#/dues-settings">회비 설정</a></header><div class="body">
-    ${reqs.length ? `<div class="card"><div class="spread"><b>입금 확인 요청</b><span class="tag">${reqs.length}건</span></div><div class="list">${reqs.map(r => `<div class="li"><span style="flex:1"><b>${esc(nameOf(r.u))}</b><br><span class="hint">${esc(r.label || "")}, ${won(r.amount)}</span></span><button class="btn sm" data-act="payNo" data-u="${esc(r.u)}" data-k="${esc(r.k)}">아님</button><button class="btn sm pri" data-act="payOk" data-u="${esc(r.u)}" data-k="${esc(r.k)}">확인</button></div>`).join("")}</div><span class="hint">통장에 들어온 게 맞는지 보고 눌러 주세요.</span></div>` : ""}
-    ${body}
-    <div class="card"><div class="spread"><b>벌금 미납</b><b>${won(unpaidF.reduce((s, f) => s + (Number(f.amount) || 0), 0))}</b></div>${unpaidF.length ? `<div class="list">${unpaidF.map(f => `<div class="li"><span style="flex:1"><b>${esc(nameOf(f.uid))}</b><br><span class="hint">${esc(md(f.date || todayStr()))} ${esc(f.reason)}</span></span><b>${won(f.amount)}</b><button class="btn sm" data-act="fineToggle" data-id="${esc(f.id)}">받음</button></div>`).join("")}</div>` : `<span class="hint">미납 벌금이 없어요.</span>`}<span class="hint">벌금은 현장 출석에서 팀 수칙대로 매겨져요.</span></div>
-    <a class="btn" href="#/ledger">팀 통장 보기</a>
+  const mode = feeMode(); const fee = Number(S.settings.fee) || 0; const ps = people(); const mon = ym();
+  const reqs = []; Object.entries(D("payreq")).forEach(([u, d]) => Object.entries((d && d.items) || {}).forEach(([k, it]) => { if (it && it.status === "req") reqs.push({ u, k, ...it }); }));
+  const key = "m-" + mon; const paidN = mode === "monthly" ? ps.filter(x => paidOf(key, x.uid)).length : 0;
+  const due = mon + "-" + String(Math.min(28, Number(S.settings.dueDay) || 5)).padStart(2, "0"); const late = Math.round((new Date(todayStr() + "T00:00:00+09:00") - new Date(due + "T00:00:00+09:00")) / 864e5);
+  const unpaid = ps.map(x => ({ ...x, o: owedOf(x.uid) })).filter(x => x.o.total).sort((a, b) => b.o.total - a.o.total);
+  const fines = Object.entries(D("fines")).map(([id, f]) => ({ id, ...f })).filter(f => !f.paid).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  const items = ((D("team").ledger || {}).items || []); const bal = items.reduce((s2, x) => s2 + (x.type === "in" ? 1 : -1) * (Number(x.amount) || 0), 0);
+  const mi = items.filter(x => String(x.date).startsWith(mon)); const inM = mi.filter(x => x.type === "in").reduce((n, x) => n + (Number(x.amount) || 0), 0), outM = mi.filter(x => x.type !== "in").reduce((n, x) => n + (Number(x.amount) || 0), 0);
+  const sel = UI.paySel || {};
+  return `<header class="top" style="padding:10px 12px">${LOGO(32)}<h1 style="font-size:20px;font-weight:900">회비</h1><a class="btn sm" href="#/dues-settings">회비 설정</a></header><div class="body">
+    ${mode === "none" ? `<div class="card"><b>회비를 받지 않는 팀이에요</b><span class="hint">회비 설정에서 월회비나 경기마다로 바꿀 수 있어요.</span></div>` : mode === "monthly" ? `<div class="card"><div class="spread"><b>${mLabel(mon)} 회비</b><span class="hint" style="${late > 0 ? "color:#B91C1C" : ""}">${md(due)} 마감${late > 0 ? ", " + late + "일 지났어요" : ""}</span></div>${tilesA([tileA(`${paidN} / ${ps.length}명`, "낸 사람"), tileA(`${won(paidN * fee).replace("원", "")} / ${won(ps.length * fee)}`, "모인 돈")])}</div>` : `<div class="card"><b>경기마다 ${won(fee)}</b><span class="hint">출석한 경기마다 회비가 쌓여요.</span></div>`}
+    ${reqs.length ? `<div class="card"><div class="spread"><b>입금 확인 요청 ${reqs.length}건</b><span class="hint">팀원이 보냈어요를 눌렀어요</span></div><div class="list">${reqs.map(r => `<label class="li" style="cursor:pointer"><input type="checkbox" data-act="aPaySel" data-id="${esc(r.u + "|" + r.k)}" ${sel[r.u + "|" + r.k] !== false ? "checked" : ""} style="width:22px;height:22px;accent-color:#15803D"><span style="flex:1"><b>${esc(nameOf(r.u))}</b><br><span class="hint">${esc(r.label || "")}, ${esc(md(String(r.at).slice(0, 10)))} ${new Date(Date.parse(r.at) + 9 * 3600e3).toISOString().slice(11, 16)}</span></span><b>${won(r.amount)}</b><button class="btn sm" data-act="payNo" data-u="${esc(r.u)}" data-k="${esc(r.k)}">아님</button></label>`).join("")}</div><span class="hint">통장에 들어온 게 맞는지 확인하고 눌러 주세요. 거래내역을 올리면 이름과 금액이 같은 건 자동으로 확인돼요.</span><button class="btn pri" data-act="aPayBulk">체크한 ${reqs.filter(r => sel[r.u + "|" + r.k] !== false).length}건 확인</button></div>` : ""}
+    <div class="card"><div class="spread"><b>미납 ${unpaid.length}명</b><span class="hint">현금으로 받았으면 받음을 눌러요</span></div>${unpaid.length ? `<div class="list">${unpaid.map(x => `<div class="li"><a href="#/player/${esc(x.uid)}" style="flex:1;text-decoration:none;color:inherit"><b>${esc(x.name)}</b>${x.uid === S.uid ? ` <span class="hint">나</span>` : ""}<br><span class="hint">${esc([x.o.months > 1 ? x.o.months + "달 미납" : x.o.months ? x.o.items.find(i => i.kind === "dues").label : "", x.o.fines ? "벌금 " + won(x.o.fines) : ""].filter(Boolean).join(", "))}</span></a><b>${won(x.o.total)}</b><button class="btn sm" data-act="aCash" data-u="${esc(x.uid)}">받음</button></div>`).join("")}</div><button class="btn" data-act="aDuesRemind">회비 알림 보내기</button>` : `<span class="hint">다 냈어요.</span>`}</div>
+    <div class="card"><div class="spread"><b>벌금 미납</b><b>${won(fines.reduce((n, f) => n + (Number(f.amount) || 0), 0))}</b></div>${fines.length ? `<div class="list">${fines.map(f => `<div class="li"><span style="flex:1"><b>${esc(nameOf(f.uid))}</b><br><span class="hint">${esc(md(f.date || todayStr()) + " " + f.reason)}</span></span><b>${won(f.amount)}</b><button class="btn sm" data-act="fineToggle" data-id="${esc(f.id)}">받음</button></div>`).join("")}</div>` : `<span class="hint">미납 벌금이 없어요.</span>`}<span class="hint">벌금은 현장 출석에서 매겨지고, 회비 알림에 같이 담겨요</span></div>
+    <div class="card"><div class="spread"><b>팀 통장</b><span class="hint">${items.length ? md(items.slice().sort((a, b) => String(b.date).localeCompare(String(a.date)))[0].date) + " 기준" : ""}</span></div><b style="font-size:24px">${won(bal)}</b><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><span style="background:#F9FAFB;border-radius:12px;padding:10px 12px"><span class="hint" style="font-size:12px">${Number(mon.slice(5))}월 들어온 돈</span><br><b style="color:#15803D">+ ${won(inM)}</b></span><span style="background:#F9FAFB;border-radius:12px;padding:10px 12px"><span class="hint" style="font-size:12px">${Number(mon.slice(5))}월 나간 돈</span><br><b style="color:#B91C1C">- ${won(outM)}</b></span></div><div class="row"><a class="btn block" href="#/ledger">통장 내역</a><a class="btn block" href="#/upload">거래내역 올리기</a></div></div>
   </div>${nav("회비")}`;
 }
 function vDuesSettings() {
-  const f = S.form;
+  const f = S.form; const chip = (k, v, l) => `<button class="chip sm ${String(f[k]) === String(v) ? "on" : ""}" data-act="pick" data-k="${k}" data-v="${v}">${l}</button>`;
   return `${top("회비 설정", "#/dues")}<div class="body"><div class="card">
-    <label class="field"><span class="lab">은행</span><input class="inp" data-bind="bank" value="${esc(f.bank || "")}" placeholder="예: 카카오뱅크"></label>
-    <label class="field"><span class="lab">계좌번호</span><input class="inp" data-bind="account" value="${esc(f.account || "")}" inputmode="numeric" placeholder="예: 3333-01-1234567"></label>
-    <label class="field"><span class="lab">예금주</span><input class="inp" data-bind="holder" value="${esc(f.holder || "")}" placeholder="예: 정성목"></label>
-    <span class="hint">팀원이 입금하기를 누르면 이 계좌가 보여요. 회비 방식과 금액은 팀 설정에서 바꿔요.</span><a class="btn sm" href="#/settings" style="align-self:flex-start">팀 설정</a>
-  </div></div><div class="cta"><button class="btn pri block" data-act="saveBank">저장</button></div>`;
+    <div class="field"><span class="lab">회비 방식</span><div class="chips">${chip("feeMode", "monthly", "월회비")}${chip("feeMode", "per_game", "경기마다")}${chip("feeMode", "none", "안 받음")}</div></div>
+    ${f.feeMode !== "none" ? `<label class="field"><span class="lab">금액</span><div class="row"><span class="hint">${f.feeMode === "per_game" ? "한 경기에" : "한 달에"}</span><input class="inp" data-bind="fee" value="${esc(f.fee || "")}" inputmode="numeric" placeholder="30000" style="flex:1"><span>원</span></div><span class="hint">바꾼 금액은 다음 달부터 적용돼요</span></label>` : ""}
+    ${f.feeMode === "monthly" ? `<div class="field"><span class="lab">납부일</span><div class="chips">${["1", "5", "10", "25", "28"].map(d => chip("dueDay", d, d === "28" ? "말일" : d + "일")).join("")}</div></div>` : ""}
+  </div><div class="card"><span class="lab">받을 계좌</span>
+    <input class="inp" data-bind="bank" value="${esc(f.bank || "")}" placeholder="은행 (예: 카카오뱅크)" aria-label="은행">
+    <input class="inp" data-bind="account" value="${esc(f.account || "")}" inputmode="numeric" placeholder="계좌번호" aria-label="계좌번호">
+    <input class="inp" data-bind="holder" value="${esc(f.holder || "")}" placeholder="예금주" aria-label="예금주">
+    <span class="hint">모임통장이면 거래내역 파일로 입금을 자동 확인해요</span>
+  </div><div class="card"><span class="lab">자동 알림</span>
+    <label class="spread" style="min-height:44px"><span>납부일 전날 알림<br><span class="hint">아직 안 낸 팀원 알림함에만 가요</span></span><input type="checkbox" data-bind="remindEve" ${f.remindEve ? "checked" : ""} style="width:24px;height:24px;accent-color:#15803D"></label>
+    <label class="spread" style="min-height:44px"><span>마감이 지나면 3일마다<br><span class="hint">다 낼 때까지 보내요</span></span><input type="checkbox" data-bind="remindAfter" ${f.remindAfter ? "checked" : ""} style="width:24px;height:24px;accent-color:#15803D"></label>
+  </div></div><div class="cta"><button class="btn pri block" data-act="aSaveDues">저장하기</button></div>`;
 }
 function vLedger() {
-  const items = ((D("team").ledger || {}).items || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date)));
-  const bal = items.reduce((s, x) => s + (x.type === "in" ? 1 : -1) * (Number(x.amount) || 0), 0);
-  const f = S.form;
-  return `${top("팀 통장", "#/dues")}<div class="body">
-    <div class="card"><span class="hint">잔액</span><b style="font-size:28px">${won(bal)}</b></div>
-    ${isAdmin() ? `<div class="card"><b>직접 기록</b><div class="chips"><button class="chip sm ${f.type !== "out" ? "on" : ""}" data-act="pick" data-k="type" data-v="in">들어온 돈</button><button class="chip sm ${f.type === "out" ? "on" : ""}" data-act="pick" data-k="type" data-v="out">나간 돈</button></div>
-      <div class="row"><input class="inp" type="date" data-bind="date" value="${esc(f.date || todayStr())}" style="flex:1" aria-label="날짜"><input class="inp" data-bind="amount" value="${esc(f.amount || "")}" inputmode="numeric" placeholder="금액" style="flex:1" aria-label="금액"></div>
-      <input class="inp" data-bind="label" value="${esc(f.label || "")}" placeholder="내용 (예: 구장비)" aria-label="내용"><button class="btn pri" data-act="ledgerAdd">기록하기</button></div>` : ""}
-    <div class="card"><b>내역</b>${items.length ? `<div class="list">${items.map(x => `<div class="li"><span style="flex:1">${esc(md(x.date))} ${esc(x.label)}</span><b style="color:${x.type === "in" ? "#15803D" : "#B91C1C"}">${x.type === "in" ? "+" : "-"} ${won(x.amount)}</b>${isAdmin() ? `<button class="iconbtn" data-act="ledgerDel" data-id="${esc(x.id)}" aria-label="지우기">✕</button>` : ""}</div>`).join("")}</div>` : `<span class="hint">아직 내역이 없어요.</span>`}</div>
-  </div>`;
+  const items = ((D("team").ledger || {}).items || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date))); const bal = items.reduce((s2, x) => s2 + (x.type === "in" ? 1 : -1) * (Number(x.amount) || 0), 0);
+  const groups = {}; items.forEach(x => { (groups[String(x.date).slice(0, 7)] = groups[String(x.date).slice(0, 7)] || []).push(x); }); const b = S.settings.bank || {}; const up = D("team").ledger || {};
+  return `${top("통장 내역", "#/dues", `<a class="btn sm pri" href="#/spend">+ 직접 기록</a>`)}<div class="body">
+    <div class="card"><span class="hint">${esc([b.bank, b.holder ? "예금주 " + b.holder : ""].filter(Boolean).join(", ") || "팀 통장")}</span><b style="font-size:28px">${won(bal)}</b>${up.uploadAt ? `<span class="hint">${md(up.uploadAt.slice(0, 10))}에 ${esc(nameOf(up.uploadBy))} 님이 거래내역을 올렸어요</span>` : ""}<a class="btn" href="#/upload">거래내역 올리기</a></div>
+    ${Object.keys(groups).length ? Object.entries(groups).map(([k, xs]) => `<b style="color:#374151">${Number(k.slice(5))}월</b><div class="card" style="padding:4px 16px"><div class="list">${xs.map(x => `<div class="li"><span class="hint" style="width:44px;flex:none">${md(x.date)}</span><span style="flex:1"><b>${esc(x.label)}</b>${x.cat ? `<br><span class="hint">${esc(x.cat)}</span>` : ""}</span><b style="color:${x.type === "in" ? "#15803D" : "#B91C1C"}">${x.type === "in" ? "+" : "-"} ${won(x.amount)}</b><button class="iconbtn" data-act="ledgerDel" data-id="${esc(x.id)}" aria-label="지우기">✕</button></div>`).join("")}</div></div>`).join("") : `<div class="card empty"><b>아직 내역이 없어요</b></div>`}
+    <span class="hint">팀원 모두 같은 내역을 봐요.</span></div>`;
 }
 function vCheck(id) {
   const e = S.events[id]; if (!e) return vSchedule(); const ck = e.check || {}; const at = e.checkAt || {};
@@ -234,7 +232,7 @@ function vRecords() {
       <div class="spread hint" style="font-size:12px"><span>${win.length ? "MOM " + esc(win.map(nameOf).join(", ")) : momOpen(e) ? `MOM 투표 중, 참석한 ${nIn}명 중 ${t.n || 0}명 투표` : isPlay(e) && !e.score ? "결과를 넣어야 MOM 투표가 열려요" : ""}</span><span>${fn ? "벌금 " + fn + "건" : "벌금 없음"}</span></div></div>`; };
   return `<header class="top" style="padding:10px 12px">${LOGO(32)}<h1 style="font-size:20px;font-weight:900">기록</h1><button class="btn sm" data-act="aSeason">${y} 시즌 ▾</button></header><div class="body">
     <div class="chips"><button class="chip ${tab === "game" ? "on" : ""}" data-act="aRtab" data-v="game">경기별</button><button class="chip ${tab === "player" ? "on" : ""}" data-act="aRtab" data-v="player">선수별</button></div>
-    ${tab === "game" ? `<div class="card"><b>시즌 요약</b>${tilesA([tileA(games.length + scr, "경기"), tileA(`${w}승 ${d2}무 ${l}패`, "전적"), tileA(Math.round(avg * 10) / 10, "평균 참석"), tileA(won(fineSum).replace("원", ""), "벌금 누적")])}${scr || pend ? `<span class="hint">${[scr ? "내전 " + scr + "번" : "", pend ? "결과 대기 " + pend + "경기" : ""].filter(Boolean).join("과 ")}은 승패에서 빠져 있어요</span>` : ""}</div>
+    ${tab === "game" ? `<div class="card"><b>시즌 요약</b>${tilesA([tileA(games.length + scr, "경기"), tileA(`<span style="font-size:16px">${w}승 ${d2}무 ${l}패</span>`, "전적"), tileA(Math.round(avg * 10) / 10, "평균 참석"), tileA(won(fineSum).replace("원", ""), "벌금 누적")])}${scr || pend ? `<span class="hint">${[scr ? "내전 " + scr + "번" : "", pend ? "결과 대기 " + pend + "경기" : ""].filter(Boolean).join("과 ")}은 승패에서 빠져 있어요</span>` : ""}</div>
       <div class="spread"><b>경기 기록</b><span class="chips">${[["all", "전체"], ["match", "경기"], ["scrim", "내전"]].map(([k2, l2]) => `<button class="chip sm ${f === k2 ? "on" : ""}" data-act="aRf" data-v="${k2}">${l2}</button>`).join("")}</span></div>
       ${list.length ? list.map(evRow).join("") : `<div class="card empty"><b>아직 지난 경기가 없어요</b></div>`}
       <div class="card"><div class="spread"><b>선수별 출석</b><button class="btn sm" data-act="aRtab" data-v="player">전체</button></div><div class="list">${rows.slice(0, 5).map(r => `<div class="li" style="${half(r) ? "background:#FFFBEB;margin:0 -16px;padding:12px 16px" : ""}"><span style="flex:1">${esc(r.name)}</span><b>${r.n}/${evs.length}</b><span class="hint">지각 ${r.late}</span></div>`).join("")}</div><span class="hint">출석이 절반 이하인 선수는 노란색으로 보여요</span></div>`
@@ -272,13 +270,15 @@ function vResult(id) {
   </div><div class="cta"><button class="btn pri block" data-act="saveResult" data-eid="${esc(e.id)}">${e.score ? "저장하기" : "결과 저장하기"}</button><span class="hint" style="text-align:center">저장하면 팀원 기록에도 바로 보여요</span></div>`;
 }
 function vNoticeNew() {
-  const f = S.form;
+  const f = S.form; const n = S.members.length;
   return `${top("공지 쓰기", "#/notices")}<div class="body"><div class="card">
-    <label class="field"><span class="lab">제목</span><input class="inp" data-bind="title" value="${esc(f.title || "")}" maxlength="60" placeholder="예: 12월부터 구장이 바뀌어요"></label>
+    <div class="field"><span class="lab">종류</span><div class="chips"><button class="chip sm ${!f.poll ? "on" : ""}" data-act="pick" data-k="poll" data-v="">공지</button><button class="chip sm ${f.poll ? "on" : ""}" data-act="pick" data-k="poll" data-v="1">설문</button></div></div>
+    <label class="field"><span class="lab">제목</span><input class="inp" data-bind="title" value="${esc(f.title || "")}" maxlength="60" placeholder="제목"></label>
     <label class="field"><span class="lab">내용</span><textarea class="inp" data-bind="body" placeholder="자세한 안내">${esc(f.body || "")}</textarea></label>
-    <div class="chips"><button class="chip sm ${f.pinned ? "on" : ""}" data-act="pick" data-k="pinned" data-v="${f.pinned ? "" : "1"}">맨 위에 고정</button><button class="chip sm ${f.poll ? "on" : ""}" data-act="pick" data-k="poll" data-v="${f.poll ? "" : "1"}">설문 붙이기</button></div>
     ${f.poll ? `<div class="field"><span class="lab">보기</span>${(f.opts || []).map((o, i) => `<input class="inp" data-opt="${i}" value="${esc(o.label)}" placeholder="보기 ${i + 1}" aria-label="보기 ${i + 1}">`).join("")}<button class="btn sm" data-act="optAdd" style="align-self:flex-start">+ 보기 추가</button></div><label class="field"><span class="lab">마감</span><input class="inp" type="date" data-bind="until" value="${esc(f.until || "")}"></label>` : ""}
-  </div></div><div class="cta"><button class="btn pri block" data-act="noticeSave">올리기</button></div>`;
+    <label class="spread" style="min-height:44px"><span><b>맨 위에 고정</b><br><span class="hint">고정은 하나만 돼요. 예전 고정은 풀려요</span></span><input type="checkbox" data-bind="pinned" ${f.pinned ? "checked" : ""} style="width:24px;height:24px;accent-color:#15803D"></label>
+    <span class="hint">팀원 ${n}명 모두의 알림함에 바로 보여요</span>
+  </div></div><div class="cta"><button class="btn pri block" data-act="aNoticeSave">올리기</button></div>`;
 }
 function vSquad(id) {
   const e = S.events[id]; if (!e) return vSchedule(); const T = e.teams || {}; const a = att(e); const going = new Set([...a.yes, ...a.late, ...a.wait].map(x => x.uid));
@@ -367,7 +367,8 @@ function afeed() {
   Object.entries(D("payreq")).forEach(([u, d]) => Object.values((d && d.items) || {}).forEach(it => { if (it && it.status === "req") add(it.at, "입금 확인 요청", `${nameOf(u)}이(가) 보냈어요를 눌렀어요, ${won(it.amount)}`, "#/dues"); }));
   people().forEach(x => { const r = (S.rsvp[x.uid] || {}).posReq; if (r && r.status === "req") add(r.at, "포지션 변경 요청", `${x.name}이(가) ${x.p.pos1 || "-"}에서 ${[r.pos1, r.pos2].filter(Boolean).join(", ")}(으)로 바꾸고 싶어해요`, "#/players"); });
   S.members.filter(m => m.admin_req && m.role === "member").forEach(m => add(m.admin_req, "운영진 신청", `${nameOf(m.user_id)}이(가) 운영진을 신청했어요. 팀장만 수락할 수 있어요`, "#/players"));
-  S.members.filter(m => m.user_id !== S.uid && m.joined_at).forEach(m => add(m.joined_at, "새 팀원", `${nameOf(m.user_id)}이(가) 들어왔어요`, "#/players"));
+  const joined = S.members.filter(m => m.user_id !== S.uid && m.joined_at && now - Date.parse(m.joined_at) < 30 * 864e5).sort((a, b) => String(b.joined_at).localeCompare(String(a.joined_at)));
+  if (joined.length) add(joined[0].joined_at, `새 팀원 ${joined.length}명`, `${joined.slice(0, 5).map(m => nameOf(m.user_id)).join(", ")}${joined.length > 5 ? " 외 " + (joined.length - 5) + "명" : ""}이(가) 들어왔어요`, "#/players");
   return out.sort((a, b) => b.t - a.t);
 }
 const ABELL = () => { const r = Date.parse(myUv().readAt || "") || 0; const n = afeed().filter(x => x.t > r).length; return `<a class="iconbtn" href="#/notify" aria-label="알림${n ? " " + n + "개 안 읽음" : ""}" style="position:relative"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>${n ? `<span style="position:absolute;top:9px;right:9px;width:9px;height:9px;border-radius:50%;background:#DC2626;box-shadow:0 0 0 2px #FFFFFF"></span>` : ""}</a>`; };
@@ -500,4 +501,164 @@ const AACT2 = {
   aGoal: t => { const g = S.form.goals = S.form.goals || []; if (Number(t.dataset.d) > 0) g.push({ uid: t.dataset.u }); else { const i = g.map(x => x.uid).lastIndexOf(t.dataset.u); if (i >= 0) g.splice(i, 1); } render(); },
 };
 
-export { AACT1, AACT2, eventFormInit, playerSheet, remindLeft, remindSheet, rosterSheet, vCalendarAdmin, vCheck, vCheckDone, vDues, vDuesSettings, vEvent, vEventForm, vGame, vGuests, vHomeAdmin, vLedger, vNoticeNew, vNotifyAdmin, vPlayers, vPosReq, vRecords, vResult, vRosterImport, vSchedule, vScrim, vSquad };
+function owedOf(u) {
+  const fee = Number(S.settings.fee) || 0; const items = [];
+  if (feeMode() === "monthly") monthsList().forEach(m => { if (!paidOf("m-" + m, u)) items.push({ kind: "dues", key: "m-" + m, label: mLabel(m), amount: fee }); });
+  if (feeMode() === "per_game") past().filter(isPlay).forEach(e => { if (cameTo(e, u) && !paidOf("e-" + e.id, u)) items.push({ kind: "dues", key: "e-" + e.id, label: md(e.date) + " 경기", amount: fee }); });
+  finesOf(u).filter(f => !f.paid).forEach(f => items.push({ kind: "fine", id: f.id, label: (f.reason || "벌금") + " 벌금", amount: Number(f.amount) || 0 }));
+  return { items, total: items.reduce((n, x) => n + x.amount, 0), months: items.filter(x => x.kind === "dues").length, fines: items.filter(x => x.kind === "fine").reduce((n, x) => n + x.amount, 0) };
+}
+function duesRemindText() {
+  const ps = people().map(x => ({ ...x, o: owedOf(x.uid) })).filter(x => x.o.total); const b = S.settings.bank || {};
+  return `[${S.team.name}] 회비 안내\n${ps.map(x => `${x.name} ${won(x.o.total)}`).join("\n")}${b.account ? `\n${b.bank || ""} ${b.account} ${b.holder || ""}` : ""}\n매니볼 회비 탭에서 입금하기를 누르고 보내 주세요.`;
+}
+function vSpend() {
+  const f = S.form; const chip = (k, v, l) => `<button class="chip sm ${String(f[k]) === String(v) ? "on" : ""}" data-act="pick" data-k="${k}" data-v="${v}">${l}</button>`;
+  const d = n => new Date(Date.now() + 9 * 3600e3 - n * 864e5).toISOString().slice(0, 10);
+  return `${top("직접 기록", "#/ledger")}<div class="body"><div class="card">
+    <div class="field"><span class="lab">종류</span><div class="chips">${chip("type", "out", "나간 돈")}${chip("type", "in", "들어온 돈")}</div></div>
+    <label class="field"><span class="lab">금액</span><div class="row"><input class="inp" data-bind="amount" value="${esc(f.amount || "")}" inputmode="numeric" placeholder="얼마" style="flex:1"><span>원</span></div></label>
+    <div class="field"><span class="lab">날짜</span><div class="chips">${chip("date", d(0), "오늘 " + md(d(0)))}${chip("date", d(1), "어제 " + md(d(1)))}${chip("date", d(2), "그저께 " + md(d(2)))}</div></div>
+    <div class="field"><span class="lab">분류</span><div class="chips">${(f.type === "in" ? ["회비", "참가비", "후원", "기타"] : ["구장비", "장비", "회식", "기타"]).map(c => chip("cat", c, c)).join("")}</div></div>
+    <label class="field"><span class="lab">메모</span><input class="inp" data-bind="label" value="${esc(f.label || "")}" maxlength="40" placeholder="내용"></label>
+    <span class="hint">현금으로 쓰거나 받은 돈을 적어요. 팀원 통장 내역에도 똑같이 보여요.</span>
+  </div></div><div class="cta"><button class="btn pri block" data-act="aSpendSave">저장하기</button></div>`;
+}
+function vUpload() {
+  const m = UI.match; const up = D("team").ledger || {};
+  if (!m) return `${top("거래내역 올리기", "#/dues")}<div class="body">
+    <div class="card"><b>통장 내역으로 한 번에 확인해요</b><span class="hint">보낸 사람 이름과 금액이 맞으면 납부 완료로 바꾸고, 나간 돈은 통장 내역에 적어 둬요.</span>
+      <div class="list">${[["카카오뱅크 앱에서 모임통장을 열어요", ""], ["거래내역을 파일로 저장해요", "엑셀이나 CSV"], ["저장한 파일을 아래에 올려요", ""]].map(([a, b], i) => `<div class="li"><span class="av" style="width:32px;height:32px">${i + 1}</span><span style="flex:1"><b>${a}</b>${b ? `<br><span class="hint">${b}</span>` : ""}</span></div>`).join("")}</div>
+      <label class="btn pri" style="cursor:pointer">파일 고르기<input type="file" id="upFile" accept=".csv,.xlsx,.xls,.txt" style="display:none"></label>
+      <span class="hint">안심: 날짜, 보낸 사람, 금액만 읽어요. 파일은 이 휴대폰 안에서만 읽고 어디에도 올리지 않아요.</span>${up.uploadAt ? `<span class="hint">마지막으로 올린 날 ${md(up.uploadAt.slice(0, 10))}, ${esc(nameOf(up.uploadBy))}</span>` : ""}</div></div>`;
+  const auto = m.rows.filter(r => r.kind === "auto"), ask = m.rows.filter(r => r.kind === "ask"), out = m.rows.filter(r => r.kind === "out");
+  return `${top("맞춰본 결과", "#/upload")}<div class="body">
+    <div class="card"><b>새 거래 ${m.rows.length}건을 찾았어요</b><span class="hint">${m.since ? md(m.since) + " 이후 내역이에요. " : ""}확인하고 반영해 주세요.</span></div>
+    ${auto.length ? `<div class="card"><b>자동으로 맞췄어요 ${auto.length}건</b><div class="list">${auto.map(r => `<div class="li"><span style="width:22px;color:#15803D;font-weight:900">✓</span><span style="flex:1"><b>${esc(nameOf(r.uid))}</b><br><span class="hint">${esc(md(r.date) + ", " + r.what)}</span></span><b style="color:#15803D">+ ${won(r.amount)}</b></div>`).join("")}</div></div>` : ""}
+    ${ask.length ? `<div class="card"><b>누가 보냈는지 골라 주세요 ${ask.length}건</b>${ask.map(r => `<div style="display:flex;flex-direction:column;gap:6px;border-top:1px solid #F3F4F6;padding-top:10px"><div class="spread"><span>${esc(md(r.date))}, 보낸 사람 <b>${esc(r.name)}</b></span><b style="color:#15803D">+ ${won(r.amount)}</b></div><select class="inp" data-match="${r.i}" aria-label="보낸 사람 고르기"><option value="">팀원 아님 (통장 내역에만)</option>${people().map(x => `<option value="${esc(x.uid)}" ${r.uid === x.uid ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select></div>`).join("")}<span class="hint">이름이 비슷한 팀원을 먼저 골라 뒀어요</span></div>` : ""}
+    ${out.length ? `<div class="card"><b>나간 돈 ${out.length}건</b>${out.map(r => `<div style="display:flex;flex-direction:column;gap:6px;border-top:1px solid #F3F4F6;padding-top:10px"><div class="spread"><span>${esc(md(r.date) + ", " + r.name)}</span><b style="color:#B91C1C">- ${won(r.amount)}</b></div><div class="chips">${["구장비", "장비", "회식", "기타"].map(c => `<button class="chip sm ${r.cat === c ? "on" : ""}" data-act="aMatchCat" data-i="${r.i}" data-v="${c}">${c}</button>`).join("")}</div></div>`).join("")}</div>` : ""}
+  </div><div class="cta"><button class="btn pri block" data-act="aMatchApply">${m.rows.length}건 반영하기</button><span class="hint" style="text-align:center">반영하면 팀원 회비 화면에도 바로 보여요</span></div>`;
+}
+async function readBankFile(file) {
+  let rows = [];
+  if (/\.xlsx?$/i.test(file.name)) { const XLSX = await import("xlsx"); const wb = XLSX.read(await file.arrayBuffer(), { type: "array" }); rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: false }); }
+  else { const txt = await file.text(); rows = txt.split(/\r?\n/).map(l => { const out = []; let cur = "", q = false; for (const ch of l) { if (ch === '"') q = !q; else if ((ch === "," || ch === "\t") && !q) { out.push(cur); cur = ""; } else cur += ch; } out.push(cur); return out; }); }
+  const hi = rows.findIndex(r => r.some(c => /거래일|일시|날짜/.test(String(c))) && r.some(c => /금액|입금|출금/.test(String(c))));
+  if (hi < 0) throw new Error("거래내역 표를 찾지 못했어요. 날짜, 내용, 금액 칸이 있는 파일인지 확인해 주세요");
+  const h = rows[hi].map(c => String(c || "").replace(/\s/g, ""));
+  const col = re => h.findIndex(c => re.test(c));
+  const cD = col(/거래일|일시|날짜/), cN = col(/적요|내용|보낸|받는|거래처|입금자|메모/), cIn = col(/입금/), cOut = col(/출금/), cAmt = col(/^거래금액$|^금액$/), cType = col(/구분|거래구분/);
+  const num = v => Number(String(v || "").replace(/[^0-9-]/g, "")) || 0;
+  return rows.slice(hi + 1).map(r => { const dm = String(r[cD] || "").match(/(\d{4})\D*(\d{1,2})\D*(\d{1,2})/); if (!dm) return null;
+    let amt = cIn >= 0 || cOut >= 0 ? (num(r[cIn]) || -num(r[cOut])) : num(r[cAmt]); if (cType >= 0 && /출금/.test(r[cType]) && amt > 0) amt = -amt;
+    return amt ? { date: `${dm[1]}-${dm[2].padStart(2, "0")}-${dm[3].padStart(2, "0")}`, name: String(r[cN] || "").trim().slice(0, 30), amount: amt } : null; }).filter(Boolean);
+}
+function buildMatch(tx) {
+  const since = (D("team").ledger || {}).uploadAt ? (D("team").ledger || {}).uploadLast || "" : "";
+  const ps = people(); const sim = n => ps.find(x => n && (n === x.name || n.includes(x.name) || x.name.includes(n) || (n.length >= 2 && x.name.startsWith(n.slice(0, 2)))));
+  const rows = tx.filter(t => !since || t.date > since).map((t, i) => {
+    if (t.amount < 0) return { i, kind: "out", date: t.date, name: t.name, amount: -t.amount, cat: /구장|풋살|축구장/.test(t.name) ? "구장비" : /마트|스포츠/.test(t.name) ? "장비" : "기타" };
+    const exact = ps.find(x => x.name === t.name); const o = exact ? owedOf(exact.uid) : null;
+    if (exact && o && o.total && (o.total === t.amount || o.items.some(it => it.amount === t.amount))) return { i, kind: "auto", date: t.date, name: t.name, amount: t.amount, uid: exact.uid, what: o.total === t.amount ? o.items.map(x => x.label).join(", ") : o.items.find(it => it.amount === t.amount).label };
+    const g = sim(t.name); return { i, kind: "ask", date: t.date, name: t.name, amount: t.amount, uid: g ? g.uid : "" };
+  });
+  return { rows, since, last: tx.reduce((m2, t) => t.date > m2 ? t.date : m2, since || "") };
+}
+function vPlayerAdmin(u) {
+  const x = people().find(p => p.uid === u); if (!x) return vPlayers(); const y = todayStr().slice(0, 4); const evs = past().filter(e => e.date.startsWith(y));
+  const n = evs.filter(e => cameTo(e, u)).length, late = evs.filter(e => (e.check || {})[u] === "late").length, abs = evs.filter(e => (e.check || {})[u] === "absent").length;
+  let streak = 0; for (const e of evs) { if (cameTo(e, u)) break; streak++; }
+  const o = owedOf(u); const j = joinedOf(u); const owner = S.role === "owner";
+  const hist = []; if (feeMode() === "monthly") monthsList().slice(0, 4).forEach(m => hist.push([mLabel(m) + " 회비", paidOf("m-" + m, u)])); finesOf(u).slice(0, 4).forEach(f => hist.push([(f.reason || "벌금") + " 벌금 " + md(f.date || todayStr()), !!f.paid]));
+  return `${top("선수 정보", "#/players")}<div class="body">
+    <div class="card" style="align-items:center;text-align:center"><span class="av" style="width:72px;height:72px;font-size:28px">${esc(x.name.slice(0, 1))}</span><b style="font-size:22px">${esc(x.name)} <span class="tag">${ROLE[x.role]}</span></b>${o.months ? `<span class="tag" style="background:#FEF2F2;color:#B91C1C">${o.months > 1 ? o.months + "달" : Number(ym().slice(5)) + "월"} 미납</span>` : ""}<span class="hint">${esc([x.p.num ? x.p.num + "번" : "", x.p.pos1, x.p.foot].filter(Boolean).join(", "))}</span>${j ? `<span class="hint">${j.slice(0, 4)}년 ${Number(j.slice(5, 7))}월에 들어왔어요</span>` : ""}</div>
+    <div class="card"><div class="spread"><b>이번 시즌</b><a class="hint" href="#/records" style="text-decoration:none">기록 보기 ›</a></div>${tilesA([tileA(n + "/" + evs.length, "출석"), tileA(late, "지각", "#B45309"), tileA(abs, "무단 결석", "#B91C1C")])}${streak >= 3 ? `<span class="hint" style="color:#B45309">최근 ${streak}번 연속 불참이에요</span>` : ""}</div>
+    <div class="card"><div class="spread"><b>회비와 벌금</b><a class="hint" href="#/dues" style="text-decoration:none">회비에서 보기 ›</a></div>${hist.length ? `<div class="list">${hist.map(([l, p]) => `<div class="li"><span style="flex:1">${esc(l)}</span><span class="tag ${p ? "" : "gray"}" style="${p ? "" : "background:#FEF2F2;color:#B91C1C"}">${p ? "납부" : "미납"}</span></div>`).join("")}</div>` : `<span class="hint">기록이 없어요.</span>`}${o.total ? `<div class="spread"><span>밀린 돈</span><b style="color:#B91C1C">${won(o.total)}</b></div><button class="btn sm" data-act="aCash" data-u="${esc(u)}" style="align-self:flex-start">현금으로 받음</button>` : ""}</div>
+    <div class="card"><b>포지션</b><div class="field"><span class="hint">1선호</span><div class="chips">${POS[sport()].map(p => `<button class="chip sm ${x.p.pos1 === p ? "on" : ""}" data-act="aSetPos" data-u="${esc(u)}" data-k="pos1" data-v="${p}">${p}</button>`).join("")}</div></div><div class="field"><span class="hint">2선호</span><div class="chips">${POS[sport()].filter(p => p !== x.p.pos1).map(p => `<button class="chip sm ${x.p.pos2 === p ? "on" : ""}" data-act="aSetPos" data-u="${esc(u)}" data-k="pos2" data-v="${p}">${p}</button>`).join("")}</div></div><span class="hint">누르면 바로 바뀌고 다음 라인업부터 반영돼요</span></div>
+    ${u !== S.uid ? `<div class="card"><div class="spread"><b>역할</b><span class="hint">팀장만 바꿀 수 있어요</span></div>${owner ? `${x.role === "member" ? `<button class="btn" data-act="aPromote" data-u="${esc(u)}">운영진으로 지정</button>` : x.role === "admin" ? `<button class="btn" data-act="setRole" data-u="${esc(u)}" data-v="member">팀원으로 바꾸기</button><button class="btn" data-act="giveOwner" data-u="${esc(u)}">팀장 넘기기</button>` : ""}<button class="btn danger" data-act="kick" data-u="${esc(u)}">팀에서 내보내기</button>` : `<span class="hint">${ROLE[x.role]}</span>`}</div>` : `<a class="btn" href="#/me">내 프로필 수정</a>`}
+  </div>`;
+}
+function vRulesEdit() {
+  const f = S.form;
+  return `${top("팀 수칙 수정", "#/players")}<div class="body"><div class="card">
+    ${(f.rules || []).map((r, i) => `<div class="row" style="gap:6px"><input class="inp" data-rule="${i}" data-f="label" value="${esc(r.label)}" placeholder="수칙" style="flex:2" aria-label="수칙 ${i + 1}"><input class="inp" data-rule="${i}" data-f="amount" value="${esc(r.amount || "")}" inputmode="numeric" placeholder="벌금 (없으면 글 수칙)" style="flex:1.2" aria-label="벌금 ${i + 1}"><button class="iconbtn" data-act="ruleDel" data-i="${i}" aria-label="삭제">✕</button></div>`).join("")}
+    <button class="btn sm" data-act="ruleAdd" style="align-self:flex-start">+ 수칙 추가</button>
+    <label class="spread" style="min-height:44px"><span><b>팀원에게 다시 동의 받기</b><br><span class="hint">저장하면 팀원이 다음에 들어올 때 바뀐 수칙에 동의해요</span></span><input type="checkbox" data-bind="reagree" ${f.reagree ? "checked" : ""} style="width:24px;height:24px;accent-color:#15803D"></label>
+    <span class="hint">벌금 금액을 바꾸면 그다음 일정부터 적용돼요. 이미 매긴 벌금은 그대로예요.</span>
+  </div></div><div class="cta"><button class="btn pri block" data-act="aRulesSave">저장하기</button></div>`;
+}
+function vUniform() {
+  const f = S.form; const me = myProfile() || {};
+  return `${top("팀 유니폼", "#/players")}<div class="body"><div class="card" style="align-items:center"><span class="hint">팀원마다 자기 등번호가 들어가요. 예시는 ${esc(me.name || "나")} ${esc(me.num || "7")}번</span>${jersey(200, me.num || "7", f.kit)}</div>
+    <div class="card"><span class="lab">유니폼 색</span><div class="chips">${KIT.map(([c, l]) => `<button class="chip sm ${f.kit === c ? "on" : ""}" data-act="pick" data-k="kit" data-v="${c}"><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${c};border:1px solid #D1D5DB;vertical-align:-2px"></span> ${l}</button>`).join("")}</div>
+      <span class="hint">사진으로 올리는 기능은 사진 저장 공간을 연결한 뒤에 열려요. 지금은 팀 색으로 기본 유니폼이 보여요.</span>
+      <span class="hint">팀원 홈 화면의 선수 카드와 가입할 때 선수 등록 화면에 쓰여요.</span></div>
+  </div><div class="cta"><button class="btn pri block" data-act="aUniformSave">저장하기</button></div>`;
+}
+const AACT3 = {
+  aPaySel: t => { UI.paySel = { ...(UI.paySel || {}), [t.dataset.id]: t.checked }; render(); },
+  aPayBulk: async t => {
+    const sel = UI.paySel || {}; const list = []; Object.entries(D("payreq")).forEach(([u, d]) => Object.entries((d && d.items) || {}).forEach(([k, it]) => { if (it && it.status === "req" && sel[u + "|" + k] !== false) list.push([u, k, it]); }));
+    if (!list.length) return; t.disabled = true;
+    try { for (const [u, k, it] of list) { for (const ref of it.refs || []) { if (ref.kind === "dues") { const cur = { ...(D("dues")[ref.key] || {}) }; cur[u] = "paid"; cur._at = { ...(cur._at || {}), [u]: todayStr() }; await setDoc("dues", ref.key, cur); } else if (ref.kind === "fine" && D("fines")[ref.id]) await setDoc("fines", ref.id, { ...D("fines")[ref.id], paid: true, paidAt: todayStr() }); } await patchDoc("payreq", u, { items: { [k]: { status: "ok", doneAt: new Date().toISOString() } } }); }
+      UI.paySel = {}; await syncMyDues(list.map(x => x[0])); render(); toast(`${[...new Set(list.map(x => nameOf(x[0])))].join(", ")} 납부를 확인했어요`); } catch (err) { t.disabled = false; fail(err); }
+  },
+  aCash: t => { const u = t.dataset.u; const o = owedOf(u);
+    confirmBox("현금으로 받았어요", `${nameOf(u)}, ${o.items.map(x => x.label).join(", ")} ${won(o.total)}을 받은 걸로 할까요?`, "받음", async () => {
+      try { for (const it of o.items) { if (it.kind === "dues") { const cur = { ...(D("dues")[it.key] || {}) }; cur[u] = "paid"; cur._at = { ...(cur._at || {}), [u]: todayStr() }; await setDoc("dues", it.key, cur); } else await setDoc("fines", it.id, { ...D("fines")[it.id], paid: true, paidAt: todayStr() }); }
+        const items = ((D("team").ledger || {}).items || []).concat([{ id: uid36("l"), date: todayStr(), type: "in", cat: "회비", label: nameOf(u) + " " + o.items.map(x => x.label).join(", ") + " (현금)", amount: o.total }]); await setDoc("team", "ledger", { ...(D("team").ledger || {}), items });
+        await syncMyDues([u]); render(); toast("받음으로 바꾸고 통장 내역에 적었어요"); } catch (err) { fail(err); } }); },
+  aDuesRemind: () => { const text = duesRemindText(); const ps = people().filter(x => owedOf(x.uid).total);
+    sheet(`<h3>미납 ${ps.length}명에게 알려요</h3><span class="hint">팀원 알림함에 회비 알림이 가고, 단톡방에 붙여 넣을 문구도 복사돼요</span><div class="hint" style="white-space:pre-wrap;background:#F9FAFB;border-radius:12px;padding:12px;color:#374151;max-height:40vh;overflow:auto">${esc(text)}</div><div class="row"><button class="btn block" data-act="closeSheet">취소</button><button class="btn pri block" id="drSend">알림 보내기</button></div>`);
+    $("#drSend").onclick = async () => { try { await setDoc("team", "duesRemind", { at: new Date().toISOString(), by: S.uid, to: ps.map(x => x.uid) }); try { await navigator.clipboard.writeText(text); } catch (err) { /* 복사 실패 */ } closeSheet(); toast("알렸어요. 단톡방 문구도 복사했어요"); } catch (err) { fail(err); } }; },
+  aSaveDues: async t => { const f = S.form; t.disabled = true;
+    try { await setDoc("team", "settings", { ...S.settings, feeMode: f.feeMode, fee: f.feeMode === "none" ? 0 : Number(String(f.fee || "").replace(/\D/g, "")) || 0, dueDay: f.feeMode === "monthly" ? f.dueDay || "5" : "", bank: { bank: String(f.bank || "").trim(), account: String(f.account || "").trim(), holder: String(f.holder || "").trim() }, remindEve: !!f.remindEve, remindAfter: !!f.remindAfter }); await syncMyDues(); toast("저장했어요"); location.hash = "#/dues"; } catch (err) { t.disabled = false; fail(err); } },
+  aSpendSave: async t => { const f = S.form; const amount = Number(String(f.amount || "").replace(/\D/g, "")); if (!amount) { toast("금액을 적어 주세요"); return; } t.disabled = true;
+    const items = ((D("team").ledger || {}).items || []).concat([{ id: uid36("l"), date: f.date || todayStr(), type: f.type === "in" ? "in" : "out", cat: f.cat || "기타", label: String(f.label || f.cat || "기타").trim().slice(0, 40), amount }]);
+    try { await setDoc("team", "ledger", { ...(D("team").ledger || {}), items }); toast("기록했어요"); location.hash = "#/ledger"; } catch (err) { t.disabled = false; fail(err); } },
+  aMatchCat: t => { const r = UI.match.rows.find(x => x.i === Number(t.dataset.i)); if (r) r.cat = t.dataset.v; render(); },
+  aMatchApply: async t => { const m = UI.match; if (!m) return; t.disabled = true; const items = ((D("team").ledger || {}).items || []).slice(); const touched = new Set();
+    try {
+      for (const r of m.rows) {
+        if (r.kind === "out") { items.push({ id: uid36("l"), date: r.date, type: "out", cat: r.cat, label: r.name, amount: r.amount }); continue; }
+        items.push({ id: uid36("l"), date: r.date, type: "in", cat: r.uid ? "회비" : "기타", label: r.uid ? nameOf(r.uid) + " 입금" : r.name, amount: r.amount });
+        if (!r.uid) continue; let left = r.amount; const o = owedOf(r.uid); touched.add(r.uid);
+        for (const it of o.items) { if (left < it.amount) continue; left -= it.amount; if (it.kind === "dues") { const cur = { ...(D("dues")[it.key] || {}) }; cur[r.uid] = "paid"; cur._at = { ...(cur._at || {}), [r.uid]: r.date }; await setDoc("dues", it.key, cur); } else await setDoc("fines", it.id, { ...D("fines")[it.id], paid: true, paidAt: r.date }); }
+        const pr = Object.entries(((D("payreq")[r.uid] || {}).items) || {}).filter(([, it]) => it.status === "req"); for (const [k] of pr) await patchDoc("payreq", r.uid, { items: { [k]: { status: "ok", doneAt: new Date().toISOString() } } });
+      }
+      await setDoc("team", "ledger", { ...(D("team").ledger || {}), items, uploadAt: new Date().toISOString(), uploadBy: S.uid, uploadLast: m.last });
+      await syncMyDues([...touched]); UI.match = null; toast(`${m.rows.length}건을 반영했어요`); location.hash = "#/dues";
+    } catch (err) { t.disabled = false; fail(err); } },
+  aSetPos: async t => { const u = t.dataset.u; const r = S.rsvp[u] || {}; const p = { ...(r.profile || {}) }; p[t.dataset.k] = p[t.dataset.k] === t.dataset.v && t.dataset.k === "pos2" ? "" : t.dataset.v; if (p.pos2 === p.pos1) p.pos2 = "";
+    try { await patchDoc("rsvp", u, { profile: p }); render(); } catch (err) { fail(err); } },
+  aPromote: t => { const u = t.dataset.u; confirmBox(`${nameOf(u)} 님을 운영진으로 지정할까요?`, "운영진은 일정 올리기, 라인업 짜기, 현장 출석과 벌금, 회비 확인과 알림, 선수 포지션 바꾸기를 할 수 있어요. 운영진 지정과 해제, 내보내기는 팀장만 할 수 있어요.", "지정하기", async () => { const { error } = await sb.rpc("set_member_role", { p_team: S.tid, p_user: u, p_role: "admin" }); if (error) fail(error); else { toast("운영진으로 지정했어요"); refreshMembers(); } }); },
+  aRulesSave: async t => { const f = S.form; t.disabled = true; const rules = (f.rules || []).filter(r => String(r.label).trim()).map(r => ({ label: String(r.label).trim().slice(0, 40), amount: Number(String(r.amount || "").replace(/\D/g, "")) || 0 }));
+    try { await setDoc("team", "settings", { ...S.settings, rules, rulesAt: new Date().toISOString(), rulesAgreeAt: f.reagree ? new Date().toISOString() : (S.settings.rulesAgreeAt || "") }); toast(f.reagree ? "저장했어요. 팀원이 다음에 들어오면 다시 동의해요" : "저장했어요"); location.hash = "#/players"; } catch (err) { t.disabled = false; fail(err); } },
+  aUniformSave: async t => { t.disabled = true; try { await setDoc("team", "settings", { ...S.settings, uniformColor: S.form.kit || S.settings.uniformColor }); toast("저장했어요"); location.hash = "#/players"; } catch (err) { t.disabled = false; fail(err); } },
+  aNoticeSave: async t => {
+    const f = S.form; if (!String(f.title || "").trim()) { toast("제목을 적어 주세요"); return; } t.disabled = true;
+    const opts = (f.opts || []).filter(o => String(o.label).trim()).map((o, i) => ({ id: "o" + (i + 1), label: String(o.label).trim().slice(0, 40) }));
+    if (f.poll && opts.length < 2) { t.disabled = false; toast("설문 보기를 두 개 이상 적어 주세요"); return; }
+    try {
+      if (f.pinned) for (const [id, n] of Object.entries(D("notices"))) if (n.pinned) await setDoc("notices", id, { ...n, pinned: false });
+      await setDoc("notices", uid36("n"), { title: String(f.title).trim(), body: String(f.body || "").trim(), pinned: !!f.pinned, by: S.uid, at: new Date().toISOString(), poll: f.poll ? { opts, until: f.until ? new Date(f.until + "T23:59:00+09:00").toISOString() : "" } : null });
+      toast("공지를 올렸어요"); location.hash = "#/notices";
+    } catch (err) { t.disabled = false; fail(err); }
+  },
+};
+function adminForm(r) {
+  if (r === "/dues-settings") { const st = S.settings; const b = st.bank || {}; S.form = { feeMode: st.feeMode || "none", fee: st.fee ? String(st.fee) : "", dueDay: st.dueDay || "5", bank: b.bank || "", account: b.account || "", holder: b.holder || "", remindEve: !!st.remindEve, remindAfter: !!st.remindAfter }; return true; }
+  if (r === "/spend") { S.form = { type: "out", date: new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10), cat: "구장비", amount: "", label: "" }; return true; }
+  if (r === "/upload") { UI.match = null; return true; }
+  if (r === "/rules-edit") { S.form = { rules: (S.settings.rules || []).map(x => ({ label: x.label, amount: x.amount ? String(x.amount) : "" })), reagree: false }; return true; }
+  if (r === "/uniform") { S.form = { kit: S.settings.uniformColor || "#164F33" }; return true; }
+  if (r === "/notice-new") { S.form = { title: "", body: "", pinned: false, poll: "", opts: [{ label: "" }, { label: "" }], until: "" }; return true; }
+  return false;
+}
+document.addEventListener("change", async ev => {
+  const t = ev.target;
+  if (t.id === "upFile" && t.files && t.files[0]) { try { const tx = await readBankFile(t.files[0]); UI.match = buildMatch(tx); if (!UI.match.rows.length) { toast("새 거래가 없어요"); UI.match = null; } render(); } catch (err) { toast(String(err.message || err)); } }
+  if (t.dataset && t.dataset.match != null && UI.match) { const r = UI.match.rows.find(x => x.i === Number(t.dataset.match)); if (r) r.uid = t.value; }
+});
+
+export { AACT1, AACT2, AACT3, adminForm, eventFormInit, playerSheet, remindLeft, remindSheet, rosterSheet, vCalendarAdmin, vCheck, vCheckDone, vDues, vDuesSettings, vEvent, vEventForm, vGame, vGuests, vHomeAdmin, vLedger, vNoticeNew, vNotifyAdmin, vPlayerAdmin, vPlayers, vPosReq, vRecords, vResult, vRosterImport, vRulesEdit, vSchedule, vScrim, vSpend, vSquad, vUniform, vUpload };

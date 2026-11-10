@@ -3,7 +3,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_KEY } from "../../src/config.js";
 import { memberRoute, memberForm, MACT } from "./member.js";
-import { vCheckDone, AACT2, vNotifyAdmin, vCalendarAdmin, vGuests, vScrim, eventFormInit, AACT1, playerSheet, remindLeft, remindSheet, rosterSheet, vCheck, vDues, vDuesSettings, vEvent, vEventForm, vGame, vHomeAdmin, vLedger, vNoticeNew, vPlayers, vPosReq, vRecords, vResult, vRosterImport, vSchedule, vSquad } from "./admin.js";
+import { vSpend, vUpload, vRulesEdit, vUniform, vPlayerAdmin, AACT3, adminForm, vCheckDone, AACT2, vNotifyAdmin, vCalendarAdmin, vGuests, vScrim, eventFormInit, AACT1, playerSheet, remindLeft, remindSheet, rosterSheet, vCheck, vDues, vDuesSettings, vEvent, vEventForm, vGame, vHomeAdmin, vLedger, vNoticeNew, vPlayers, vPosReq, vRecords, vResult, vRosterImport, vSchedule, vSquad } from "./admin.js";
 
 const URL_ = import.meta.env.VITE_SUPABASE_URL || SUPABASE_URL;
 const KEY_ = import.meta.env.VITE_SUPABASE_KEY || SUPABASE_KEY;
@@ -688,6 +688,11 @@ function render() {
     else if ((m = r.match(/^\/guests\/(.+)$/))) html = vGuests(decodeURIComponent(m[1]));
     else if ((m = r.match(/^\/scrim\/(.+)$/))) html = vScrim(decodeURIComponent(m[1]));
     else if ((m = r.match(/^\/check-done\/(.+)$/))) html = vCheckDone(decodeURIComponent(m[1]));
+    else if ((m = r.match(/^\/player\/(.+)$/))) html = vPlayerAdmin(decodeURIComponent(m[1]));
+    else if (r === "/spend") html = vSpend();
+    else if (r === "/upload") html = vUpload();
+    else if (r === "/rules-edit") html = vRulesEdit();
+    else if (r === "/uniform") html = vUniform();
     else if (r === "/schedule") html = vSchedule();
     else if ((m = r.match(/^\/event\/(.+)$/))) html = vEvent(decodeURIComponent(m[1]));
     else if (r === "/new" && isAdmin()) html = vEventForm("");
@@ -727,6 +732,7 @@ function onRoute(force) {
   // 폼 화면에 들어올 때 폼 값을 채운다
   let m;
   if (viewMode() === "member" && memberForm(r)) { render(); window.scrollTo(0, 0); return; }
+  if (viewMode() === "admin" && adminForm(r)) { render(); window.scrollTo(0, 0); return; }
   if (r === "/new") eventFormInit("");
   else if ((m = r.match(/^\/edit\/(.+)$/)) && S.events[decodeURIComponent(m[1])]) eventFormInit(decodeURIComponent(m[1]));
   else if (r === "/new-old") S.form = { type: "match", date: "", time: "", end: "", place: "", opponent: "", cap: sport() === "soccer" ? 22 : 12, memo: "" };
@@ -858,7 +864,7 @@ const ACT = {
   }, true),
   logout: () => confirmBox("로그아웃", "이 기기에서 로그아웃할까요?", "로그아웃", async () => { try { await sb.auth.signOut(); } catch (e) { /* 그래도 처음으로 */ } ls.set("mb-team", null); location.replace(APP); }),
 };
-Object.assign(ACT, ACT2, ACT3, ACT4, AACT1, AACT2, MACT, { viewMember: () => { setView("member"); location.hash = "#/"; render(); } });
+Object.assign(ACT, ACT2, ACT3, ACT4, AACT1, AACT2, AACT3, MACT, { viewMember: () => { setView("member"); location.hash = "#/"; render(); } });
 document.addEventListener("click", ev => {
   const t = ev.target.closest("[data-act]"); if (!t) return;
   const f = ACT[t.dataset.act]; if (!f) return;
@@ -873,6 +879,7 @@ function suggestedName() { const m = (S.session && S.session.user.user_metadata)
 async function enter(tid) {
   try { await loadTeam(tid); } catch (e) { fail(e); S.flow = "create"; startCreate(); return; }
   if (!S.role) { ls.set("mb-team", null); await loadTeams(); if (S.teams.length) return enter(S.teams[0].id); return startCreate(); }
+  const rs = S.rsvp[S.uid] || {}; if (!isAdmin() && myProfile() && S.settings.rulesAgreeAt && (!rs.agreedAt || rs.agreedAt < S.settings.rulesAgreeAt)) { S.form = {}; S.flow = "rules"; render(); return; }
   if (!myProfile() && !isAdmin()) { S.afterProfile = ""; if (unclaimed().length) { S.flow = "claim"; render(); return; } startProfile(); return; }
   if (!isAdmin() && !(S.rsvp[S.uid] || {}).agreedAt) { S.flow = "rules"; render(); return; }
   S.flow = ""; S.ready = true; onRoute(true);
@@ -927,7 +934,6 @@ async function boot() {
 sb.auth.onAuthStateChange((ev) => { if (ev === "SIGNED_OUT") location.replace(APP); });
 boot();
 
-// member.js와 admin.js가 같이 쓰는 것
 const FORMS = {
   futsal: { "1-2-1": ["GK", "DF", "LW", "RW", "FW"], "2-2": ["GK", "DF", "DF", "FW", "FW"], "2-1-1": ["GK", "DF", "DF", "MF", "FW"], "6대6 2-2-1": ["GK", "DF", "DF", "LW", "RW", "FW"] },
   soccer: { "4-2-3-1": ["GK", "LB", "CB", "CB", "RB", "CDM", "CDM", "LW", "CAM", "RW", "ST"], "4-4-2": ["GK", "LB", "CB", "CB", "RB", "LM", "CM", "CM", "RM", "ST", "ST"], "4-3-3": ["GK", "LB", "CB", "CB", "RB", "CDM", "CM", "CM", "LW", "ST", "RW"], "3-5-2": ["GK", "CB", "CB", "CB", "LWB", "CDM", "CM", "CDM", "RWB", "ST", "ST"] }
@@ -944,4 +950,5 @@ function vRest(id) {
   </tbody></table></div><span class="hint">쿼터마다 ${L ? L.formation.length : 0}명이 뛰어요. GK는 계속 뛰고, 나머지는 고르게 쉬어요.</span></div>`;
 }
 
-export { $, D, LOGO, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, closeText, confirmBox, dotDate, duesKey, esc, evName, evStart, eventCard, fail, feeMode, guestReqs, guestsOf, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, profileOf, qs, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };
+// member.js와 admin.js가 같이 쓰는 것
+export { $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };

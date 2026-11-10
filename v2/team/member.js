@@ -60,6 +60,7 @@ function feed() {
   const pr = (S.rsvp[u] || {}).posReq; if (pr && pr.doneAt) add(pr.doneAt, pr.status === "ok" ? "포지션 변경이 수락됐어요" : "포지션 변경 요청이 반려됐어요", "", "#/players");
   const rm = remindInfo(); if (rm && (rm.to || []).includes(u) && S.events[rm.eid] && !started(S.events[rm.eid]) && !myVote(S.events[rm.eid]).s) add(rm.at, "참석 응답을 기다리고 있어요", `${md(S.events[rm.eid].date)} ${evName(S.events[rm.eid])}, 운영진이 미응답 알림을 보냈어요`, "#/schedule");
   const owe = oweNow(); if (owe.total && owe.dueAt) add(owe.dueAt, `${owe.label}이 아직이에요`, owe.items.map(x => x.label + " " + won(x.amount)).join(", "), "#/dues");
+  const dr = D("team").duesRemind; if (dr && (dr.to || []).includes(u) && owe.total) add(dr.at, "회비 알림", `운영진이 회비 알림을 보냈어요. ${won(owe.total)}`, "#/dues");
   if (S.settings.rulesAt) add(S.settings.rulesAt, "팀 수칙이 바뀌었어요", (S.settings.rules || []).map(r => r.label + (Number(r.amount) ? " " + won(r.amount) : "")).join(", "), "#/players");
   noticesList().forEach(n => add(n.at, "공지: " + n.title, String(n.body || "").slice(0, 60), "#/notices"));
   return out.sort((a, b) => b.t - a.t);
