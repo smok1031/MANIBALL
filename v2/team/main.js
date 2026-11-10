@@ -3,7 +3,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_KEY } from "../../src/config.js";
 import { memberRoute, memberForm, MACT } from "./member.js";
-import { playerSheet, remindLeft, remindSheet, rosterSheet, vCheck, vDues, vDuesSettings, vEvent, vEventForm, vGame, vHomeAdmin, vLedger, vNoticeNew, vPlayers, vPosReq, vRecords, vResult, vRosterImport, vSchedule, vSquad } from "./admin.js";
+import { vNotifyAdmin, vCalendarAdmin, vGuests, vScrim, eventFormInit, AACT1, playerSheet, remindLeft, remindSheet, rosterSheet, vCheck, vDues, vDuesSettings, vEvent, vEventForm, vGame, vHomeAdmin, vLedger, vNoticeNew, vPlayers, vPosReq, vRecords, vResult, vRosterImport, vSchedule, vSquad } from "./admin.js";
 
 const URL_ = import.meta.env.VITE_SUPABASE_URL || SUPABASE_URL;
 const KEY_ = import.meta.env.VITE_SUPABASE_KEY || SUPABASE_KEY;
@@ -148,6 +148,10 @@ function att(e) {
   return out;
 }
 const myVote = e => (((S.rsvp[S.uid] || {}).ev || {})[e.id]) || {};
+// 투표 마감: 경기 시작 전까지(기본), 경기 전날 21시, 경기 당일 6시. 열림 예약(openAt) 전에는 누를 수 없다
+function closeAt(e) { if (e.voteClose === "eve21") return new Date(e.date + "T21:00:00+09:00").getTime() - 864e5; if (e.voteClose === "day06") return new Date(e.date + "T06:00:00+09:00").getTime(); return evStart(e); }
+const voteState = e => started(e) ? "done" : (e.openAt && Date.now() < Date.parse(e.openAt)) ? "soon" : Date.now() >= closeAt(e) ? "closed" : "open";
+const closeText = e => e.voteClose === "eve21" ? "경기 전날 21:00 마감" : e.voteClose === "day06" ? "경기 당일 06:00 마감" : "경기 시작 전까지";
 const upcoming = () => Object.values(S.events).filter(e => !started(e) || (Date.now() - evStart(e)) < 3 * 3600e3).sort((a, b) => evStart(a) - evStart(b));
 const past = () => Object.values(S.events).filter(e => started(e)).sort((a, b) => evStart(b) - evStart(a));
 
@@ -448,7 +452,7 @@ function vLineup(id) {
 }
 
 /* ---------- 내전 ---------- */
-function scrimReady(e) { if (e.type !== "match" || e.opponent || started(e)) return false; const a = att(e); return a.in + a.wait.length >= 20; }
+function scrimReady(e) { if (e.type !== "match" || e.opponent || e.scrimKeep || started(e)) return false; const a = att(e); return a.in + a.wait.length >= 20; }
 
 
 /* ---------- 선수 관리 ---------- */
@@ -494,9 +498,10 @@ const ACT4 = {
   remindOpen: t => remindSheet(t.dataset.eid),
   remindSend: async t => {
     const e = S.events[t.dataset.eid]; if (!e) return; if (remindLeft()) { remindSheet(e.id); return; }
-    t.disabled = true; const a = att(e); const names = a.none.map(x => x.name).concat(unclaimed().map(p => p.name));
+    const pick = [...document.querySelectorAll("[data-rm]")].filter(x => x.checked).map(x => x.dataset.rm);
+    t.disabled = true; const a = att(e); const names = a.none.filter(x => pick.includes(x.uid)).map(x => x.name).concat(unclaimed().map(p => p.name));
     try {
-      await setDoc("team", "remind", { at: new Date().toISOString(), by: S.uid, eid: e.id, to: a.none.map(x => x.uid) });
+      await setDoc("team", "remind", { at: new Date().toISOString(), by: S.uid, eid: e.id, to: pick });
       closeSheet(); render();
       const text = `[${S.team.name}] ${md(e.date)} ${wd(e.date)} ${e.time || ""} ${evName(e)} 참석 응답 부탁해요\n아직 안 누른 분: ${names.join(", ")}\n${APP}`;
       try { await navigator.clipboard.writeText(text); toast("알렸어요. 단톡방 문구도 복사했어요"); } catch (err) { toast("알렸어요"); }
@@ -664,6 +669,10 @@ function render() {
     if (mv) html = mv;
     else if (viewMode() === "member" && !/^\/(notices|lineup\/.+|claim)$/.test(r)) html = memberRoute("/");
     else if (r === "/" || r === "") html = vHomeAdmin();
+    else if (r === "/notify") html = vNotifyAdmin();
+    else if (r === "/calendar") html = vCalendarAdmin();
+    else if ((m = r.match(/^\/guests\/(.+)$/))) html = vGuests(decodeURIComponent(m[1]));
+    else if ((m = r.match(/^\/scrim\/(.+)$/))) html = vScrim(decodeURIComponent(m[1]));
     else if (r === "/schedule") html = vSchedule();
     else if ((m = r.match(/^\/event\/(.+)$/))) html = vEvent(decodeURIComponent(m[1]));
     else if (r === "/new" && isAdmin()) html = vEventForm("");
@@ -702,7 +711,9 @@ function onRoute(force) {
   // 폼 화면에 들어올 때 폼 값을 채운다
   let m;
   if (viewMode() === "member" && memberForm(r)) { render(); window.scrollTo(0, 0); return; }
-  if (r === "/new") S.form = { type: "match", date: "", time: "", end: "", place: "", opponent: "", cap: sport() === "soccer" ? 22 : 12, memo: "" };
+  if (r === "/new") eventFormInit("");
+  else if ((m = r.match(/^\/edit\/(.+)$/)) && S.events[decodeURIComponent(m[1])]) eventFormInit(decodeURIComponent(m[1]));
+  else if (r === "/new-old") S.form = { type: "match", date: "", time: "", end: "", place: "", opponent: "", cap: sport() === "soccer" ? 22 : 12, memo: "" };
   else if ((m = r.match(/^\/edit\/(.+)$/)) && S.events[decodeURIComponent(m[1])]) { const e = S.events[decodeURIComponent(m[1])]; S.form = { type: e.type, date: e.date, time: e.time, end: e.end || "", place: e.place || "", opponent: e.opponent || "", cap: Number(e.cap) || 0, memo: e.memo || "" }; }
   else if (r === "/me") { const p = myProfile() || {}; S.form = { name: p.name || nameOf(S.uid), num: p.num || "", pos1: p.pos1 || "", pos2: p.pos2 || "" }; }
   else if (r === "/invite") S.form = {};
@@ -831,7 +842,7 @@ const ACT = {
   }, true),
   logout: () => confirmBox("로그아웃", "이 기기에서 로그아웃할까요?", "로그아웃", async () => { try { await sb.auth.signOut(); } catch (e) { /* 그래도 처음으로 */ } ls.set("mb-team", null); location.replace(APP); }),
 };
-Object.assign(ACT, ACT2, ACT3, ACT4, MACT, { viewMember: () => { setView("member"); location.hash = "#/"; render(); } });
+Object.assign(ACT, ACT2, ACT3, ACT4, AACT1, MACT, { viewMember: () => { setView("member"); location.hash = "#/"; render(); } });
 document.addEventListener("click", ev => {
   const t = ev.target.closest("[data-act]"); if (!t) return;
   const f = ACT[t.dataset.act]; if (!f) return;
@@ -901,4 +912,4 @@ sb.auth.onAuthStateChange((ev) => { if (ev === "SIGNED_OUT") location.replace(AP
 boot();
 
 // member.js와 admin.js가 같이 쓰는 것
-export { $, D, LOGO, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, confirmBox, delDoc, dotDate, duesKey, esc, evName, evStart, eventCard, fail, feeMode, guestReqs, guestsOf, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, profileOf, refreshTally, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, wd, won, ym };
+export { $, D, LOGO, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, closeText, confirmBox, dotDate, duesKey, esc, evName, evStart, eventCard, fail, feeMode, guestReqs, guestsOf, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, profileOf, qs, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };

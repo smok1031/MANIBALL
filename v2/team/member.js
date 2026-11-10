@@ -1,11 +1,6 @@
 // 팀원 화면: 디자인 시안 [팀원] 1-1 ~ 5-5를 그대로 따른다. 운영진 기능은 이 파일에 두지 않는다.
 // 운영진도 "팀원 화면 보기"를 누르면 이 화면으로 자기 참석과 선수 카드를 본다.
-import {
-  S, D, esc, POS, QN, ROLE, jersey, LOGO, top, nav, toast, sheet, closeSheet, confirmBox, fail, setDoc, patchDoc, delDoc, uid36,
-  won, todayStr, evStart, started, wd, md, sport, profileOf, myProfile, nameOf, people, att, myVote, upcoming, past, isAdmin,
-  cameTo, momWinners, momOpen, momClosed, momDeadline, myUv, noticesList, guestReqs, guestsOf, unclaimed, joinedOf, dotDate,
-  feeMode, ruleAmt, ruleKind, remindInfo, isPlay, evName, ym, mLabel, render, UI, refreshTally, sb, $, setView
-} from "./main.js";
+import { $, D, LOGO, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, closeText, confirmBox, esc, evName, evStart, fail, feeMode, guestReqs, guestsOf, isAdmin, isPlay, jersey, joinedOf, mLabel, md, momClosed, momDeadline, momOpen, momWinners, myProfile, myUv, myVote, nameOf, nav, noticesList, past, patchDoc, people, qs, remindInfo, render, ruleKind, sb, setView, sheet, sport, started, toast, todayStr, top, uid36, unclaimed, upcoming, voteState, wd, won, ym } from "./main.js";
 
 /* ---------- 공통 계산 ---------- */
 const MU = { cal: false, day: "", change: "", season: "", filter: "all" };
@@ -134,9 +129,12 @@ function mEventCard(e) {
   const hasLine = e.lineup && Object.keys(e.lineup).length;
   const cr = cancelRule();
   let vote = "";
-  if (mine && !started(e)) {
+  const vs = voteState(e);
+  if (mine && vs === "soon") vote = `<div class="spread" style="background:#F9FAFB;border-radius:12px;padding:10px 12px;font-size:13px"><span>투표 열림 예약</span><b>${esc(md(e.openAt.slice(0, 10)) + " " + new Date(Date.parse(e.openAt) + 9 * 3600e3).toISOString().slice(11, 16))}</b></div>`;
+  else if (mine && vs === "closed") vote = `<div class="spread" style="background:#F9FAFB;border-radius:12px;padding:10px 12px;font-size:13px"><span>투표가 마감됐어요</span><b>${v.s ? "내 응답 " + VS[v.s] : "응답 안 함"}</b></div>`;
+  else if (mine && vs === "open") {
     if (v.s && !changing) vote = `<div class="spread" style="background:#F9FAFB;border-radius:14px;padding:10px 12px"><span class="hint">내 응답</span><span class="row" style="gap:8px"><b class="tag ${v.s === "yes" ? "" : v.s === "late" ? "" : "gray"}" style="font-size:13px;${v.s === "late" ? "background:#FEF3C7;color:#92400E" : ""}">${VS[v.s]}${v.s === "late" ? " " + (v.q || 1) + "Q부터" : ""}${a.wait.some(x => x.uid === S.uid) ? ", 대기 " + (a.wait.findIndex(x => x.uid === S.uid) + 1) + "번" : ""}</b><button class="btn sm" data-act="mChange" data-eid="${esc(e.id)}">바꾸기</button></span></div>`;
-    else vote = `${changing ? `<div class="spread"><b>응답 바꾸기</b><button class="btn sm" data-act="mChange" data-eid="">닫기</button></div>` : `<div class="spread"><b style="color:#B91C1C;font-size:14px">아직 안 눌렀어요</b><span class="hint" style="font-size:12px">경기 시작 전까지</span></div>`}${voteSeg(e, v)}${changing && cr && Number(cr.amount) ? `<span class="hint">${esc(cr.label)} 벌금 ${won(cr.amount)}이 있어요. 미리 바꿀수록 좋아요.</span>` : ""}`;
+    else vote = `${changing ? `<div class="spread"><b>응답 바꾸기</b><button class="btn sm" data-act="mChange" data-eid="">닫기</button></div>` : `<div class="spread"><b style="color:#B91C1C;font-size:14px">아직 안 눌렀어요</b><span class="hint" style="font-size:12px">${closeText(e)}</span></div>`}${voteSeg(e, v)}${changing && cr && Number(cr.amount) ? `<span class="hint">${esc(cr.label)} 벌금 ${won(cr.amount)}이 있어요. 미리 바꿀수록 좋아요.</span>` : ""}`;
     if (v.s === "late" && (changing || !v.q)) vote += lateBox(e, v);
   }
   return `<div class="card">
@@ -159,7 +157,8 @@ function mSchedule() {
   </div>${nav("일정")}`;
 }
 // 2-6 달력
-function mCalendar() {
+export function mCalendar(cardFn, isAdm) {
+  cardFn = typeof cardFn === "function" ? cardFn : mEventCard;
   const m = UI.month || ym(); const [y, mo] = m.split("-").map(Number);
   const first = new Date(Date.UTC(y, mo - 1, 1)).getUTCDay(); const days = new Date(Date.UTC(y, mo, 0)).getUTCDate();
   const evs = Object.values(S.events).filter(e => e.date.slice(0, 7) === m);
@@ -169,11 +168,11 @@ function mCalendar() {
   for (let d = 1; d <= days; d++) { const es = byDay[d] || []; const ds = `${m}-${String(d).padStart(2, "0")}`; const today = ds === todayStr();
     cells.push(`<button data-act="mDay" data-d="${ds}" aria-label="${mo}월 ${d}일${es.length ? ", 일정 " + es.length + "개" : ""}" style="border:0;background:${sel === d ? "#15803D" : "transparent"};color:${sel === d ? "#FFFFFF" : today ? "#15803D" : "#111827"};border-radius:12px;height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-weight:${today || sel === d ? 900 : 500}">${d}<span style="display:flex;gap:2px;height:6px">${es.map(e => `<span style="width:6px;height:6px;border-radius:50%;background:${sel === d ? "#FFFFFF" : e.type === "scrim" ? "#3730A3" : e.type === "training" ? "#6B7280" : "#15803D"}"></span>`).join("")}</span></button>`); }
   const dayEvs = sel ? (byDay[sel] || []) : [];
-  return `<header class="top" style="padding:10px 12px">${LOGO(32)}<h1 style="font-size:20px;font-weight:900">일정</h1><a class="btn sm" href="#/schedule">목록으로 보기</a></header><div class="body">
+  return `<header class="top" style="padding:10px 12px">${LOGO(32)}<h1 style="font-size:20px;font-weight:900">일정</h1><a class="btn sm" href="#/schedule">목록으로 보기</a>${isAdm ? `<a class="btn sm pri" href="#/new">+ 일정</a>` : ""}</header><div class="body">
     ${monthHead(m)}
     <div class="card" style="padding:12px"><div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));text-align:center;font-size:12px;color:#6B7280;margin-bottom:4px">${[..."일월화수목금토"].map(x => `<span>${x}</span>`).join("")}</div><div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px">${cells.join("")}</div>
       <div class="row hint" style="gap:14px;justify-content:center;font-size:12px"><span class="row" style="gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#15803D"></span>경기</span><span class="row" style="gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#3730A3"></span>내전</span><span class="row" style="gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#6B7280"></span>훈련</span></div></div>
-    ${sel ? `<b style="font-size:15px;color:#374151">${mo}월 ${sel}일 ${"일월화수목금토"[new Date(Date.UTC(y, mo - 1, sel)).getUTCDay()]}요일</b>${dayEvs.length ? dayEvs.map(e => started(e) ? `<a class="card" href="#/game/${esc(e.id)}" style="text-decoration:none;color:inherit"><div class="row" style="gap:12px">${dateBox(e, true)}<span style="flex:1"><span class="row" style="gap:6px">${typeTag(e)}<b>${e.score ? scoreText(e) : "지난 일정"}</b></span><br><span class="hint">${esc(e.place || "")}</span></span></div></a>` : mEventCard(e)).join("") : `<div class="card empty"><b>이날은 일정이 없어요</b></div>`}` : `<span class="hint" style="text-align:center">날짜를 누르면 그날 일정이 보여요</span>`}
+    ${sel ? `<b style="font-size:15px;color:#374151">${mo}월 ${sel}일 ${"일월화수목금토"[new Date(Date.UTC(y, mo - 1, sel)).getUTCDay()]}요일</b>${dayEvs.length ? dayEvs.map(e => started(e) ? `<a class="card" href="#/game/${esc(e.id)}" style="text-decoration:none;color:inherit"><div class="row" style="gap:12px">${dateBox(e, true)}<span style="flex:1"><span class="row" style="gap:6px">${typeTag(e)}<b>${e.score ? scoreText(e) : "지난 일정"}</b></span><br><span class="hint">${esc(e.place || "")}</span></span></div></a>` : cardFn(e)).join("") : `<div class="card empty"><b>이날은 일정이 없어요</b></div>`}` : `<span class="hint" style="text-align:center">날짜를 누르면 그날 일정이 보여요</span>`}
   </div>${nav("일정")}`;
 }
 // 2-7 참석 명단
