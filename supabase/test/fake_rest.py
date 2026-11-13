@@ -37,6 +37,11 @@ class H(BaseHTTPRequestHandler):
         self.send_response(code); self.cors()
         if body is not None: self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(raw))); self.end_headers(); self.wfile.write(raw)
+    def schema(self):
+        # supabase-js는 public 말고 다른 스키마를 쓸 때 Accept-Profile / Content-Profile 머리글로 알린다
+        sc = self.headers.get("Content-Profile") or self.headers.get("Accept-Profile") or "public"
+        assert sc in ("public", "maniball"), sc
+        return sc
     def do_OPTIONS(self): self.reply(204)
     def body(self):
         n = int(self.headers.get("Content-Length") or 0)
@@ -102,7 +107,7 @@ class H(BaseHTTPRequestHandler):
         path, q = r; t = path[0]
         if t not in COLS: return self.reply(404, {"message": "no table"})
         cols, w, args, tail = self.where(t, q)
-        rows = self.run(lambda cur: (cur.execute(f"select {cols} from public.{t}{w}{tail}", args), cur.fetchall())[1])
+        rows = self.run(lambda cur: (cur.execute(f"select {cols} from {self.schema()}.{t}{w}{tail}", args), cur.fetchall())[1])
         if rows is not None: self.shape(rows)
 
     def do_POST(self):
@@ -113,7 +118,7 @@ class H(BaseHTTPRequestHandler):
             fn = path[1]
             if fn not in FNS: return self.reply(404, {"message": "no fn"})
             keys = list((b or {}).keys()); assert all(IDENT.match(k) for k in keys)
-            call = f"select * from public.{fn}(" + ", ".join(f"{k} => %s" for k in keys) + ")"
+            call = f"select * from {self.schema()}.{fn}(" + ", ".join(f"{k} => %s" for k in keys) + ")"
             vals = [json.dumps(b[k]) if isinstance(b[k], (dict, list)) else b[k] for k in keys]
             def go(cur):
                 cur.execute(call, vals); rows = cur.fetchall()
@@ -132,7 +137,7 @@ class H(BaseHTTPRequestHandler):
                 cols = list(row.keys()); assert all(c in COLS["docs"] for c in cols)
                 vals = [json.dumps(row[c]) if c == "data" else row[c] for c in cols]
                 conflict = " on conflict (team_id, coll, id) do update set " + ", ".join(f"{c} = excluded.{c}" for c in cols if c not in ("team_id", "coll", "id")) if merge else ""
-                cur.execute(f"insert into public.docs ({', '.join(cols)}) values ({', '.join(['%s'] * len(cols))}){conflict} returning {sel}", vals)
+                cur.execute(f"insert into {self.schema()}.docs ({', '.join(cols)}) values ({', '.join(['%s'] * len(cols))}){conflict} returning {sel}", vals)
                 out += cur.fetchall()
             return out
         res = self.run(go)
@@ -144,7 +149,7 @@ class H(BaseHTTPRequestHandler):
         path, q = r; t = path[0]; assert t == "docs"
         cols, w, args, _ = self.where(t, q)
         assert w, "delete without filter"
-        res = self.run(lambda cur: (cur.execute(f"delete from public.docs{w} returning {cols}", args), cur.fetchall())[1])
+        res = self.run(lambda cur: (cur.execute(f"delete from {self.schema()}.docs{w} returning {cols}", args), cur.fetchall())[1])
         if res is not None: self.shape(res)
 
 ThreadingHTTPServer(("127.0.0.1", PORT), H).serve_forever()

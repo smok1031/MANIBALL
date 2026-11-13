@@ -8,7 +8,9 @@ import { vSpend, vUpload, vRulesEdit, vUniform, vPlayerAdmin, AACT3, adminForm, 
 
 const URL_ = import.meta.env.VITE_SUPABASE_URL || SUPABASE_URL;
 const KEY_ = import.meta.env.VITE_SUPABASE_KEY || SUPABASE_KEY;
-const sb = createClient(URL_, KEY_, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } });
+// 다른 용도로 쓰는 Supabase 프로젝트에 넣을 때는 public 대신 따로 만든 스키마(예: maniball)를 쓴다
+const DB_SCHEMA = import.meta.env.VITE_SUPABASE_SCHEMA || "public";
+const sb = createClient(URL_, KEY_, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }, db: { schema: DB_SCHEMA } });
 const KAKAO_KEY = "e5c9ffdb309018215f5fcbc89eddb201"; // REST API 키 (공개 값)
 const APP = location.origin + location.pathname.replace(/index\.html$/, "");
 const KAKAO_REDIRECT = new URL("../../", APP).href; // 카카오에 등록된 주소: 사이트 첫 주소가 이 화면으로 넘겨준다
@@ -107,10 +109,10 @@ function watch(tid) {
     put(n.coll, n.id, n.data); render();
   };
   S.ch = sb.channel("mb-" + tid)
-    .on("postgres_changes", { event: "INSERT", schema: "public", table: "docs", filter: "team_id=eq." + tid }, onDoc)
-    .on("postgres_changes", { event: "UPDATE", schema: "public", table: "docs", filter: "team_id=eq." + tid }, onDoc)
-    .on("postgres_changes", { event: "INSERT", schema: "public", table: "members", filter: "team_id=eq." + tid }, refreshMembers)
-    .on("postgres_changes", { event: "UPDATE", schema: "public", table: "members", filter: "team_id=eq." + tid }, refreshMembers)
+    .on("postgres_changes", { event: "INSERT", schema: DB_SCHEMA, table: "docs", filter: "team_id=eq." + tid }, onDoc)
+    .on("postgres_changes", { event: "UPDATE", schema: DB_SCHEMA, table: "docs", filter: "team_id=eq." + tid }, onDoc)
+    .on("postgres_changes", { event: "INSERT", schema: DB_SCHEMA, table: "members", filter: "team_id=eq." + tid }, refreshMembers)
+    .on("postgres_changes", { event: "UPDATE", schema: DB_SCHEMA, table: "members", filter: "team_id=eq." + tid }, refreshMembers)
     .subscribe();
 }
 async function refreshMembers() {
