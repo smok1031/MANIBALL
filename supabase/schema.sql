@@ -227,30 +227,9 @@ language sql security definer set search_path = public as $$
   update public.members set display_name = left(trim(p_name), 30) where team_id = p_team and user_id = auth.uid()
 $$;
 
--- 관리자 신청: 팀원이 스스로 신청하고, 팀장만 수락하거나 거절한다 ----------------------
-alter table public.members add column if not exists admin_req timestamptz;
+alter table public.members add column if not exists admin_req timestamptz; -- 예전 운영진 신청 칸 (지금은 쓰지 않음)
 
-create or replace function public.request_admin(p_team uuid) returns void
-language plpgsql security definer set search_path = public as $$
-begin
-  if coalesce(public.team_role(p_team), '') <> 'member' then raise exception 'member_only'; end if;
-  update public.members set admin_req = now() where team_id = p_team and user_id = auth.uid();
-end $$;
-
-create or replace function public.cancel_admin_request(p_team uuid) returns void
-language sql security definer set search_path = public as $$
-  update public.members set admin_req = null where team_id = p_team and user_id = auth.uid()
-$$;
-
-create or replace function public.answer_admin_request(p_team uuid, p_user uuid, p_ok boolean) returns void
-language plpgsql security definer set search_path = public as $$
-begin
-  if coalesce(public.team_role(p_team), '') <> 'owner' then raise exception 'owner_only'; end if;
-  update public.members set role = case when p_ok then 'admin' else role end, admin_req = null
-   where team_id = p_team and user_id = p_user and role = 'member' and admin_req is not null;
-  if not found then raise exception 'no_request'; end if;
-end $$;
-
+-- 운영진 지정과 해제: Admin만
 create or replace function public.set_member_role(p_team uuid, p_user uuid, p_role text) returns void
 language plpgsql security definer set search_path = public as $$
 begin
@@ -260,13 +239,20 @@ begin
   update public.members set role = p_role, admin_req = null where team_id = p_team and user_id = p_user;
 end $$;
 
+-- 내보내기: Admin은 운영진과 팀원을, 운영진은 팀원만. 스스로 나가기는 Admin 말고 누구나
 create or replace function public.remove_member(p_team uuid, p_user uuid) returns void
 language plpgsql security definer set search_path = public as $$
+declare me text := coalesce(public.team_role(p_team), ''); them text;
 begin
   if auth.uid() is null then raise exception 'not_signed_in'; end if;
   if p_user = auth.uid() then
-    if coalesce(public.team_role(p_team), '') = 'owner' then raise exception 'owner_cannot_leave'; end if;
-  elsif coalesce(public.team_role(p_team), '') <> 'owner' then raise exception 'owner_only'; end if;
+    if me = 'owner' then raise exception 'owner_cannot_leave'; end if;
+  else
+    select role into them from public.members where team_id = p_team and user_id = p_user;
+    if them is null then raise exception 'no_member'; end if;
+    if them = 'owner' then raise exception 'owner_only'; end if;
+    if not (me = 'owner' or (me = 'admin' and them = 'member')) then raise exception 'kick_denied'; end if;
+  end if;
   delete from public.members where team_id = p_team and user_id = p_user;
 end $$;
 
@@ -408,18 +394,19 @@ language sql stable security definer set search_path = public as $$
   select invite_code from public.teams where id = p_team and public.is_admin(p_team)
 $$;
 
--- 팀장 넘기기: 팀장만, 팀 안의 멤버에게. 넘긴 사람은 운영진이 된다
-create or replace function public.transfer_owner(p_team uuid, p_user uuid) returns void
+
+-- Admin이 팀을 나갈 때: 운영진 한 명을 다음 Admin으로 정하고 나간다
+create or replace function public.leave_team_as_owner(p_team uuid, p_next uuid) returns void
 language plpgsql security definer set search_path = public as $$
 begin
   if coalesce(public.team_role(p_team), '') <> 'owner' then raise exception 'owner_only'; end if;
-  if p_user = auth.uid() then raise exception 'not_self'; end if;
-  if not exists (select 1 from public.members where team_id = p_team and user_id = p_user) then raise exception 'no_member'; end if;
-  update public.members set role = 'admin' where team_id = p_team and user_id = auth.uid();
-  update public.members set role = 'owner', admin_req = null where team_id = p_team and user_id = p_user;
+  if p_next = auth.uid() then raise exception 'not_self'; end if;
+  if not exists (select 1 from public.members where team_id = p_team and user_id = p_next and role = 'admin') then raise exception 'next_not_admin'; end if;
+  update public.members set role = 'owner', admin_req = null where team_id = p_team and user_id = p_next;
+  delete from public.members where team_id = p_team and user_id = auth.uid();
 end $$;
 
--- 회원 탈퇴: 내 계정과 내가 쓴 개인 문서를 지운다. 팀원이 남은 팀의 팀장은 먼저 팀장을 넘겨야 한다
+-- 회원 탈퇴: 내 계정과 내가 쓴 개인 문서를 지운다. 팀원이 남은 팀의 Admin은 먼저 다음 Admin을 정하고 팀을 나가야 한다
 create or replace function public.delete_my_account() returns void
 language plpgsql security definer set search_path = public as $$
 declare me uuid := auth.uid();
@@ -435,7 +422,7 @@ begin
   delete from auth.users where id = me;
 end $$;
 
--- 팀 지우기: 팀장만. 일정, 참석, 회비, 멤버가 모두 함께 지워진다
+-- 팀 지우기: Admin만. 일정, 참석, 회비, 멤버가 모두 함께 지워진다
 create or replace function public.delete_team(p_team uuid) returns void
 language plpgsql security definer set search_path = public as $$
 begin
@@ -452,8 +439,7 @@ revoke all on function public.docs_member_guard(), public.docs_gone(), public.do
 grant execute on function public.create_team(text), public.join_team(text, text), public.team_by_code(text), public.set_my_name(uuid, text),
   public.set_member_role(uuid, uuid, text), public.remove_member(uuid, uuid), public.new_invite_code(uuid), public.doc_patch(uuid, text, text, jsonb),
   public.team_role(uuid), public.is_member(uuid), public.is_admin(uuid), public.jsonb_deep_merge(jsonb, jsonb),
-  public.request_admin(uuid), public.cancel_admin_request(uuid), public.answer_admin_request(uuid, uuid, boolean),
-  public.team_invite_code(uuid), public.transfer_owner(uuid, uuid), public.delete_my_account(), public.delete_team(uuid) to authenticated;
+  public.team_invite_code(uuid), public.leave_team_as_owner(uuid, uuid), public.delete_my_account(), public.delete_team(uuid) to authenticated;
 -- 로그인 전 화면에서도 초대받은 팀 이름을 보여 준다 (코드를 아는 사람만)
 grant execute on function public.team_by_code(text) to anon;
 -- 초대 코드는 운영진만 (team_invite_code 함수로) 본다

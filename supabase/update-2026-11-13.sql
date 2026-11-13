@@ -1,0 +1,44 @@
+-- 2026-11-13 권한 정리: [Admin] 1명, [운영진], [팀원]
+-- Admin(팀을 만든 사람)은 넘길 수 없다. 팀을 나갈 때만 운영진 중에서 다음 Admin을 정하고 나간다
+-- 운영진 신청 기능은 없앤다. 운영진 지정과 해제는 Admin만 한다
+-- 내보내기: Admin은 운영진과 팀원을, 운영진은 팀원만 내보낸다
+
+-- 운영진 신청 없애기
+drop function if exists public.request_admin(uuid);
+drop function if exists public.cancel_admin_request(uuid);
+drop function if exists public.answer_admin_request(uuid, uuid, boolean);
+update public.members set admin_req = null where admin_req is not null;
+
+-- Admin 넘기기 없애기
+drop function if exists public.transfer_owner(uuid, uuid);
+
+-- 내보내기와 스스로 나가기
+create or replace function public.remove_member(p_team uuid, p_user uuid) returns void
+language plpgsql security definer set search_path = public as $$
+declare me text := coalesce(public.team_role(p_team), ''); them text;
+begin
+  if auth.uid() is null then raise exception 'not_signed_in'; end if;
+  if p_user = auth.uid() then
+    if me = 'owner' then raise exception 'owner_cannot_leave'; end if;
+  else
+    select role into them from public.members where team_id = p_team and user_id = p_user;
+    if them is null then raise exception 'no_member'; end if;
+    if them = 'owner' then raise exception 'owner_only'; end if;
+    if not (me = 'owner' or (me = 'admin' and them = 'member')) then raise exception 'kick_denied'; end if;
+  end if;
+  delete from public.members where team_id = p_team and user_id = p_user;
+end $$;
+
+-- Admin이 팀을 나갈 때: 운영진 한 명을 다음 Admin으로 정하고 나간다
+create or replace function public.leave_team_as_owner(p_team uuid, p_next uuid) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if coalesce(public.team_role(p_team), '') <> 'owner' then raise exception 'owner_only'; end if;
+  if p_next = auth.uid() then raise exception 'not_self'; end if;
+  if not exists (select 1 from public.members where team_id = p_team and user_id = p_next and role = 'admin') then raise exception 'next_not_admin'; end if;
+  update public.members set role = 'owner', admin_req = null where team_id = p_team and user_id = p_next;
+  delete from public.members where team_id = p_team and user_id = auth.uid();
+end $$;
+
+revoke all on function public.leave_team_as_owner(uuid, uuid) from public, anon;
+grant execute on function public.remove_member(uuid, uuid), public.leave_team_as_owner(uuid, uuid) to authenticated;

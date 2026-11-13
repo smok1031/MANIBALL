@@ -21,7 +21,7 @@ const WD = "일월화수목금토";
 // 풋살 포지션: 골레이로(골키퍼), 픽소(수비), 아라(측면), 피보(공격)
 const POS = { futsal: ["골레이로", "픽소", "아라", "피보"], soccer: ["GK", "LB", "LWB", "CB", "RB", "RWB", "CDM", "CM", "LM", "RM", "CAM", "LW", "RW", "ST"] };
 const QN = { futsal: 8, soccer: 4 };
-const ROLE = { owner: "팀장", admin: "운영진", member: "팀원" };
+const ROLE = { owner: "Admin", admin: "운영진", member: "팀원" };
 const KIT = [["#164F33", "초록"], ["#111827", "검정"], ["#1E3A8A", "파랑"], ["#991B1B", "빨강"], ["#F5B841", "노랑"], ["#F3F4F6", "흰색"]];
 const numColor = c => ["#F5B841", "#F3F4F6"].includes(c) ? "#111827" : "#FFFFFF";
 
@@ -29,9 +29,12 @@ const S = { d: {}, session: null, uid: "", teams: [], tid: "", role: "", team: n
 // 운영진 화면과 팀원 화면은 따로 그린다. 운영진도 "팀원 화면 보기"로 자기 참석과 카드를 본다
 // 운영진은 운영진 화면만 쓴다. 팀원 화면 검토용 주소(?view=member)로 들어올 때만 이 창에서 팀원 화면을 보여 준다
 const ss = { get: k => { try { return sessionStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { v == null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch (e) { /* 없어도 된다 */ } } };
-const viewMode = () => (isAdmin() && ss.get("mb-review") !== "member") ? "admin" : "member";
+// 팀원 화면 검토(?view=member)는 Admin만 한다
+const viewMode = () => (isAdmin() && !(S.role === "owner" && ss.get("mb-review") === "member")) ? "admin" : "member";
 function setView(v) { ss.set("mb-review", v === "member" ? "member" : null); }
 const isAdmin = () => S.role === "owner" || S.role === "admin";
+// 내보내기: Admin은 운영진과 팀원을, 운영진은 팀원만 (Admin은 아무도 못 내보낸다)
+const canKick = x => !!x && x.uid !== S.uid && x.role !== "owner" && (S.role === "owner" || (S.role === "admin" && x.role === "member"));
 
 /* ---------- 작은 도구 ---------- */
 let toastT = 0;
@@ -129,7 +132,7 @@ async function patchDoc(c, id, patch) {
   if (error) throw error; put(c, id, data.data);
 }
 async function delDoc(c, id) { const { error } = await sb.from("docs").delete().eq("team_id", S.tid).eq("coll", c).eq("id", id); if (error) throw error; drop(c, id); }
-const GUARD = { vote_closed: "경기가 시작돼서 바꿀 수 없어요", no_event: "지워진 일정이에요", bad_vote: "저장할 수 없는 응답이에요", team_limit: "팀은 한 사람당 5개까지 만들 수 있어요", bad_code: "초대 링크가 바뀌었거나 잘못됐어요. 운영진에게 새 링크를 받아 주세요", mom_locked: "MOM 투표는 한 번만 낼 수 있어요", mom_closed: "MOM 투표 시간이 아니에요", no_player: "팀에 없는 사람이에요", poll_closed: "마감된 설문이에요", no_option: "없는 보기예요", no_poll: "지워진 설문이에요", owner_only: "팀장만 할 수 있어요", not_self: "나에게는 할 수 없어요", not_allowed: "운영진만 할 수 있어요", owner_has_members: "팀원이 남아 있어서 먼저 팀장을 넘겨야 해요" };
+const GUARD = { vote_closed: "경기가 시작돼서 바꿀 수 없어요", no_event: "지워진 일정이에요", bad_vote: "저장할 수 없는 응답이에요", team_limit: "팀은 한 사람당 5개까지 만들 수 있어요", bad_code: "초대 링크가 바뀌었거나 잘못됐어요. 운영진에게 새 링크를 받아 주세요", mom_locked: "MOM 투표는 한 번만 낼 수 있어요", mom_closed: "MOM 투표 시간이 아니에요", no_player: "팀에 없는 사람이에요", poll_closed: "마감된 설문이에요", no_option: "없는 보기예요", no_poll: "지워진 설문이에요", owner_only: "Admin만 할 수 있어요", kick_denied: "운영진은 팀원만 내보낼 수 있어요", next_not_admin: "다음 Admin은 운영진 중에서 골라 주세요", owner_cannot_leave: "Admin은 다음 Admin을 정해야 나갈 수 있어요", not_self: "나에게는 할 수 없어요", not_allowed: "운영진만 할 수 있어요", owner_has_members: "팀원이 남아 있어요. 팀 설정에서 다음 Admin을 정하고 팀을 나가 주세요" };
 function fail(e) { const m = errMsg(e); const k = Object.keys(GUARD).find(x => m.includes(x)); toast(k ? GUARD[k] : /JWT|fetch|network/i.test(m) ? "연결이 끊겼어요. 잠시 후 다시 해 주세요" : "저장하지 못했어요. 잠시 후 다시 해 주세요"); console.error(e); }
 
 /* ---------- 사람과 참석 ---------- */
@@ -298,6 +301,17 @@ function vInviteMsg() {
       <button class="btn sm" data-act="newCode" style="align-self:flex-start">새 링크 만들기</button>
     </div>
   </div><div class="cta"><button class="btn pri block" data-act="share">${SHARE}공유하기</button><a class="btn block" href="#/">완료</a></div>`;
+}
+
+// Admin 팀 나가기: 운영진 중에서 다음 Admin을 고르고 나간다 (시안 운영진 선수 5-6)
+function vLeave() {
+  const ads = S.members.filter(m => m.role === "admin"); const pick = S.form.next && ads.some(m => m.user_id === S.form.next) ? S.form.next : "";
+  const radio = on => `<span style="width:22px;height:22px;border-radius:50%;box-sizing:border-box;flex:none;border:${on ? "7px solid #15803D" : "2px solid #D1D5DB"}"></span>`;
+  return `${top("팀 나가기", "#/players")}<div class="body">
+    <div class="hint" style="background:#EEF2FF;color:#3730A3;border-radius:14px;padding:12px 14px;line-height:1.5"><b>안내</b> Admin은 팀에 한 명이고 넘길 수 없어요. 팀을 나갈 때만 운영진 중에서 다음 Admin을 정해요.</div>
+    <div class="card"><b>다음 Admin 고르기</b><span class="hint">운영진 중에서만 고를 수 있어요</span>${ads.length ? `<div class="list">${ads.map(m => `<button class="li" style="border:0;background:none;text-align:left;width:100%" data-act="leavePick" data-u="${esc(m.user_id)}"><span class="av">${esc(ini(nameOf(m.user_id)))}</span><span style="flex:1"><b>${esc(nameOf(m.user_id))}</b> <span class="tag gray">운영진</span></span>${radio(pick === m.user_id)}</button>`).join("")}</div>` : `<span class="hint" style="color:#B45309">운영진이 없어요. 먼저 선수 탭에서 운영진을 지정해 주세요.</span>`}</div>
+    <div class="card"><b>나가면 이렇게 돼요</b><span>${pick ? esc(nameOf(pick)) + " 님이" : "고른 운영진이"} Admin이 돼서 운영진 지정과 해제, 내보내기, 팀 지우기를 맡아요.</span><span>나는 ${esc(S.team.name)}에서 나가요. 다시 들어오려면 초대 링크가 필요해요.</span></div>
+  </div><div class="cta"><button class="btn block" data-act="leaveGo" style="background:${pick ? "#DC2626" : "#F3F4F6"};color:${pick ? "#FFFFFF" : "#9CA3AF"}" ${pick ? "" : "disabled"}>${pick ? esc(nameOf(pick)) + " 님을 Admin으로 정하고 나가기" : "다음 Admin을 골라 주세요"}</button></div>`;
 }
 
 /* ---------- 홈 ---------- */
@@ -746,11 +760,7 @@ const ACT2 = {
 
   playerOpen: t => playerSheet(t.dataset.u),
   setRole: async t => { closeSheet(); const { error } = await sb.rpc("set_member_role", { p_team: S.tid, p_user: t.dataset.u, p_role: t.dataset.v }); if (error) fail(error); else { toast("바꿨어요"); refreshMembers(); } },
-  giveOwner: t => { const u = t.dataset.u; confirmBox("팀장 넘기기", `${nameOf(u)} 님에게 팀장을 넘길까요? 나는 운영진이 돼요.`, "넘기기", async () => { const { error } = await sb.rpc("transfer_owner", { p_team: S.tid, p_user: u }); if (error) fail(error); else { toast("팀장을 넘겼어요"); refreshMembers(); } }); },
   kick: t => { const u = t.dataset.u; confirmBox("팀에서 내보내기", `${nameOf(u)} 님을 내보낼까요? 다시 들어오려면 초대 링크가 필요해요.`, "내보내기", async () => { const { error } = await sb.rpc("remove_member", { p_team: S.tid, p_user: u }); if (error) fail(error); else { toast("내보냈어요"); refreshMembers(); } }, true); },
-  adminReq: async () => { closeSheet(); const { error } = await sb.rpc("request_admin", { p_team: S.tid }); if (error) fail(error); else { toast("운영진 신청을 보냈어요. 팀장이 수락하면 바뀌어요"); refreshMembers(); } },
-  adminCancel: async () => { closeSheet(); const { error } = await sb.rpc("cancel_admin_request", { p_team: S.tid }); if (error) fail(error); else { toast("신청을 취소했어요"); refreshMembers(); } },
-  adminAns: async t => { closeSheet(); const { error } = await sb.rpc("answer_admin_request", { p_team: S.tid, p_user: t.dataset.u, p_ok: !!t.dataset.ok }); if (error) fail(error); else { toast(t.dataset.ok ? "운영진이 됐어요" : "거절했어요"); refreshMembers(); } },
   posSend: async t => { const f = S.form; if (!f.pos1) { toast("1선호를 골라 주세요"); return; } t.disabled = true; try { await patchDoc("rsvp", S.uid, { posReq: { pos1: f.pos1, pos2: f.pos2 || "", note: String(f.note || "").trim().slice(0, 60), at: new Date().toISOString(), status: "req" } }); toast("요청을 보냈어요"); location.hash = "#/players"; } catch (e) { t.disabled = false; fail(e); } },
   posCancel: async () => { try { await patchDoc("rsvp", S.uid, { posReq: null }); render(); } catch (e) { fail(e); } },
   posOk: async t => { closeSheet(); const u = t.dataset.u; const r = S.rsvp[u] || {}; const req = r.posReq || {}; try { await patchDoc("rsvp", u, { profile: { ...(r.profile || {}), pos1: req.pos1, pos2: req.pos2 || "" }, posReq: { status: "ok", doneAt: new Date().toISOString() } }); render(); toast("포지션을 바꿨어요"); } catch (e) { fail(e); } },
@@ -791,6 +801,7 @@ function render() {
     else if (r === "/upload") html = vUpload();
     else if (r === "/rules-edit") html = vRulesEdit();
     else if (r === "/uniform") html = vUniform();
+    else if (r === "/leave" && S.role === "owner") html = vLeave();
     else if (r === "/schedule") html = vSchedule();
     else if ((m = r.match(/^\/event\/(.+)$/))) html = vEvent(decodeURIComponent(m[1]));
     else if (r === "/new" && isAdmin()) html = vEventForm("");
@@ -956,6 +967,12 @@ const ACT = {
   },
   enterTeam: async t => { closeSheet(); S.ready = false; render(); await enter(t.dataset.id); },
   newTeam: () => { closeSheet(); startCreate(); },
+  leaveOwner: () => { S.form = {}; location.hash = "#/leave"; },
+  leavePick: t => { S.form.next = t.dataset.u; render(); },
+  leaveGo: () => { const u = S.form.next; if (!u) { toast("다음 Admin을 골라 주세요"); return; } confirmBox("Admin을 넘기고 나갈까요?", `${nameOf(u)} 님이 다음 Admin이 되고, 나는 ${S.team.name}에서 나가요. 다시 들어오려면 초대 링크가 필요해요. 되돌릴 수 없어요.`, "넘기고 나가기", async () => {
+    const { error } = await sb.rpc("leave_team_as_owner", { p_team: S.tid, p_next: u }); if (error) { fail(error); return; }
+    ls.set("mb-team", null); toast("팀을 나왔어요"); setTimeout(() => location.replace(APP), 600);
+  }, true); },
   delTeam: () => confirmBox("팀 지우기", `${S.team.name}의 일정, 참석, 회비, 기록, 멤버가 모두 사라져요. 되돌릴 수 없어요.`, "지우기", async () => {
     const { error } = await sb.rpc("delete_team", { p_team: S.tid }); if (error) { fail(error); return; }
     ls.set("mb-team", null); toast("팀을 지웠어요"); setTimeout(() => location.replace(APP), 600);
@@ -1073,4 +1090,4 @@ function vRest(id) {
 }
 
 // member.js와 admin.js가 같이 쓰는 것
-export { $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };
+export { $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };
