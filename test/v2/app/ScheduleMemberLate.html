@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>팀원 일정 늦참 누름 | 매니볼</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0;background:#FFFFFF}
+a{color:#15803D}
+</style>
+<style>html{background:#E5E7EB}body{background:#E5E7EB}a{-webkit-tap-highlight-color:transparent}a[href="#"]{cursor:default}</style>
+</head>
+<body>
+<div id="dc-root"></div>
+<template id="dc-tpl"><div style="width: 100%; max-width: 480px; box-sizing: border-box; min-height: 100dvh; margin: 0 auto; font-family: 'Noto Sans KR', sans-serif; color: #111827; background: #F6F7F9; display: flex; flex-direction: column; position: relative; word-break: keep-all">
+  <header style="position: sticky; top: 0; z-index: 2; background: #F6F7F9; padding: 14px 16px 8px; display: flex; align-items: center; gap: 10px">
+    <span role="img" aria-label="매니볼" style="width: 32px; height: 32px; border-radius: 9px; background: #1E6B45; display: inline-flex; align-items: center; justify-content: center; flex: none"><svg width="24" height="24" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="22" fill="none" stroke="#FFFFFF" stroke-width="5"></circle><circle cx="23" cy="26" r="3.5" fill="#F5B841"></circle><circle cx="23" cy="38" r="3.5" fill="#F5B841"></circle><path d="M30 26 H43 M30 38 H41" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"></path></svg></span>
+    <b style="flex: 1; font-size: 20px; font-weight: 900">일정</b>
+    <a href="ScheduleMemberCalendar.html" style="font-size: 13px; font-weight: 700; text-decoration: none; padding: 10px 4px">달력으로 보기</a>
+  </header>
+  <div style="padding: 4px 16px 20px; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; align-items: center; justify-content: space-between; background: #FFFFFF; border-radius: 16px; padding: 6px">
+      <a href="#" aria-label="이전 달" style="width: 44px; height: 40px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: #6B7280" onClick="{{ c2m }}">‹</a>
+      <b style="font-size: 16px">{{ c2t }}</b>
+      <a href="#" aria-label="다음 달" style="width: 44px; height: 40px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: #6B7280" onClick="{{ c2p }}">›</a>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 8px 4px 0"><b style="font-size: 15px; color: #374151">다가오는 일정</b></div>
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; gap: 12px; align-items: center"><span style="width: 52px; height: 58px; border-radius: 14px; background: #DCFCE7; color: #166534; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; flex: none"><span style="font-size: 11px; font-weight: 700">토</span><b style="font-size: 21px; line-height: 1.1">15</b></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px"><span style="display: flex; gap: 6px; align-items: center"><span style="background: #DCFCE7; color: #166534; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px">경기</span><b style="font-size: 16px">08:00 ~ 10:00</b></span><span style="font-size: 13px; color: #6B7280">잠실 풋살장 2번 코트</span></span><span style="font-size: 12px; font-weight: 700; color: #6B7280; flex: none">D-5</span></div>
+      <div style="display: flex; justify-content: space-between; align-items: center; background: #F0FDF4; border-radius: 12px; padding: 10px 12px; font-size: 14px"><span>내 응답 <b style="color: #15803D">참석</b></span><a href="ScheduleMemberChange.html" style="font-size: 13px; font-weight: 700; text-decoration: none">바꾸기</a></div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px"><a href="ScheduleMemberRoster.html" style="text-decoration: none; text-align: center; border-radius: 12px; padding: 11px 0; font-weight: 700; font-size: 13px; background: #F3F4F6; color: #111827">참석 명단 10명</a><a href="#" style="text-decoration: none; text-align: center; border-radius: 12px; padding: 11px 0; font-weight: 700; font-size: 13px; background: #F3F4F6; color: #9CA3AF" onClick="{{ c3k }}">라인업 준비 중</a></div>
+      <a href="ScheduleMemberGuest.html" style="text-decoration: none; text-align: center; font-size: 13px; font-weight: 700; padding: 2px 0">+ 용병 신청하기</a>
+    </div>
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; gap: 12px; align-items: center"><span style="width: 52px; height: 58px; border-radius: 14px; background: #DCFCE7; color: #166534; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; flex: none"><span style="font-size: 11px; font-weight: 700">토</span><b style="font-size: 21px; line-height: 1.1">22</b></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px"><span style="display: flex; gap: 6px; align-items: center"><span style="background: #DCFCE7; color: #166534; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px">경기</span><b style="font-size: 16px">08:00 ~ 10:00</b></span><span style="font-size: 13px; color: #6B7280">잠실 풋살장, 상대팀 미정</span></span></div>
+      <div style="font-size: 13px; color: #3730A3; background: #EEF2FF; border-radius: 12px; padding: 10px 12px; line-height: 1.5">신청 20명 (참석 14, 대기 6). 상대팀이 미정이라 3일 전까지 20명이 유지되면 내전으로 바뀔 수 있어요</div>
+    </div>
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; gap: 12px; align-items: center"><span style="width: 52px; height: 58px; border-radius: 14px; background: #DCFCE7; color: #166534; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; flex: none"><span style="font-size: 11px; font-weight: 700">토</span><b style="font-size: 21px; line-height: 1.1">29</b></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px"><span style="display: flex; gap: 6px; align-items: center"><span style="background: #DCFCE7; color: #166534; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px">경기</span><b style="font-size: 16px">07:00 ~ 09:00</b></span><span style="font-size: 13px; color: #6B7280">상암 풋살파크, 친선 경기</span></span></div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; text-align: center; font-size: 14px"><a href="ScheduleMemberAttend.html" style="text-decoration: none; background: #F3F4F6; color: #111827; border-radius: 12px; padding: 11px 0; font-weight: 700">참석</a><a href="ScheduleMemberLate.html" style="text-decoration: none; background: #15803D; color: #FFFFFF; border-radius: 12px; padding: 11px 0; font-weight: 700">늦참</a><a href="ScheduleMemberAbsent.html" style="text-decoration: none; background: #F3F4F6; color: #111827; border-radius: 12px; padding: 11px 0; font-weight: 700">불참</a></div>
+      <div style="display: flex; flex-direction: column; gap: 10px; background: #F9FAFB; border-radius: 14px; padding: 14px">
+        <b style="font-size: 14px">언제부터 뛸 수 있어요?</b>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; text-align: center; font-size: 14px"><a href="#" style="{{ c1_0s }}" onClick="{{ c1_0k }}">1Q</a><a href="#" style="{{ c1_1s }}" onClick="{{ c1_1k }}">2Q</a><a href="#" style="{{ c1_2s }}" onClick="{{ c1_2k }}">3Q</a><a href="#" style="{{ c1_3s }}" onClick="{{ c1_3k }}">4Q</a></div>
+        <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; color: #6B7280">한마디 (선택)</span><span style="background: #FFFFFF; border: 1px solid #D1D5DB; border-radius: 12px; padding: 12px 14px; font-size: 14px; color: #111827"><input aria-label="한마디 (선택)" placeholder="예: 일 끝나고 바로 갈게요" value="{{ c4v }}" onChange="{{ c4c }}" style="border: 0; outline: none; background: transparent; font: inherit; color: #111827; padding: 0; margin: 0; min-width: 0; width: 100%; flex: 1"></span></label>
+      </div>
+      <span style="font-size: 12px; color: #6B7280">참석 3 / 정원 12, 늦참 1, 11.27 목 21:00 마감</span>
+    </div>
+  </div>
+  <div role="status" style="position: absolute; left: 16px; right: 16px; bottom: 92px; background: #111827; color: #FFFFFF; border-radius: 14px; padding: 13px 16px; font-size: 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 24px rgba(17,24,39,0.2)"><span>11.29 경기, 2Q부터 늦참으로 저장했어요</span><a href="ScheduleMember.html" style="color: #BBF7D0; font-weight: 700; text-decoration: none">되돌리기</a></div>
+  <nav aria-label="하단 메뉴" style="position: sticky; bottom: 0; margin-top: auto; background: #FFFFFF; border-top: 1px solid #E5E7EB; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 8px 6px 24px; font-size: 12px; text-align: center"><a href="Home5.html" style="text-decoration: none; padding: 6px 0; color: #6B7280">홈</a><a href="#" style="text-decoration: none; padding: 6px 0; color: #15803D; font-weight: 700">일정</a><a href="RecordMember.html" style="text-decoration: none; padding: 6px 0; color: #6B7280">기록</a><a href="DuesMember.html" style="text-decoration: none; padding: 6px 0; color: #6B7280">회비</a><a href="PlayersMember.html" style="text-decoration: none; padding: 6px 0; color: #6B7280">선수</a></nav>
+  <sc-if value="{{ toastOn }}" hint-placeholder-val="{{ false }}"><div role="status" style="position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); z-index: 50; width: max-content; max-width: 340px; box-sizing: border-box; background: #111827; color: #FFFFFF; font-size: 14px; font-weight: 700; line-height: 1.5; padding: 12px 16px; border-radius: 14px; text-align: center; box-shadow: 0 10px 24px rgba(17,24,39,0.25)">{{ toastText }}</div></sc-if>
+</div></template>
+<script type="text/x-dc" id="dc-code">
+class Component extends DCLogic {
+  renderVals() { /*maniball-interactive*/
+    const A = this.props.accent ?? '#15803D';
+    const S = this.state || {};
+    const T = [{"id": "c1", "k": "sel", "multi": false, "sel": 1, "els": [{"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; border-radius: 999px; padding: 9px 0; font-weight: 700", "off": "text-decoration: none; background: #FFFFFF; border: 1px solid #E5E7EB; color: #111827; border-radius: 999px; padding: 8px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; border-radius: 999px; padding: 9px 0; font-weight: 700", "off": "text-decoration: none; background: #FFFFFF; border: 1px solid #E5E7EB; color: #111827; border-radius: 999px; padding: 8px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; border-radius: 999px; padding: 9px 0; font-weight: 700", "off": "text-decoration: none; background: #FFFFFF; border: 1px solid #E5E7EB; color: #111827; border-radius: 999px; padding: 8px 0"}, {"on": "text-decoration: none; background: {{accent}}; color: #FFFFFF; border-radius: 999px; padding: 9px 0; font-weight: 700", "off": "text-decoration: none; background: #FFFFFF; border: 1px solid #E5E7EB; color: #111827; border-radius: 999px; padding: 8px 0"}], "labs": ["1Q", "2Q", "3Q", "4Q"]}, {"id": "c2", "k": "month", "y": 2026, "m": 11}, {"id": "c3", "k": "act", "a": "toast", "msg": "운영진이 라인업을 올리면 알림으로 알려 드려요"}, {"id": "c4", "k": "field", "val": "", "label": "한마디 (선택)", "node": 7968}];
+    const fix = (x) => String(x == null ? '' : x).split('{{accent}}').join(A);
+    const set = (o) => this.setState(o);
+    const pd = (e) => { if (e && e.preventDefault) e.preventDefault(); };
+    const get = (k, d) => (S[k] === undefined ? d : S[k]);
+    const v = { accent: A, toastOn: !!S._toast, toastText: S._toast || '' };
+    const toast = (m) => { set({ _toast: m }); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ _toast: '' }), 1800); };
+    const byId = {};
+    T.forEach((c) => { byId[c.id] = c; });
+    T.forEach((c) => {
+      const k = c.id;
+      if (c.k === 'sel') {
+        const cur = get(k, c.sel);
+        c.els.forEach((e, i) => {
+          const on = c.multi ? cur.indexOf(i) >= 0 : cur === i;
+          v[k + '_' + i + 's'] = fix(on ? e.on : e.off);
+          v[k + '_' + i + 'k'] = (ev) => {
+            pd(ev);
+            if (c.multi) { const a = cur.slice(); const j = a.indexOf(i); if (j >= 0) a.splice(j, 1); else a.push(i); set({ [k]: a }); }
+            else set({ [k]: i });
+          };
+        });
+      } else if (c.k === 'tog') {
+        const on = get(k, c.on);
+        v[k + 's'] = fix(on ? c.son : c.soff); v[k + 'n'] = on ? c.non : c.noff;
+        v[k + 'k'] = (ev) => { pd(ev); set({ [k]: !on }); };
+      } else if (c.k === 'chk') {
+        const on = get(k, c.on);
+        v[k + 's'] = fix(on ? c.son : c.soff); v[k + 't'] = on ? '✓' : '';
+        v[k + 'k'] = (ev) => { pd(ev); set({ [k]: !on }); };
+      } else if (c.k === 'step') {
+        const n = get(k, c.val);
+        v[k + 't'] = n + c.suf;
+        if (c.bst !== undefined) v[k + 'bs'] = c.bst.replace(/color: #(D1D5DB|111827)/, 'color: ' + (n ? '#111827' : '#D1D5DB'));
+        v[k + 'm'] = (ev) => { pd(ev); set({ [k]: Math.max(0, n - 1) }); };
+        v[k + 'p'] = (ev) => { pd(ev); set({ [k]: n + 1 }); };
+      } else if (c.k === 'field') {
+        v[k + 'v'] = get(k, c.val);
+        v[k + 'c'] = (ev) => set({ [k]: ev && ev.target ? ev.target.value : '' });
+      } else if (c.k === 'month') {
+        const off = get(k, 0); let y = c.y, m = c.m + off;
+        while (m < 1) { m += 12; y--; } while (m > 12) { m -= 12; y++; }
+        v[k + 't'] = y + '년 ' + m + '월';
+        v[k + 'm'] = (ev) => { pd(ev); set({ [k]: off - 1 }); };
+        v[k + 'p'] = (ev) => { pd(ev); set({ [k]: off + 1 }); };
+      } else if (c.k === 'act') {
+        const done = get(k, 0);
+        if (c.a === 'toast') v[k + 'k'] = (ev) => { pd(ev); toast(c.msg); };
+        if (c.a === 'copy') {
+          v[k + 't'] = done ? '복사했어요' : c.label;
+          v[k + 'k'] = (ev) => {
+            pd(ev);
+            let t = c.text;
+            if (c.codeFrom) t = t.replace(/maniball\.app\/j\/\w+/, 'maniball.app/j/' + get(c.codeFrom, 'TEST7Q'));
+            try { navigator.clipboard.writeText(t).catch(() => {}); } catch (e) {}
+            set({ [k]: 1 }); toast('복사했어요');
+            setTimeout(() => this.setState({ [k]: 0 }), 1600);
+          };
+        }
+        if (c.a === 'share') v[k + 'k'] = (ev) => {
+          if (!c.nav) pd(ev);
+          try { if (navigator.share) { navigator.share({ title: 'TEST FS', text: get('_msg', 'TEST FS 팀 관리 앱이에요. 링크 누르고 들어와요!'), url: 'https://maniball.app/j/TEST7Q' }).catch(() => {}); } } catch (e) {}
+          toast('공유 창을 열었어요');
+        };
+        if (c.a === 'hide') { v[k + 'r'] = c.rs + (done ? '; display: none' : ''); v[k + 'k'] = (ev) => { pd(ev); set({ [k]: 1 }); toast(c.msg); }; }
+        if (c.a === 'got') { v[k + 's'] = done ? c.s1 : c.s0; v[k + 't'] = done ? '받음 완료' : '받음'; v[k + 'k'] = (ev) => { pd(ev); if (!done) { set({ [k]: 1 }); toast('현금으로 받은 걸로 처리했어요'); } }; }
+        if (c.a === 'link') { v[k + 't'] = get(k, c.code); v[k + 'k'] = (ev) => { pd(ev); set({ [k]: Math.random().toString(36).slice(2, 8).toUpperCase() }); toast('새 링크를 만들었어요. 예전 링크는 막혔어요'); }; }
+        if (c.a === 'readall') {
+          (c.rows || []).forEach((r, i) => { v[k + '_' + i + 'r'] = done ? r.replace('background: #F0FDF4', 'background: #FFFFFF') : r; });
+          (c.dots || []).forEach((d, i) => { v[k + '_' + i + 'd'] = done ? d.replace('background: #DC2626', 'background: transparent') : d; });
+          v[k + 't'] = done ? '0개' : (c.cnt || '');
+          v[k + 'k'] = (ev) => { pd(ev); set({ [k]: 1 }); toast('모두 읽음으로 바꿨어요'); };
+        }
+        if (c.a === 'photo') {
+          const url = get(k, '');
+          v[k + 'ps'] = fix(c.ts) + (url ? '; background: center / cover no-repeat url(' + url + ')' : '');
+          v[k + 'sv'] = url ? 'display: none' : '';
+          v[k + 'pt'] = url ? '' : (c.pt || '');
+          v[k + 'c'] = (ev) => { const f = ev && ev.target && ev.target.files && ev.target.files[0]; if (f) { set({ [k]: URL.createObjectURL(f) }); toast('사진을 바꿨어요'); } };
+        }
+        if (c.a === 'selectall') v[k + 'k'] = (ev) => { pd(ev); const o = {}; T.forEach((x) => { if (x.k === 'chk') o[x.id] = true; }); set(o); toast('모두 골랐어요'); };
+        if (c.a === 'edit') v[k + 'k'] = (ev) => { pd(ev); set({ _edit: !get('_edit', false) }); };
+      }
+    });
+    const val = (id) => (byId[id] && byId[id].k === 'field' ? get(id, byId[id].val) : '');
+    const pick = (id) => { const c = byId[id]; if (!c) return ''; const i = get(id, c.sel); return c.multi ? i.map((x) => c.labs[x]) : (i >= 0 ? c.labs[i] : ''); };
+    const chk = (id) => { const c = byId[id]; return c ? get(id, c.on) : false; };
+
+
+    return v;
+  }
+}
+</script>
+<script src="proto.js"></script>
+</body>
+</html>
