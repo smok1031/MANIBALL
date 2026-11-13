@@ -136,13 +136,7 @@ function fail(e) { const m = errMsg(e); const k = Object.keys(GUARD).find(x => m
 // 예전 풋살 포지션 이름(GK, DF, LW, RW, FW)으로 저장된 팀원은 풋살 이름으로 보여 준다
 const FUT_OLD = { GK: "골레이로", DF: "픽소", LW: "아라", RW: "아라", MF: "아라", FW: "피보" };
 const posFix = x => sport() === "futsal" && FUT_OLD[x] ? FUT_OLD[x] : x;
-// 운영진 대신 참석: 2026-11-13 23:00까지만, 풋살팀만. 일정 문서의 proxy에 "u:팀원" 또는 "p:가입 전 선수"로 적고, 나중에 누른 것이 적용된다
-const PROXY_UNTIL = Date.parse("2026-11-13T23:00:00+09:00");
-const proxyOn = () => sport() === "futsal" && isAdmin() && viewMode() === "admin" && Date.now() < PROXY_UNTIL;
-const rosterPro = id => { const pl = D("players")[id]; return pl ? { name: pl.name, num: pl.num, pos1: pl.pos1, pos2: pl.pos2 } : null; };
-const newer = (a, b) => !b || !b.s ? a : !a || !a.s ? b : (a.at || "") >= (b.at || "") ? a : b;
-const voteOf = (e, u) => { const own = (((S.rsvp[u] || {}).ev || {})[e.id]) || null; const px = e.proxy || {}; const p = px["u:" + u] || px["p:" + ((S.rsvp[u] || {}).pid || "-")] || null; const r = newer(p, own); return r && r === p ? { ...r, px: true } : r; };
-const profileOf = u => { const p = typeof u === "string" && u.startsWith("p:") ? rosterPro(u.slice(2)) : (S.rsvp[u] && S.rsvp[u].profile) || null; if (!p || sport() !== "futsal") return p; const a = posFix(p.pos1), b = posFix(p.pos2); return { ...p, pos1: a, pos2: b === a ? "" : b }; };
+const profileOf = u => { const p = (S.rsvp[u] && S.rsvp[u].profile) || null; if (!p || sport() !== "futsal") return p; const a = posFix(p.pos1), b = posFix(p.pos2); return { ...p, pos1: a, pos2: b === a ? "" : b }; };
 const myProfile = () => profileOf(S.uid);
 const nameOf = u => (profileOf(u) && profileOf(u).name) || (S.members.find(m => m.user_id === u) || {}).display_name || "이름 없음";
 const people = () => S.members.map(m => ({ uid: m.user_id, role: m.role, name: nameOf(m.user_id), p: profileOf(m.user_id) || {} }));
@@ -150,21 +144,17 @@ function att(e) {
   const out = { yes: [], late: [], no: [], none: [], wait: [], cap: Number(e.cap) || 0 };
   const going = [];
   people().forEach(x => {
-    const r = voteOf(e, x.uid);
+    const r = ((S.rsvp[x.uid] || {}).ev || {})[e.id];
     const s = r && r.s;
-    if (s === "yes" || s === "late") going.push({ ...x, s, q: Number(r.q) || 0, at: r.at || "", px: !!r.px });
+    if (s === "yes" || s === "late") going.push({ ...x, s, q: Number(r.q) || 0, at: r.at || "" });
     else if (s === "no") out.no.push(x); else out.none.push(x);
   });
-  // 가입 전 선수: 운영진이 대신 누른 경우만 들어간다
-  unclaimed().forEach(pl => { const r = (e.proxy || {})["p:" + pl.id]; if (!r || !r.s) return; const x = { uid: "p:" + pl.id, role: "member", name: pl.name, p: profileOf("p:" + pl.id) || {}, pre: true };
-    if (r.s === "yes" || r.s === "late") going.push({ ...x, s: r.s, q: Number(r.q) || 0, at: r.at || "", px: true }); else if (r.s === "no") out.no.push(x); });
   going.sort((a, b) => (a.at || "~") < (b.at || "~") ? -1 : 1);
-  // 운영진이 대신 넣은 사람은 정원과 상관없이 참석으로 들어가고, 스스로 누른 사람의 자리를 빼앗지 않는다
-  let n = 0; going.forEach(x => { if (x.px) { (x.s === "late" ? out.late : out.yes).push(x); return; } if (out.cap && n >= out.cap) out.wait.push(x); else (x.s === "late" ? out.late : out.yes).push(x); n++; });
+  going.forEach((x, i) => { if (out.cap && i >= out.cap) out.wait.push(x); else (x.s === "late" ? out.late : out.yes).push(x); });
   out.in = out.yes.length + out.late.length;
   return out;
 }
-const myVote = e => voteOf(e, S.uid) || {};
+const myVote = e => (((S.rsvp[S.uid] || {}).ev || {})[e.id]) || {};
 // 투표 마감: 경기 시작 전까지(기본), 경기 전날 21시, 경기 당일 6시. 열림 예약(openAt) 전에는 누를 수 없다
 function closeAt(e) { if (e.voteClose === "eve21") return new Date(e.date + "T21:00:00+09:00").getTime() - 864e5; if (e.voteClose === "day06") return new Date(e.date + "T06:00:00+09:00").getTime(); return evStart(e); }
 const voteState = e => started(e) ? "done" : (e.openAt && Date.now() < Date.parse(e.openAt)) ? "soon" : Date.now() >= closeAt(e) ? "closed" : "open";
@@ -489,16 +479,6 @@ function applyFix(e, side, u, i, qs) {
   });
   L.pins = JSON.parse(JSON.stringify(d.pins)); S.form.lineup = L; S.form.lineupFor = e.id + side;
 }
-function proxySheet(eid) {
-  const e = S.events[eid]; if (!e) return; const qn = QN[sport()];
-  const rows = [...people().map(x => ({ key: "u:" + x.uid, name: x.name, v: voteOf(e, x.uid) || {}, pre: false })), ...unclaimed().map(pl => ({ key: "p:" + pl.id, name: pl.name, v: (e.proxy || {})["p:" + pl.id] || {}, pre: true }))];
-  const chip = (r, s, label) => `<button class="chip sm ${r.v.s === s ? "on" : ""}" data-act="proxySet" data-eid="${esc(eid)}" data-k="${esc(r.key)}" data-s="${s}" style="padding:4px 10px;min-height:34px;font-size:13px">${label}</button>`;
-  sheet(`<h3>운영진이 대신 참석 누르기</h3><span class="hint">오늘 23:00까지 열려 있어요. 누르면 바로 저장돼요. 팀원이 나중에 직접 누르면 그게 적용돼요.</span>
-    <div class="list" style="max-height:58vh;overflow:auto">${rows.map(r => `<div class="li" style="flex-direction:column;align-items:stretch;gap:6px;padding:10px 0"><div class="spread"><b>${esc(r.name)}${r.pre ? ` <span class="tag gray">가입 전</span>` : ""}</b><span class="hint">${r.v.s === "yes" ? "참석" : r.v.s === "late" ? `늦참, ${r.v.q || 2}Q부터` : r.v.s === "no" ? "불참" : "미응답"}</span></div>
-      <div class="chips" style="gap:6px">${chip(r, "yes", "참석")}${chip(r, "late", "늦참")}${chip(r, "no", "불참")}${chip(r, "", "비우기")}</div>
-      ${r.v.s === "late" ? `<div class="chips" style="gap:6px">${Array.from({ length: qn - 1 }, (_, i) => i + 2).map(q => `<button class="chip sm ${(Number(r.v.q) || 2) === q ? "on" : ""}" data-act="proxySet" data-eid="${esc(eid)}" data-k="${esc(r.key)}" data-s="late" data-q="${q}" style="padding:4px 10px;min-height:34px;font-size:13px">${q}Q부터</button>`).join("")}</div>` : ""}</div>`).join("")}</div>
-    <button class="btn" data-act="closeSheet">닫기</button>`);
-}
 function vLineup(id) {
   const e = S.events[id]; if (!e) return `${top("라인업", "#/schedule")}<div class="body"><div class="card empty"><b>지워진 일정이에요</b></div></div>`;
   const side = e.type === "scrim" ? UI.side : "main"; const L = curLineup(e, side); const edit = isAdmin() && viewMode() === "admin";
@@ -687,7 +667,7 @@ const ACT2 = {
     const late = ruleAmt("late"), abs = ruleAmt("absent"); let n = 0;
     try {
       for (const [u, v] of Object.entries(ck)) {
-        if (u.startsWith("g:") || u.startsWith("p:")) continue;
+        if (u.startsWith("g:")) continue;
         const id = "f-" + e.id + "-" + u; const amount = v === "late" ? late : v === "absent" && going.has(u) ? abs : 0;
         if (amount) { await setDoc("fines", id, { uid: u, date: e.date, eventId: e.id, reason: v === "late" ? "지각" : "무단 결석", amount, paid: (D("fines")[id] || {}).paid || false }); n++; }
         else if (D("fines")[id]) await delDoc("fines", id);
@@ -720,12 +700,6 @@ const ACT2 = {
   guestDel: async t => { const e = S.events[t.dataset.eid]; if (!e) return; const gs = { ...(e.guests || {}) }; delete gs[t.dataset.g]; try { await setDoc("events", e.id, { ...e, guests: gs }); render(); } catch (err) { fail(err); } },
   lineQ: t => { UI.q = Number(t.dataset.v); UI.sel = null; render(); },
   lineSide: t => { UI.side = t.dataset.v; S.form.lineup = null; S.form.ldraft = null; UI.sel = null; render(); },
-  proxyOpen: t => { if (!proxyOn()) { toast("대신 누르기는 오늘 23:00까지였어요"); render(); return; } proxySheet(t.dataset.eid); },
-  proxySet: async t => { const e = S.events[t.dataset.eid]; if (!e || !proxyOn()) { toast("대신 누르기는 오늘 23:00까지였어요"); closeSheet(); render(); return; }
-    const px = { ...(e.proxy || {}) }; const k = t.dataset.k; const s = t.dataset.s;
-    if (!s) px[k] = { s: "", at: new Date().toISOString(), by: S.uid }; else px[k] = { s, q: s === "late" ? Number(t.dataset.q || (px[k] && px[k].q) || 2) : 0, at: new Date().toISOString(), by: S.uid };
-    const box = $("#layer .list"); const top0 = box ? box.scrollTop : 0;
-    try { await setDoc("events", e.id, { ...e, proxy: px }); proxySheet(e.id); const b2 = $("#layer .list"); if (b2) b2.scrollTop = top0; render(); } catch (err) { fail(err); } },
   fixOpen: t => { UI.fix = { u: t.dataset.u, i: Number(t.dataset.i), qs: [Math.min(UI.q, QN[sport()])] }; fixSheet(t.dataset.eid); },
   fixQ: t => { const eid = $("[data-act=fixSave]").dataset.eid; const v = t.dataset.v; const st = UI.fix;
     if (v === "all") { const ok = [...$("#layer").querySelectorAll("[data-act=fixQ]:not([data-v=all])")].map(b => Number(b.dataset.v)); st.qs = ok.every(k => st.qs.includes(k)) ? [] : ok; }
@@ -1097,4 +1071,4 @@ function vRest(id) {
 }
 
 // member.js와 admin.js가 같이 쓰는 것
-export { $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, proxyOn, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };
+export { $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };

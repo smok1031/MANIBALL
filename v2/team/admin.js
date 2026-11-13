@@ -1,6 +1,6 @@
 // 운영진 화면: 디자인 시안 [운영진] 1-1 ~ 5-9. 팀원 화면은 member.js에 있다.
 import { mCalendar } from "./member.js";
-import { $, D, KIT, LOGO, POS, ROLE, S, UI, att, cameTo, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, proxyOn, refreshMembers, remindInfo, render, ruleAmt, sb, scrimReady, setDoc, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym } from "./main.js";
+import { $, D, KIT, LOGO, POS, ROLE, S, UI, att, cameTo, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, refreshMembers, remindInfo, render, ruleAmt, sb, scrimReady, setDoc, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym } from "./main.js";
 
 function homeExtras() {
   const out = [];
@@ -103,7 +103,6 @@ function vEvent(id) {
     ${adm ? adminEventCard(e, { detail: true }) + (myProfile() && !started(e) ? `<div class="card"><b>내 참석</b>${voteRow(e, mv)}${mv.s === "late" ? lateRow(e, mv) : ""}</div>` : "") : eventCard(e)}
     ${adm && scrimReady(e) ? `<div class="card" style="background:#FFFBEB"><b>내전을 할 수 있어요</b><span class="hint">상대팀이 미정이고 참석과 대기를 합쳐 ${a.in + a.wait.length}명이에요. 운영진끼리 상의해서 내전으로 바꾸면 팀원 모두에게 보여요.</span><button class="btn pri" data-act="scrimConvert" data-eid="${esc(e.id)}">내전으로 바꾸기</button></div>` : ""}
     ${tools.length ? `<div class="row" style="flex-wrap:wrap">${tools.join("")}</div>` : ""}
-    ${proxyOn() ? `<div class="card" style="gap:8px;border:1.5px solid #15803D"><div class="spread"><b>운영진이 대신 참석 누르기</b><span class="tag">오늘 23:00까지</span></div><span class="hint">팀원이나 아직 앱에 안 들어온 선수의 참석, 늦참, 불참을 운영진이 정해요. 라인업에도 그대로 들어가요.</span><button class="btn pri" data-act="proxyOpen" data-eid="${esc(e.id)}">대신 누르기</button></div>` : ""}
     ${e.memo ? `<div class="card"><b>메모</b><div class="hint" style="white-space:pre-wrap;color:#374151">${esc(e.memo)}</div></div>` : ""}
     ${e.type === "scrim" ? grp("A팀 (조끼)", [...a.yes, ...a.late, ...a.wait].filter(x => T[x.uid] === "A")) + grp("B팀", [...a.yes, ...a.late, ...a.wait].filter(x => T[x.uid] === "B")) : ""}
     ${grp("참석", a.yes)}${grp("늦참", a.late, x => x.q ? `, ${x.q}Q부터` : "")}${a.cap ? grp("대기", a.wait, () => "") : ""}${grp("불참", a.no)}${grp("미응답", a.none)}${unclaimed().length ? `<span class="hint">아직 앱에 안 들어온 선수 ${unclaimed().length}명은 참석을 누를 수 없어요. 초대 링크로 들어와 이름을 고르면 돼요.</span>` : ""}
@@ -468,7 +467,7 @@ function checkRows(e) {
 }
 function fineCalc(e) {
   const ck = e.check || {}; const a = att(e); const going = new Set([...a.yes, ...a.late].map(x => x.uid));
-  const late = Object.keys(ck).filter(u => ck[u] === "late" && !u.startsWith("g:") && !u.startsWith("p:")), abs = Object.keys(ck).filter(u => ck[u] === "absent" && !u.startsWith("p:") && going.has(u));
+  const late = Object.keys(ck).filter(u => ck[u] === "late" && !u.startsWith("g:")), abs = Object.keys(ck).filter(u => ck[u] === "absent" && going.has(u));
   return { late, abs, total: late.length * ruleAmt("late") + abs.length * ruleAmt("absent") };
 }
 function fineText(e) {
