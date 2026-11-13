@@ -538,7 +538,10 @@ function vUpload() {
 }
 async function readBankFile(file) {
   let rows = [];
-  if (/\.xlsx?$/i.test(file.name)) { const XLSX = await import("xlsx"); const wb = XLSX.read(await file.arrayBuffer(), { type: "array" }); rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: false }); }
+  const head = new Uint8Array(await file.slice(0, 8).arrayBuffer());
+  if (head[0] === 0x50 && head[1] === 0x4B) { const { readSheet } = await import("read-excel-file/browser"); rows = (await readSheet(file)).map(r => r.map(c => c instanceof Date ? c.toISOString().slice(0, 16).replace("T", " ") : c == null ? "" : String(c))); }
+  else if (head[0] === 0xD0 && head[1] === 0xCF) throw new Error("예전 엑셀(.xls) 파일은 읽지 못해요. 엑셀에서 .xlsx나 CSV로 다시 저장해서 올려 주세요");
+  else if (/\.xls$/i.test(file.name) || /^\s*</.test(await file.slice(0, 200).text())) { const doc = new DOMParser().parseFromString(await file.text(), "text/html"); doc.querySelectorAll("script,style").forEach(e => e.remove()); rows = [...doc.querySelectorAll("tr")].map(tr => [...tr.cells].map(td => td.textContent.trim())); }
   else { const txt = await file.text(); rows = txt.split(/\r?\n/).map(l => { const out = []; let cur = "", q = false; for (const ch of l) { if (ch === '"') q = !q; else if ((ch === "," || ch === "\t") && !q) { out.push(cur); cur = ""; } else cur += ch; } out.push(cur); return out; }); }
   const hi = rows.findIndex(r => r.some(c => /거래일|일시|날짜/.test(String(c))) && r.some(c => /금액|입금|출금/.test(String(c))));
   if (hi < 0) throw new Error("거래내역 표를 찾지 못했어요. 날짜, 내용, 금액 칸이 있는 파일인지 확인해 주세요");

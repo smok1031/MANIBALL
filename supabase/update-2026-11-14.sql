@@ -24,3 +24,7 @@ grant execute on function public.delete_team_with_review(uuid, text) to authenti
 
 -- 예전 문의 남기기는 더 쓰지 않는다
 revoke execute on function public.submit_inquiry(uuid, text, text, text) from authenticated;
+
+-- 보안 점검 (2026-11-14): 검색 경로를 고정하지 않은 함수 두 개를 고정한다 (안쪽 이름은 이미 스키마를 붙여 씀)
+alter function public.jsonb_deep_merge(jsonb, jsonb) set search_path = '';
+alter function public.event_start(jsonb) set search_path = '';
