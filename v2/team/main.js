@@ -12,11 +12,13 @@ const sb = createClient(URL_, KEY_, { auth: { persistSession: true, autoRefreshT
 const KAKAO_KEY = "e5c9ffdb309018215f5fcbc89eddb201"; // REST API 키 (공개 값)
 const APP = location.origin + location.pathname.replace(/index\.html$/, "");
 const KAKAO_REDIRECT = new URL("../../", APP).href; // 카카오에 등록된 주소: 사이트 첫 주소가 이 화면으로 넘겨준다
-const KK = "kei-web-kakao";
+const KK = (import.meta.env.VITE_STAGE === "test" ? "t-" : "") + "kei-web-kakao";
 const qs = new URLSearchParams(location.search);
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const ls = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) { /* 없어도 된다 */ } } };
+// 테스트 사이트는 같은 주소(github.io)를 쓰므로 저장 이름 앞에 t-를 붙여 운영 사이트와 섞이지 않게 한다
+const STAGE = import.meta.env.VITE_STAGE === "test" ? "t-" : "";
+const ls = { get: k => { try { return localStorage.getItem(STAGE + k); } catch (e) { return null; } }, set: (k, v) => { try { v == null ? localStorage.removeItem(STAGE + k) : localStorage.setItem(STAGE + k, v); } catch (e) { /* 없어도 된다 */ } } };
 const WD = "일월화수목금토";
 // 풋살 포지션: 골레이로(골키퍼), 픽소(수비), 아라(측면), 피보(공격)
 const POS = { futsal: ["골레이로", "픽소", "아라", "피보"], soccer: ["GK", "LB", "LWB", "CB", "RB", "RWB", "CDM", "CM", "LM", "RM", "CAM", "LW", "RW", "ST"] };
@@ -1021,6 +1023,8 @@ async function kakaoFinish() {
   if (error) throw error;
 }
 async function boot() {
+  // 테스트 사이트 표시 (운영 사이트에는 없다)
+  if (STAGE) document.body.insertAdjacentHTML("beforeend", `<div aria-hidden="true" style="position:fixed;top:6px;left:50%;transform:translateX(-50%);z-index:9999;pointer-events:none;background:#B45309;color:#FFFFFF;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;opacity:.9">테스트 사이트</div>`);
   if (qs.get("state") && (qs.get("code") || qs.get("error"))) {
     let next = ""; try { next = sessionStorage.getItem("mb-next") || ""; sessionStorage.removeItem("mb-next"); } catch (e) { /* 없음 */ }
     let ok = false; try { ok = !!next && new URL(next).origin === location.origin; } catch (e) { /* 잘못된 주소 */ }
