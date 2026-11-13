@@ -7,8 +7,10 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 REPO=$(pwd); GHP=${GHP:-/var/tmp/ghp}; MODE=${1:-}
-[ -d "$GHP/.git" ] || git worktree add "$GHP" gh-pages
-git -C "$GHP" fetch -q origin gh-pages && git -C "$GHP" reset -q --hard origin/gh-pages
+# 원격 브랜치 값은 ls-remote와 FETCH_HEAD로 읽는다 (클론마다 fetch 설정이 달라도 같게 동작)
+rref() { git ls-remote origin "refs/heads/$1" | cut -f1; }
+if [ ! -e "$GHP/.git" ]; then git fetch -q origin gh-pages && git worktree add -q --detach "$GHP" FETCH_HEAD; fi
+git -C "$GHP" fetch -q origin gh-pages && git -C "$GHP" reset -q --hard FETCH_HEAD
 publish() { # $1: 빌드 폴더, $2: gh-pages 안의 대상 폴더 ("" 이면 맨 위)
   local src=$1 dst="$GHP/${2:-}"; mkdir -p "$dst"
   if [ -n "${2:-}" ]; then find "$dst" -mindepth 1 -delete; else find "$dst" -mindepth 1 -maxdepth 1 ! -name .git ! -name test ! -name .nojekyll -exec rm -rf {} +; fi
@@ -26,14 +28,14 @@ case "$MODE" in
     git push -q -f origin HEAD:refs/heads/testing
     echo "테스트 사이트에 올림: $sha" ;;
   approve)
-    t=$(git ls-remote origin refs/heads/testing | cut -f1); [ -n "$t" ] || { echo "테스트에 올린 버전이 없어요"; exit 1; }
+    t=$(rref testing); [ -n "$t" ] || { echo "테스트에 올린 버전이 없어요"; exit 1; }
     git push -q -f origin "$t:refs/heads/approved"; echo "승인: ${t:0:7}" ;;
   prod)
-    git fetch -q origin approved live 2>/dev/null || git fetch -q origin approved
-    a=$(git rev-parse -q --verify origin/approved || true); l=$(git rev-parse -q --verify origin/live || true)
+    a=$(rref approved); l=$(rref live)
     [ -n "$a" ] || { echo "승인된 버전이 없어요"; exit 0; }
     [ "$a" != "$l" ] || { echo "새로 승인된 버전이 없어요. 운영은 그대로예요"; exit 0; }
-    tmp=$(mktemp -d); git worktree add -q "$tmp" "$a"
+    git fetch -q origin approved; [ -z "$l" ] || git fetch -q origin live
+    tmp=$(mktemp -d); git worktree add -q --detach "$tmp" "$a"
     (cd "$tmp" && ln -s "$REPO/node_modules" node_modules && npm run build >/dev/null)
     publish "$tmp/dist" ""
     echo "${a:0:7}" > "$GHP/version.txt"
