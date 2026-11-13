@@ -136,7 +136,7 @@ async function patchDoc(c, id, patch) {
   if (error) throw error; put(c, id, data.data);
 }
 async function delDoc(c, id) { const { error } = await sb.from("docs").delete().eq("team_id", S.tid).eq("coll", c).eq("id", id); if (error) throw error; drop(c, id); }
-const GUARD = { vote_closed: "경기가 시작돼서 바꿀 수 없어요", no_event: "지워진 일정이에요", bad_vote: "저장할 수 없는 응답이에요", team_limit: "팀은 한 사람당 5개까지 만들 수 있어요", bad_code: "초대 링크가 바뀌었거나 잘못됐어요. 운영진에게 새 링크를 받아 주세요", mom_locked: "MOM 투표는 한 번만 낼 수 있어요", mom_closed: "MOM 투표 시간이 아니에요", no_player: "팀에 없는 사람이에요", poll_closed: "마감된 설문이에요", no_option: "없는 보기예요", no_poll: "지워진 설문이에요", owner_only: "Admin만 할 수 있어요", inquiry_limit: "문의는 하루 5번까지 남길 수 있어요", bad_inquiry: "문의 내용을 확인해 주세요", kick_denied: "운영진은 팀원만 내보낼 수 있어요", next_not_admin: "다음 Admin은 운영진 중에서 골라 주세요", owner_cannot_leave: "Admin은 다음 Admin을 정해야 나갈 수 있어요", not_self: "나에게는 할 수 없어요", not_allowed: "운영진만 할 수 있어요", owner_has_members: "팀원이 남아 있어요. 팀 설정에서 다음 Admin을 정하고 팀을 나가 주세요" };
+const GUARD = { vote_closed: "경기가 시작돼서 바꿀 수 없어요", no_event: "지워진 일정이에요", bad_vote: "저장할 수 없는 응답이에요", team_limit: "팀은 한 사람당 5개까지 만들 수 있어요", bad_code: "초대 링크가 바뀌었거나 잘못됐어요. 운영진에게 새 링크를 받아 주세요", mom_locked: "MOM 투표는 한 번만 낼 수 있어요", mom_closed: "MOM 투표 시간이 아니에요", no_player: "팀에 없는 사람이에요", poll_closed: "마감된 설문이에요", no_option: "없는 보기예요", no_poll: "지워진 설문이에요", owner_only: "Admin만 할 수 있어요", bad_inquiry: "평가 내용을 확인해 주세요", kick_denied: "운영진은 팀원만 내보낼 수 있어요", next_not_admin: "다음 Admin은 운영진 중에서 골라 주세요", owner_cannot_leave: "Admin은 다음 Admin을 정해야 나갈 수 있어요", not_self: "나에게는 할 수 없어요", not_allowed: "운영진만 할 수 있어요", owner_has_members: "팀원이 남아 있어요. 팀 설정에서 다음 Admin을 정하고 팀을 나가 주세요" };
 function fail(e) { const m = errMsg(e); const k = Object.keys(GUARD).find(x => m.includes(x)); toast(k ? GUARD[k] : /JWT|fetch|network/i.test(m) ? "연결이 끊겼어요. 잠시 후 다시 해 주세요" : "저장하지 못했어요. 잠시 후 다시 해 주세요"); console.error(e); }
 
 /* ---------- 사람과 참석 ---------- */
@@ -307,14 +307,14 @@ function vInviteMsg() {
   </div><div class="cta"><button class="btn pri block" data-act="share">${SHARE}공유하기</button><a class="btn block" href="#/">완료</a></div>`;
 }
 
-// 팀 지우기 팝업: 운영진 중에서 다음 Admin을 고르고 나가기, 또는 매니볼에 문의
+// 팀 지우기 팝업: 운영진 중에서 다음 Admin을 고르고 나가기, 또는 매니볼에 평가를 남기고 팀 지우기
 function delSheet() {
   const ads = S.members.filter(m => m.role === "admin"); const pick = S.delNext && ads.some(m => m.user_id === S.delNext) ? S.delNext : "";
   const radio = on => `<span style="width:22px;height:22px;border-radius:50%;box-sizing:border-box;flex:none;border:${on ? "7px solid #15803D" : "2px solid #D1D5DB"}"></span>`;
   sheet(`<h3>팀 지우기</h3><span class="hint">Admin은 다음 Admin을 지정한 뒤에 팀에서 나갈 수 있어요.</span>
     <div class="card" style="background:#F9FAFB"><b>다음 Admin 지정</b><span class="hint">운영진 중에서만 고를 수 있어요</span>${ads.length ? `<div class="list">${ads.map(m => `<button class="li" style="border:0;background:none;text-align:left;width:100%" data-act="delPick" data-u="${esc(m.user_id)}"><span class="av">${esc(ini(nameOf(m.user_id)))}</span><span style="flex:1"><b>${esc(nameOf(m.user_id))}</b> <span class="tag gray">운영진</span></span>${radio(pick === m.user_id)}</button>`).join("")}</div>` : `<span class="hint" style="color:#B45309">운영진이 없어요. 먼저 선수 탭에서 운영진을 지정해 주세요.</span>`}
     <button class="btn block" data-act="delLeave" style="background:${pick ? "#DC2626" : "#E5E7EB"};color:${pick ? "#FFFFFF" : "#9CA3AF"}" ${pick ? "" : "disabled"}>${pick ? esc(nameOf(pick)) + " 님을 Admin으로 지정하고 나가기" : "다음 Admin을 골라 주세요"}</button></div>
-    <div class="card" style="background:#F9FAFB"><b>팀을 아예 없애려면</b><span class="hint">팀 지우기는 매니볼을 만든 사람이 확인한 뒤 해 드려요.</span><button class="btn" data-act="inqOpen">매니볼에 문의 남기기</button></div>
+    <div class="card" style="background:#F9FAFB"><b>팀을 아예 없애려면</b><span class="hint">매니볼에 평가를 남기면 팀을 지울 수 있어요. 일정, 참석, 회비, 기록이 모두 지워지고 되돌릴 수 없어요.</span><button class="btn" data-act="inqOpen">매니볼에 평가 후 지우기</button></div>
     <button class="btn" data-act="closeSheet">닫기</button>`);
 }
 
@@ -970,25 +970,24 @@ const ACT = {
   },
   enterTeam: async t => { closeSheet(); S.ready = false; render(); await enter(t.dataset.id); },
   newTeam: () => { closeSheet(); startCreate(); },
-  // 팀 지우기 (Admin만): 바로 지우지 않는다. 다음 Admin을 지정하고 나가거나, 팀을 아예 없애려면 매니볼에 문의를 남긴다
+  // 팀 지우기 (Admin만): 다음 Admin을 지정하고 나가거나, 매니볼에 평가를 남기고 팀을 지운다 (평가는 매니볼을 고치는 데 쓴다)
   delTeam: () => { S.delNext = ""; delSheet(); },
   delPick: t => { S.delNext = t.dataset.u; delSheet(); },
   delLeave: () => { const u = S.delNext; if (!u) { toast("다음 Admin을 골라 주세요"); return; } closeSheet(); confirmBox("Admin을 지정하고 나갈까요?", `${nameOf(u)} 님이 다음 Admin이 되고, 나는 ${S.team.name}에서 나가요. 다시 들어오려면 초대 링크가 필요해요. 되돌릴 수 없어요.`, "지정하고 나가기", async () => {
     const { error } = await sb.rpc("leave_team_as_owner", { p_team: S.tid, p_next: u }); if (error) { fail(error); return; }
     ls.set("mb-team", null); toast("팀에서 나왔어요"); setTimeout(() => location.replace(APP), 600);
   }, true); },
-  inqOpen: () => sheet(`<h3>매니볼에 문의 남기기</h3><span class="hint">팀을 아예 없애려면 매니볼을 만든 사람에게 문의해 주세요. 확인한 뒤 연락드리고 팀을 지워 드려요.</span>
+  inqOpen: () => sheet(`<h3>매니볼에 평가 후 지우기</h3><span class="hint">팀을 지우는 이유와 매니볼을 쓰면서 아쉬웠던 점을 남겨 주세요. 더 나은 매니볼을 만드는 데 쓸게요.</span>
     <label class="field"><span class="lab">팀</span><input class="inp" value="${esc(S.team.name)}" disabled></label>
-    <label class="field"><span class="lab">문의 내용</span><textarea class="inp" id="inqBody" maxlength="1000" placeholder="예: 팀이 해체돼서 팀을 지우고 싶어요"></textarea></label>
-    <label class="field"><span class="lab">연락받을 곳</span><input class="inp" id="inqContact" maxlength="100" placeholder="전화번호나 이메일" autocomplete="off"></label>
-    <div class="row"><button class="btn block" data-act="delTeam">뒤로</button><button class="btn pri block" data-act="inqSend">문의 보내기</button></div>`),
-  inqSend: async t => {
-    const body = String(($("#inqBody") || {}).value || "").trim(), contact = String(($("#inqContact") || {}).value || "").trim();
-    if (body.length < 2) { toast("문의 내용을 적어 주세요"); return; }
-    if (contact.length < 5) { toast("연락받을 전화번호나 이메일을 적어 주세요"); return; }
-    t.disabled = true; const { error } = await sb.rpc("submit_inquiry", { p_team: S.tid, p_kind: "delete_team", p_body: body, p_contact: contact });
-    if (error) { t.disabled = false; fail(error); return; }
-    sheet(`<h3>문의를 보냈어요</h3><span class="hint">매니볼에서 확인하고 남긴 연락처로 연락드릴게요. 팀은 확인이 끝날 때까지 그대로 쓸 수 있어요.</span><button class="btn pri" data-act="closeSheet">확인</button>`);
+    <label class="field"><span class="lab">평가 내용</span><textarea class="inp" id="inqBody" maxlength="1000" placeholder="예: 팀이 해체돼서 지워요. 회비 화면은 편했어요"></textarea></label>
+    <div class="row"><button class="btn block" data-act="delTeam">뒤로</button><button class="btn danger block" data-act="inqSend" style="background:#DC2626;color:#FFFFFF">지우기</button></div>`),
+  inqSend: () => {
+    const body = String(($("#inqBody") || {}).value || "").trim();
+    if (body.length < 2) { toast("평가 내용을 적어 주세요"); return; }
+    confirmBox("팀을 지울까요?", `${S.team.name}의 일정, 참석, 회비, 기록, 멤버가 모두 사라져요. 되돌릴 수 없어요.`, "지우기", async () => {
+      const { error } = await sb.rpc("delete_team_with_review", { p_team: S.tid, p_body: body }); if (error) { fail(error); return; }
+      ls.set("mb-team", null); toast("팀을 지웠어요. 평가해 주셔서 고마워요"); setTimeout(() => location.replace(APP), 900);
+    }, true);
   },
   logout: () => confirmBox("로그아웃", "이 기기에서 로그아웃할까요?", "로그아웃", async () => { try { await sb.auth.signOut(); } catch (e) { /* 그래도 처음으로 */ } ls.set("mb-team", null); location.replace(APP); }),
 };
