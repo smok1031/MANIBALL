@@ -167,7 +167,9 @@ const past = () => Object.values(S.events).filter(e => started(e)).sort((a, b) =
 /* ---------- 화면 조각 ---------- */
 const BACK = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>`;
 const LOGO = s => `<span role="img" aria-label="매니볼" style="width:${s}px;height:${s}px;border-radius:${Math.round(s * .28)}px;background:#1E6B45;display:inline-flex;align-items:center;justify-content:center;flex:none;box-shadow:0 0 0 1px rgba(255,255,255,.25)"><svg width="${Math.round(s * .75)}" height="${Math.round(s * .75)}" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="22" fill="none" stroke="#FFFFFF" stroke-width="5"></circle><circle cx="23" cy="26" r="3.5" fill="#F5B841"></circle><circle cx="23" cy="38" r="3.5" fill="#F5B841"></circle><path d="M30 26 H43 M30 38 H41" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"></path></svg></span>`;
-const KAKAO = `<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3.5c-5 0-9 3.1-9 7 0 2.5 1.7 4.7 4.2 5.9l-1 3.6c-.1.3.3.6.6.4l4.2-2.8c.3 0 .7.1 1 .1 5 0 9-3.1 9-7s-4-7.2-9-7.2z"/></svg>`;
+// 카카오 로그인 공식 심볼(말풍선). 모양, 비율, 색(#000000)을 바꾸지 않는다 (카카오 로그인 디자인 가이드)
+const KAKAO = `<svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#000000" fill-rule="evenodd" clip-rule="evenodd" d="M9.00002 0.599976C4.02917 0.599976 0 3.71296 0 7.55229C0 9.94003 1.55847 12.0452 3.93152 13.2969L2.93303 16.9446C2.84481 17.2669 3.21341 17.5238 3.49646 17.337L7.87334 14.4483C8.24268 14.4839 8.61815 14.5047 9.00002 14.5047C13.9706 14.5047 18 11.3917 18 7.55229C18 3.71296 13.9706 0.599976 9.00002 0.599976"/></svg>`;
+const SHARE = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>`;
 function jersey(size, num, color) {
   return `<span style="position:relative;width:${size}px;height:${size}px;display:inline-flex;align-items:center;justify-content:center;flex:none"><svg width="${size}" height="${size}" viewBox="0 0 100 100" aria-hidden="true"><path d="M30 12 L40 8 Q50 17 60 8 L70 12 L93 27 L84 45 L74 40 L74 92 Q50 97 26 92 L26 40 L16 45 L7 27 Z" fill="${esc(color || "#164F33")}"></path><path d="M40 8 Q50 21 60 8" fill="none" stroke="#F5B841" stroke-width="3"></path><path d="M7 27 L16 45 M93 27 L84 45" stroke="#F5B841" stroke-width="3"></path></svg><b data-live="num" style="position:absolute;left:0;right:0;top:40%;text-align:center;color:${numColor(color || "#164F33")};font-size:${Math.round(size * .29)}px;font-weight:900;line-height:1;letter-spacing:-2px">${esc(num || "")}</b></span>`;
 }
@@ -208,7 +210,7 @@ function vLogin(err) {
     <p style="margin:0;color:#D1FAE5;line-height:1.6">참석 집계, 라인업, 출석과 벌금, 회비까지 링크 하나로.</p>
     <div style="margin-top:auto;display:flex;flex-direction:column;gap:10px">
       ${err ? `<div class="err" role="alert">로그인하지 못했어요. 다시 시도해 주세요.</div>` : ""}
-      <button class="btn kakao block" data-act="kakao">${KAKAO}카카오로 시작하기</button>
+      <button class="btn kakao block" data-act="kakao">${KAKAO}카카오 로그인</button>
       <span style="font-size:12px;color:#BBF7D0;text-align:center">로그인하면 <a href="../../privacy.html" style="color:#FFFFFF">개인정보처리방침과 이용약관</a>에 동의하는 것으로 봐요</span>
     </div></div>`;
 }
@@ -222,7 +224,7 @@ function vInvite(teamName, err) {
     </div>
     <div class="card"><div class="list">${[["카카오로 로그인", "비밀번호 없이 바로 들어와요"], ["선수 등록", "명단에서 내 이름을 고르거나 이름, 등번호, 포지션을 적어요"], ["팀 수칙 동의", "벌금 규칙과 회비 안내"]].map(([a, b], i) => `<div class="li"><span class="av" style="width:32px;height:32px">${i + 1}</span><span style="flex:1"><b>${a}</b><br><span class="hint">${b}</span></span></div>`).join("")}</div><span class="hint" style="text-align:center">1분이면 끝나요</span></div>
     ${err ? `<div class="err" role="alert">로그인하지 못했어요. 다시 시도해 주세요.</div>` : ""}
-    <button class="btn kakao block" data-act="kakao">${KAKAO}카카오로 시작하기</button>
+    <button class="btn kakao block" data-act="kakao">${KAKAO}카카오 로그인</button>
     <span class="hint" style="text-align:center">처음 한 번만 하면 다음부터는 바로 들어와요. 앱 설치는 필요 없어요. <a href="../../privacy.html">개인정보처리방침과 이용약관</a></span>
   </div>`;
 }
@@ -295,7 +297,7 @@ function vInviteMsg() {
       <span class="hint">이 링크로 들어온 사람은 팀원이 돼요. 링크가 엉뚱한 곳에 퍼졌으면 새 링크를 만들어 예전 링크를 막아요.</span>
       <button class="btn sm" data-act="newCode" style="align-self:flex-start">새 링크 만들기</button>
     </div>
-  </div><div class="cta"><button class="btn kakao block" data-act="share">${KAKAO}카카오톡 단톡방에 보내기</button><a class="btn block" href="#/">완료</a></div>`;
+  </div><div class="cta"><button class="btn pri block" data-act="share">${SHARE}공유하기</button><a class="btn block" href="#/">완료</a></div>`;
 }
 
 /* ---------- 홈 ---------- */

@@ -43,7 +43,7 @@ body{margin:0;background:#FFFFFF}
   </div>
 
   <div style="margin-top: auto; padding: 12px 20px 28px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #F3F4F6">
-    <a href="InviteRoster.dc.html" style="display: block; text-decoration: none; background: #FEE500; color: #191919; font-weight: 700; font-size: 17px; padding: 16px 0; border-radius: 14px; text-align: center" onClick="{{ c3k }}">카카오톡 단톡방에 보내기</a>
+    <a href="InviteRoster.dc.html" style="display: block; text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; font-size: 17px; padding: 16px 0; border-radius: 14px; text-align: center" onClick="{{ c3k }}">공유하기</a>
     <span style="color: #6B7280; font-size: 13px; text-align: center">보낸 뒤 팀 홈으로 이동해요</span>
   </div>
   <sc-if value="{{ toastOn }}" hint-placeholder-val="{{ false }}"><div role="status" style="position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); z-index: 50; width: max-content; max-width: 340px; box-sizing: border-box; background: #111827; color: #FFFFFF; font-size: 14px; font-weight: 700; line-height: 1.5; padding: 12px 16px; border-radius: 14px; text-align: center; box-shadow: 0 10px 24px rgba(17,24,39,0.25)">{{ toastText }}</div></sc-if>
@@ -116,7 +116,7 @@ class Component extends DCLogic {
         if (c.a === 'share') v[k + 'k'] = (ev) => {
           if (!c.nav) pd(ev);
           try { if (navigator.share) { navigator.share({ title: 'TEST FS', text: get('_msg', 'TEST FS 팀 관리 앱이에요. 링크 누르고 들어와요!'), url: 'https://maniball.app/j/TEST7Q' }).catch(() => {}); } } catch (e) {}
-          toast('카카오톡 공유 창을 열었어요');
+          toast('공유 창을 열었어요');
         };
         if (c.a === 'hide') { v[k + 'r'] = c.rs + (done ? '; display: none' : ''); v[k + 'k'] = (ev) => { pd(ev); set({ [k]: 1 }); toast(c.msg); }; }
         if (c.a === 'got') { v[k + 's'] = done ? c.s1 : c.s0; v[k + 't'] = done ? '받음 완료' : '받음'; v[k + 'k'] = (ev) => { pd(ev); if (!done) { set({ [k]: 1 }); toast('현금으로 받은 걸로 처리했어요'); } }; }
