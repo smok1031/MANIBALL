@@ -422,7 +422,7 @@ begin
   delete from auth.users where id = me;
 end $$;
 
--- 팀 지우기: Admin만. 일정, 참석, 회비, 멤버가 모두 함께 지워진다
+-- 팀 지우기: 앱에서는 못 한다 (매니볼에 문의하면 만든 사람이 지운다). 함수는 관리용으로만 남긴다. 일정, 참석, 회비, 멤버가 모두 함께 지워진다
 create or replace function public.delete_team(p_team uuid) returns void
 language plpgsql security definer set search_path = public as $$
 begin
@@ -439,7 +439,7 @@ revoke all on function public.docs_member_guard(), public.docs_gone(), public.do
 grant execute on function public.create_team(text), public.join_team(text, text), public.team_by_code(text), public.set_my_name(uuid, text),
   public.set_member_role(uuid, uuid, text), public.remove_member(uuid, uuid), public.new_invite_code(uuid), public.doc_patch(uuid, text, text, jsonb),
   public.team_role(uuid), public.is_member(uuid), public.is_admin(uuid), public.jsonb_deep_merge(jsonb, jsonb),
-  public.team_invite_code(uuid), public.leave_team_as_owner(uuid, uuid), public.delete_my_account(), public.delete_team(uuid) to authenticated;
+  public.team_invite_code(uuid), public.leave_team_as_owner(uuid, uuid), public.delete_my_account() to authenticated;
 -- 로그인 전 화면에서도 초대받은 팀 이름을 보여 준다 (코드를 아는 사람만)
 grant execute on function public.team_by_code(text) to anon;
 -- 초대 코드는 운영진만 (team_invite_code 함수로) 본다
@@ -462,3 +462,30 @@ end $$;
 do $$ declare t uuid; begin
   for t in select id from public.teams loop perform public.recount_tally(t); end loop;
 end $$;
+
+-- 매니볼 문의: 앱에서는 남기기만 하고, 읽기는 Supabase 관리 화면에서만 한다 (정책이 없어 API로는 못 읽는다)
+create table if not exists public.inquiries (
+  id bigint generated always as identity primary key,
+  team_id uuid references public.teams(id) on delete set null,
+  user_id uuid,
+  kind text not null default 'etc',
+  body text not null,
+  contact text not null default '',
+  status text not null default 'new',
+  created_at timestamptz not null default now()
+);
+alter table public.inquiries enable row level security;
+revoke all on public.inquiries from anon, authenticated;
+
+create or replace function public.submit_inquiry(p_team uuid, p_kind text, p_body text, p_contact text) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'not_signed_in'; end if;
+  if p_kind not in ('delete_team', 'etc') then raise exception 'bad_kind'; end if;
+  if p_kind = 'delete_team' and coalesce(public.team_role(p_team), '') <> 'owner' then raise exception 'owner_only'; end if;
+  if length(trim(coalesce(p_body, ''))) < 2 or length(p_body) > 1000 or length(coalesce(p_contact, '')) > 100 then raise exception 'bad_inquiry'; end if;
+  if (select count(*) from public.inquiries where user_id = auth.uid() and created_at > now() - interval '1 day') >= 5 then raise exception 'inquiry_limit'; end if;
+  insert into public.inquiries (team_id, user_id, kind, body, contact) values (p_team, auth.uid(), p_kind, trim(p_body), trim(coalesce(p_contact, '')));
+end $$;
+revoke all on function public.submit_inquiry(uuid, text, text, text) from public, anon;
+grant execute on function public.submit_inquiry(uuid, text, text, text) to authenticated;

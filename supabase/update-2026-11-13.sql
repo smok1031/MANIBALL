@@ -42,3 +42,33 @@ end $$;
 
 revoke all on function public.leave_team_as_owner(uuid, uuid) from public, anon;
 grant execute on function public.remove_member(uuid, uuid), public.leave_team_as_owner(uuid, uuid) to authenticated;
+
+-- 팀 지우기는 Admin이 바로 하지 않는다. 매니볼에 문의를 남기면 만든 사람이 확인하고 지운다
+revoke execute on function public.delete_team(uuid) from public, anon, authenticated;
+
+-- 매니볼 문의: 앱에서는 남기기만 하고, 읽기는 Supabase 관리 화면에서만 한다 (정책이 없어 API로는 못 읽는다)
+create table if not exists public.inquiries (
+  id bigint generated always as identity primary key,
+  team_id uuid references public.teams(id) on delete set null,
+  user_id uuid,
+  kind text not null default 'etc',
+  body text not null,
+  contact text not null default '',
+  status text not null default 'new',
+  created_at timestamptz not null default now()
+);
+alter table public.inquiries enable row level security;
+revoke all on public.inquiries from anon, authenticated;
+
+create or replace function public.submit_inquiry(p_team uuid, p_kind text, p_body text, p_contact text) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'not_signed_in'; end if;
+  if p_kind not in ('delete_team', 'etc') then raise exception 'bad_kind'; end if;
+  if p_kind = 'delete_team' and coalesce(public.team_role(p_team), '') <> 'owner' then raise exception 'owner_only'; end if;
+  if length(trim(coalesce(p_body, ''))) < 2 or length(p_body) > 1000 or length(coalesce(p_contact, '')) > 100 then raise exception 'bad_inquiry'; end if;
+  if (select count(*) from public.inquiries where user_id = auth.uid() and created_at > now() - interval '1 day') >= 5 then raise exception 'inquiry_limit'; end if;
+  insert into public.inquiries (team_id, user_id, kind, body, contact) values (p_team, auth.uid(), p_kind, trim(p_body), trim(coalesce(p_contact, '')));
+end $$;
+revoke all on function public.submit_inquiry(uuid, text, text, text) from public, anon;
+grant execute on function public.submit_inquiry(uuid, text, text, text) to authenticated;
