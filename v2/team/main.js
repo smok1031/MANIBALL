@@ -68,7 +68,21 @@ async function loadTeams() {
   if (error) throw error;
   const ids = mem.map(m => m.team_id); let names = {};
   if (ids.length) { const { data } = await sb.from("teams").select("id,name").in("id", ids); names = Object.fromEntries((data || []).map(t => [t.id, t.name])); }
-  S.teams = mem.map(m => ({ id: m.team_id, role: m.role, name: names[m.team_id] || "팀" }));
+  S.teams = mem.map(m => ({ id: m.team_id, role: m.role, name: names[m.team_id] || "팀", dn: m.display_name || "" }));
+}
+// 팀 고르기 화면에 쓸 종목, 인원, 다음 일정 (팀마다 한 번에 모아서 읽는다)
+async function loadTeamsInfo() {
+  const ids = S.teams.map(t => t.id); if (!ids.length) return;
+  const [m, s, e] = await Promise.all([
+    sb.from("members").select("team_id").in("team_id", ids),
+    sb.from("docs").select("team_id,sport:data->>sport").eq("coll", "team").eq("id", "settings").in("team_id", ids),
+    sb.from("docs").select("team_id,date:data->>date,time:data->>time,type:data->>type,place:data->>place,opponent:data->>opponent").eq("coll", "events").in("team_id", ids).gte("data->>date", todayStr()).limit(1000),
+  ]);
+  const info = {}; ids.forEach(id => { info[id] = { n: 0, sport: "", next: null }; });
+  (m.data || []).forEach(r => { if (info[r.team_id]) info[r.team_id].n++; });
+  (s.data || []).forEach(r => { if (info[r.team_id]) info[r.team_id].sport = r.sport === "soccer" ? "soccer" : "futsal"; });
+  (e.data || []).forEach(r => { const x = info[r.team_id]; if (!x || !/^\d{4}-\d{2}-\d{2}$/.test(r.date || "")) return; const k = r.date + " " + (r.time || "99:99"); if (!x.next || k < x.nextK) { x.next = r; x.nextK = k; } });
+  S.teamsInfo = info;
 }
 async function loadTeam(tid) {
   S.tid = tid;
@@ -237,11 +251,41 @@ function vInvite(teamName, err) {
 }
 
 /* ---------- 팀 만들기 ---------- */
+// 팀 고르기: 팀이 2개 이상이면 앱을 열 때 먼저 고른다. 팀 안에서 '다른 팀, 새 팀'을 눌러도 이 화면 (뒤로 있음)
+function vTeams() {
+  const sw = S.teamsMode === "switch", info = S.teamsInfo || {}, last = ls.get("mb-team");
+  const myName = (S.teams.find(t => t.dn) || {}).dn || suggestedName();
+  const RS = { owner: "background:#111827;color:#FFFFFF", admin: "background:#DCFCE7;color:#166534", member: "background:#F3F4F6;color:#374151" };
+  const card = t => {
+    const x = info[t.id] || {}, soc = x.sport === "soccer", sp = x.sport ? (soc ? "축구" : "풋살") : "";
+    const now = sw && t.id === S.tid, mark = now ? `<span style="font-size:11px;font-weight:700;color:#15803D">지금 보는 팀</span>` : !sw && t.id === last ? `<span style="font-size:11px;font-weight:700;color:#6B7280">지난번에 본 팀</span>` : "";
+    const e = x.next, today = e && e.date === todayStr();
+    const what = e ? `${e.time ? e.time + " " : ""}${e.type === "match" ? "경기" : e.type === "scrim" ? "내전" : "훈련"}${e.type === "match" && e.opponent ? ", vs " + e.opponent : e.place ? ", " + e.place : ""}` : "";
+    const sched = !S.teamsInfo ? "" : today ? `<span style="display:flex;align-items:center;gap:6px;background:#F0FDF4;border-radius:10px;padding:7px 10px;font-size:13px;min-width:0"><span style="background:#15803D;color:#FFFFFF;font-weight:700;font-size:11px;padding:2px 7px;border-radius:999px;flex:none">오늘</span><span style="color:#166534;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(what)}</span></span>`
+      : `<span style="display:flex;align-items:center;gap:6px;background:#F9FAFB;border-radius:10px;padding:7px 10px;font-size:13px;color:${e ? "#374151" : "#6B7280"};min-width:0"><b style="font-size:12px;color:#6B7280;flex:none">다음 일정</b><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e ? esc(md(e.date) + " " + wd(e.date) + " " + what) : "아직 없어요"}</span></span>`;
+    return `<button data-act="teamGo" data-id="${esc(t.id)}" style="all:unset;box-sizing:border-box;cursor:pointer;background:#FFFFFF;border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:12px;${now ? "box-shadow:inset 0 0 0 2px #15803D" : "box-shadow:0 1px 2px rgba(17,24,39,.04)"}">
+      <span style="display:flex;align-items:center;gap:12px"><span style="width:52px;height:52px;border-radius:15px;background:${soc ? "#1F2937" : "#1E6B45"};color:#FFFFFF;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;flex:none">${sp || esc(ini(t.name))}</span>
+      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><span style="display:flex;align-items:center;gap:6px;min-width:0"><b style="font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.name)}</b><span style="${RS[t.role] || RS.member};font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;flex:none">${ROLE[t.role] || "팀원"}</span></span>
+      <span style="font-size:13px;color:#6B7280">${sp ? sp + "팀, " : ""}${x.n ? `팀원 ${x.n}명` : ""}</span>${mark}</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><path d="M9 6l6 6-6 6"/></svg></span>${sched}</button>`;
+  };
+  const head = sw ? `<header class="top"><a class="iconbtn" href="#" data-act="teamsBack" aria-label="뒤로">${BACK}</a><h1>팀 바꾸기</h1></header>`
+    : `<header style="padding:14px 16px 8px;display:flex;align-items:center;gap:10px">${LOGO(32)}<span style="display:flex;flex-direction:column;line-height:1.1"><b style="font-weight:900;font-size:17px;letter-spacing:-.4px">매니볼</b><span style="font-size:9px;font-weight:700;color:#1E6B45;letter-spacing:1.2px">MANIBALL</span></span></header>`;
+  const lead = sw ? `<span style="font-size:14px;color:#6B7280;padding:0 4px 2px">들어갈 팀을 골라 주세요</span>`
+    : `<div style="padding:0 4px 6px"><h1 style="font-size:26px;font-weight:900;letter-spacing:-.8px;margin:0 0 6px">어느 팀으로 들어갈까요?</h1><span style="font-size:14px;color:#6B7280">${esc(myName ? myName + " 님이" : "")} 함께하는 팀이 ${S.teams.length}개 있어요</span></div>`;
+  return `${head}<div class="body" style="padding-top:18px">${lead}${S.teams.map(card).join("")}
+    <button data-act="newTeam" style="all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;justify-content:center;border:1.5px dashed #D1D5DB;border-radius:16px;padding:15px 0;font-weight:700;font-size:15px;color:#374151">+ 새 팀 만들기</button></div>`;
+}
+async function showTeams(mode) {
+  S.teamsMode = mode; S.teamsInfo = null; S.flow = "teams"; window.scrollTo(0, 0); render();
+  try { await loadTeamsInfo(); } catch (e) { /* 이름과 권한만 보여 준다 */ }
+  if (S.flow === "teams") render();
+}
 function vCreate(edit) {
   const f = S.form;
   const chip = (k, v, l) => `<button class="chip ${f[k] === v ? "on" : ""}" data-act="pick" data-k="${k}" data-v="${v}">${l}</button>`;
   const days = ["1", "5", "10", "25", "말일"];
-  return `${top(edit ? "팀 설정" : "팀 만들기", edit ? "#/players" : S.teams.length ? "#/" : "")}<div class="body">
+  return `${edit ? top("팀 설정", "#/players") : S.teams.length ? `<header class="top"><a class="iconbtn" href="#" data-act="createBack" aria-label="뒤로">${BACK}</a><h1>팀 만들기</h1></header>` : top("팀 만들기", "")}<div class="body">
     <div class="card">
       <label class="field"><span class="lab">팀 이름</span><input class="inp" data-bind="name" value="${esc(f.name || "")}" maxlength="40" placeholder="예: 번개 FS" autocomplete="off"></label>
       <div class="field"><span class="lab">종목</span><div class="chips">${chip("sport", "futsal", "풋살팀")}${chip("sport", "soccer", "축구팀")}</div></div>
@@ -785,6 +829,7 @@ function render() {
   if (S.flow === "login") html = vLogin(qs.get("login_error"));
   else if (S.flow === "invite") html = vInvite(S.inviteTeam, qs.get("login_error"));
   else if (S.flow === "create") html = vCreate();
+  else if (S.flow === "teams") html = vTeams();
   else if (S.flow === "profile") html = vProfile(false);
   else if (S.flow === "rules") html = vRules();
   else if (S.flow === "claim") html = vClaim();
@@ -965,11 +1010,16 @@ const ACT = {
     catch (e) { t.disabled = false; fail(e); }
   },
   delEvent: t => confirmBox("일정 지우기", "이 일정과 참석 응답이 모두 사라져요. 되돌릴 수 없어요.", "지우기", async () => { try { await delDoc("events", t.dataset.eid); toast("지웠어요"); location.hash = "#/schedule"; } catch (e) { fail(e); } }, true),
-  switchTeam: () => {
-    sheet(`<h3>팀 고르기</h3><div class="list">${S.teams.map(t => `<button class="li" style="border:0;background:none;text-align:left;width:100%" data-act="enterTeam" data-id="${esc(t.id)}"><span class="av">${esc(ini(t.name))}</span><span style="flex:1"><b>${esc(t.name)}</b><br><span class="hint">${ROLE[t.role] || ""}</span></span></button>`).join("")}</div><a class="btn" href="#" data-act="newTeam">+ 새 팀 만들기</a>`);
+  switchTeam: () => { closeSheet(); showTeams("switch"); },
+  teamGo: async t => {
+    const id = t.dataset.id;
+    if (S.teamsMode === "switch" && id === S.tid && S.ready) { S.flow = ""; render(); return; }
+    S.flow = ""; S.ready = false; render(); location.hash = "#/"; lastRoute = ""; await enter(id);
   },
+  teamsBack: () => { S.flow = ""; render(); },
+  createBack: () => { if (S.fromTeams || !(S.ready && S.tid)) showTeams(S.teamsMode || "entry"); else { S.flow = ""; render(); } },
   enterTeam: async t => { closeSheet(); S.ready = false; render(); await enter(t.dataset.id); },
-  newTeam: () => { closeSheet(); startCreate(); },
+  newTeam: () => { closeSheet(); S.fromTeams = S.flow === "teams"; startCreate(); },
   // 팀 지우기 (Admin만): 다음 Admin을 지정하고 나가거나, 매니볼에 평가를 남기고 팀을 지운다 (평가는 매니볼을 고치는 데 쓴다)
   delTeam: () => { S.delNext = ""; delSheet(); },
   delPick: t => { S.delNext = t.dataset.u; delSheet(); },
@@ -1059,6 +1109,7 @@ async function boot() {
     } else return enter(t.id);
   }
   const last = ls.get("mb-team"); const t = S.teams.find(x => x.id === last) || S.teams[0];
+  if (S.teams.length >= 2 && (route() === "/" || route() === "")) return showTeams("entry");
   if (t) return enter(t.id);
   startCreate();
 }

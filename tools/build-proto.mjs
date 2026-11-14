@@ -10,6 +10,7 @@ mkdirSync(OUT, { recursive: true });
 // 시트처럼 한 화면 높이에 고정된 화면은 캔버스 원본의 고정 높이(height: 844px; overflow: hidden)로 알아낸다
 
 const GROUPS = [
+  ["팀 고르기 (팀이 2개 이상일 때)", ["TeamPick", "TeamPickSwitch"]],
   ["팀 만들기", ["TeamSplit", "InviteMessage", "InviteRoster"]],
   ["팀원 가입 (초대 링크로 들어왔을 때)", ["JoinInvite", "JoinProfile", "JoinRules"]],
   ["운영진 홈", ["HomeAdmin", "NotifyAdmin", "NoticeAdmin", "NoticeAdminWrite"]],

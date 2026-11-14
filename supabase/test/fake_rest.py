@@ -84,14 +84,21 @@ class H(BaseHTTPRequestHandler):
             if k == "limit": limit = int(v); continue
             if k == "offset": offset = int(v); continue
             if k in ("on_conflict", "columns"): continue
-            assert k in COLS[table], k
+            jm = re.fullmatch(r"(\w+)->>(\w+)", k)  # json 안의 값으로 거르기 (data->>date)
+            if jm: assert jm.group(1) in COLS[table]; k = f"({jm.group(1)}->>'{jm.group(2)}')"
+            else: assert k in COLS[table], k
             op, _, val = v.partition(".")
-            if op == "eq": sql.append(f"{k}::text = %s"); args.append(val)
+            if op in ("gte", "lte", "gt", "lt"): sql.append(f"{k}::text {dict(gte='>=', lte='<=', gt='>', lt='<')[op]} %s"); args.append(val)
+            elif op == "eq": sql.append(f"{k}::text = %s"); args.append(val)
             elif op == "neq": sql.append(f"{k}::text <> %s"); args.append(val)
             elif op == "in": sql.append(f"{k}::text = any(%s)"); args.append([x.strip('"') for x in val.strip("()").split(",") if x])
             else: raise AssertionError(op)
         cols = [c.strip() for c in sel.split(",")] if sel != "*" else ["*"]
-        for c in cols: assert c == "*" or c in COLS[table], c
+        def col(c):  # 별칭:열->>키 (예: sport:data->>sport)
+            jm = re.fullmatch(r"(\w+):(\w+)->>(\w+)", c)
+            if jm: assert jm.group(2) in COLS[table]; return f"{jm.group(2)}->>'{jm.group(3)}' as {jm.group(1)}"
+            assert c == "*" or c in COLS[table], c; return c
+        cols = [col(c) for c in cols]
         tail = (" order by " + ", ".join(order) if order else "") + (f" limit {limit}" if limit is not None else "") + (f" offset {offset}" if offset is not None else "")
         return ", ".join(cols), (" where " + " and ".join(sql) if sql else ""), args, tail
 
