@@ -20,6 +20,8 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 // 테스트 사이트는 같은 주소(github.io)를 쓰므로 저장 이름 앞에 t-를 붙여 운영 사이트와 섞이지 않게 한다
 const STAGE = import.meta.env.VITE_STAGE === "test" ? "t-" : "";
+// 이 탭에서 팀에 한 번 들어갔는지 (새로고침마다 팀 고르기로 돌아가지 않게. 새로 열거나 로그인하면 다시 고른다)
+const picked = { get: () => { try { return sessionStorage.getItem(STAGE + "mb-picked") === "1"; } catch (e) { return false; } }, set: () => { try { sessionStorage.setItem(STAGE + "mb-picked", "1"); } catch (e) { /* 없어도 됨 */ } }, clear: () => { try { sessionStorage.removeItem(STAGE + "mb-picked"); } catch (e) { /* 없어도 됨 */ } } };
 const ls = { get: k => { try { return localStorage.getItem(STAGE + k); } catch (e) { return null; } }, set: (k, v) => { try { v == null ? localStorage.removeItem(STAGE + k) : localStorage.setItem(STAGE + k, v); } catch (e) { /* 없어도 된다 */ } } };
 const WD = "일월화수목금토";
 // 풋살 포지션: 골레이로(골키퍼), 픽소(수비), 아라(측면), 피보(공격)
@@ -263,7 +265,7 @@ function vInvite(teamName, err) {
 }
 
 /* ---------- 팀 만들기 ---------- */
-// 팀 고르기: 팀이 2개 이상이면 앱을 열 때 먼저 고른다. 팀 안에서 '다른 팀, 새 팀'을 눌러도 이 화면 (뒤로 있음)
+// 팀 고르기: 앱을 첫 화면으로 열면 먼저 고른다 (팀이 하나여도). 팀 안에서 '다른 팀, 새 팀'을 눌러도 이 화면 (뒤로 있음)
 function vTeams() {
   const sw = S.teamsMode === "switch", info = S.teamsInfo || {}, last = ls.get("mb-team");
   const myName = (S.teams.find(t => t.dn) || {}).dn || suggestedName();
@@ -1151,7 +1153,7 @@ const ACT = {
       ls.set("mb-team", null); toast("팀을 지웠어요. 평가해 주셔서 고마워요"); setTimeout(() => location.replace(APP), 900);
     }, true);
   },
-  logout: () => confirmBox("로그아웃", "이 기기에서 로그아웃할까요?", "로그아웃", async () => { try { await sb.auth.signOut(); } catch (e) { /* 그래도 처음으로 */ } ls.set("mb-team", null); location.replace(APP); }),
+  logout: () => confirmBox("로그아웃", "이 기기에서 로그아웃할까요?", "로그아웃", async () => { try { await sb.auth.signOut(); } catch (e) { /* 그래도 처음으로 */ } ls.set("mb-team", null); picked.clear(); location.replace(APP); }),
 };
 Object.assign(ACT, ACT2, ACT3, ACT4, AACT1, AACT2, AACT3, MACT);
 document.addEventListener("click", ev => {
@@ -1171,10 +1173,11 @@ async function enter(tid) {
   const rs = S.rsvp[S.uid] || {}; if (!isAdmin() && myProfile() && S.settings.rulesAgreeAt && (!rs.agreedAt || rs.agreedAt < S.settings.rulesAgreeAt)) { S.form = {}; S.flow = "rules"; render(); return; }
   if (!myProfile() && !isAdmin()) { S.afterProfile = ""; if (unclaimed().length) { S.flow = "claim"; render(); return; } startProfile(); return; }
   if (!isAdmin() && !(S.rsvp[S.uid] || {}).agreedAt) { S.flow = "rules"; render(); return; }
-  S.flow = ""; S.ready = true; onRoute(true);
+  S.flow = ""; S.ready = true; picked.set(); onRoute(true);
   syncMyDues().catch(() => {});
 }
 async function kakaoFinish() {
+  picked.clear(); // 막 로그인했으면 팀 고르기부터
   let st = null; try { st = JSON.parse(sessionStorage.getItem(KK) || "null"); sessionStorage.removeItem(KK); } catch (e) { /* 없음 */ }
   if (!st || !qs.get("state") || qs.get("state") !== st.state) throw new Error("state");
   if (qs.get("error")) throw new Error(qs.get("error"));
@@ -1222,11 +1225,12 @@ async function boot() {
   }
   const last = ls.get("mb-team"); const t = S.teams.find(x => x.id === last) || S.teams[0];
   if (!S.teams.length && (S.myReqs || []).length) return startJoinWait();
-  if (S.teams.length >= 2 && (route() === "/" || route() === "")) return showTeams("entry");
+  // 팀 고르기: 팀이 하나여도 첫 화면으로 열면 먼저 고른다 (초대 링크, 공유받은 주소는 바로)
+  if (S.teams.length && !picked.get() && (route() === "/" || route() === "")) return showTeams("entry");
   if (t) return enter(t.id);
   startCreate();
 }
-sb.auth.onAuthStateChange((ev) => { if (ev === "SIGNED_OUT") location.replace(APP); });
+sb.auth.onAuthStateChange((ev) => { if (ev === "SIGNED_OUT") { picked.clear(); location.replace(APP); } });
 boot();
 
 // 축구: 대표 포메이션 10개 (자리 이름은 아래 GK에서 위 공격 순서). 풋살: 포메이션 없이 몇 명이 뛸지만 고른다 (formOf)
