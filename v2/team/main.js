@@ -444,7 +444,7 @@ function vInviteMsg() {
   return `${top("팀원 초대하기", "#/")}<div class="body">
     <div class="card"><span class="lab">단톡방에 올릴 문구</span><textarea class="inp" data-bind="msg" aria-label="초대 문구">${esc(msg)}</textarea>
       <div class="spread" style="border:1px solid #E5E7EB;border-radius:12px;padding:12px"><span style="font-size:14px;word-break:break-all">${esc(inviteUrl() || "링크를 만드는 중이에요")}</span><button class="btn sm" data-act="copyLink">복사</button></div>
-      <span class="hint">이 링크로 들어온 사람은 팀원이 돼요. 링크가 엉뚱한 곳에 퍼졌으면 새 링크를 만들어 예전 링크를 막아요.</span>
+      <span class="hint">이 링크로 들어온 사람은 가입 신청을 보내고, 운영진이 승인하면 팀원이 돼요. 링크가 엉뚱한 곳에 퍼졌으면 새 링크를 만들어 예전 링크를 막아요.</span>
       <button class="btn sm" data-act="newCode" style="align-self:flex-start">새 링크 만들기</button>
     </div>
   </div><div class="cta"><button class="btn pri block" data-act="share">${SHARE}공유하기</button><a class="btn block" href="#/">완료</a></div>`;
