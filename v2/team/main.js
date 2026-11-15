@@ -653,7 +653,12 @@ function vLineup(id) {
   const cnt = {}; if (L) Object.values(L.q || {}).forEach(r => Object.values(r).forEach(u => { cnt[u] = (cnt[u] || 0) + 1; }));
   const played = u => Array.from({ length: qn }, (_, i) => Object.values((L && L.q && L.q[i + 1]) || {}).includes(u));
   const xy = spotXY(fl, fkey); const sel = edit && UI.sel != null && fl[UI.sel] ? UI.sel : null;
+  const mineAt = n => { const r = (L && L.q && L.q[n]) || {}; const j = Object.keys(r).find(x => r[x] === S.uid); return j != null ? Number(j) : null; };
+  const myI = mineAt(k); const inLine = !!pOf(S.uid);
+  const mtag = i => { const p = xy[i]; const me = myI === i;
+    return `<span aria-label="${esc(fl[i])}${me ? ", 내 자리" : ""}" style="position:absolute;left:${p.x}%;top:${p.y}%;transform:translate(-50%,-50%);border-radius:10px;padding:4px ${p.tight ? 6 : 8}px;min-width:44px;box-sizing:border-box;font-size:${p.tight ? 11 : 12}px;font-weight:700;text-align:center;line-height:1.35;white-space:nowrap;${me ? "background:#DCFCE7;color:#111827;box-shadow:0 0 0 3px #15803D,0 2px 6px rgba(0,0,0,.2)" : "background:rgba(255,255,255,.72);color:#6B7280;box-shadow:0 2px 6px rgba(0,0,0,.15)"}"><span style="font-size:10px;color:#6B7280">${esc(fl[i])}</span>${me ? "<br>나" : ""}</span>`; };
   const tag = i => {
+    if (!edit) return mtag(i);
     const pos = fl[i]; const u = q[i]; const p = xy[i]; const fixd = pinned(u, pos); const off = u && !fixd && !canPlay(pOf(u), pos); const keep = isKeeper(pos);
     const bg = !u ? "rgba(255,255,255,0.72)" : u === S.uid && !edit ? "#DCFCE7" : keep ? "#FEF3C7" : "#FFFFFF";
     return `<button ${edit ? `data-act="lineSpot" data-i="${i}"` : "disabled"} aria-label="${esc(pos)} ${esc(u ? nm(u) : "빈자리")}" style="position:absolute;left:${p.x}%;top:${p.y}%;transform:translate(-50%,-50%);border:0;background:${bg};color:${u ? "#111827" : "#6B7280"};border-radius:10px;padding:4px ${p.tight ? 6 : 8}px;min-width:44px;min-height:40px;font-size:${p.tight ? 11 : 12}px;font-weight:700;text-align:center;line-height:1.35;box-shadow:0 2px 6px rgba(0,0,0,.15);white-space:nowrap;opacity:1;${sel === i ? "outline:2px solid #15803D;outline-offset:1px;" : ""}"><span style="color:#6B7280;font-size:10px">${esc(pos)}${fixd ? ` <span style="background:#15803D;color:#FFFFFF;border-radius:5px;padding:0 4px;font-size:9px">고정</span>` : ""}</span><br>${u ? esc(nm(u)) : "빈자리"}${off ? `<br><span style="color:#B91C1C;font-size:10px">포지션 아님</span>` : ""}</button>`;
@@ -663,7 +668,7 @@ function vLineup(id) {
       <div style="position:absolute;left:0;right:0;top:50%;border-top:1.5px solid rgba(255,255,255,.55)"></div>
       <div style="position:absolute;left:50%;top:50%;width:60px;height:60px;transform:translate(-50%,-50%);border:1.5px solid rgba(255,255,255,.55);border-radius:50%"></div>
       <div style="position:absolute;left:28%;right:28%;bottom:0;height:15%;border:1.5px solid rgba(255,255,255,.55);border-bottom:0;border-radius:40px 40px 0 0"></div>
-      ${fl.map((_, i) => tag(i)).join("")}</div>`;
+      ${fl.map((_, i) => tag(i)).join("")}${!edit && inLine && myI == null ? `<div style="position:absolute;inset:0;background:rgba(17,24,39,.5);display:flex;align-items:center;justify-content:center"><span style="background:#111827;color:#FFFFFF;border-radius:999px;padding:8px 16px;font-size:15px;font-weight:900">${k}쿼터는 쉬어요</span></div>` : ""}</div>`;
   const qtabs = `<div style="display:grid;grid-template-columns:repeat(${qn},minmax(0,1fr));gap:2px;background:#E5E7EB;border-radius:12px;padding:3px">${Array.from({ length: qn }, (_, i) => i + 1).map(n => `<button data-act="lineQ" data-v="${n}" style="border:0;border-radius:9px;padding:8px 0;font-size:12px;font-weight:700;${n === k ? "background:#111827;color:#FFFFFF" : "background:transparent;color:#6B7280"}">${n}Q</button>`).join("")}</div>`;
   const selCard = () => {
     const pos = fl[sel]; const u = q[sel]; const fixd = pinned(u, pos);
@@ -680,6 +685,12 @@ function vLineup(id) {
   const countCard = !L ? "" : `<div class="card" style="padding:14px;gap:8px"><div class="spread"><b style="font-size:14px">쿼터 수</b><span style="font-size:12px;color:#15803D;font-weight:700">${mn === mx ? `필드 1인 ${mx}쿼터씩 맞췄어요` : `필드 1인 ${mn}~${mx}쿼터로 고르게 맞췄어요`}</span></div>
       ${ps.slice().sort((x, y) => (cnt[y.uid] || 0) - (cnt[x.uid] || 0)).slice(0, 5).map(p => `<div style="display:flex;align-items:center;gap:8px;font-size:13px"><b style="width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${p.uid === S.uid ? "font-weight:900" : ""}">${esc(p.name.replace(" (용병)", ""))}</b><span style="flex:1;display:grid;grid-template-columns:repeat(${qn},minmax(0,1fr));gap:3px">${played(p.uid).map(on => `<i style="height:8px;border-radius:2px;background:${on ? "#15803D" : "#E5E7EB"}"></i>`).join("")}</span><b style="width:26px;text-align:right">${cnt[p.uid] || 0}</b></div>`).join("")}
       <a href="#/rest/${esc(e.id)}" style="font-size:13px;font-weight:700;text-decoration:none;text-align:center;padding-top:4px;color:#15803D">${ps.length}명 모두 보기</a></div>`;
+  const myQs = Array.from({ length: qn }, (_, i) => mineAt(i + 1)); const myN = myQs.filter(x => x != null).length;
+  const myCard = edit || !L ? "" : !inLine ? `<div class="card" style="gap:6px"><b>이번 라인업에 내 이름이 없어요</b><span class="hint">참석으로 바꿨는데 안 보이면 운영진에게 말해 주세요.</span></div>` : `<div class="card" style="padding:16px;gap:12px"><div class="spread" style="align-items:baseline"><b style="font-size:16px">내 출전</b><span style="font-size:13px;color:#6B7280">${qn}쿼터 중 <b style="color:#15803D">${myN}쿼터 출전</b>, ${qn - myN}쿼터 휴식</span></div>
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px">${myQs.map((j, i) => `<button data-act="lineQ" data-v="${i + 1}" aria-label="${i + 1}쿼터 ${j != null ? esc(L.formation[j]) : "휴식"}" style="border:0;border-radius:12px;padding:8px 0;min-height:44px;display:flex;flex-direction:column;align-items:center;gap:2px;${j != null ? "background:#DCFCE7;color:#166534" : "background:#F3F4F6;color:#6B7280"}${i + 1 === k ? ";box-shadow:inset 0 0 0 2px #15803D" : ""}"><span style="font-size:11px;font-weight:700">${i + 1}Q</span><b style="font-size:13px">${j != null ? esc(L.formation[j]) : "휴식"}</b></button>`).join("")}</div>
+      <span style="font-size:12px;color:#6B7280">쿼터를 누르면 아래 포메이션에서 내 자리를 볼 수 있어요</span></div>`;
+  const myLine = edit || !L || !inLine ? "" : `<div class="card" style="padding:12px 14px;flex-direction:row;justify-content:space-between;align-items:center;font-size:14px"><span>${k}쿼터</span><b style="color:${myI == null ? "#6B7280" : "#15803D"}">${myI == null ? "휴식" : esc(fl[myI]) + "로 출전"}</b></div>`;
+  const memNote = edit || !L ? "" : `<span style="font-size:12px;color:#9CA3AF;text-align:center">다른 팀원의 자리와 쿼터 수는 운영진 화면에서만 보여요</span>`;
   const emp = L && L.auto ? fl.map((pos, i) => q[i] ? "" : pos).filter(Boolean) : [];
   const empBox = !edit || !emp.length ? "" : fs ? `<div class="err">${k}쿼터 빈자리 ${emp.join(", ")}: ${emp.includes("골레이로") ? "골레이로를 1선호나 2선호로 둔 선수가 없어요. 자리를 누르고 고정으로 골레이로를 정해 주세요. " : ""}${emp.includes(FIELD) ? "뛸 수 있는 인원이 모자라요." : ""}</div>` : `<div class="err">${k}쿼터 빈자리 ${emp.join(", ")}: 이 포지션을 1선호나 2선호로 둔 선수가 없거나 모두 뛰고 있어요. 포메이션을 바꾸거나 자리를 눌러 고정으로 넣어 주세요.</div>`;
   const formBtn = edit && (L || !fs || fl.length) ? `<button data-act="lineForm" data-eid="${esc(e.id)}" style="flex:none;background:#FFFFFF;border:1px solid #E5E7EB;color:#111827;border-radius:999px;padding:8px 12px;font-size:13px;font-weight:700;min-height:40px">${fs ? esc(futsalN(fkey) ? fkey : fl.length + "대" + fl.length) : fl.length + "대" + fl.length + ", " + esc(fkey)} ▾</button>` : "";
@@ -689,13 +700,13 @@ function vLineup(id) {
     ${e.type === "scrim" ? `<div class="chips"><button class="chip sm ${side === "A" ? "on" : ""}" data-act="lineSide" data-v="A">A팀 (조끼)</button><button class="chip sm ${side === "B" ? "on" : ""}" data-act="lineSide" data-v="B">B팀</button></div>` : ""}
     ${askN ? `<div class="card" style="gap:8px"><b>몇 명이 뛰나요?</b><span class="hint">골레이로를 포함한 한 팀 인원이에요. 참석 ${ps.length}명</span><div class="chips">${FUTSAL_N.map(n => `<button class="chip" data-act="lineFormPick" data-eid="${esc(e.id)}" data-k="${n}대${n}">${n}대${n}</button>`).join("")}</div></div>`
       : !L && !edit ? `<div class="card empty"><b>아직 라인업이 없어요</b><span class="hint">운영진이 라인업을 알리면 여기에 보여요.</span></div>`
-      : `${qtabs}${pitch}
+      : `${myCard}${qtabs}${pitch}
     ${edit ? (sel != null ? selCard() : `<span style="font-size:12px;color:#6B7280;text-align:center">선수를 눌러 휴식 선수와 바꾸거나, 그 자리에 고정해요</span>`) : ""}
     ${empBox}
-    ${restCard}
+    ${edit ? restCard : myLine + memNote}
     ${edit ? `<button class="btn pri block" data-act="autoLineup" data-eid="${esc(e.id)}" style="font-size:15px">${fs ? "휴식 자동 배치" : "포지션 맞춰 휴식 자동 배치"}</button>` : ""}
-    ${countCard}`}
-  </div>${edit && L ? `<div class="cta"><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px"><button class="btn" data-act="linePrint">한 장 PDF 저장</button><button class="btn pri" data-act="lineShare" data-eid="${esc(e.id)}">팀원에게 공유</button></div></div>` : ""}`;
+    ${edit ? countCard : ""}`}
+  </div>${edit && L ? `<div class="cta"><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px"><button class="btn" data-act="linePrint">한 장 PDF 저장</button><button class="btn pri" data-act="lineShare" data-eid="${esc(e.id)}">팀원에게 알리기</button></div></div>` : ""}`;
 }
 
 /* ---------- 내전 ---------- */
@@ -746,12 +757,11 @@ const ACT4 = {
   remindSend: async t => {
     const e = S.events[t.dataset.eid]; if (!e) return; if (remindLeft()) { remindSheet(e.id); return; }
     const pick = [...document.querySelectorAll("[data-rm]")].filter(x => x.checked).map(x => x.dataset.rm);
-    t.disabled = true; const a = att(e); const names = a.none.filter(x => pick.includes(x.uid)).map(x => x.name).concat(unclaimed().map(p => p.name));
+    t.disabled = true;
     try {
       await setDoc("team", "remind", { at: new Date().toISOString(), by: S.uid, eid: e.id, to: pick });
       closeSheet(); render();
-      const text = `[${S.team.name}] ${md(e.date)} ${wd(e.date)} ${e.time || ""} ${evName(e)} 참석 응답 부탁해요\n아직 안 누른 분: ${names.join(", ")}\n${APP}`;
-      try { await navigator.clipboard.writeText(text); toast("알렸어요. 단톡방 문구도 복사했어요"); } catch (err) { toast("알렸어요"); }
+      toast("미응답 " + pick.length + "명에게 알렸어요");
     } catch (err) { t.disabled = false; fail(err); }
   },
 };
@@ -792,13 +802,6 @@ const ACT2 = {
   goTo: t => { closeSheet(); location.hash = t.dataset.h; },
   duesRef: t => { UI.ref = t.dataset.v; render(); },
   duesToggle: async t => { const key = t.dataset.key, u = t.dataset.u; const cur = { ...(D("dues")[key] || {}) }; cur[u] = cur[u] === "paid" ? "" : "paid"; cur._at = { ...(cur._at || {}), [u]: cur[u] ? todayStr() : "" }; try { await setDoc("dues", key, cur); render(); await syncMyDues([u]); } catch (e) { fail(e); } },
-  duesRemind: async () => {
-    const mode = feeMode(); const key = duesKey(UI.ref); const ev = S.events[UI.ref];
-    const un = people().filter(x => (mode === "monthly" || (ev && cameTo(ev, x.uid))) && !paidOf(key, x.uid)).map(x => x.name);
-    const b = S.settings.bank || {};
-    const text = `[${S.team.name}] ${mode === "monthly" ? mLabel(UI.ref) + " 회비" : "경기 회비"} ${won(S.settings.fee)} 아직 안 낸 분: ${un.join(", ")}${b.account ? `\n${b.bank || ""} ${b.account} ${b.holder || ""}` : ""}\n매니볼 회비 탭에서 입금했어요를 눌러 주세요.`;
-    try { await navigator.clipboard.writeText(text); toast("문구를 복사했어요. 단톡방에 붙여 넣어 주세요"); } catch (e) { sheet(`<h3>보낼 문구</h3><textarea class="inp" readonly>${esc(text)}</textarea><button class="btn" data-act="closeSheet">닫기</button>`); }
-  },
   payOk: async t => {
     const u = t.dataset.u, k = t.dataset.k; const it = (((D("payreq")[u] || {}).items) || {})[k]; if (!it) return;
     try {
@@ -892,7 +895,7 @@ const ACT2 = {
     S.form.lineup = autoLineup(e, side); S.form.lineupFor = e.id + side; UI.q = 1; UI.sel = null; render(); toast(`${sport() === "futsal" ? t.dataset.k + "로 바꾸고" : "포메이션을 바꾸고"} 다시 짰어요. 저장해야 팀원에게 보여요`); },
   autoLineup: t => { const e = S.events[t.dataset.eid]; if (!e) return; const side = e.type === "scrim" ? UI.side : "main"; if (!formOf(draftOf(e, side).fkey, curLineup(e, side))) { toast("몇 명이 뛸지 먼저 골라 주세요"); return; }
     S.form.lineup = autoLineup(e, side); S.form.lineupFor = e.id + side; UI.q = 1; UI.sel = null; render(); const how = sport() === "futsal" ? "휴식을 고르게" : "포지션에 맞춰"; toast(draftOf(e, side).pins.length ? `지정은 그대로 두고 나머지를 ${how} 짰어요. 저장해야 팀원에게 보여요` : `${how} 짰어요. 저장해야 팀원에게 보여요`); },
-  saveLineup: async t => { const e = S.events[t.dataset.eid]; if (!e) return; const side = e.type === "scrim" ? UI.side : "main"; const L = curLineup(e, side); if (!L) return; try { await setDoc("events", e.id, { ...e, lineup: { ...(e.lineup || {}), [side]: L } }); S.form.lineup = null; render(); toast("저장했어요. 공유를 누르면 팀원에게 보여요"); } catch (err) { fail(err); } },
+  saveLineup: async t => { const e = S.events[t.dataset.eid]; if (!e) return; const side = e.type === "scrim" ? UI.side : "main"; const L = curLineup(e, side); if (!L) return; try { await setDoc("events", e.id, { ...e, lineup: { ...(e.lineup || {}), [side]: L } }); S.form.lineup = null; render(); toast("저장했어요. 팀원에게 알리기를 누르면 팀원에게 보여요"); } catch (err) { fail(err); } },
   lineShare: t => { const e = S.events[t.dataset.eid]; if (!e) return; const n = lineupPlayers(e, e.type === "scrim" ? UI.side : "main").length;
     confirmBox("라인업을 알릴까요?", `${md(e.date)} ${wd(e.date)} ${e.time || ""} ${evName(e)}, 참석 ${n}명. 팀원 라인업 화면과 알림함에 보여요. 나중에 바꿔도 다시 알릴 수 있어요.`, `${n}명에게 알리기`, async () => { const side = e.type === "scrim" ? UI.side : "main"; const L = curLineup(e, side); try { await setDoc("events", e.id, { ...e, lineup: { ...(e.lineup || {}), [side]: L }, lineupAt: new Date().toISOString() }); S.form.lineup = null; render(); toast("라인업을 알렸어요"); } catch (err) { fail(err); } }); },
   linePrint: () => window.print(),
@@ -1304,7 +1307,7 @@ function rowsOf(formation, fkey) {
 }
 function curLineup(e, side) { return (S.form.lineup && S.form.lineupFor === e.id + side) ? S.form.lineup : ((e.lineup || {})[side] || null); }
 function vRest(id) {
-  const e = S.events[id]; if (!e) return vLineup(id); const side = e.type === "scrim" ? UI.side : "main"; const L = curLineup(e, side); const qn = QN[sport()];
+  const e = S.events[id]; if (!e || !(isAdmin() && viewMode() === "admin")) return vLineup(id); const side = e.type === "scrim" ? UI.side : "main"; const L = curLineup(e, side); const qn = QN[sport()];
   const ps = lineupPlayers(e, side); const cnt = {}; if (L) Object.values(L.q || {}).forEach(q => Object.values(q).forEach(u => { cnt[u] = (cnt[u] || 0) + 1; }));
   const posOf = (u, k) => { const q = (L && L.q && L.q[k]) || {}; const i = Object.keys(q).find(x => q[x] === u); return i != null ? L.formation[i] : ""; };
   return `${top("휴식표", "#/lineup/" + id)}<div class="body"><div class="card" style="overflow-x:auto;padding:12px"><table style="border-collapse:collapse;width:100%;font-size:13px;text-align:center"><thead><tr><th style="text-align:left;padding:6px">선수</th>${Array.from({ length: qn }, (_, i) => `<th style="padding:6px">${i + 1}Q</th>`).join("")}<th style="padding:6px">출전</th></tr></thead><tbody>

@@ -82,7 +82,7 @@ function remindSheet(eid) {
   const ago = r && r.at ? Math.max(1, Math.round((Date.now() - Date.parse(r.at)) / 60000)) : 0;
   const agoTxt = ago < 60 ? ago + "분 전" : Math.round(ago / 60) + "시간 전";
   sheet(`<h3>미응답 ${a.none.length + un.length}명에게 알려요</h3><span class="hint">${esc(md(e.date) + " " + wd(e.date) + " " + (e.time || "") + " " + evName(e))}, ${closeText(e)}</span>
-    <div class="list" style="max-height:36vh;overflow:auto">${a.none.map(x => `<label class="li" style="cursor:pointer"><input type="checkbox" data-rm="${esc(x.uid)}" checked style="width:22px;height:22px;accent-color:#15803D"><b style="flex:1">${esc(x.name)}</b><span class="hint">앱 알림</span></label>`).join("")}${un.map(p => `<div class="li"><span style="width:22px"></span><b style="flex:1">${esc(p.name)}</b><span class="tag gray">가입 전, 단톡방 문구로</span></div>`).join("")}${a.none.length + un.length ? "" : `<span class="hint">미응답이 없어요.</span>`}</div>
+    <div class="list" style="max-height:36vh;overflow:auto">${a.none.map(x => `<label class="li" style="cursor:pointer"><input type="checkbox" data-rm="${esc(x.uid)}" checked style="width:22px;height:22px;accent-color:#15803D"><b style="flex:1">${esc(x.name)}</b><span class="hint">앱 알림</span></label>`).join("")}${un.map(p => `<div class="li"><span style="width:22px"></span><b style="flex:1">${esc(p.name)}</b><span class="tag gray">가입 전, 알림 못 받아요</span></div>`).join("")}${a.none.length + un.length ? "" : `<span class="hint">미응답이 없어요.</span>`}</div>
     <div style="background:#FFFBEB;border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.5;color:#92400E"><b>미응답 알림은 1시간에 한 번만 보낼 수 있어요</b><br>운영진 모두 합친 횟수예요.${r && r.at ? ` 마지막 알림은 ${agoTxt} ${esc(nameOf(r.by))} 님이 보냈어요.` : ""}</div>
     <div class="row"><button class="btn block" data-act="closeSheet">취소</button>${left ? `<button class="btn block" disabled>${Math.ceil(left / 60000)}분 뒤 가능</button>` : `<button class="btn pri block" data-act="remindSend" data-eid="${esc(e.id)}" ${a.none.length + un.length ? "" : "disabled"}>알림 보내기</button>`}</div>`);
 }
@@ -217,7 +217,7 @@ function vCheck(id) {
     <div class="card" style="padding:4px 16px"><div class="list">${rows.map(x => `<div class="li" style="flex-wrap:wrap;gap:8px"><span style="flex:1;min-width:110px"><b>${esc(x.name)}</b><br><span class="hint">${at[x.uid] ? at[x.uid] + (ck[x.uid] === "late" ? " 도착, 지각" : " 도착") : ck[x.uid] === "absent" ? "도착 안 함" : x.sub || "아직"}</span></span><span style="display:grid;grid-template-columns:repeat(3,56px);gap:6px">${b(x.uid, "in", "출석")}${b(x.uid, "late", "지각")}${b(x.uid, "absent", "결석")}</span></div>`).join("")}</div></div>
     ${others.length ? `<details class="card"><summary style="cursor:pointer;font-weight:700">신청 안 한 사람 ${others.length}명 (왔으면 눌러요)</summary><div class="list">${others.map(x => `<div class="li"><span style="flex:1">${esc(x.name)}</span><span style="display:grid;grid-template-columns:repeat(2,56px);gap:6px">${b(x.uid, "in", "출석")}${b(x.uid, "late", "지각")}</span></div>`).join("")}</div></details>` : ""}
     <div class="card" style="background:#FFFBEB"><div class="spread"><b style="color:#92400E">벌금</b><b style="color:#92400E">${won(fc.total)}</b></div><span class="hint" style="color:#92400E">지각 ${fc.late.length}명${ruleAmt("late") ? " (" + won(ruleAmt("late")) + ")" : ""}, 결석 ${fc.abs.length}명${ruleAmt("absent") ? " (" + won(ruleAmt("absent")) + ")" : ""}. 결석은 참석이라고 했는데 안 온 사람만이에요.</span></div>
-  </div><div class="cta"><button class="btn pri block" data-act="finesApply" data-eid="${esc(e.id)}">벌금 부과하고 단톡방에 공유</button></div>`;
+  </div><div class="cta"><button class="btn pri block" data-act="finesApply" data-eid="${esc(e.id)}">벌금 부과하기</button></div>`;
 }
 function vRecords() {
   const y = UI.season || todayStr().slice(0, 4); const evs = past().filter(e => e.date.startsWith(y)); const tab = UI.rtab || "game"; const f = UI.rf || "all";
@@ -338,7 +338,7 @@ function weekStrip() {
 function adminTodo() {
   const next = upcoming().find(e => !started(e)); const a = next ? att(next) : null; const todo = [];
   if ((S.reqs || []).length) todo.push([`가입 신청 ${S.reqs.length}명`, `${S.reqs.slice(0, 3).map(r => r.display_name).join(", ")}${S.reqs.length > 3 ? " 외" : ""}, 승인해야 팀원이 돼요`, "#/requests", "확인하기"]);
-  if (!S.members.some(m => m.user_id !== S.uid) && !unclaimed().length) todo.push(["팀원을 초대해 주세요", "초대 링크를 단톡방에 올리면 돼요", "#/invite", "초대하기"]);
+  if (!S.members.some(m => m.user_id !== S.uid) && !unclaimed().length) todo.push(["팀원을 초대해 주세요", "초대 링크를 보내면 돼요", "#/invite", "초대하기"]);
   if (!next) todo.push(["다가오는 일정이 없어요", "일정을 올리면 팀원이 참석을 눌러요", "#/new", "일정 만들기"]);
   if (next && a.none.length) todo.push([`참석 미응답 ${a.none.length}명`, `${md(next.date)} ${wd(next.date)} ${evName(next)}, ${closeText(next)}`, "#/schedule", "알림 보내기"]);
   const prs = []; Object.entries(D("payreq")).forEach(([u, d]) => Object.values((d && d.items) || {}).forEach(it => { if (it && it.status === "req") prs.push(nameOf(u)); }));
@@ -472,7 +472,7 @@ const AACT1 = {
   aScrimNote: async t => { const id = "scrim-" + t.dataset.eid; const cur = D("contacts")[id] || { votes: {} }; const me = (cur.votes || {})[S.uid] || {}; try { await setDoc("contacts", id, { votes: { ...(cur.votes || {}), [S.uid]: { ...me, note: $("#scrimNote").value.trim().slice(0, 60), at: new Date().toISOString() } } }); render(); toast("의견을 남겼어요"); } catch (err) { fail(err); } },
   aScrimKeep: t => { const e = S.events[t.dataset.eid]; if (!e) return; const a = att(e);
     confirmBox("이번엔 경기로 할까요?", `참석 ${a.in}명으로 경기를 해요. 대기 ${a.wait.length}명은 빠지는 사람이 생기면 순서대로 올라가요.`, "경기로 정하기", async () => {
-      try { await setDoc("events", e.id, { ...e, scrimKeep: new Date().toISOString() }); const text = `[${S.team.name}] ${md(e.date)} ${wd(e.date)} ${e.time || ""}은 경기로 진행해요. 대기 중인 분은 빠지는 사람이 생기면 순서대로 올라가요.`; try { await navigator.clipboard.writeText(text); toast("경기로 정했어요. 대기자에게 보낼 문구를 복사했어요"); } catch (err) { toast("경기로 정했어요"); } location.hash = "#/event/" + e.id; } catch (err) { fail(err); }
+      try { await setDoc("events", e.id, { ...e, scrimKeep: new Date().toISOString() }); toast("경기로 정했어요"); location.hash = "#/event/" + e.id; } catch (err) { fail(err); }
     }); },
 };
 
@@ -487,26 +487,17 @@ function fineCalc(e) {
   const late = Object.keys(ck).filter(u => ck[u] === "late" && !u.startsWith("g:")), abs = Object.keys(ck).filter(u => ck[u] === "absent" && going.has(u));
   return { late, abs, total: late.length * ruleAmt("late") + abs.length * ruleAmt("absent") };
 }
-function fineText(e) {
-  const fc = fineCalc(e); const lines = [`[${S.team.name}] ${md(e.date)} ${evName(e)} 벌금 안내`];
-  if (fc.late.length) lines.push(`지각 ${won(ruleAmt("late"))}: ${fc.late.map(nameOf).join(", ")}`);
-  if (fc.abs.length) lines.push(`무단 결석 ${won(ruleAmt("absent"))}: ${fc.abs.map(nameOf).join(", ")}`);
-  if (!fc.late.length && !fc.abs.length) lines.push("이번엔 벌금이 없어요");
-  lines.push("매니볼 회비 탭에서 확인하고 보내 주세요."); return lines.join("\n");
-}
 function vCheckDone(id) {
   const e = S.events[id]; if (!e) return vSchedule(); const ck = e.check || {}; const cnt = { in: 0, late: 0, absent: 0 }; Object.values(ck).forEach(v => { if (cnt[v] != null) cnt[v]++; });
   return `${top("현장 출석", "#/event/" + id)}<div class="body">
     <div class="hint" style="background:#F0FDF4;color:#166534;border-radius:12px;padding:10px 12px">벌금을 매기고 팀원 회비 탭과 알림함에 보이게 했어요</div>
     <div class="card"><b>${esc(md(e.date) + " " + evName(e))} 출석 마감</b>${tilesA([tileA(cnt.in, "출석"), tileA(cnt.late, "지각", "#B45309"), tileA(cnt.absent, "결석", "#B91C1C")])}<div class="spread"><span>매긴 벌금</span><b>${won(fineCalc(e).total)}</b></div></div>
-    <div class="card"><b>단톡방에 올릴 문구</b><div class="hint" style="white-space:pre-wrap;background:#F9FAFB;border-radius:12px;padding:12px;color:#374151">${esc(fineText(e))}</div><button class="btn" data-act="aCopyFine" data-eid="${esc(id)}">문구 복사</button></div>
     <div class="row"><a class="btn block" href="#/dues">회비에서 보기</a><a class="btn block" href="#/schedule">일정으로</a></div>
   </div>`;
 }
 const tileA = (v, l, c) => `<span style="background:#F9FAFB;border-radius:14px;padding:12px 4px;text-align:center;display:flex;flex-direction:column;gap:2px"><b style="font-size:22px;${c ? "color:" + c : ""}">${v}</b><span style="font-size:12px;color:#6B7280">${l}</span></span>`;
 const tilesA = arr => `<div style="display:grid;grid-template-columns:repeat(${arr.length},minmax(0,1fr));gap:8px">${arr.join("")}</div>`;
 const AACT2 = {
-  aCopyFine: async t => { const e = S.events[t.dataset.eid]; try { await navigator.clipboard.writeText(fineText(e)); toast("문구를 복사했어요. 단톡방에 붙여 넣어 주세요"); } catch (err) { toast("길게 눌러 복사해 주세요"); } },
   aSquadAll: async t => { const e = S.events[t.dataset.eid]; if (!e) return; const T = e.teams || {}; const ids = people().map(x => x.uid).concat(guestsOf(e).map(g => "g:" + g.id));
     const allOn = ids.every(u => T[u]); const N = {}; if (!allOn) ids.forEach((u, i) => { N[u] = T[u] || (i % 2 ? "B" : "A"); });
     try { await setDoc("events", e.id, { ...e, teams: N }); render(); } catch (err) { fail(err); } },
@@ -524,10 +515,6 @@ function owedOf(u) {
   if (feeMode() === "per_game") past().filter(isPlay).forEach(e => { if (cameTo(e, u) && !paidOf("e-" + e.id, u)) items.push({ kind: "dues", key: "e-" + e.id, label: md(e.date) + " 경기", amount: fee }); });
   finesOf(u).filter(f => !f.paid).forEach(f => items.push({ kind: "fine", id: f.id, label: (f.reason || "벌금") + " 벌금", amount: Number(f.amount) || 0 }));
   return { items, total: items.reduce((n, x) => n + x.amount, 0), months: items.filter(x => x.kind === "dues").length, fines: items.filter(x => x.kind === "fine").reduce((n, x) => n + x.amount, 0) };
-}
-function duesRemindText() {
-  const ps = people().map(x => ({ ...x, o: owedOf(x.uid) })).filter(x => x.o.total); const b = S.settings.bank || {};
-  return `[${S.team.name}] 회비 안내\n${ps.map(x => `${x.name} ${won(x.o.total)}`).join("\n")}${b.account ? `\n${b.bank || ""} ${b.account} ${b.holder || ""}` : ""}\n매니볼 회비 탭에서 입금하기를 누르고 보내 주세요.`;
 }
 function vSpend() {
   const f = S.form; const chip = (k, v, l) => `<button class="chip sm ${String(f[k]) === String(v) ? "on" : ""}" data-act="pick" data-k="${k}" data-v="${v}">${l}</button>`;
@@ -628,9 +615,9 @@ const AACT3 = {
       try { for (const it of o.items) { if (it.kind === "dues") { const cur = { ...(D("dues")[it.key] || {}) }; cur[u] = "paid"; cur._at = { ...(cur._at || {}), [u]: todayStr() }; await setDoc("dues", it.key, cur); } else await setDoc("fines", it.id, { ...D("fines")[it.id], paid: true, paidAt: todayStr() }); }
         const items = ((D("team").ledger || {}).items || []).concat([{ id: uid36("l"), date: todayStr(), type: "in", cat: "회비", label: nameOf(u) + " " + o.items.map(x => x.label).join(", ") + " (현금)", amount: o.total }]); await setDoc("team", "ledger", { ...(D("team").ledger || {}), items });
         await syncMyDues([u]); render(); toast("받음으로 바꾸고 통장 내역에 적었어요"); } catch (err) { fail(err); } }); },
-  aDuesRemind: () => { const text = duesRemindText(); const ps = people().filter(x => owedOf(x.uid).total);
-    sheet(`<h3>미납 ${ps.length}명에게 알려요</h3><span class="hint">팀원 알림함에 회비 알림이 가고, 단톡방에 붙여 넣을 문구도 복사돼요</span><div class="hint" style="white-space:pre-wrap;background:#F9FAFB;border-radius:12px;padding:12px;color:#374151;max-height:40vh;overflow:auto">${esc(text)}</div><div class="row"><button class="btn block" data-act="closeSheet">취소</button><button class="btn pri block" id="drSend">알림 보내기</button></div>`);
-    $("#drSend").onclick = async () => { try { await setDoc("team", "duesRemind", { at: new Date().toISOString(), by: S.uid, to: ps.map(x => x.uid) }); try { await navigator.clipboard.writeText(text); } catch (err) { /* 복사 실패 */ } closeSheet(); toast("알렸어요. 단톡방 문구도 복사했어요"); } catch (err) { fail(err); } }; },
+  aDuesRemind: () => { const ps = people().filter(x => owedOf(x.uid).total);
+    sheet(`<h3>미납 ${ps.length}명에게 알려요</h3><span class="hint">팀원 알림함에 회비 알림이 가요</span><div class="list" style="max-height:40vh;overflow:auto">${ps.map(x => `<div class="li"><b style="flex:1">${esc(x.name)}</b><span>${won(owedOf(x.uid).total)}</span></div>`).join("")}</div><div class="row"><button class="btn block" data-act="closeSheet">취소</button><button class="btn pri block" id="drSend">알림 보내기</button></div>`);
+    $("#drSend").onclick = async () => { try { await setDoc("team", "duesRemind", { at: new Date().toISOString(), by: S.uid, to: ps.map(x => x.uid) }); closeSheet(); toast("미납 " + ps.length + "명에게 알렸어요"); } catch (err) { fail(err); } }; },
   aSaveDues: async t => { const f = S.form; t.disabled = true;
     try { await setDoc("team", "settings", { ...S.settings, feeMode: f.feeMode, fee: f.feeMode === "none" ? 0 : Number(String(f.fee || "").replace(/\D/g, "")) || 0, dueDay: f.feeMode === "monthly" ? f.dueDay || "5" : "", bank: { bank: String(f.bank || "").trim(), account: String(f.account || "").trim(), holder: String(f.holder || "").trim() }, remindEve: !!f.remindEve, remindAfter: !!f.remindAfter }); await syncMyDues(); toast("저장했어요"); location.hash = "#/dues"; } catch (err) { t.disabled = false; fail(err); } },
   aSpendSave: async t => { const f = S.form; const amount = Number(String(f.amount || "").replace(/\D/g, "")); if (!amount) { toast("금액을 적어 주세요"); return; } t.disabled = true;
