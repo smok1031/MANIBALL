@@ -440,7 +440,7 @@ ${v}`}class re extends Error{constructor({message:e,code:s,cause:n,name:a}){var 
   </div><div class="cta"><button class="btn pri block" data-act="agree">${h(d.team?d.team.name:"")} 시작하기</button></div>`}const jn=()=>d.invite?et+"?join="+d.invite:"";function Ou(){const t=d.form.msg??`${d.team?d.team.name:"우리 팀"} 팀 관리 앱이에요. 링크 누르고 카카오로 로그인하면 끝! 이제 참석은 여기서 눌러 주세요.`;return`${q("팀원 초대하기","#/")}<div class="body">
     <div class="card"><span class="lab">단톡방에 올릴 문구</span><textarea class="inp" data-bind="msg" aria-label="초대 문구">${h(t)}</textarea>
       <div class="spread" style="border:1px solid #E5E7EB;border-radius:12px;padding:12px"><span style="font-size:14px;word-break:break-all">${h(jn()||"링크를 만드는 중이에요")}</span><button class="btn sm" data-act="copyLink">복사</button></div>
-      <span class="hint">이 링크로 들어온 사람은 팀원이 돼요. 링크가 엉뚱한 곳에 퍼졌으면 새 링크를 만들어 예전 링크를 막아요.</span>
+      <span class="hint">이 링크로 들어온 사람은 가입 신청을 보내고, 운영진이 승인하면 팀원이 돼요. 링크가 엉뚱한 곳에 퍼졌으면 새 링크를 만들어 예전 링크를 막아요.</span>
       <button class="btn sm" data-act="newCode" style="align-self:flex-start">새 링크 만들기</button>
     </div>
   </div><div class="cta"><button class="btn pri block" data-act="share">${yu}공유하기</button><a class="btn block" href="#/">완료</a></div>`}function ii(){const t=d.members.filter(n=>n.role==="admin"),e=d.delNext&&t.some(n=>n.user_id===d.delNext)?d.delNext:"",s=n=>`<span style="width:22px;height:22px;border-radius:50%;box-sizing:border-box;flex:none;border:${n?"7px solid #15803D":"2px solid #D1D5DB"}"></span>`;ue(`<h3>팀 지우기</h3><span class="hint">Admin은 다음 Admin을 지정한 뒤에 팀에서 나갈 수 있어요.</span>
