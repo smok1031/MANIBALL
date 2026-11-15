@@ -164,7 +164,7 @@ async function patchDoc(c, id, patch) {
   if (error) throw error; put(c, id, data.data);
 }
 async function delDoc(c, id) { const { error } = await sb.from("docs").delete().eq("team_id", S.tid).eq("coll", c).eq("id", id); if (error) throw error; drop(c, id); }
-const GUARD = { admin_only: "Admin이나 운영진만 할 수 있어요", no_request: "이미 처리된 신청이에요", bad_request: "이름을 확인해 주세요", request_limit: "가입 신청은 한 번에 5팀까지 남길 수 있어요", vote_closed: "경기가 시작돼서 바꿀 수 없어요", no_event: "지워진 일정이에요", bad_vote: "저장할 수 없는 응답이에요", team_limit: "팀은 한 사람당 5개까지 만들 수 있어요", bad_code: "초대 링크가 바뀌었거나 잘못됐어요. 운영진에게 새 링크를 받아 주세요", mom_locked: "MOM 투표는 한 번만 낼 수 있어요", mom_closed: "MOM 투표 시간이 아니에요", no_player: "팀에 없는 사람이에요", poll_closed: "마감된 설문이에요", no_option: "없는 보기예요", no_poll: "지워진 설문이에요", owner_only: "Admin만 할 수 있어요", bad_inquiry: "평가 내용을 확인해 주세요", kick_denied: "운영진은 팀원만 내보낼 수 있어요", next_not_admin: "다음 Admin은 운영진 중에서 골라 주세요", owner_cannot_leave: "Admin은 다음 Admin을 정해야 나갈 수 있어요", not_self: "나에게는 할 수 없어요", not_allowed: "운영진만 할 수 있어요", owner_has_members: "팀원이 남아 있어요. 팀 설정에서 다음 Admin을 정하고 팀을 나가 주세요" };
+const GUARD = { not_closed: "아직 투표 중이에요. 투표에서 바로 바꿔 주세요", event_started: "경기가 시작돼서 바꿀 수 없어요", not_going: "참석이나 늦참일 때만 바꿀 수 있어요", need_agree: "벌금에 동의해야 바꿀 수 있어요", admin_only: "Admin이나 운영진만 할 수 있어요", no_request: "이미 처리된 신청이에요", bad_request: "이름을 확인해 주세요", request_limit: "가입 신청은 한 번에 5팀까지 남길 수 있어요", vote_closed: "투표가 마감돼서 바꿀 수 없어요", no_event: "지워진 일정이에요", bad_vote: "저장할 수 없는 응답이에요", team_limit: "팀은 한 사람당 5개까지 만들 수 있어요", bad_code: "초대 링크가 바뀌었거나 잘못됐어요. 운영진에게 새 링크를 받아 주세요", mom_locked: "MOM 투표는 한 번만 낼 수 있어요", mom_closed: "MOM 투표 시간이 아니에요", no_player: "팀에 없는 사람이에요", poll_closed: "마감된 설문이에요", no_option: "없는 보기예요", no_poll: "지워진 설문이에요", owner_only: "Admin만 할 수 있어요", bad_inquiry: "평가 내용을 확인해 주세요", kick_denied: "운영진은 팀원만 내보낼 수 있어요", next_not_admin: "다음 Admin은 운영진 중에서 골라 주세요", owner_cannot_leave: "Admin은 다음 Admin을 정해야 나갈 수 있어요", not_self: "나에게는 할 수 없어요", not_allowed: "운영진만 할 수 있어요", owner_has_members: "팀원이 남아 있어요. 팀 설정에서 다음 Admin을 정하고 팀을 나가 주세요" };
 function fail(e) { const m = errMsg(e); const k = Object.keys(GUARD).find(x => m.includes(x)); toast(k ? GUARD[k] : /JWT|fetch|network/i.test(m) ? "연결이 끊겼어요. 잠시 후 다시 해 주세요" : "저장하지 못했어요. 잠시 후 다시 해 주세요"); console.error(e); }
 
 /* ---------- 사람과 참석 ---------- */
@@ -191,17 +191,27 @@ function att(e) {
 }
 const myVote = e => (((S.rsvp[S.uid] || {}).ev || {})[e.id]) || {};
 // 투표 마감: 경기 전날 정한 시각(eve, voteTime) 또는 경기 시작 전까지. 예전 값(eve21, day06)도 읽는다
-// 모두 투표하면 바로 마감(voteAll): 선수 등록한 팀원이 모두 참석, 늦참, 불참 중 하나를 누르면 시간 전이라도 닫힌다. 열림 예약(openAt) 전에는 누를 수 없다
+// 마감 뒤 경기 시작 전까지는 본인이 불참 변경 신청(late_cancel)으로만 바꾼다. 열림 예약(openAt) 전에는 누를 수 없다
 const voteTimeOf = e => e.voteClose === "eve21" ? "21:00" : /^\d\d:\d\d$/.test(e.voteTime || "") ? e.voteTime : "21:00";
 function closeAt(e) {
   if (e.voteClose === "eve" || e.voteClose === "eve21") return new Date(e.date + "T" + voteTimeOf(e) + ":00+09:00").getTime() - 864e5;
   if (e.voteClose === "day06") return new Date(e.date + "T06:00:00+09:00").getTime();
   return evStart(e);
 }
-const allVoted = e => { if (!e.voteAll) return false; const ps = people().filter(x => profileOf(x.uid)); return ps.length > 0 && ps.every(x => ["yes", "late", "no"].includes((((S.rsvp[x.uid] || {}).ev || {})[e.id] || {}).s)); };
-const voteState = e => started(e) ? "done" : (e.openAt && Date.now() < Date.parse(e.openAt)) ? "soon" : (Date.now() >= closeAt(e) || allVoted(e)) ? "closed" : "open";
+const voteState = e => started(e) ? "done" : (e.openAt && Date.now() < Date.parse(e.openAt)) ? "soon" : Date.now() >= closeAt(e) ? "closed" : "open";
 const ampm = hm => { const [h, m] = hm.split(":").map(Number); return (h < 12 ? "오전 " : "오후 ") + (h % 12 === 0 ? 12 : h % 12) + ":" + String(m).padStart(2, "0"); };
-const closeText = e => (e.voteClose === "eve" || e.voteClose === "eve21" ? `경기 전날 ${ampm(voteTimeOf(e))} 마감` : e.voteClose === "day06" ? "경기 당일 06:00 마감" : "경기 시작 전까지") + (e.voteAll ? ", 모두 투표하면 바로 마감" : "");
+// 마감 후 불참으로 빠진 사람 때문에 대기에서 참석으로 올라왔으면 그 시각 (빠진 사람이 그대로 있었다면 대기였는지 다시 세어 본다)
+function promotedAt(e, u) {
+  const lc = e.lateCancel || {}; const ids = Object.keys(lc); const cap = Number(e.cap) || 0;
+  if (!ids.length || !cap) return "";
+  const a = att(e); if (![...a.yes, ...a.late].some(x => x.uid === u)) return "";
+  const going = [];
+  people().forEach(x => { if (lc[x.uid]) { going.push({ uid: x.uid, at: lc[x.uid].at || "" }); return; } const r = (((S.rsvp[x.uid] || {}).ev || {})[e.id]) || {}; if (r.s === "yes" || r.s === "late") going.push({ uid: x.uid, at: r.at || "" }); });
+  going.sort((p, q) => (p.at || "~") < (q.at || "~") ? -1 : 1);
+  if (going.findIndex(x => x.uid === u) < cap) return "";
+  return ids.map(k => lc[k].t || "").sort().pop() || "";
+}
+const closeText = e => (e.voteClose === "eve" || e.voteClose === "eve21" ? `경기 전날 ${ampm(voteTimeOf(e))} 마감` : e.voteClose === "day06" ? "경기 당일 06:00 마감" : "경기 시작 전까지");
 // 동그라미 안 글자: 괄호 같은 기호는 건너뛴다
 const ini = n => (String(n || "").replace(/[^0-9A-Za-z\uAC00-\uD7A3]/g, "")[0] || "?");
 const upcoming = () => Object.values(S.events).filter(e => !started(e) || (Date.now() - evStart(e)) < 3 * 3600e3).sort((a, b) => evStart(a) - evStart(b));
@@ -487,7 +497,7 @@ function monthsList() {
   return out.reverse();
 }
 const mLabel = m => Number(m.slice(5)) + "월";
-const ruleKind = r => r.kind || (/지각/.test(r.label) ? "late" : /결석/.test(r.label) ? "absent" : /취소/.test(r.label) ? "cancel" : "");
+const ruleKind = r => r.kind || (/지각/.test(r.label) ? "late" : /결석/.test(r.label) ? "absent" : /취소|불참/.test(r.label) ? "cancel" : "");
 const ruleAmt = k => { const r = (S.settings.rules || []).find(x => ruleKind(x) === k); return r ? Number(r.amount) || 0 : 0; };
 const feeMode = () => S.settings.feeMode || "none";
 const isPlay = e => e.type === "match" || e.type === "scrim";
@@ -1111,6 +1121,27 @@ const ACT = {
     S.flow = ""; S.ready = false; render(); location.hash = "#/"; lastRoute = ""; await enter(id);
   },
   teamsBack: () => { S.flow = ""; render(); },
+  // 마감 후 불참 변경: 벌금에 동의하면 바로 불참으로 바뀌고, 대기 1번이 참석으로 올라간다
+  mLateCancel: t => {
+    const e = S.events[t.dataset.eid]; if (!e) return;
+    const cr = (S.settings.rules || []).find(r => ruleKind(r) === "cancel"); const amt = cr ? Number(cr.amount) || 0 : 0; const next = att(e).wait[0];
+    S.form = { lcAgree: false, lcReason: "" };
+    sheet(`<h3>불참 변경 신청</h3><div class="hint">투표가 마감돼서 지금 불참으로 바꾸면 팀 수칙대로 벌금이 붙어요. 신청하면 바로 불참으로 바뀌어요.</div>
+      ${amt ? `<div style="background:#FEF2F2;color:#991B1B;border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;gap:10px"><span>${esc(cr.label)}</span><b>${won(amt)}</b></div>` : `<div style="background:#F9FAFB;border-radius:12px;padding:12px 14px;font-size:14px">팀 수칙에 불참 벌금이 없어서 벌금 없이 바뀌어요</div>`}
+      ${next ? `<div class="hint">대기 1번 ${esc(next.name)} 님이 참석으로 올라가요</div>` : ""}
+      <label class="field"><span class="lab">사유 (안 써도 돼요)</span><input class="inp" data-bind="lcReason" maxlength="80" placeholder="예: 갑자기 야근이 생겼어요" autocomplete="off"></label>
+      ${amt ? `<label class="row" style="gap:10px;align-items:center;font-size:15px"><input type="checkbox" data-bind="lcAgree" style="width:22px;height:22px;accent-color:#15803D"><span>벌금 ${won(amt)}을 내는 것에 동의해요</span></label>` : ""}
+      <div class="row"><button class="btn block" data-act="closeSheet">취소</button><button class="btn block danger" data-act="mLateCancelGo" data-eid="${esc(e.id)}" data-amt="${amt}">불참으로 바꾸기</button></div>`);
+  },
+  mLateCancelGo: async t => {
+    const e = S.events[t.dataset.eid]; if (!e) return; const amt = Number(t.dataset.amt) || 0;
+    if (amt && !S.form.lcAgree) { toast("벌금에 동의해야 바꿀 수 있어요"); return; }
+    t.disabled = true;
+    const { data, error } = await sb.rpc("late_cancel", { p_team: S.tid, p_event: e.id, p_reason: String(S.form.lcReason || "").trim().slice(0, 80), p_agree: !!S.form.lcAgree });
+    if (error) { t.disabled = false; return fail(error); }
+    closeSheet(); try { await loadTeam(S.tid); } catch (err) { /* 실시간으로 곧 바뀐다 */ } render();
+    toast(data && Number(data.amount) ? `불참으로 바꿨어요. 벌금 ${won(data.amount)}이 회비 화면에 올라갔어요` : "불참으로 바꿨어요");
+  },
   joinSend: async t => {
     const name = String(S.form.name || "").trim();
     if (!name) { toast("팀에서 쓰는 이름을 적어 주세요"); return; }
@@ -1282,4 +1313,4 @@ function vRest(id) {
 }
 
 // member.js와 admin.js가 같이 쓰는 것
-export { allVoted, ampm, closeAt, voteTimeOf, $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };
+export { promotedAt, ampm, closeAt, voteTimeOf, $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };

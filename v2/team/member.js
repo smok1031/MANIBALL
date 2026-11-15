@@ -1,6 +1,6 @@
 // 팀원 화면: 디자인 시안 [팀원] 1-1 ~ 5-5를 그대로 따른다. 운영진 기능은 이 파일에 두지 않는다.
 // 운영진도 "팀원 화면 보기"를 누르면 이 화면으로 자기 참석과 선수 카드를 본다.
-import { allVoted, closeAt, $, D, LOGO, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, closeText, confirmBox, esc, evName, evStart, fail, feeMode, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, mLabel, md, momClosed, momDeadline, momOpen, momWinners, myProfile, myUv, myVote, nameOf, nav, noticesList, past, patchDoc, people, qs, remindInfo, render, ruleKind, sb, setView, sheet, sport, started, toast, todayStr, top, uid36, unclaimed, upcoming, voteState, wd, won, ym } from "./main.js";
+import { promotedAt, $, D, LOGO, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, closeText, confirmBox, esc, evName, evStart, fail, feeMode, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, mLabel, md, momClosed, momDeadline, momOpen, momWinners, myProfile, myUv, myVote, nameOf, nav, noticesList, past, patchDoc, people, qs, remindInfo, render, ruleKind, sb, setView, sheet, sport, started, toast, todayStr, top, uid36, unclaimed, upcoming, voteState, wd, won, ym } from "./main.js";
 
 /* ---------- 공통 계산 ---------- */
 const MU = { cal: false, day: "", change: "", season: "", filter: "all" };
@@ -49,6 +49,7 @@ function feed() {
   Object.values(S.events).forEach(e => {
     const name = `${md(e.date)} ${evName(e)}`;
     if (!started(e) && e.createdAt) add(e.createdAt, `${name} 참석 투표가 열렸어요`, `경기 시작 전까지, 지금 ${att(e).in}명 참석`, "#/schedule");
+    const pa = !started(e) && promotedAt(e, u); if (pa) add(pa, `${name} 대기에서 참석으로 올라왔어요`, "마감 후 불참한 사람이 있어서 자리가 났어요", "#/schedule");
     if (e.scrimAt) add(e.scrimAt, `${md(e.date)} 경기가 내전으로 바뀌었어요`, "신청한 사람 모두 뛰어요. 팀은 운영진이 나눠서 알려 드려요", "#/schedule");
     if (e.lineupAt && cameOrGoing(e, u)) add(e.lineupAt, `${name} 라인업이 나왔어요`, "내 자리와 쉬는 쿼터를 확인해 주세요", "#/lineup/" + e.id);
     if (started(e) && isPlay(e) && !e.score && cameTo(e, u)) add(new Date(evStart(e)).toISOString(), `${name} 결과가 곧 올라와요`, "올라오면 MOM 투표가 열려요", "#/game/" + e.id);
@@ -132,7 +133,7 @@ function mEventCard(e) {
   let vote = "";
   const vs = voteState(e);
   if (mine && vs === "soon") vote = `<div class="spread" style="background:#F9FAFB;border-radius:12px;padding:10px 12px;font-size:13px"><span>투표 열림 예약</span><b>${esc(md(e.openAt.slice(0, 10)) + " " + new Date(Date.parse(e.openAt) + 9 * 3600e3).toISOString().slice(11, 16))}</b></div>`;
-  else if (mine && vs === "closed") vote = `<div class="spread" style="background:#F9FAFB;border-radius:12px;padding:10px 12px;font-size:13px"><span>${allVoted(e) && Date.now() < closeAt(e) ? "모두 투표해서 마감됐어요" : "투표가 마감됐어요"}</span><b>${v.s ? "내 응답 " + VS[v.s] : "응답 안 함"}</b></div>`;
+  else if (mine && vs === "closed") vote = `<div class="spread" style="background:#F9FAFB;border-radius:12px;padding:10px 12px;font-size:13px"><span>투표가 마감됐어요</span><b>${v.s ? "내 응답 " + VS[v.s] : "응답 안 함"}</b></div>${v.s === "yes" || v.s === "late" ? `<button class="btn block" data-act="mLateCancel" data-eid="${esc(e.id)}">불참 변경 신청</button>` : v.lateCancel ? `<span class="hint">마감 후 불참으로 바꿨어요</span>` : ""}`;
   else if (mine && vs === "open") {
     if (v.s && !changing) vote = `<div class="spread" style="background:#F9FAFB;border-radius:14px;padding:10px 12px"><span class="hint">내 응답</span><span class="row" style="gap:8px"><b class="tag ${v.s === "yes" ? "" : v.s === "late" ? "" : "gray"}" style="font-size:13px;${v.s === "late" ? "background:#FEF3C7;color:#92400E" : ""}">${VS[v.s]}${v.s === "late" ? " " + (v.q || 1) + "Q부터" : ""}${a.wait.some(x => x.uid === S.uid) ? ", 대기 " + (a.wait.findIndex(x => x.uid === S.uid) + 1) + "번" : ""}</b><button class="btn sm" data-act="mChange" data-eid="${esc(e.id)}">바꾸기</button></span></div>`;
     else vote = `${changing ? `<div class="spread"><b>응답 바꾸기</b><button class="btn sm" data-act="mChange" data-eid="">닫기</button></div>` : `<div class="spread"><b style="color:#B91C1C;font-size:14px">아직 안 눌렀어요</b><span class="hint" style="font-size:12px">${closeText(e)}</span></div>`}${voteSeg(e, v)}${changing && cr && Number(cr.amount) ? `<span class="hint">${esc(cr.label)} 벌금 ${won(cr.amount)}이 있어요. 미리 바꿀수록 좋아요.</span>` : ""}`;

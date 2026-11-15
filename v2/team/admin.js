@@ -105,6 +105,7 @@ function vEvent(id) {
     ${tools.length ? `<div class="row" style="flex-wrap:wrap">${tools.join("")}</div>` : ""}
     ${e.memo ? `<div class="card"><b>메모</b><div class="hint" style="white-space:pre-wrap;color:#374151">${esc(e.memo)}</div></div>` : ""}
     ${e.type === "scrim" ? grp("A팀 (조끼)", [...a.yes, ...a.late, ...a.wait].filter(x => T[x.uid] === "A")) + grp("B팀", [...a.yes, ...a.late, ...a.wait].filter(x => T[x.uid] === "B")) : ""}
+    ${adm && Object.keys(e.lateCancel || {}).length ? `<div class="card"><div class="spread"><b>마감 후 불참</b><span class="hint">${Object.keys(e.lateCancel).length}명</span></div><div class="list">${Object.entries(e.lateCancel).map(([u, c]) => `<div class="li"><span style="flex:1;min-width:0"><b>${esc(nameOf(u))}</b><br><span class="hint">${esc([Number(c.amount) ? "벌금 " + won(c.amount) : "벌금 없음", c.reason].filter(Boolean).join(", "))}</span></span><span class="hint" style="font-size:12px">${esc(new Date(Date.parse(c.t) + 9 * 3600e3).toISOString().slice(5, 16).replace("-", ".").replace("T", " "))}</span></div>`).join("")}</div></div>` : ""}
     ${grp("참석", a.yes)}${grp("늦참", a.late, x => x.q ? `, ${x.q}Q부터` : "")}${a.cap ? grp("대기", a.wait, () => "") : ""}${grp("불참", a.no)}${grp("미응답", a.none)}${unclaimed().length ? `<span class="hint">아직 앱에 안 들어온 선수 ${unclaimed().length}명은 참석을 누를 수 없어요. 초대 링크로 들어와 이름을 고르면 돼요.</span>` : ""}
     ${a.cap ? `<span class="hint">정원이 차면 다음 신청은 대기로 들어가고, 자리가 나면 순서대로 올라가요.</span>` : ""}
     ${e.type !== "training" ? `<div class="card"><div class="spread"><b>용병</b><span class="hint">${gs.length}명</span></div>
@@ -362,6 +363,7 @@ function afeed() {
     if (started(e) && isPlay(e) && !e.score) add(new Date(evStart(e)).toISOString(), `${nm} 결과를 아직 안 넣었어요`, "결과를 넣어야 MOM 투표가 열려요", "#/result/" + e.id);
     if (!started(e) && e.createdAt) add(e.createdAt, `${nm} 참석 ${att(e).in}${att(e).cap ? " / " + att(e).cap : ""}`, `미응답 ${att(e).none.length}명, ${closeText(e)}`, "#/event/" + e.id);
     if (e.score && momClosed(e) && momWinners(e).length) add(momDeadline(e).toISOString(), `${nm} MOM ${momWinners(e).map(nameOf).join(", ")}`, `${(D("tally")["mom-" + e.id] || {}).n || 0}명 투표`, "#/game/" + e.id);
+    Object.entries(e.lateCancel || {}).forEach(([u, c]) => add(c.t, `${nm} 마감 후 불참`, `${nameOf(u)}${Number(c.amount) ? ", 벌금 " + won(c.amount) : ""}${c.reason ? ", " + c.reason : ""}`, "#/event/" + e.id));
     guestReqs(e).filter(g => g.status === "req").forEach(g => add(g.at, "용병 신청", `${nameOf(g.u)}이(가) ${nm}에 ${g.name}님을 데려오고 싶어해요`, "#/guests/" + e.id));
   });
   Object.entries(D("payreq")).forEach(([u, d]) => Object.values((d && d.items) || {}).forEach(it => { if (it && it.status === "req") add(it.at, "입금 확인 요청", `${nameOf(u)}이(가) 보냈어요를 눌렀어요, ${won(it.amount)}`, "#/dues"); }));
@@ -383,27 +385,25 @@ function nextDates() {
   const last = Object.values(S.events).sort((a, b) => b.date.localeCompare(a.date))[0]; const dow = last ? new Date(last.date + "T00:00:00Z").getUTCDay() : 6;
   const out = []; let d = new Date(todayStr() + "T00:00:00Z"); while (out.length < 3) { d = new Date(d.getTime() + 864e5); if (d.getUTCDay() === dow) out.push(d.toISOString().slice(0, 10)); } return out;
 }
-// 투표 마감: 경기 전날 몇 시까지(30분 단위, 자주 쓰는 시각 버튼) 또는 경기 시작 전까지 + 모두 투표하면 바로 마감
+// 투표 마감: 경기 전날 몇 시까지(30분 단위, 자주 쓰는 시각 버튼) 또는 경기 시작 전까지. 마감 뒤에는 불참 변경 신청(벌금)만 된다
 function voteCloseField(f, chip) {
   const eve = f.voteClose === "eve", t = f.voteTime || "21:00";
   const fake = { date: f.date, time: f.time || "23:59", voteClose: f.voteClose, voteTime: t };
   const at = f.date ? closeAt(fake) : 0, passed = at && at <= Date.now();
   const when = !f.date ? "" : eve ? `${md(dayBefore(f.date))} ${wd(dayBefore(f.date))} ${ampm(t)}` : f.voteClose === "day06" ? `${md(f.date)} ${wd(f.date)} 오전 6:00` : `경기가 시작되는 ${md(f.date)} ${wd(f.date)}${f.time ? " " + f.time : ""}`;
-  const sw = on => `<button class="sw" data-act="pick" data-k="voteAll" data-v="${on ? "" : "1"}" role="switch" aria-checked="${on}" aria-label="모두 투표하면 바로 마감 켜고 끄기" style="border:none;padding:0;cursor:pointer;width:46px;height:26px;border-radius:999px;position:relative;flex:none;background:${on ? "#15803D" : "#D1D5DB"}"><span style="position:absolute;top:3px;${on ? "right" : "left"}:3px;width:20px;height:20px;border-radius:50%;background:#FFFFFF"></span></button>`;
   return `<div class="field"><span class="lab">투표 마감</span><div class="chips">${chip("voteClose", "eve", "경기 전날")}${chip("voteClose", "start", "경기 시작 전까지")}${f.voteClose === "day06" ? chip("voteClose", "day06", "경기 당일 06:00") : ""}</div>
     ${eve ? `<div style="display:flex;flex-direction:column;gap:10px;background:#F9FAFB;border-radius:14px;padding:12px">
       <div class="spread"><button class="btn sm" data-act="aVoteTime" data-d="-30" aria-label="30분 앞당기기" style="width:44px;font-size:18px">−</button><b style="font-size:24px;letter-spacing:-.5px">${ampm(t)}</b><button class="btn sm" data-act="aVoteTime" data-d="30" aria-label="30분 늦추기" style="width:44px;font-size:18px">+</button></div>
       <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px">${["18:00", "20:00", "21:00", "22:00"].map(x => `<button class="chip sm ${t === x ? "on" : ""}" data-act="pick" data-k="voteTime" data-v="${x}" style="justify-content:center;white-space:nowrap;padding:9px 0;font-size:13px">${ampm(x).replace(":00", "시")}</button>`).join("")}</div></div>` : ""}
-    <div class="spread" style="gap:12px;align-items:center"><span style="flex:1"><b style="font-size:15px">모두 투표하면 바로 마감</b><br><span class="hint" style="font-size:12px">팀원 모두가 참석, 늦참, 불참 중 하나를 누르면 시간 전이라도 닫혀요</span></span>${sw(!!f.voteAll)}</div>
-    ${when ? `<div style="background:${passed ? "#FEF2F2" : "#F0FDF4"};color:${passed ? "#B91C1C" : "#166534"};border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.55">${passed ? `${when}은(는) 이미 지났어요. 시간을 늦추거나 경기 시작 전까지로 골라 주세요.` : `${when}에 마감돼요.${f.voteAll ? " 그 전에 팀원이 모두 투표하면 바로 마감돼요." : ""}`}</div>` : ""}
+    ${when ? `<div style="background:${passed ? "#FEF2F2" : "#F0FDF4"};color:${passed ? "#B91C1C" : "#166534"};border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.55">${passed ? `${when}은(는) 이미 지났어요. 시간을 늦추거나 경기 시작 전까지로 골라 주세요.` : `${when}에 마감돼요. 그 뒤에 빠지면 불참 변경 신청으로 바꾸고 팀 수칙의 불참 벌금이 붙어요.`}</div>` : ""}
     <span class="hint">마감이 지나면 참석, 늦참, 불참을 바꿀 수 없어요</span></div>`;
 }
 const dayBefore = d => new Date(Date.parse(d + "T12:00:00Z") - 864e5).toISOString().slice(0, 10);
 function eventFormInit(id) {
   const e = id ? S.events[id] : null; const d = nextDates();
   const toLocal = iso => iso ? new Date(Date.parse(iso) + 9 * 3600e3).toISOString().slice(0, 16) : "";
-  S.form = e ? { type: e.type, date: e.date, time: e.time, end: e.end || "", place: e.place || "", oppMode: e.opponent ? "set" : "none", opponent: e.opponent || "", cap: Number(e.cap) || 0, waitCap: Number(e.waitCap) || 0, memo: e.memo || "", voteClose: e.voteClose === "eve21" ? "eve" : e.voteClose || "start", voteTime: e.voteClose === "eve21" ? "21:00" : e.voteTime || "21:00", voteAll: e.voteAll ? "1" : "", openMode: e.openAt ? "later" : "now", openAt: toLocal(e.openAt) }
-    : { type: "match", date: d[0], time: "", end: "", place: "", oppMode: "none", opponent: "", cap: Number(S.settings.cap) || (sport() === "soccer" ? 22 : 12), waitCap: 0, memo: "", voteClose: "eve", voteTime: "21:00", voteAll: "1", openMode: "now", openAt: "" };
+  S.form = e ? { type: e.type, date: e.date, time: e.time, end: e.end || "", place: e.place || "", oppMode: e.opponent ? "set" : "none", opponent: e.opponent || "", cap: Number(e.cap) || 0, waitCap: Number(e.waitCap) || 0, memo: e.memo || "", voteClose: e.voteClose === "eve21" ? "eve" : e.voteClose || "start", voteTime: e.voteClose === "eve21" ? "21:00" : e.voteTime || "21:00", openMode: e.openAt ? "later" : "now", openAt: toLocal(e.openAt) }
+    : { type: "match", date: d[0], time: "", end: "", place: "", oppMode: "none", opponent: "", cap: Number(S.settings.cap) || (sport() === "soccer" ? 22 : 12), waitCap: 0, memo: "", voteClose: "eve", voteTime: "21:00", openMode: "now", openAt: "" };
 }
 function vGuests(id) {
   const e = S.events[id]; if (!e) return vSchedule(); const a = att(e); const reqs = guestReqs(e); const gs = guestsOf(e); const fee = Number(S.settings.guestFee) || 0;
@@ -463,7 +463,7 @@ const AACT1 = {
     if (f.voteClose !== "start" && closeAt({ date: f.date, time: f.time, voteClose: f.voteClose, voteTime: f.voteTime }) <= Date.now() && !(t.dataset.eid && S.events[t.dataset.eid] && closeAt(S.events[t.dataset.eid]) <= Date.now())) { toast("투표 마감 시간이 이미 지났어요. 시간을 늦추거나 경기 시작 전까지로 골라 주세요"); return; }
     t.disabled = true; const id = t.dataset.eid || uid36("e"); const old = S.events[id] || {};
     const openAt = f.openMode === "later" && f.openAt ? new Date(f.openAt + ":00+09:00").toISOString() : "";
-    const data = { ...old, id, type: f.type, date: f.date, time: f.time, end: f.end || "", place: String(f.place || "").trim(), opponent: f.type === "match" && f.oppMode === "set" ? String(f.opponent || "").trim() : "", cap: f.type === "scrim" ? 0 : Number(f.cap) || 0, waitCap: Number(f.waitCap) || 0, memo: String(f.memo || "").trim(), voteClose: f.voteClose || "start", voteTime: f.voteClose === "eve" ? (f.voteTime || "21:00") : "", voteAll: !!f.voteAll, openAt, createdAt: old.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() };
+    const data = { ...old, id, type: f.type, date: f.date, time: f.time, end: f.end || "", place: String(f.place || "").trim(), opponent: f.type === "match" && f.oppMode === "set" ? String(f.opponent || "").trim() : "", cap: f.type === "scrim" ? 0 : Number(f.cap) || 0, waitCap: Number(f.waitCap) || 0, memo: String(f.memo || "").trim(), voteClose: f.voteClose || "start", voteTime: f.voteClose === "eve" ? (f.voteTime || "21:00") : "", openAt, createdAt: old.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() };
     try { await setDoc("events", id, data); toast(t.dataset.eid ? "저장했어요" : openAt ? "일정을 올렸어요. 예약한 시각에 투표가 열려요" : "일정을 올렸어요. 팀원이 바로 참석을 누를 수 있어요"); location.hash = "#/event/" + id; } catch (err) { t.disabled = false; fail(err); }
   },
   aGuestAdd: t => guestAddSheet(t.dataset.eid, false),
