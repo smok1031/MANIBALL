@@ -190,10 +190,18 @@ function att(e) {
   return out;
 }
 const myVote = e => (((S.rsvp[S.uid] || {}).ev || {})[e.id]) || {};
-// 투표 마감: 경기 시작 전까지(기본), 경기 전날 21시, 경기 당일 6시. 열림 예약(openAt) 전에는 누를 수 없다
-function closeAt(e) { if (e.voteClose === "eve21") return new Date(e.date + "T21:00:00+09:00").getTime() - 864e5; if (e.voteClose === "day06") return new Date(e.date + "T06:00:00+09:00").getTime(); return evStart(e); }
-const voteState = e => started(e) ? "done" : (e.openAt && Date.now() < Date.parse(e.openAt)) ? "soon" : Date.now() >= closeAt(e) ? "closed" : "open";
-const closeText = e => e.voteClose === "eve21" ? "경기 전날 21:00 마감" : e.voteClose === "day06" ? "경기 당일 06:00 마감" : "경기 시작 전까지";
+// 투표 마감: 경기 전날 정한 시각(eve, voteTime) 또는 경기 시작 전까지. 예전 값(eve21, day06)도 읽는다
+// 모두 투표하면 바로 마감(voteAll): 선수 등록한 팀원이 모두 참석, 늦참, 불참 중 하나를 누르면 시간 전이라도 닫힌다. 열림 예약(openAt) 전에는 누를 수 없다
+const voteTimeOf = e => e.voteClose === "eve21" ? "21:00" : /^\d\d:\d\d$/.test(e.voteTime || "") ? e.voteTime : "21:00";
+function closeAt(e) {
+  if (e.voteClose === "eve" || e.voteClose === "eve21") return new Date(e.date + "T" + voteTimeOf(e) + ":00+09:00").getTime() - 864e5;
+  if (e.voteClose === "day06") return new Date(e.date + "T06:00:00+09:00").getTime();
+  return evStart(e);
+}
+const allVoted = e => { if (!e.voteAll) return false; const ps = people().filter(x => profileOf(x.uid)); return ps.length > 0 && ps.every(x => ["yes", "late", "no"].includes((((S.rsvp[x.uid] || {}).ev || {})[e.id] || {}).s)); };
+const voteState = e => started(e) ? "done" : (e.openAt && Date.now() < Date.parse(e.openAt)) ? "soon" : (Date.now() >= closeAt(e) || allVoted(e)) ? "closed" : "open";
+const ampm = hm => { const [h, m] = hm.split(":").map(Number); return (h < 12 ? "오전 " : "오후 ") + (h % 12 === 0 ? 12 : h % 12) + ":" + String(m).padStart(2, "0"); };
+const closeText = e => (e.voteClose === "eve" || e.voteClose === "eve21" ? `경기 전날 ${ampm(voteTimeOf(e))} 마감` : e.voteClose === "day06" ? "경기 당일 06:00 마감" : "경기 시작 전까지") + (e.voteAll ? ", 모두 투표하면 바로 마감" : "");
 // 동그라미 안 글자: 괄호 같은 기호는 건너뛴다
 const ini = n => (String(n || "").replace(/[^0-9A-Za-z\uAC00-\uD7A3]/g, "")[0] || "?");
 const upcoming = () => Object.values(S.events).filter(e => !started(e) || (Date.now() - evStart(e)) < 3 * 3600e3).sort((a, b) => evStart(a) - evStart(b));
@@ -1001,6 +1009,8 @@ document.addEventListener("input", ev => {
   } else if (t.dataset.rule != null) { const r = (S.form.rules || [])[Number(t.dataset.rule)]; if (r) r[t.dataset.f] = t.value; }
   else if (t.dataset.opt != null) { const o = (S.form.opts || [])[Number(t.dataset.opt)]; if (o) o.label = t.value; }
 });
+// 일정 날짜와 시작 시간을 바꾸면 투표 마감 안내 문장도 다시 그린다
+document.addEventListener("change", ev => { const t = ev.target; if ((t.dataset.bind === "date" || t.dataset.bind === "time") && /^\/(new|edit\/.+)$/.test(route())) render(); });
 const ACT = {
   closeSheet: (t, ev) => { if (ev.target === t || t.tagName === "BUTTON") closeSheet(); },
   kakao: async t => {
@@ -1272,4 +1282,4 @@ function vRest(id) {
 }
 
 // member.js와 admin.js가 같이 쓰는 것
-export { $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };
+export { allVoted, ampm, closeAt, voteTimeOf, $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };
