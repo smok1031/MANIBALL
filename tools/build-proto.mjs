@@ -11,6 +11,8 @@ mkdirSync(OUT, { recursive: true });
 
 const GROUPS = [
   ["팀 고르기 (로그인하면 먼저)", ["TeamPick", "TeamPickSwitch"]],
+  ["가입 승인", ["JoinRequest", "JoinWait", "JoinRejected", "JoinAdminRequests"]],
+  ["마감 후 불참 변경", ["LateCancelClosed", "LateCancelSheet", "LateCancelDone", "LateCancelPromoted", "LateCancelAdminNotify", "LateCancelAdminEvent"]],
   ["팀 만들기", ["TeamSplit", "InviteMessage", "InviteRoster"]],
   ["팀원 가입 (초대 링크로 들어왔을 때)", ["JoinInvite", "JoinProfile", "JoinRules"]],
   ["운영진 홈", ["HomeAdmin", "NotifyAdmin", "NoticeAdmin", "NoticeAdminWrite"]],
