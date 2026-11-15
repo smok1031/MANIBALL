@@ -150,6 +150,7 @@ function vPlayers() {
   const rules = S.settings.rules || []; const un = unclaimed();
   return `<header class="top" style="padding:10px 12px">${LOGO(32)}<h1 style="font-size:20px;font-weight:900">선수</h1><a class="btn sm pri" href="#/invite">+ 초대</a></header><div class="body">
     ${tilesA([tileA(ps.length + un.length + "명", "전체"), tileA(admins.length + "명", "운영진"), tileA(low.length + "명", "출석 절반 이하", "#B45309")])}
+    ${(S.reqs || []).length ? `<a class="card" href="#/requests" style="text-decoration:none;color:inherit;flex-direction:row;align-items:center;gap:14px;box-shadow:inset 0 0 0 2px #15803D"><span class="av" style="background:#15803D;color:#FFFFFF">${S.reqs.length}</span><span style="flex:1;min-width:0"><b>가입 신청 ${S.reqs.length}명</b><br><span class="hint">${esc(S.reqs.slice(0, 3).map(r => r.display_name).join(", "))}${S.reqs.length > 3 ? " 외" : ""}</span></span><span class="btn sm pri">확인</span></a>` : ""}
     <a class="card" href="#/uniform" style="text-decoration:none;color:inherit;flex-direction:row;align-items:center;gap:14px">${jersey(64, (myProfile() || {}).num || "7", S.settings.uniformColor)}<span style="flex:1"><b>팀 유니폼</b><br><span class="hint">팀원 선수 카드에 등번호와 같이 보여요</span></span><span class="btn sm">바꾸기</span></a>
     ${posReqs.length ? `<div class="card"><b>요청 ${posReqs.length}건</b>${posReqs.map(x => { const r = S.rsvp[x.uid].posReq; return `<div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid #F3F4F6;padding-top:10px"><div class="row" style="gap:10px"><span class="av">${esc(ini(x.name))}</span><span style="flex:1"><b>${esc(x.name)}</b> <span class="hint">포지션 변경 요청</span><br><span class="hint">${esc((x.p.pos1 || "-") + "에서 " + [r.pos1, r.pos2].filter(Boolean).join(", ") + (r.note ? ", " + r.note : ""))}</span></span></div><div class="row"><button class="btn block" data-act="posNo" data-u="${esc(x.uid)}">거절</button><button class="btn pri block" data-act="posOk" data-u="${esc(x.uid)}">수락</button></div></div>`; }).join("")}</div>` : ""}
     <div class="card"><div class="spread"><b>운영진 ${admins.length}명</b></div><div class="list">${admins.map(row).join("")}</div></div>
@@ -335,6 +336,7 @@ function weekStrip() {
 }
 function adminTodo() {
   const next = upcoming().find(e => !started(e)); const a = next ? att(next) : null; const todo = [];
+  if ((S.reqs || []).length) todo.push([`가입 신청 ${S.reqs.length}명`, `${S.reqs.slice(0, 3).map(r => r.display_name).join(", ")}${S.reqs.length > 3 ? " 외" : ""}, 승인해야 팀원이 돼요`, "#/requests", "확인하기"]);
   if (!S.members.some(m => m.user_id !== S.uid) && !unclaimed().length) todo.push(["팀원을 초대해 주세요", "초대 링크를 단톡방에 올리면 돼요", "#/invite", "초대하기"]);
   if (!next) todo.push(["다가오는 일정이 없어요", "일정을 올리면 팀원이 참석을 눌러요", "#/new", "일정 만들기"]);
   if (next && a.none.length) todo.push([`참석 미응답 ${a.none.length}명`, `${md(next.date)} ${wd(next.date)} ${evName(next)}, ${closeText(next)}`, "#/schedule", "알림 보내기"]);

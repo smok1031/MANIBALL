@@ -96,9 +96,20 @@ async function loadTeam(tid) {
   const me = S.members.find(x => x.user_id === S.uid); S.role = me ? me.role : "";
   S.settings = {}; S.events = {}; S.rsvp = {}; S.d = {};
   (d.data || []).forEach(r => put(r.coll, r.id, r.data));
-  if (isAdmin()) S.invite = await getInvite(tid);
+  if (isAdmin()) { S.invite = await getInvite(tid); await loadReqs(); } else S.reqs = [];
   ls.set("mb-team", tid);
   watch(tid);
+}
+// 가입 신청 (Admin, 운영진만 볼 수 있다. 서버 정책도 같다)
+async function loadReqs() {
+  if (!S.tid || !isAdmin()) { S.reqs = []; return; }
+  const { data, error } = await sb.from("join_requests").select("user_id,display_name,kakao_name,message,device,created_at").eq("team_id", S.tid).eq("status", "pending").order("created_at");
+  S.reqs = error ? [] : data || [];
+}
+// 내가 남긴 가입 신청 (승인을 기다리는 화면용)
+async function loadMyReqs() {
+  const { data, error } = await sb.from("join_requests").select("team_id,team_name,status,created_at").eq("user_id", S.uid).order("created_at");
+  S.myReqs = error ? [] : data || [];
 }
 // 초대 코드는 운영진만 서버 함수로 받는다 (새 규칙을 넣기 전이면 예전 방식으로)
 async function getInvite(tid) {
@@ -127,6 +138,7 @@ function watch(tid) {
     .on("postgres_changes", { event: "UPDATE", schema: DB_SCHEMA, table: "docs", filter: "team_id=eq." + tid }, onDoc)
     .on("postgres_changes", { event: "INSERT", schema: DB_SCHEMA, table: "members", filter: "team_id=eq." + tid }, refreshMembers)
     .on("postgres_changes", { event: "UPDATE", schema: DB_SCHEMA, table: "members", filter: "team_id=eq." + tid }, refreshMembers)
+    .on("postgres_changes", { event: "*", schema: DB_SCHEMA, table: "join_requests", filter: "team_id=eq." + tid }, () => loadReqs().then(render).catch(() => {}))
     .subscribe();
 }
 async function refreshMembers() {
@@ -150,7 +162,7 @@ async function patchDoc(c, id, patch) {
   if (error) throw error; put(c, id, data.data);
 }
 async function delDoc(c, id) { const { error } = await sb.from("docs").delete().eq("team_id", S.tid).eq("coll", c).eq("id", id); if (error) throw error; drop(c, id); }
-const GUARD = { vote_closed: "경기가 시작돼서 바꿀 수 없어요", no_event: "지워진 일정이에요", bad_vote: "저장할 수 없는 응답이에요", team_limit: "팀은 한 사람당 5개까지 만들 수 있어요", bad_code: "초대 링크가 바뀌었거나 잘못됐어요. 운영진에게 새 링크를 받아 주세요", mom_locked: "MOM 투표는 한 번만 낼 수 있어요", mom_closed: "MOM 투표 시간이 아니에요", no_player: "팀에 없는 사람이에요", poll_closed: "마감된 설문이에요", no_option: "없는 보기예요", no_poll: "지워진 설문이에요", owner_only: "Admin만 할 수 있어요", bad_inquiry: "평가 내용을 확인해 주세요", kick_denied: "운영진은 팀원만 내보낼 수 있어요", next_not_admin: "다음 Admin은 운영진 중에서 골라 주세요", owner_cannot_leave: "Admin은 다음 Admin을 정해야 나갈 수 있어요", not_self: "나에게는 할 수 없어요", not_allowed: "운영진만 할 수 있어요", owner_has_members: "팀원이 남아 있어요. 팀 설정에서 다음 Admin을 정하고 팀을 나가 주세요" };
+const GUARD = { admin_only: "Admin이나 운영진만 할 수 있어요", no_request: "이미 처리된 신청이에요", bad_request: "이름을 확인해 주세요", request_limit: "가입 신청은 한 번에 5팀까지 남길 수 있어요", vote_closed: "경기가 시작돼서 바꿀 수 없어요", no_event: "지워진 일정이에요", bad_vote: "저장할 수 없는 응답이에요", team_limit: "팀은 한 사람당 5개까지 만들 수 있어요", bad_code: "초대 링크가 바뀌었거나 잘못됐어요. 운영진에게 새 링크를 받아 주세요", mom_locked: "MOM 투표는 한 번만 낼 수 있어요", mom_closed: "MOM 투표 시간이 아니에요", no_player: "팀에 없는 사람이에요", poll_closed: "마감된 설문이에요", no_option: "없는 보기예요", no_poll: "지워진 설문이에요", owner_only: "Admin만 할 수 있어요", bad_inquiry: "평가 내용을 확인해 주세요", kick_denied: "운영진은 팀원만 내보낼 수 있어요", next_not_admin: "다음 Admin은 운영진 중에서 골라 주세요", owner_cannot_leave: "Admin은 다음 Admin을 정해야 나갈 수 있어요", not_self: "나에게는 할 수 없어요", not_allowed: "운영진만 할 수 있어요", owner_has_members: "팀원이 남아 있어요. 팀 설정에서 다음 Admin을 정하고 팀을 나가 주세요" };
 function fail(e) { const m = errMsg(e); const k = Object.keys(GUARD).find(x => m.includes(x)); toast(k ? GUARD[k] : /JWT|fetch|network/i.test(m) ? "연결이 끊겼어요. 잠시 후 다시 해 주세요" : "저장하지 못했어요. 잠시 후 다시 해 주세요"); console.error(e); }
 
 /* ---------- 사람과 참석 ---------- */
@@ -241,9 +253,9 @@ function vInvite(teamName, err) {
     <div class="card" style="align-items:center;text-align:center;padding:28px 16px;gap:10px">
       <span class="av" style="width:64px;height:64px;font-size:24px;background:#1E6B45;color:#FFFFFF">${esc(String(teamName || "팀").slice(0, 1))}</span>
       <b style="font-size:22px">${esc(teamName || "팀")}</b>
-      <span class="hint">팀 초대를 받았어요. 카카오로 로그인하면 바로 팀원이 돼요.</span>
+      <span class="hint">팀 초대를 받았어요. 카카오로 로그인하고 가입 신청을 남기면, 운영진이 승인한 뒤 팀원이 돼요.</span>
     </div>
-    <div class="card"><div class="list">${[["카카오로 로그인", "비밀번호 없이 바로 들어와요"], ["선수 등록", "명단에서 내 이름을 고르거나 이름, 등번호, 포지션을 적어요"], ["팀 수칙 동의", "벌금 규칙과 회비 안내"]].map(([a, b], i) => `<div class="li"><span class="av" style="width:32px;height:32px">${i + 1}</span><span style="flex:1"><b>${a}</b><br><span class="hint">${b}</span></span></div>`).join("")}</div><span class="hint" style="text-align:center">1분이면 끝나요</span></div>
+    <div class="card"><div class="list">${[["카카오로 로그인", "비밀번호 없이 바로 들어와요"], ["가입 신청", "운영진이 확인하고 승인해요"], ["선수 등록", "명단에서 내 이름을 고르거나 이름, 등번호, 포지션을 적어요"], ["팀 수칙 동의", "벌금 규칙과 회비 안내"]].map(([a, b], i) => `<div class="li"><span class="av" style="width:32px;height:32px">${i + 1}</span><span style="flex:1"><b>${a}</b><br><span class="hint">${b}</span></span></div>`).join("")}</div><span class="hint" style="text-align:center">1분이면 끝나요</span></div>
     ${err ? `<div class="err" role="alert">로그인하지 못했어요. 다시 시도해 주세요.</div>` : ""}
     <button class="btn kakao block" data-act="kakao">${KAKAO}카카오 로그인</button>
     <span class="hint" style="text-align:center">처음 한 번만 하면 다음부터는 바로 들어와요. 앱 설치는 필요 없어요. <a href="../../privacy.html">개인정보처리방침과 이용약관</a></span>
@@ -281,6 +293,73 @@ async function showTeams(mode) {
   try { await loadTeamsInfo(); } catch (e) { /* 이름과 권한만 보여 준다 */ }
   if (S.flow === "teams") render();
 }
+const DEV = { phone: "휴대폰", pc: "PC" };
+const stamp = iso => { const d = new Date(new Date(iso).getTime() + 9 * 3600e3); return `${d.getUTCMonth() + 1}.${String(d.getUTCDate()).padStart(2, "0")} ${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`; };
+// 초대 링크로 들어왔고 아직 팀원이 아니면: 가입 신청을 남긴다
+function vJoinReq() {
+  const f = S.form, t = S.joinTeam || {};
+  return `<div class="body" style="padding:32px 20px;gap:18px">
+    <div class="row" style="gap:10px">${LOGO(36)}<b style="font-size:18px">매니볼</b></div>
+    <div class="card" style="align-items:center;text-align:center;padding:24px 16px;gap:8px">
+      <span class="av" style="width:60px;height:60px;font-size:22px;background:#1E6B45;color:#FFFFFF">${esc(String(t.name || "팀").slice(0, 1))}</span>
+      <b style="font-size:22px">${esc(t.name || "팀")}</b>
+      <span class="hint">가입 신청을 남기면 운영진이 확인하고 승인해요. 승인되면 바로 들어갈 수 있어요.</span>
+    </div>
+    <div class="card" style="gap:14px">
+      <label class="field"><span class="lab">팀에서 쓰는 이름</span><input class="inp" data-bind="name" value="${esc(f.name || "")}" maxlength="20" placeholder="예: 김민준" autocomplete="off"></label>
+      <label class="field"><span class="lab">운영진에게 한마디 (안 써도 돼요)</span><textarea class="inp" data-bind="msg" maxlength="100" style="min-height:72px" placeholder="예: 수요일 풋살 같이 하는 김민준입니다">${esc(f.msg || "")}</textarea></label>
+    </div>
+    <div style="background:#F9FAFB;border-radius:14px;padding:12px 14px;font-size:13px;color:#4B5563;line-height:1.6">지금 로그인된 카카오 계정은 <b style="color:#111827">${esc(suggestedName() || "이름 없음")}</b>이에요. 평소 쓰는 계정이 아니면 <a href="#" data-act="logout">로그아웃</a>하고 그 계정으로 다시 들어와 주세요.</div>
+    <button class="btn pri block" data-act="joinSend">가입 신청</button>
+  </div>`;
+}
+// 가입 신청을 남긴 뒤: 승인을 기다린다 (거절되면 알려 준다)
+function vJoinWait() {
+  const rs = S.myReqs || [];
+  const clock = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`;
+  const one = r => r.status === "rejected"
+    ? `<div class="card" style="align-items:center;text-align:center;gap:10px;padding:24px 16px"><b style="font-size:20px">가입이 거절됐어요</b><span class="hint">${esc(r.team_name || "팀")} 운영진이 신청을 거절했어요. 궁금하면 운영진에게 직접 물어봐 주세요.</span><button class="btn block" data-act="joinCancel" data-id="${esc(r.team_id)}">확인</button></div>`
+    : `<div class="card" style="align-items:center;text-align:center;gap:10px;padding:26px 16px"><span style="width:52px;height:52px;border-radius:50%;background:#15803D;display:inline-flex;align-items:center;justify-content:center">${clock}</span><b style="font-size:20px">가입 승인을 기다리고 있어요</b><span style="font-size:15px"><b>${esc(r.team_name || "팀")}</b></span><span class="hint">운영진이 승인하면 바로 들어갈 수 있어요. 이 화면은 저절로 새로 고쳐져요.</span><span class="hint" style="font-size:12px">신청 ${esc(stamp(r.created_at))}</span><button class="btn block" data-act="joinCancel" data-id="${esc(r.team_id)}" style="margin-top:4px">신청 취소</button></div>`;
+  return `<div class="body" style="padding:32px 20px;gap:18px">
+    <div class="row" style="gap:10px">${LOGO(36)}<b style="font-size:18px">매니볼</b></div>
+    ${rs.map(one).join("")}
+    ${S.teams.length ? `<button class="btn block" data-act="joinLeave">내 팀으로 가기</button>` : `<button class="btn block" data-act="newTeam">+ 새 팀 만들기</button>`}
+    <a href="#" data-act="logout" class="hint" style="text-align:center">로그아웃</a>
+  </div>`;
+}
+// 운영진: 가입 신청 목록. 같은 이름이 이미 있으면 같은 사람이 다른 카카오 계정으로 신청한 건지 확인하라고 알려 준다
+function vRequests() {
+  const rs = S.reqs || [];
+  const names = new Set(S.members.map(m => String(nameOf(m.user_id) || m.display_name || "").replace(/\s/g, "")).concat(rosterAll().map(p => String(p.name || "").replace(/\s/g, ""))).filter(Boolean));
+  const card = r => { const same = names.has(String(r.display_name || "").replace(/\s/g, ""));
+    return `<div class="card" style="gap:12px">
+      <div class="row" style="gap:12px;align-items:flex-start"><span class="av">${esc(ini(r.display_name))}</span><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><b style="font-size:16px">${esc(r.display_name)}</b><span class="hint">카카오 ${esc(r.kakao_name || "이름 없음")}${r.device ? ", " + DEV[r.device] + "에서 신청" : ""}, ${esc(stamp(r.created_at))}</span></span></div>
+      ${r.message ? `<div style="background:#F9FAFB;border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.6">${esc(r.message)}</div>` : ""}
+      ${same ? `<div style="background:#FFFBEB;color:#92400E;border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.6"><b>이름이 같은 선수가 이미 있어요.</b> 같은 사람이 다른 카카오 계정으로 신청했을 수 있어요. 본인에게 확인해 주세요.</div>` : ""}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn" data-act="reqNo" data-id="${esc(r.user_id)}">거절</button><button class="btn pri" data-act="reqOk" data-id="${esc(r.user_id)}">승인</button></div>
+    </div>`; };
+  return `${top("가입 신청", "#/players")}<div class="body">
+    <span class="hint" style="padding:0 4px">초대 링크로 들어온 사람은 승인해야 팀원이 돼요. 모르는 사람이나 이미 있는 사람은 거절해 주세요.</span>
+    ${rs.length ? rs.map(card).join("") : `<div class="card" style="align-items:center;text-align:center;padding:28px 16px"><b>새 가입 신청이 없어요</b><span class="hint">초대 링크로 신청이 들어오면 여기에 보여요</span></div>`}
+  </div>`;
+}
+const devNow = () => /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? "phone" : "pc";
+let joinPoll = 0;
+function startJoinWait() {
+  S.flow = "joinWait"; render(); clearInterval(joinPoll);
+  joinPoll = setInterval(checkJoin, 15000);
+}
+// 승인됐는지 확인: 팀 목록에 새 팀이 생겼으면 바로 들어간다
+async function checkJoin() {
+  if (S.flow !== "joinWait" || document.hidden) return;
+  const before = new Set(S.teams.map(t => t.id)), wait = new Set((S.myReqs || []).map(r => r.team_id));
+  try { await loadTeams(); await loadMyReqs(); } catch (e) { return; }
+  const ok = S.teams.find(t => !before.has(t.id) && wait.has(t.id));
+  if (ok) { clearInterval(joinPoll); toast("가입이 승인됐어요"); S.flow = ""; S.ready = false; render(); return enter(ok.id); }
+  if (!(S.myReqs || []).length) { clearInterval(joinPoll); S.flow = ""; return S.teams.length ? enter((S.teams.find(x => x.id === ls.get("mb-team")) || S.teams[0]).id) : startCreate(); }
+  render();
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden && S.flow === "joinWait") checkJoin(); });
 function vCreate(edit) {
   const f = S.form;
   const chip = (k, v, l) => `<button class="chip ${f[k] === v ? "on" : ""}" data-act="pick" data-k="${k}" data-v="${v}">${l}</button>`;
@@ -830,6 +909,8 @@ function render() {
   else if (S.flow === "invite") html = vInvite(S.inviteTeam, qs.get("login_error"));
   else if (S.flow === "create") html = vCreate();
   else if (S.flow === "teams") html = vTeams();
+  else if (S.flow === "joinReq") html = vJoinReq();
+  else if (S.flow === "joinWait") html = vJoinWait();
   else if (S.flow === "profile") html = vProfile(false);
   else if (S.flow === "rules") html = vRules();
   else if (S.flow === "claim") html = vClaim();
@@ -856,6 +937,7 @@ function render() {
     else if ((m = r.match(/^\/edit\/(.+)$/)) && isAdmin()) html = vEventForm(decodeURIComponent(m[1]));
     else if (r === "/players") html = vPlayers();
     else if (r === "/invite" && isAdmin()) html = vInviteMsg();
+    else if (r === "/requests" && isAdmin()) html = vRequests();
     else if (r === "/me") html = vProfile(true);
     else if (r === "/settings" && isAdmin()) html = vCreate(true);
     else if (r === "/records") html = vRecords();
@@ -1017,6 +1099,36 @@ const ACT = {
     S.flow = ""; S.ready = false; render(); location.hash = "#/"; lastRoute = ""; await enter(id);
   },
   teamsBack: () => { S.flow = ""; render(); },
+  joinSend: async t => {
+    const name = String(S.form.name || "").trim();
+    if (!name) { toast("팀에서 쓰는 이름을 적어 주세요"); return; }
+    t.disabled = true;
+    try {
+      const { data, error } = await sb.rpc("request_join", { p_code: S.joinCode, p_name: name.slice(0, 20), p_message: String(S.form.msg || "").trim().slice(0, 100), p_device: devNow() });
+      if (error) throw error;
+      if (data === "member") { await loadTeams(); return enter(S.joinTeam.id); }
+      S.joinCode = ""; await loadMyReqs(); startJoinWait();
+    } catch (e) { t.disabled = false; fail(e); }
+  },
+  joinCancel: async t => {
+    const r = (S.myReqs || []).find(x => x.team_id === t.dataset.id); if (!r) return;
+    const go = async () => { const { error } = await sb.rpc("cancel_join", { p_team: r.team_id }); if (error) return fail(error); await loadMyReqs(); if ((S.myReqs || []).length) render(); else { clearInterval(joinPoll); S.flow = ""; if (S.teams.length) enter((S.teams.find(x => x.id === ls.get("mb-team")) || S.teams[0]).id); else startCreate(); } };
+    if (r.status === "rejected") go(); else confirmBox("가입 신청 취소", `${r.team_name || "팀"} 가입 신청을 취소할까요?`, "신청 취소", go);
+  },
+  joinLeave: () => { clearInterval(joinPoll); S.flow = ""; enter((S.teams.find(x => x.id === ls.get("mb-team")) || S.teams[0]).id); },
+  reqOk: async t => {
+    const r = (S.reqs || []).find(x => x.user_id === t.dataset.id); if (!r) return; t.disabled = true;
+    const { error } = await sb.rpc("answer_join", { p_team: S.tid, p_user: r.user_id, p_ok: true });
+    if (error) { t.disabled = false; return fail(error); }
+    toast(`${r.display_name} 님을 팀원으로 받았어요`); await loadReqs(); await refreshMembers(); render();
+  },
+  reqNo: t => {
+    const r = (S.reqs || []).find(x => x.user_id === t.dataset.id); if (!r) return;
+    confirmBox("가입 거절", `${r.display_name} 님의 가입 신청을 거절할까요? 신청한 사람에게 거절됐다고 보여요.`, "거절", async () => {
+      const { error } = await sb.rpc("answer_join", { p_team: S.tid, p_user: r.user_id, p_ok: false });
+      if (error) return fail(error); toast("거절했어요"); await loadReqs(); render();
+    }, true);
+  },
   createBack: () => { if (S.fromTeams || !(S.ready && S.tid)) showTeams(S.teamsMode || "entry"); else { S.flow = ""; render(); } },
   enterTeam: async t => { closeSheet(); S.ready = false; render(); await enter(t.dataset.id); },
   newTeam: () => { closeSheet(); S.fromTeams = S.flow === "teams"; startCreate(); },
@@ -1098,17 +1210,18 @@ async function boot() {
   if (qs.get("view") === "member") setView("member"); else if (qs.get("view") === "admin") setView("admin");
   ls.set("mb-view", null);
   if (location.search) history.replaceState(null, "", APP + location.hash);
-  try { await loadTeams(); } catch (e) { $("#app").innerHTML = `<div class="loading">팀 정보를 불러오지 못했어요. 네트워크를 확인하고 새로고침해 주세요.</div>`; return; }
+  try { await loadTeams(); await loadMyReqs(); } catch (e) { $("#app").innerHTML = `<div class="loading">팀 정보를 불러오지 못했어요. 네트워크를 확인하고 새로고침해 주세요.</div>`; return; }
   if (code) {
     ls.set("mb-join", null);
     const { data } = await sb.rpc("team_by_code", { p_code: code }); const t = data && data[0];
     if (!t) toast("초대 링크가 바뀌었거나 잘못됐어요. 운영진에게 새 링크를 받아 주세요");
     else if (!S.teams.some(x => x.id === t.id)) {
-      const { error } = await sb.rpc("join_team", { p_code: code, p_name: suggestedName() });
-      if (error) fail(error); else { await loadTeams(); return enter(t.id); }
+      if ((S.myReqs || []).some(r => r.team_id === t.id && r.status === "pending")) return startJoinWait();
+      S.joinCode = code; S.joinTeam = t; S.form = { name: suggestedName(), msg: "" }; S.flow = "joinReq"; render(); return;
     } else return enter(t.id);
   }
   const last = ls.get("mb-team"); const t = S.teams.find(x => x.id === last) || S.teams[0];
+  if (!S.teams.length && (S.myReqs || []).length) return startJoinWait();
   if (S.teams.length >= 2 && (route() === "/" || route() === "")) return showTeams("entry");
   if (t) return enter(t.id);
   startCreate();
