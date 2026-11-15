@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<title>초대 2 단톡방 문구 미리보기</title>
+<title>초대 2 초대 링크</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -21,21 +21,10 @@ body{margin:0;background:#FFFFFF}
 
   <div style="padding: 22px 20px 0">
     <span style="display: inline-block; background: #DCFCE7; color: #166534; font-weight: 700; font-size: 13px; padding: 5px 10px; border-radius: 999px">팀이 만들어졌어요</span>
-    <h1 style="font-size: 24px; font-weight: 900; letter-spacing: -0.6px; margin: 12px 0 6px">단톡방에 이렇게 올라가요</h1>
-    <p style="margin: 0; color: #4B5563; font-size: 14px">문구는 눌러서 바꿀 수 있어요.</p>
+    <h1 style="font-size: 24px; font-weight: 900; letter-spacing: -0.6px; margin: 12px 0 6px">초대 링크를 보내 주세요</h1>
+    <p style="margin: 0; color: #4B5563; font-size: 14px">이 링크로 들어온 사람은 가입 신청을 보내고, 운영진이 승인하면 팀원이 돼요.</p>
   </div>
 
-  <div style="margin: 18px 20px 0; background: #B2C7DA; border-radius: 22px; padding: 18px 14px; display: flex; flex-direction: column; gap: 8px">
-    <span style="font-size: 12px; color: #374151">나</span>
-    <div style="align-self: flex-start; width: 78%; max-width: 300px; background: #FFFFFF; border-radius: 4px 16px 16px 16px; overflow: hidden">
-      <div style="background: {{accent}}; color: #FFFFFF; padding: 16px 14px; display: flex; align-items: center; gap: 10px">
-        <span style="width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,0.2); display: inline-flex; align-items: center; justify-content: center; font-weight: 900">T</span>
-        <span><b style="font-size: 16px">TEST FS</b><br><span style="font-size: 12px; opacity: 0.85">풋살팀, 월회비 30,000원</span></span>
-      </div>
-      <div style="padding: 12px 14px; font-size: 14px; line-height: 1.6; border-bottom: 1px dashed #D1D5DB; position: relative"><sc-if value="{{ editOff }}" hint-placeholder-val="{{ true }}">{{ msgT }}</sc-if><sc-if value="{{ editOn }}" hint-placeholder-val="{{ false }}"><textarea aria-label="단톡방 문구" value="{{ msgT }}" onChange="{{ msgC }}" style="border: 1px solid #86EFAC; outline: none; background: #F0FDF4; font: inherit; color: #111827; margin: 0; box-sizing: border-box; border-radius: 8px; padding: 6px 8px 18px; width: 100%; display: block; resize: none; min-height: 96px; line-height: 1.6; font-size: 14px"></textarea></sc-if><a href="#" style="position: absolute; right: 8px; bottom: 8px; font-size: 11px; color: {{accent}}; font-weight: 700; text-decoration: none" onClick="{{ c1k }}">{{ editLabel }}</a></div>
-      <a href="JoinInvite.dc.html" style="display: block; padding: 12px 14px; text-align: center; font-weight: 700; font-size: 14px; color: #111827; text-decoration: none">팀 들어가기</a>
-    </div>
-  </div>
 
   <div style="margin: 16px 20px 0; display: flex; align-items: center; gap: 10px; border: 1px solid #E5E7EB; border-radius: 12px; padding: 12px 14px">
     <span style="flex: 1; font-size: 14px; font-weight: 700; color: #374151; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">maniball.app/j/TEST7Q</span>
@@ -43,8 +32,7 @@ body{margin:0;background:#FFFFFF}
   </div>
 
   <div style="margin-top: auto; padding: 12px 20px 28px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #F3F4F6">
-    <a href="InviteRoster.dc.html" style="display: block; text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; font-size: 17px; padding: 16px 0; border-radius: 14px; text-align: center" onClick="{{ c3k }}">공유하기</a>
-    <span style="color: #6B7280; font-size: 13px; text-align: center">보낸 뒤 팀 홈으로 이동해요</span>
+    <a href="InviteRoster.dc.html" style="display: block; text-decoration: none; background: {{accent}}; color: #FFFFFF; font-weight: 700; font-size: 17px; padding: 16px 0; border-radius: 14px; text-align: center">다음</a>
   </div>
   <sc-if value="{{ toastOn }}" hint-placeholder-val="{{ false }}"><div role="status" style="position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); z-index: 50; width: max-content; max-width: 340px; box-sizing: border-box; background: #111827; color: #FFFFFF; font-size: 14px; font-weight: 700; line-height: 1.5; padding: 12px 16px; border-radius: 14px; text-align: center; box-shadow: 0 10px 24px rgba(17,24,39,0.25)">{{ toastText }}</div></sc-if>
 </div>

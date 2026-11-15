@@ -222,7 +222,6 @@ const BACK = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke
 const LOGO = s => `<span role="img" aria-label="매니볼" style="width:${s}px;height:${s}px;border-radius:${Math.round(s * .28)}px;background:#1E6B45;display:inline-flex;align-items:center;justify-content:center;flex:none;box-shadow:0 0 0 1px rgba(255,255,255,.25)"><svg width="${Math.round(s * .75)}" height="${Math.round(s * .75)}" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="22" fill="none" stroke="#FFFFFF" stroke-width="5"></circle><circle cx="23" cy="26" r="3.5" fill="#F5B841"></circle><circle cx="23" cy="38" r="3.5" fill="#F5B841"></circle><path d="M30 26 H43 M30 38 H41" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"></path></svg></span>`;
 // 카카오 로그인 공식 심볼(말풍선). 모양, 비율, 색(#000000)을 바꾸지 않는다 (카카오 로그인 디자인 가이드)
 const KAKAO = `<svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#000000" fill-rule="evenodd" clip-rule="evenodd" d="M9.00002 0.599976C4.02917 0.599976 0 3.71296 0 7.55229C0 9.94003 1.55847 12.0452 3.93152 13.2969L2.93303 16.9446C2.84481 17.2669 3.21341 17.5238 3.49646 17.337L7.87334 14.4483C8.24268 14.4839 8.61815 14.5047 9.00002 14.5047C13.9706 14.5047 18 11.3917 18 7.55229C18 3.71296 13.9706 0.599976 9.00002 0.599976"/></svg>`;
-const SHARE = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>`;
 function jersey(size, num, color) {
   return `<span style="position:relative;width:${size}px;height:${size}px;display:inline-flex;align-items:center;justify-content:center;flex:none"><svg width="${size}" height="${size}" viewBox="0 0 100 100" aria-hidden="true"><path d="M30 12 L40 8 Q50 17 60 8 L70 12 L93 27 L84 45 L74 40 L74 92 Q50 97 26 92 L26 40 L16 45 L7 27 Z" fill="${esc(color || "#164F33")}"></path><path d="M40 8 Q50 21 60 8" fill="none" stroke="#F5B841" stroke-width="3"></path><path d="M7 27 L16 45 M93 27 L84 45" stroke="#F5B841" stroke-width="3"></path></svg><b data-live="num" style="position:absolute;left:0;right:0;top:40%;text-align:center;color:${numColor(color || "#164F33")};font-size:${Math.round(size * .29)}px;font-weight:900;line-height:1;letter-spacing:-2px">${esc(num || "")}</b></span>`;
 }
@@ -440,14 +439,13 @@ function vRules() {
 /* ---------- 초대 ---------- */
 const inviteUrl = () => S.invite ? APP + "?join=" + S.invite : "";
 function vInviteMsg() {
-  const msg = S.form.msg ?? `${S.team ? S.team.name : "우리 팀"} 팀 관리 앱이에요. 링크 누르고 카카오로 로그인하면 끝! 이제 참석은 여기서 눌러 주세요.`;
   return `${top("팀원 초대하기", "#/")}<div class="body">
-    <div class="card"><span class="lab">단톡방에 올릴 문구</span><textarea class="inp" data-bind="msg" aria-label="초대 문구">${esc(msg)}</textarea>
+    <div class="card"><span class="lab">초대 링크</span>
       <div class="spread" style="border:1px solid #E5E7EB;border-radius:12px;padding:12px"><span style="font-size:14px;word-break:break-all">${esc(inviteUrl() || "링크를 만드는 중이에요")}</span><button class="btn sm" data-act="copyLink">복사</button></div>
       <span class="hint">이 링크로 들어온 사람은 가입 신청을 보내고, 운영진이 승인하면 팀원이 돼요. 링크가 엉뚱한 곳에 퍼졌으면 새 링크를 만들어 예전 링크를 막아요.</span>
       <button class="btn sm" data-act="newCode" style="align-self:flex-start">새 링크 만들기</button>
     </div>
-  </div><div class="cta"><button class="btn pri block" data-act="share">${SHARE}공유하기</button><a class="btn block" href="#/">완료</a></div>`;
+  </div><div class="cta"><a class="btn pri block" href="#/">완료</a></div>`;
 }
 
 // 팀 지우기 팝업: 운영진 중에서 다음 Admin을 고르고 나가기, 또는 매니볼에 평가를 남기고 팀 지우기
@@ -706,7 +704,7 @@ function vLineup(id) {
     ${edit ? restCard : myLine + memNote}
     ${edit ? `<button class="btn pri block" data-act="autoLineup" data-eid="${esc(e.id)}" style="font-size:15px">${fs ? "휴식 자동 배치" : "포지션 맞춰 휴식 자동 배치"}</button>` : ""}
     ${edit ? countCard : ""}`}
-  </div>${edit && L ? `<div class="cta"><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px"><button class="btn" data-act="linePrint">한 장 PDF 저장</button><button class="btn pri" data-act="lineShare" data-eid="${esc(e.id)}">팀원에게 알리기</button></div></div>` : ""}`;
+  </div>${edit && L ? `<div class="cta"><button class="btn pri block" data-act="lineShare" data-eid="${esc(e.id)}">팀원에게 알리기</button></div>` : ""}`;
 }
 
 /* ---------- 내전 ---------- */
@@ -898,7 +896,6 @@ const ACT2 = {
   saveLineup: async t => { const e = S.events[t.dataset.eid]; if (!e) return; const side = e.type === "scrim" ? UI.side : "main"; const L = curLineup(e, side); if (!L) return; try { await setDoc("events", e.id, { ...e, lineup: { ...(e.lineup || {}), [side]: L } }); S.form.lineup = null; render(); toast("저장했어요. 팀원에게 알리기를 누르면 팀원에게 보여요"); } catch (err) { fail(err); } },
   lineShare: t => { const e = S.events[t.dataset.eid]; if (!e) return; const n = lineupPlayers(e, e.type === "scrim" ? UI.side : "main").length;
     confirmBox("라인업을 알릴까요?", `${md(e.date)} ${wd(e.date)} ${e.time || ""} ${evName(e)}, 참석 ${n}명. 팀원 라인업 화면과 알림함에 보여요. 나중에 바꿔도 다시 알릴 수 있어요.`, `${n}명에게 알리기`, async () => { const side = e.type === "scrim" ? UI.side : "main"; const L = curLineup(e, side); try { await setDoc("events", e.id, { ...e, lineup: { ...(e.lineup || {}), [side]: L }, lineupAt: new Date().toISOString() }); S.form.lineup = null; render(); toast("라인업을 알렸어요"); } catch (err) { fail(err); } }); },
-  linePrint: () => window.print(),
   scrimConvert: t => confirmBox("내전으로 바꾸기", "상대팀 없이 우리끼리 A팀과 B팀으로 나눠서 해요. 대기자도 모두 참석으로 올라가고, 신청한 사람 모두에게 보여요.", "바꾸기", async () => { const e = S.events[t.dataset.eid]; const a = att(e); const T = {}; [...a.yes, ...a.late, ...a.wait].forEach((x, i) => { T[x.uid] = i % 2 ? "B" : "A"; }); try { await setDoc("events", e.id, { ...e, type: "scrim", cap: 0, teams: T, scrimAt: new Date().toISOString() }); toast("내전으로 바꿨어요. 스쿼드를 나눠 주세요"); location.hash = "#/squad/" + e.id; } catch (err) { fail(err); } }),
   squadSet: async t => { const e = S.events[t.dataset.eid]; const T = { ...(e.teams || {}) }; T[t.dataset.u] = T[t.dataset.u] === t.dataset.v ? "" : t.dataset.v; try { await setDoc("events", e.id, { ...e, teams: T }); render(); } catch (err) { fail(err); } },
   squadAuto: async t => {
@@ -1083,11 +1080,6 @@ const ACT = {
   },
   agree: async t => { if (!S.form.agreeChk) { toast("수칙을 읽고 체크해 주세요"); return; } t.disabled = true; try { await patchDoc("rsvp", S.uid, { agreedAt: new Date().toISOString() }); S.flow = ""; S.ready = true; location.hash = "#/"; render(); } catch (e) { t.disabled = false; fail(e); } },
   copyLink: async () => { try { await navigator.clipboard.writeText(inviteUrl()); toast("링크를 복사했어요"); } catch (e) { toast("길게 눌러 복사해 주세요"); } },
-  share: async () => {
-    const text = (S.form.msg ?? `${S.team.name} 팀 관리 앱이에요. 링크 누르고 카카오로 로그인하면 끝! 이제 참석은 여기서 눌러 주세요.`) + "\n" + inviteUrl();
-    try { if (navigator.share) { await navigator.share({ title: S.team.name, text }); return; } } catch (e) { return; }
-    try { await navigator.clipboard.writeText(text); toast("문구와 링크를 복사했어요. 단톡방에 붙여 넣어 주세요"); } catch (e) { toast("길게 눌러 복사해 주세요"); }
-  },
   newCode: () => confirmBox("새 초대 링크", "지금 링크로는 더 이상 들어올 수 없게 돼요. 이미 들어온 멤버는 그대로예요.", "새 링크 만들기", async () => {
     const { data, error } = await sb.rpc("new_invite_code", { p_team: S.tid }); if (error) { fail(error); return; } S.invite = data; render(); toast("새 링크를 만들었어요");
   }),
