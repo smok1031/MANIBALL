@@ -395,11 +395,7 @@ function vCreate(edit) {
       ${f.feeMode !== "none" ? `<label class="field"><span class="lab">금액</span><input class="inp" data-bind="fee" inputmode="numeric" value="${esc(f.fee || "")}" placeholder="예: 30000"></label>` : ""}
       ${f.feeMode === "monthly" ? `<div class="field"><span class="lab">납부일</span><div class="chips">${days.map(d => chip("dueDay", d, d === "말일" ? "말일" : d + "일")).join("")}</div></div>` : ""}
     </div>
-    <div class="card">
-      <div class="spread"><span class="lab">팀 수칙</span><span class="hint">벌금은 비워 둬도 돼요</span></div>
-      ${(f.rules || []).map((r, i) => `<div class="row"><input class="inp" data-rule="${i}" data-f="label" value="${esc(r.label)}" placeholder="예: 지각 (킥오프 10분 전 기준)" aria-label="수칙 ${i + 1}" style="flex:1"><input class="inp" data-rule="${i}" data-f="amount" value="${esc(r.amount || "")}" inputmode="numeric" placeholder="벌금" aria-label="수칙 ${i + 1} 벌금" style="width:96px;flex:none"><button class="iconbtn" data-act="ruleDel" data-i="${i}" aria-label="수칙 ${i + 1} 지우기">✕</button></div>`).join("")}
-      <button class="btn" data-act="ruleAdd">+ 수칙 추가</button>
-    </div>
+    ${rulesForm(f)}
     <div class="card"><span class="lab">유니폼 색</span><div class="row" style="gap:12px">${jersey(64, "7", f.kit)}<div class="chips">${KIT.map(([c, l]) => `<button class="chip sm ${f.kit === c ? "on" : ""}" data-act="pick" data-k="kit" data-v="${c}">${l}</button>`).join("")}</div></div><span class="hint">팀원 홈의 유니폼 카드에 이 색으로 보여요.</span></div>
     ${edit && S.role === "owner" ? `<button class="btn danger" data-act="delTeam">팀 지우기</button>` : ""}
   </div><div class="cta">${edit ? `<button class="btn pri block" data-act="saveSettings">저장</button>` : `<button class="btn pri block" data-act="createTeam">팀 만들기</button><span class="hint" style="text-align:center">설정은 나중에 바꿀 수 있어요</span>`}</div>`;
@@ -426,11 +422,33 @@ function vProfile(editing) {
     </div>
   </div><div class="cta"><button class="btn pri block" data-act="saveProfile">${editing ? "저장" : "다음"}</button></div>`;
 }
+// 팀 수칙: 수칙은 글로 (1. 2. 직접 번호), 벌금은 금액이 있는 항목만. 예전 "글 수칙"(벌금 0원)은 번호 붙인 글로 바꿔 보여 준다
+export const rulesTextOf = st => typeof (st || {}).rulesText === "string" ? st.rulesText : ((st || {}).rules || []).filter(r => !Number(r.amount)).map((r, i) => `${i + 1}. ${r.label}`).join("\n");
+export const fineRulesOf = st => ((st || {}).rules || []).filter(r => Number(r.amount) > 0);
+export function rulesView(st, empty = "아직 정한 수칙이 없어요.") {
+  const txt = rulesTextOf(st).trim(); const fines = fineRulesOf(st);
+  if (!txt && !fines.length) return `<span class="hint">${empty}</span>`;
+  return `${txt ? `<div style="white-space:pre-wrap;line-height:1.7;font-size:15px;color:#111827">${esc(txt)}</div>` : ""}${fines.length ? `<span class="lab" style="margin-top:4px">벌금</span><div class="list">${fines.map(r => `<div class="li"><span style="flex:1">${esc(r.label)}</span><b>${won(r.amount)}</b></div>`).join("")}</div>` : ""}`;
+}
+export function rulesForm(f) {
+  return `<div class="card"><span class="lab">팀 수칙</span><textarea class="inp" data-bind="rulesText" style="min-height:160px;line-height:1.7" placeholder="1. 경기 10분 전까지 와요&#10;2. 못 오면 투표 마감 전에 불참으로 바꿔요&#10;3. 회비는 매달 5일까지 내요">${esc(f.rulesText || "")}</textarea><span class="hint">번호를 직접 붙여 적어요. 줄을 바꾸면 그대로 보여요.</span></div>
+    <div class="card"><div class="spread"><span class="lab">벌금</span><span class="hint">금액을 적은 것만 벌금으로 매겨져요</span></div>
+      ${(f.rules || []).map((r, i) => `<div class="row" style="gap:6px"><input class="inp" data-rule="${i}" data-f="label" value="${esc(r.label)}" placeholder="예: 지각 (킥오프 10분 전 기준)" aria-label="벌금 ${i + 1} 이름" style="flex:1"><input class="inp" data-rule="${i}" data-f="amount" value="${esc(r.amount || "")}" inputmode="numeric" placeholder="금액" aria-label="벌금 ${i + 1} 금액" style="width:96px;flex:none"><button class="iconbtn" data-act="ruleDel" data-i="${i}" aria-label="벌금 ${i + 1} 지우기">✕</button></div>`).join("")}
+      <button class="btn sm" data-act="ruleAdd" style="align-self:flex-start">+ 벌금 추가</button>
+      <span class="hint">지각, 결석은 현장 출석에서, 불참(직전 취소)은 마감 후 불참 변경에서 이 금액으로 자동으로 매겨져요.</span></div>`;
+}
+// 편집 칸 값으로 저장할 수칙 글과 벌금 목록
+export function rulesFromForm(f) {
+  const rulesText = String(f.rulesText || "").replace(/\r/g, "").replace(/\n{3,}/g, "\n\n").trim().slice(0, 2000);
+  const rules = (f.rules || []).map(r => ({ label: String(r.label || "").trim().slice(0, 40), amount: Number(String(r.amount || "").replace(/\D/g, "")) || 0 })).filter(r => r.label && r.amount > 0);
+  return { rulesText, rules };
+}
+export const rulesFormInit = st => ({ rulesText: rulesTextOf(st), rules: fineRulesOf(st).map(r => ({ label: r.label, amount: String(r.amount) })) });
 function vRules() {
-  const rules = S.settings.rules || []; const st = S.settings; const bk = st.bank || {};
+  const st = S.settings; const bk = st.bank || {};
   return `${top("팀 수칙 2/2", "")}<div class="body">
     <div class="card"><b style="font-size:18px">${esc(S.team ? S.team.name : "")} 수칙이에요</b><span class="hint">읽고 동의하면 바로 시작해요.</span>
-      <span class="lab">벌금과 수칙</span>${rules.length ? `<div class="list">${rules.map(r => `<div class="li"><span style="flex:1">${esc(r.label)}</span>${Number(r.amount) ? `<b>${won(r.amount)}</b>` : `<span class="hint">글 수칙</span>`}</div>`).join("")}</div>` : `<span class="hint">아직 정한 수칙이 없어요.</span>`}
+      ${rulesView(st)}
       ${st.feeMode && st.feeMode !== "none" ? `<span class="lab">회비</span><div style="background:#F9FAFB;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px"><b>${won(st.fee)}${st.feeMode === "per_game" ? " / 경기" : " / 월" + (st.dueDay ? ", 매월 " + st.dueDay + "일까지" : "")}</b>${bk.account ? `<span class="hint">${esc([bk.bank, bk.holder ? "예금주 " + bk.holder : ""].filter(Boolean).join(", "))}</span>` : ""}</div>` : ""}
       <label class="row" style="gap:10px;min-height:44px;cursor:pointer"><input type="checkbox" data-bind="agreeChk" ${S.form.agreeChk ? "checked" : ""} style="width:22px;height:22px;accent-color:#15803D"><b>수칙을 읽었고 지킬게요</b></label>
     </div>
@@ -1009,7 +1027,7 @@ function onRoute(force) {
   else if (/^\/(lineup|game)\//.test(r)) { S.form = {}; UI.q = 1; UI.mom = ""; UI.sel = null; }
   else if (r === "/notices") markSeen();
   else if (r === "/roster-import") S.form = { text: "" };
-  else if (r === "/settings") { const st = S.settings; S.form = { name: (S.team && S.team.name) || st.teamName || "", sport: st.sport || "futsal", feeMode: st.feeMode || "none", fee: st.fee ? String(st.fee) : "", dueDay: st.dueDay || "5", kit: st.uniformColor || "#164F33", rules: (st.rules || []).map(r => ({ label: r.label, amount: r.amount ? String(r.amount) : "" })) }; }
+  else if (r === "/settings") { const st = S.settings; S.form = { name: (S.team && S.team.name) || st.teamName || "", sport: st.sport || "futsal", feeMode: st.feeMode || "none", fee: st.fee ? String(st.fee) : "", dueDay: st.dueDay || "5", kit: st.uniformColor || "#164F33", ...rulesFormInit(st) }; }
   render(); window.scrollTo(0, 0);
 }
 
@@ -1048,7 +1066,7 @@ const ACT = {
       const { data: tid, error } = await sb.rpc("create_team", { p_name: name });
       if (error) throw error;
       await loadTeams(); await loadTeam(tid);
-      await setDoc("team", "settings", { app: "maniball", since: todayStr().slice(0, 7), teamName: name, sport: f.sport, feeMode: f.feeMode, fee: f.feeMode === "none" ? 0 : Number(String(f.fee || "").replace(/\D/g, "")) || 0, dueDay: f.feeMode === "monthly" ? f.dueDay : "", rules: (f.rules || []).filter(r => String(r.label).trim()).map(r => ({ label: String(r.label).trim().slice(0, 40), amount: Number(String(r.amount || "").replace(/\D/g, "")) || 0 })), cap: f.sport === "soccer" ? 22 : 12, uniformColor: f.kit || "#164F33" });
+      await setDoc("team", "settings", { app: "maniball", since: todayStr().slice(0, 7), teamName: name, sport: f.sport, feeMode: f.feeMode, fee: f.feeMode === "none" ? 0 : Number(String(f.fee || "").replace(/\D/g, "")) || 0, dueDay: f.feeMode === "monthly" ? f.dueDay : "", ...rulesFromForm(f), cap: f.sport === "soccer" ? 22 : 12, uniformColor: f.kit || "#164F33" });
       S.afterProfile = "invite"; startProfile();
     } catch (e) { t.disabled = false; fail(e); }
   },
@@ -1057,9 +1075,9 @@ const ACT = {
     if (!name) { toast("팀 이름을 적어 주세요"); return; }
     t.disabled = true;
     try {
-      const newRules = (f.rules || []).filter(r => String(r.label).trim()).map(r => ({ label: String(r.label).trim().slice(0, 40), amount: Number(String(r.amount || "").replace(/\D/g, "")) || 0 }));
-      const rulesAt = JSON.stringify(newRules) !== JSON.stringify(S.settings.rules || []) && (S.settings.rules || []).length ? new Date().toISOString() : (S.settings.rulesAt || "");
-      await setDoc("team", "settings", { ...S.settings, rulesAt, app: "maniball", teamName: name, sport: f.sport, feeMode: f.feeMode, fee: f.feeMode === "none" ? 0 : Number(String(f.fee || "").replace(/\D/g, "")) || 0, dueDay: f.feeMode === "monthly" ? f.dueDay : "", rules: (f.rules || []).filter(r => String(r.label).trim()).map(r => ({ label: String(r.label).trim().slice(0, 40), amount: Number(String(r.amount || "").replace(/\D/g, "")) || 0 })), uniformColor: f.kit || "#164F33" });
+      const R = rulesFromForm(f); const had = rulesTextOf(S.settings).trim() || fineRulesOf(S.settings).length;
+      const rulesAt = had && (R.rulesText !== rulesTextOf(S.settings).trim() || JSON.stringify(R.rules) !== JSON.stringify(fineRulesOf(S.settings).map(r => ({ label: r.label, amount: Number(r.amount) })))) ? new Date().toISOString() : (S.settings.rulesAt || "");
+      await setDoc("team", "settings", { ...S.settings, rulesAt, app: "maniball", teamName: name, sport: f.sport, feeMode: f.feeMode, fee: f.feeMode === "none" ? 0 : Number(String(f.fee || "").replace(/\D/g, "")) || 0, dueDay: f.feeMode === "monthly" ? f.dueDay : "", ...R, uniformColor: f.kit || "#164F33" });
       if (S.team && name !== S.team.name) { const { error } = await sb.from("teams").update({ name: name.slice(0, 40) }).eq("id", S.tid); if (!error) S.team.name = name.slice(0, 40); }
       toast("저장했어요"); location.hash = "#/players";
     } catch (e) { t.disabled = false; fail(e); }
@@ -1203,7 +1221,7 @@ document.addEventListener("click", ev => {
 });
 
 /* ---------- 시작 ---------- */
-function startCreate() { S.flow = "create"; S.form = { name: "", sport: "futsal", feeMode: "monthly", fee: "", dueDay: "5", kit: "#164F33", rules: [{ label: "지각 (킥오프 10분 전 기준)", amount: "" }, { label: "무단 결석", amount: "" }] }; render(); }
+function startCreate() { S.flow = "create"; S.form = { name: "", sport: "futsal", feeMode: "monthly", fee: "", dueDay: "5", kit: "#164F33", rulesText: "", rules: [{ label: "지각 (킥오프 10분 전 기준)", amount: "" }, { label: "무단 결석", amount: "" }, { label: "불참 (투표 마감 뒤)", amount: "" }] }; render(); }
 function startProfile() { const p = myProfile() || {}; S.flow = "profile"; S.form = { name: p.name || nameOf(S.uid) || suggestedName(), num: p.num || "", pos1: p.pos1 || "", pos2: p.pos2 || "", foot: p.foot || "" }; render(); }
 function suggestedName() { const m = (S.session && S.session.user.user_metadata) || {}; return String(m.nickname || m.name || m.full_name || "").slice(0, 20); }
 async function enter(tid) {

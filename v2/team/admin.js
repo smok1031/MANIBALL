@@ -1,6 +1,6 @@
 // 운영진 화면: 디자인 시안 [운영진] 1-1 ~ 5-9. 팀원 화면은 member.js에 있다.
 import { mCalendar } from "./member.js";
-import { ampm, closeAt, $, D, KIT, LOGO, POS, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, refreshMembers, remindInfo, render, ruleAmt, sb, scrimReady, setDoc, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym } from "./main.js";
+import { rulesView, rulesForm, rulesFromForm, rulesFormInit, ampm, closeAt, $, D, KIT, LOGO, POS, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, refreshMembers, remindInfo, render, ruleAmt, sb, scrimReady, setDoc, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym } from "./main.js";
 
 function homeExtras() {
   const out = [];
@@ -158,7 +158,7 @@ function vPlayers() {
     <div class="card"><div class="spread"><b>팀원 ${mem.length}명</b></div><div class="list">${mem.map(row).join("")}</div></div>
     ${un.length ? `<div class="card"><div class="spread"><b>가입 전 ${un.length}명</b><span class="hint">초대 링크로 들어와 이름을 고르면 연결돼요</span></div><div class="list">${un.map(p => `<div class="li" data-act="rosterOpen" data-pid="${esc(p.id)}" role="button" tabindex="0" style="cursor:pointer"><span class="av" style="background:#F3F4F6;color:#6B7280">${esc(ini(p.name))}</span><span style="flex:1"><b>${esc(p.name)}</b><br><span class="hint">${esc([p.num ? p.num + "번" : "", p.pos1, p.pos2].filter(Boolean).join(", "))}</span></span><span class="tag gray">가입 전</span></div>`).join("")}</div></div>` : ""}
     <a class="btn" href="#/roster-import">명단 붙여 넣어 한 번에 등록</a>
-    <div class="card"><div class="spread"><b>우리 팀 수칙</b><a class="btn sm" href="#/rules-edit">수정</a></div>${rules.length ? `<div class="list">${rules.map(r => `<div class="li"><span style="flex:1">${esc(r.label)}</span>${Number(r.amount) ? `<b>${won(r.amount)}</b>` : `<span class="hint">글 수칙</span>`}</div>`).join("")}</div>` : `<span class="hint">아직 정한 수칙이 없어요.</span>`}</div>
+    <div class="card"><div class="spread"><b>우리 팀 수칙</b><a class="btn sm" href="#/rules-edit">수정</a></div>${rulesView(S.settings)}</div>
     <div class="card"><div class="row" style="justify-content:space-between"><a class="btn sm" href="#/settings">팀 설정</a><span class="row"><button class="btn sm" data-act="switchTeam">다른 팀, 새 팀</button><button class="btn sm" data-act="logout">로그아웃</button></span></div><a class="hint" href="../../privacy.html">개인정보처리방침과 이용약관</a></div>
   </div>${nav("선수")}`;
 }
@@ -587,12 +587,10 @@ function vPlayerAdmin(u) {
 }
 function vRulesEdit() {
   const f = S.form;
-  return `${top("팀 수칙 수정", "#/players")}<div class="body"><div class="card">
-    ${(f.rules || []).map((r, i) => `<div class="row" style="gap:6px"><input class="inp" data-rule="${i}" data-f="label" value="${esc(r.label)}" placeholder="수칙" style="flex:2" aria-label="수칙 ${i + 1}"><input class="inp" data-rule="${i}" data-f="amount" value="${esc(r.amount || "")}" inputmode="numeric" placeholder="벌금 (없으면 글 수칙)" style="flex:1.2" aria-label="벌금 ${i + 1}"><button class="iconbtn" data-act="ruleDel" data-i="${i}" aria-label="삭제">✕</button></div>`).join("")}
-    <button class="btn sm" data-act="ruleAdd" style="align-self:flex-start">+ 수칙 추가</button>
-    <label class="spread" style="min-height:44px"><span><b>팀원에게 다시 동의 받기</b><br><span class="hint">저장하면 팀원이 다음에 들어올 때 바뀐 수칙에 동의해요</span></span><input type="checkbox" data-bind="reagree" ${f.reagree ? "checked" : ""} style="width:24px;height:24px;accent-color:#15803D"></label>
-    <span class="hint">벌금 금액을 바꾸면 그다음 일정부터 적용돼요. 이미 매긴 벌금은 그대로예요.</span>
-  </div></div><div class="cta"><button class="btn pri block" data-act="aRulesSave">저장하기</button></div>`;
+  return `${top("팀 수칙 수정", "#/players")}<div class="body">${rulesForm(f)}
+    <div class="card"><label class="spread" style="min-height:44px"><span><b>팀원에게 다시 동의 받기</b><br><span class="hint">저장하면 팀원이 다음에 들어올 때 바뀐 수칙에 동의해요</span></span><input type="checkbox" data-bind="reagree" ${f.reagree ? "checked" : ""} style="width:24px;height:24px;accent-color:#15803D"></label>
+    <span class="hint">벌금 금액을 바꾸면 그다음 일정부터 적용돼요. 이미 매긴 벌금은 그대로예요.</span></div>
+  </div><div class="cta"><button class="btn pri block" data-act="aRulesSave">저장하기</button></div>`;
 }
 function vUniform() {
   const f = S.form; const me = myProfile() || {};
@@ -639,8 +637,8 @@ const AACT3 = {
   aSetPos: async t => { const u = t.dataset.u; const r = S.rsvp[u] || {}; const p = { ...(r.profile || {}) }; p[t.dataset.k] = p[t.dataset.k] === t.dataset.v && t.dataset.k === "pos2" ? "" : t.dataset.v; if (p.pos2 === p.pos1) p.pos2 = "";
     try { await patchDoc("rsvp", u, { profile: p }); render(); } catch (err) { fail(err); } },
   aPromote: t => { const u = t.dataset.u; confirmBox(`${nameOf(u)} 님을 운영진으로 지정할까요?`, "운영진은 일정 올리기, 라인업 짜기, 현장 출석과 벌금, 회비 확인과 알림, 선수 포지션 바꾸기를 할 수 있어요. 운영진 지정과 해제는 Admin만 할 수 있어요. 운영진은 팀원을 내보낼 수 있어요.", "지정하기", async () => { const { error } = await sb.rpc("set_member_role", { p_team: S.tid, p_user: u, p_role: "admin" }); if (error) fail(error); else { toast("운영진으로 지정했어요"); refreshMembers(); } }); },
-  aRulesSave: async t => { const f = S.form; t.disabled = true; const rules = (f.rules || []).filter(r => String(r.label).trim()).map(r => ({ label: String(r.label).trim().slice(0, 40), amount: Number(String(r.amount || "").replace(/\D/g, "")) || 0 }));
-    try { await setDoc("team", "settings", { ...S.settings, rules, rulesAt: new Date().toISOString(), rulesAgreeAt: f.reagree ? new Date().toISOString() : (S.settings.rulesAgreeAt || "") }); toast(f.reagree ? "저장했어요. 팀원이 다음에 들어오면 다시 동의해요" : "저장했어요"); location.hash = "#/players"; } catch (err) { t.disabled = false; fail(err); } },
+  aRulesSave: async t => { const f = S.form; t.disabled = true; const R = rulesFromForm(f);
+    try { await setDoc("team", "settings", { ...S.settings, ...R, rulesAt: new Date().toISOString(), rulesAgreeAt: f.reagree ? new Date().toISOString() : (S.settings.rulesAgreeAt || "") }); toast(f.reagree ? "저장했어요. 팀원이 다음에 들어오면 다시 동의해요" : "저장했어요"); location.hash = "#/players"; } catch (err) { t.disabled = false; fail(err); } },
   aUniformSave: async t => { t.disabled = true; try { await setDoc("team", "settings", { ...S.settings, uniformColor: S.form.kit || S.settings.uniformColor }); toast("저장했어요"); location.hash = "#/players"; } catch (err) { t.disabled = false; fail(err); } },
   aNoticeSave: async t => {
     const f = S.form; if (!String(f.title || "").trim()) { toast("제목을 적어 주세요"); return; } t.disabled = true;
@@ -657,7 +655,7 @@ function adminForm(r) {
   if (r === "/dues-settings") { const st = S.settings; const b = st.bank || {}; S.form = { feeMode: st.feeMode || "none", fee: st.fee ? String(st.fee) : "", dueDay: st.dueDay || "5", bank: b.bank || "", account: b.account || "", holder: b.holder || "", remindEve: !!st.remindEve, remindAfter: !!st.remindAfter }; return true; }
   if (r === "/spend") { S.form = { type: "out", date: new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10), cat: "구장비", amount: "", label: "" }; return true; }
   if (r === "/upload") { UI.match = null; return true; }
-  if (r === "/rules-edit") { S.form = { rules: (S.settings.rules || []).map(x => ({ label: x.label, amount: x.amount ? String(x.amount) : "" })), reagree: false }; return true; }
+  if (r === "/rules-edit") { S.form = { ...rulesFormInit(S.settings), reagree: false }; return true; }
   if (r === "/uniform") { S.form = { kit: S.settings.uniformColor || "#164F33" }; return true; }
   if (r === "/notice-new") { S.form = { title: "", body: "", pinned: false, poll: "", opts: [{ label: "" }, { label: "" }], until: "" }; return true; }
   return false;

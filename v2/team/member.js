@@ -1,6 +1,6 @@
 // 팀원 화면: 디자인 시안 [팀원] 1-1 ~ 5-5를 그대로 따른다. 운영진 기능은 이 파일에 두지 않는다.
 // 운영진도 "팀원 화면 보기"를 누르면 이 화면으로 자기 참석과 선수 카드를 본다.
-import { promotedAt, $, D, LOGO, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, closeText, confirmBox, esc, evName, evStart, fail, feeMode, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, mLabel, md, momClosed, momDeadline, momOpen, momWinners, myProfile, myUv, myVote, nameOf, nav, noticesList, past, patchDoc, people, qs, remindInfo, render, ruleKind, sb, setView, sheet, sport, started, toast, todayStr, top, uid36, unclaimed, upcoming, voteState, wd, won, ym } from "./main.js";
+import { rulesView, rulesTextOf, fineRulesOf, promotedAt, $, D, LOGO, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, closeText, confirmBox, esc, evName, evStart, fail, feeMode, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, mLabel, md, momClosed, momDeadline, momOpen, momWinners, myProfile, myUv, myVote, nameOf, nav, noticesList, past, patchDoc, people, qs, remindInfo, render, ruleKind, sb, setView, sheet, sport, started, toast, todayStr, top, uid36, unclaimed, upcoming, voteState, wd, won, ym } from "./main.js";
 
 /* ---------- 공통 계산 ---------- */
 const MU = { cal: false, day: "", change: "", season: "", filter: "all" };
@@ -62,7 +62,7 @@ function feed() {
   const rm = remindInfo(); if (rm && (rm.to || []).includes(u) && S.events[rm.eid] && !started(S.events[rm.eid]) && !myVote(S.events[rm.eid]).s) add(rm.at, "참석 응답을 기다리고 있어요", `${md(S.events[rm.eid].date)} ${evName(S.events[rm.eid])}, 운영진이 미응답 알림을 보냈어요`, "#/schedule");
   const owe = oweNow(); if (owe.total && owe.dueAt) add(owe.dueAt, `${owe.label}${iga(owe.label)} 아직이에요`, owe.items.map(x => x.label + " " + won(x.amount)).join(", "), "#/dues");
   const dr = D("team").duesRemind; if (dr && (dr.to || []).includes(u) && owe.total) add(dr.at, "회비 알림", `운영진이 회비 알림을 보냈어요. ${won(owe.total)}`, "#/dues");
-  if (S.settings.rulesAt) add(S.settings.rulesAt, "팀 수칙이 바뀌었어요", (S.settings.rules || []).map(r => r.label + (Number(r.amount) ? " " + won(r.amount) : "")).join(", "), "#/players");
+  if (S.settings.rulesAt) add(S.settings.rulesAt, "팀 수칙이 바뀌었어요", (rulesTextOf(S.settings).split("\n").find(x => x.trim()) || fineRulesOf(S.settings).map(r => r.label + " " + won(r.amount)).join(", ")).slice(0, 60), "#/players");
   noticesList().forEach(n => add(n.at, "공지: " + n.title, String(n.body || "").slice(0, 60), "#/notices"));
   return out.sort((a, b) => b.t - a.t);
 }
@@ -316,7 +316,7 @@ function mPlayers() {
   const num = x => Number(x) || 999; mem.sort((a, b) => num(a.p.num) - num(b.p.num)); admins.sort((a, b) => (a.role === "owner" ? -1 : 0) - (b.role === "owner" ? -1 : 0));
   const row = x => x.kind === "p" ? `<div class="li"><span class="av" style="background:#F3F4F6;color:#6B7280">${esc(ini(x.name))}</span><span style="flex:1"><b>${esc(x.name)}</b><br><span class="hint">${esc([x.p.num ? x.p.num + "번" : "", x.p.pos1].filter(Boolean).join(", "))}</span></span><span class="tag gray">가입 전</span></div>`
     : `<a class="li" href="#/player/${esc(x.uid)}" style="text-decoration:none;color:inherit"><span class="av">${esc(ini(x.name))}</span><span style="flex:1"><b>${esc(x.name)}</b>${x.uid === S.uid ? ` <span class="hint">나</span>` : ""}${x.role !== "member" ? ` <span class="tag">${ROLE[x.role]}</span>` : ""}<br><span class="hint">${esc([x.p.num ? x.p.num + "번" : "", x.p.pos1, x.p.foot].filter(Boolean).join(", "))}</span></span><span class="hint">›</span></a>`;
-  const rules = S.settings.rules || []; const agreed = (S.rsvp[S.uid] || {}).agreedAt;
+  const agreed = (S.rsvp[S.uid] || {}).agreedAt;
   return `<header class="top" style="padding:10px 12px">${LOGO(32)}<h1 style="font-size:20px;font-weight:900">선수</h1><span class="hint">${ps.length + unclaimed().length}명</span></header><div class="body">
     <div class="card"><div class="row" style="gap:12px"><span class="av" style="width:56px;height:56px;font-size:22px">${esc(ini(me.name || nameOf(S.uid)))}</span><span style="flex:1"><b style="font-size:18px">${esc(me.name || nameOf(S.uid))}</b> <span class="tag">${ROLE[S.role] || "팀원"}</span><br><span class="hint">${esc([me.num ? me.num + "번" : "", me.pos1, me.foot].filter(Boolean).join(", "))}</span></span></div>
       <div class="stat"><span><b>${st.mine}/${st.n}</b><span>출석</span></span><span><b>${st.goals}골</b><span>이번 시즌</span></span><span><b style="color:#B45309">${st.mom}</b><span>MOM</span></span></div>
@@ -324,7 +324,7 @@ function mPlayers() {
       <div class="row"><a class="btn block" href="#/me">프로필 수정</a><a class="btn block" href="#/posreq">포지션 변경 요청</a></div></div>
     <div class="card"><div class="spread"><b>운영진</b><span class="hint">${admins.length}명</span></div><div class="list">${admins.map(row).join("")}</div></div>
     <div class="card"><div class="spread"><b>팀원</b><span class="hint">${mem.length}명</span></div><div class="list">${mem.map(row).join("")}</div></div>
-    ${rules.length ? `<div class="card"><div class="spread"><b>우리 팀 수칙</b><span class="hint">${agreed ? md(agreed.slice(0, 10)) + "에 동의했어요" : ""}</span></div><div class="list">${rules.map(r => `<div class="li"><span style="flex:1">${esc(r.label)}</span>${Number(r.amount) ? `<b>${won(r.amount)}</b>` : `<span class="hint">글 수칙</span>`}</div>`).join("")}</div></div>` : ""}
+    ${rulesTextOf(S.settings).trim() || fineRulesOf(S.settings).length ? `<div class="card"><div class="spread"><b>우리 팀 수칙</b><span class="hint">${agreed ? md(agreed.slice(0, 10)) + "에 동의했어요" : ""}</span></div>${rulesView(S.settings)}</div>` : ""}
     <div class="card"><div class="row" style="justify-content:space-between"><span class="hint">로그인: 카카오</span><span class="row"><button class="btn sm" data-act="switchTeam">다른 팀, 새 팀</button><button class="btn sm" data-act="logout">로그아웃</button></span></div><a class="hint" href="../../privacy.html">개인정보처리방침과 이용약관</a></div>
   </div>${nav("선수")}`;
 }
