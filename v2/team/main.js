@@ -225,7 +225,23 @@ const KAKAO = `<svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true
 function jersey(size, num, color) {
   return `<span style="position:relative;width:${size}px;height:${size}px;display:inline-flex;align-items:center;justify-content:center;flex:none"><svg width="${size}" height="${size}" viewBox="0 0 100 100" aria-hidden="true"><path d="M30 12 L40 8 Q50 17 60 8 L70 12 L93 27 L84 45 L74 40 L74 92 Q50 97 26 92 L26 40 L16 45 L7 27 Z" fill="${esc(color || "#164F33")}"></path><path d="M40 8 Q50 21 60 8" fill="none" stroke="#F5B841" stroke-width="3"></path><path d="M7 27 L16 45 M93 27 L84 45" stroke="#F5B841" stroke-width="3"></path></svg><b data-live="num" style="position:absolute;left:0;right:0;top:40%;text-align:center;color:${numColor(color || "#164F33")};font-size:${Math.round(size * .29)}px;font-weight:900;line-height:1;letter-spacing:-2px">${esc(num || "")}</b></span>`;
 }
-const top = (title, back, right) => `<header class="top">${back ? `<a class="iconbtn" href="${back}" aria-label="뒤로">${BACK}</a>` : `<span style="width:8px"></span>`}<h1>${esc(title)}</h1>${right || ""}</header>`;
+// 뒤로 가기: 들어온 순서를 기억해 온 곳으로 돌아간다. 처음 들어왔거나 기록이 없으면 화면마다 정한 곳으로
+const ROOTS = ["/", "/schedule", "/calendar", "/records", "/dues", "/players"];
+const FORM_RT = /^\/(new$|edit\/|notice-new$|settings$|rules-edit$|uniform$|dues-settings$|spend$|upload$|result\/|check\/|me$|posreq$|roster-import$|claim$)/;
+const HK = STAGE + "mb-hist";
+const hist = { get() { try { return JSON.parse(sessionStorage.getItem(HK) || "[]"); } catch (e) { return []; } }, set(a) { try { sessionStorage.setItem(HK, JSON.stringify(a.slice(-30))); } catch (e) { /* 저장이 막혀도 정한 곳으로 돌아간다 */ } } };
+function trackRoute(r) {
+  let a = hist.get();
+  if (ROOTS.includes(r)) a = [r];
+  else if (a.length >= 2 && a[a.length - 2] === r) a.pop();
+  else if (a[a.length - 1] !== r) {
+    if (a.length && FORM_RT.test(a[a.length - 1])) a.pop(); // 저장하고 넘어오면 폼 화면은 기록에서 뺀다
+    const i = a.indexOf(r); a = i >= 0 ? a.slice(0, i + 1) : [...a, r];
+  }
+  hist.set(a);
+}
+const backHref = fallback => { const a = hist.get(); const r = route(); return a.length >= 2 && a[a.length - 1] === r ? "#" + a[a.length - 2] : fallback; };
+const top = (title, back, right) => `<header class="top">${back ? `<a class="iconbtn" href="${backHref(back)}" aria-label="뒤로">${BACK}</a>` : `<span style="width:8px"></span>`}<h1>${esc(title)}</h1>${right || ""}</header>`;
 function nav(on) {
   const t = [["#/", "홈"], ["#/schedule", "일정"], ["#/records", "기록"], ["#/dues", "회비"], ["#/players", "선수"]];
   return `<nav class="nav" aria-label="하단 메뉴">${t.map(([h, l]) => `<a href="${h}" class="${on === l ? "on" : ""}"${on === l ? ' aria-current="page"' : ""}>${l}</a>`).join("")}</nav>`;
@@ -570,7 +586,7 @@ function noticeCard(n, full) {
 }
 function vNotices() {
   const ns = noticesList();
-  return `${top("공지", "#/", isAdmin() ? `<a class="btn sm pri" href="#/notice-new">+ 공지 쓰기</a>` : "")}<div class="body">${ns.length ? ns.map(n => noticeCard(n, true)).join("") : `<div class="card empty"><b>아직 공지가 없어요</b></div>`}</div>`;
+  return `${top("공지", "#/", isAdmin() && viewMode() === "admin" ? `<a class="btn sm pri" href="#/notice-new">+ 공지 쓰기</a>` : "")}<div class="body">${ns.length ? ns.map(n => noticeCard(n, true)).join("") : `<div class="card empty"><b>아직 공지가 없어요</b></div>`}</div>`;
 }
 
 
@@ -1008,7 +1024,7 @@ function render() {
 let lastRoute = "";
 window.addEventListener("hashchange", () => onRoute(false));
 function onRoute(force) {
-  const r = route(); if (r === lastRoute && !force) return; lastRoute = r;
+  const r = route(); if (r === lastRoute && !force) return; lastRoute = r; trackRoute(r);
   // 폼 화면에 들어올 때 폼 값을 채운다
   let m;
   if (viewMode() === "member" && memberForm(r)) { render(); window.scrollTo(0, 0); return; }
@@ -1225,6 +1241,7 @@ function startCreate() { S.flow = "create"; S.form = { name: "", sport: "futsal"
 function startProfile() { const p = myProfile() || {}; S.flow = "profile"; S.form = { name: p.name || nameOf(S.uid) || suggestedName(), num: p.num || "", pos1: p.pos1 || "", pos2: p.pos2 || "", foot: p.foot || "" }; render(); }
 function suggestedName() { const m = (S.session && S.session.user.user_metadata) || {}; return String(m.nickname || m.name || m.full_name || "").slice(0, 20); }
 async function enter(tid) {
+  hist.set([]); // 팀을 바꾸면 뒤로 가기 기록도 새로
   try { await loadTeam(tid); } catch (e) { fail(e); S.flow = "create"; startCreate(); return; }
   if (!S.role) { ls.set("mb-team", null); await loadTeams(); if (S.teams.length) return enter(S.teams[0].id); return startCreate(); }
   const rs = S.rsvp[S.uid] || {}; if (!isAdmin() && myProfile() && S.settings.rulesAgreeAt && (!rs.agreedAt || rs.agreedAt < S.settings.rulesAgreeAt)) { S.form = {}; S.flow = "rules"; render(); return; }
