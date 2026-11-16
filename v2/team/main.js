@@ -404,7 +404,7 @@ function vCreate(edit) {
   return `${edit ? top("팀 설정", "#/players") : S.teams.length ? `<header class="top"><a class="iconbtn" href="#" data-act="createBack" aria-label="뒤로">${BACK}</a><h1>팀 만들기</h1></header>` : top("팀 만들기", "")}<div class="body">
     <div class="card">
       <label class="field"><span class="lab">팀 이름</span><input class="inp" data-bind="name" value="${esc(f.name || "")}" maxlength="40" placeholder="예: 번개 FS" autocomplete="off"></label>
-      <div class="field"><span class="lab">종목</span><div class="chips">${chip("sport", "futsal", "풋살팀")}${chip("sport", "soccer", "축구팀")}</div></div>
+      <div class="field"><span class="lab">종목</span>${edit ? `<div class="spread"><b>${f.sport === "soccer" ? "축구팀" : "풋살팀"}</b><span class="hint">종목은 팀을 만들 때만 정할 수 있어요</span></div>` : `<div class="chips">${chip("sport", "futsal", "풋살팀")}${chip("sport", "soccer", "축구팀")}</div><span class="hint">종목은 팀을 만든 뒤에는 바꿀 수 없어요</span>`}</div>
     </div>
     <div class="card">
       <div class="field"><span class="lab">회비</span><div class="chips">${chip("feeMode", "monthly", "월회비")}${chip("feeMode", "per_game", "경기마다")}${chip("feeMode", "none", "안 받음")}</div></div>
@@ -1128,7 +1128,7 @@ const ACT = {
     try {
       const R = rulesFromForm(f); const had = rulesTextOf(S.settings).trim() || fineRulesOf(S.settings).length;
       const rulesAt = had && (R.rulesText !== rulesTextOf(S.settings).trim() || JSON.stringify(R.rules) !== JSON.stringify(fineRulesOf(S.settings).map(r => ({ label: r.label, amount: Number(r.amount) })))) ? new Date().toISOString() : (S.settings.rulesAt || "");
-      await setDoc("team", "settings", { ...S.settings, rulesAt, app: "maniball", teamName: name, sport: f.sport, feeMode: f.feeMode, fee: f.feeMode === "none" ? 0 : Number(String(f.fee || "").replace(/\D/g, "")) || 0, dueDay: f.feeMode === "monthly" ? f.dueDay : "", ...R, ...(S.role === "owner" ? policyFromForm(f) : {}), uniformColor: f.kit || "#164F33" });
+      await setDoc("team", "settings", { ...S.settings, rulesAt, app: "maniball", teamName: name, sport: S.settings.sport || f.sport, feeMode: f.feeMode, fee: f.feeMode === "none" ? 0 : Number(String(f.fee || "").replace(/\D/g, "")) || 0, dueDay: f.feeMode === "monthly" ? f.dueDay : "", ...R, ...(S.role === "owner" ? policyFromForm(f) : {}), uniformColor: f.kit || "#164F33" });
       if (S.team && name !== S.team.name) { const { error } = await sb.from("teams").update({ name: name.slice(0, 40) }).eq("id", S.tid); if (!error) S.team.name = name.slice(0, 40); }
       toast("저장했어요"); location.hash = "#/players";
     } catch (e) { t.disabled = false; fail(e); }
