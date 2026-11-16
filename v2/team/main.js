@@ -175,12 +175,14 @@ const profileOf = u => { const p = (S.rsvp[u] && S.rsvp[u].profile) || null; if 
 const myProfile = () => profileOf(S.uid);
 const nameOf = u => (profileOf(u) && profileOf(u).name) || (S.members.find(m => m.user_id === u) || {}).display_name || "이름 없음";
 const people = () => S.members.map(m => ({ uid: m.user_id, role: m.role, name: nameOf(m.user_id), p: profileOf(m.user_id) || {} }));
+// 풋살은 늦참이 없다: 고를 수 없고, 예전에 늦참으로 낸 표는 참석으로 센다
+export const noLate = () => sport() === "futsal";
 function att(e) {
   const out = { yes: [], late: [], no: [], none: [], wait: [], cap: Number(e.cap) || 0 };
   const going = [];
   people().forEach(x => {
     const r = ((S.rsvp[x.uid] || {}).ev || {})[e.id];
-    const s = r && r.s;
+    const s = r && r.s === "late" && noLate() ? "yes" : r && r.s;
     if (s === "yes" || s === "late") going.push({ ...x, s, q: Number(r.q) || 0, at: r.at || "" });
     else if (s === "no") out.no.push(x); else out.none.push(x);
   });
@@ -189,7 +191,7 @@ function att(e) {
   out.in = out.yes.length + out.late.length;
   return out;
 }
-const myVote = e => (((S.rsvp[S.uid] || {}).ev || {})[e.id]) || {};
+const myVote = e => { const v = (((S.rsvp[S.uid] || {}).ev || {})[e.id]) || {}; return v.s === "late" && noLate() ? { ...v, s: "yes", q: 0 } : v; };
 // 투표 마감: 경기 전날 정한 시각(eve, voteTime) 또는 경기 시작 전까지. 예전 값(eve21, day06)도 읽는다
 // 마감 뒤 경기 시작 전까지는 본인이 불참 변경 신청(late_cancel)으로만 바꾼다. 열림 예약(openAt) 전에는 누를 수 없다
 const voteTimeOf = e => e.voteClose === "eve21" ? "21:00" : /^\d\d:\d\d$/.test(e.voteTime || "") ? e.voteTime : "21:00";
@@ -258,12 +260,12 @@ function eventCard(e, opts = {}) {
     </a>
     <div class="spread hint"><span>참석 <b style="color:#111827">${a.in}</b>${a.cap ? " / 정원 " + a.cap : ""}${a.wait.length ? ", 대기 " + a.wait.length : ""}</span><span>미응답 ${a.none.length}</span></div>
     ${mine && !closed && !opts.noVote ? voteRow(e, v) : ""}
-    ${mine && v.s === "late" && !closed && !opts.noVote ? lateRow(e, v) : ""}
+    ${mine && v.s === "late" && !noLate() && !closed && !opts.noVote ? lateRow(e, v) : ""}
   </div>`;
 }
 function voteRow(e, v) {
   const b = (s, l) => `<button class="vote ${v.s === s ? "on " + s : ""}" data-act="vote" data-eid="${esc(e.id)}" data-v="${s}" aria-pressed="${v.s === s}">${l}</button>`;
-  return `<div class="seg3">${b("yes", "참석")}${b("late", "늦참")}${b("no", "불참")}</div>`;
+  return noLate() ? `<div class="seg3" style="grid-template-columns:repeat(2,minmax(0,1fr))">${b("yes", "참석")}${b("no", "불참")}</div>` : `<div class="seg3">${b("yes", "참석")}${b("late", "늦참")}${b("no", "불참")}</div>`;
 }
 function lateRow(e, v) {
   const n = QN[sport()];

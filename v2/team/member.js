@@ -1,6 +1,6 @@
 // 팀원 화면: 디자인 시안 [팀원] 1-1 ~ 5-5를 그대로 따른다. 운영진 기능은 이 파일에 두지 않는다.
 // 운영진도 "팀원 화면 보기"를 누르면 이 화면으로 자기 참석과 선수 카드를 본다.
-import { pol, rulesView, rulesTextOf, fineRulesOf, promotedAt, $, D, LOGO, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, closeText, confirmBox, esc, evName, evStart, fail, feeMode, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, mLabel, md, momClosed, momDeadline, momOpen, momWinners, myProfile, myUv, myVote, nameOf, nav, noticesList, past, patchDoc, people, qs, remindInfo, render, ruleKind, sb, setView, sheet, sport, started, toast, todayStr, top, uid36, unclaimed, upcoming, voteState, wd, won, ym } from "./main.js";
+import { noLate, pol, rulesView, rulesTextOf, fineRulesOf, promotedAt, $, D, LOGO, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, closeText, confirmBox, esc, evName, evStart, fail, feeMode, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, mLabel, md, momClosed, momDeadline, momOpen, momWinners, myProfile, myUv, myVote, nameOf, nav, noticesList, past, patchDoc, people, qs, remindInfo, render, ruleKind, sb, setView, sheet, sport, started, toast, todayStr, top, uid36, unclaimed, upcoming, voteState, wd, won, ym } from "./main.js";
 
 /* ---------- 공통 계산 ---------- */
 const MU = { cal: false, day: "", change: "", season: "", filter: "all" };
@@ -117,7 +117,7 @@ function mNotify() {
 // 2-1 일정
 function voteSeg(e, v) {
   const b = (s, l) => `<button class="vote ${v.s === s ? "on " + s : ""}" data-act="mVote" data-eid="${esc(e.id)}" data-v="${s}" aria-pressed="${v.s === s}">${l}</button>`;
-  return `<div class="seg3">${b("yes", "참석")}${b("late", "늦참")}${b("no", "불참")}</div>`;
+  return noLate() ? `<div class="seg3" style="grid-template-columns:repeat(2,minmax(0,1fr))">${b("yes", "참석")}${b("no", "불참")}</div>` : `<div class="seg3">${b("yes", "참석")}${b("late", "늦참")}${b("no", "불참")}</div>`;
 }
 function lateBox(e, v) {
   const n = QN[sport()];
@@ -186,7 +186,7 @@ function mRoster(id) {
   return `${top(md(e.date) + " 참석 명단", "#/schedule")}<div class="body">
     <div class="card"><b>${esc(md(e.date) + " " + wd(e.date) + " " + (e.time || "") + " " + evName(e))}</b><span class="hint">${a.cap ? "정원 " + a.cap + "명, " : ""}참석 ${a.in}명</span></div>
     ${e.type === "scrim" && Object.keys(e.teams || {}).length ? ["A", "B"].map(sd => { const arr = [...a.yes, ...a.late, ...a.wait].filter(x => sideOf(e, x.uid) === sd); return `<div class="card"><div class="spread"><b>${sd === "A" ? "A팀 (조끼)" : "B팀"}</b><span class="hint">${arr.length}명</span></div><div class="chips">${arr.map(x => `<span class="pill" style="background:#EEF2FF;color:#3730A3;${x.uid === S.uid ? "font-weight:900" : ""}">${esc(x.name)}${x.uid === S.uid ? " (나)" : ""}</span>`).join("")}</div></div>`; }).join("") : ""}
-    ${grp("참석", a.yes)}${grp("늦참", a.late, x => x.q ? `, ${x.q}Q부터` : "")}${gs.length ? `<div class="card"><div class="spread"><b>용병</b><span class="hint">${gs.length}명</span></div><div class="chips">${gs.map(g => `<span class="pill" style="background:#F3F4F6">${esc(g.name)}</span>`).join("")}</div></div>` : ""}${grp("불참", a.no)}${a.cap ? grp("대기", a.wait) : ""}
+    ${grp("참석", a.yes)}${noLate() ? "" : grp("늦참", a.late, x => x.q ? `, ${x.q}Q부터` : "")}${gs.length ? `<div class="card"><div class="spread"><b>용병</b><span class="hint">${gs.length}명</span></div><div class="chips">${gs.map(g => `<span class="pill" style="background:#F3F4F6">${esc(g.name)}</span>`).join("")}</div></div>` : ""}${grp("불참", a.no)}${a.cap ? grp("대기", a.wait) : ""}
     <div class="card"><div class="spread"><b>미응답</b><span class="hint">${a.none.length + un.length}명</span></div><div class="chips">${a.none.map(x => `<span class="pill" style="background:#FEF2F2;color:#B91C1C">${esc(x.name)}</span>`).join("")}${un.map(p => `<span class="pill" style="background:#F3F4F6;color:#6B7280">${esc(p.name)} (가입 전)</span>`).join("")}</div></div>
     ${a.cap ? `<span class="hint">정원이 차면 다음 신청은 대기로 들어가고, 자리가 나면 순서대로 올라가요</span>` : ""}
   </div>`;

@@ -1,6 +1,6 @@
 // 운영진 화면: 디자인 시안 [운영진] 1-1 ~ 5-9. 팀원 화면은 member.js에 있다.
 import { mCalendar } from "./member.js";
-import { pol, rulesView, rulesForm, rulesFromForm, rulesFormInit, ampm, closeAt, $, D, KIT, LOGO, POS, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, refreshMembers, remindInfo, render, ruleAmt, sb, scrimReady, setDoc, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym } from "./main.js";
+import { noLate, pol, rulesView, rulesForm, rulesFromForm, rulesFormInit, ampm, closeAt, $, D, KIT, LOGO, POS, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, refreshMembers, remindInfo, render, ruleAmt, sb, scrimReady, setDoc, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym } from "./main.js";
 
 function homeExtras() {
   const out = [];
@@ -106,7 +106,7 @@ function vEvent(id) {
     ${e.memo ? `<div class="card"><b>메모</b><div class="hint" style="white-space:pre-wrap;color:#374151">${esc(e.memo)}</div></div>` : ""}
     ${e.type === "scrim" ? grp("A팀 (조끼)", [...a.yes, ...a.late, ...a.wait].filter(x => T[x.uid] === "A")) + grp("B팀", [...a.yes, ...a.late, ...a.wait].filter(x => T[x.uid] === "B")) : ""}
     ${adm && Object.keys(e.lateCancel || {}).length ? `<div class="card"><div class="spread"><b>마감 후 불참</b><span class="hint">${Object.keys(e.lateCancel).length}명</span></div><div class="list">${Object.entries(e.lateCancel).map(([u, c]) => `<div class="li"><span style="flex:1;min-width:0"><b>${esc(nameOf(u))}</b><br><span class="hint">${esc([Number(c.amount) ? "벌금 " + won(c.amount) : "벌금 없음", c.reason].filter(Boolean).join(", "))}</span></span><span class="hint" style="font-size:12px">${esc(new Date(Date.parse(c.t) + 9 * 3600e3).toISOString().slice(5, 16).replace("-", ".").replace("T", " "))}</span></div>`).join("")}</div></div>` : ""}
-    ${grp("참석", a.yes)}${grp("늦참", a.late, x => x.q ? `, ${x.q}Q부터` : "")}${a.cap ? grp("대기", a.wait, () => "") : ""}${grp("불참", a.no)}${grp("미응답", a.none)}${unclaimed().length ? `<span class="hint">아직 앱에 안 들어온 선수 ${unclaimed().length}명은 참석을 누를 수 없어요. 초대 링크로 들어와 이름을 고르면 돼요.</span>` : ""}
+    ${grp("참석", a.yes)}${noLate() ? "" : grp("늦참", a.late, x => x.q ? `, ${x.q}Q부터` : "")}${a.cap ? grp("대기", a.wait, () => "") : ""}${grp("불참", a.no)}${grp("미응답", a.none)}${unclaimed().length ? `<span class="hint">아직 앱에 안 들어온 선수 ${unclaimed().length}명은 참석을 누를 수 없어요. 초대 링크로 들어와 이름을 고르면 돼요.</span>` : ""}
     ${a.cap ? `<span class="hint">정원이 차면 다음 신청은 대기로 들어가고, 자리가 나면 순서대로 올라가요.</span>` : ""}
     ${e.type !== "training" ? `<div class="card"><div class="spread"><b>용병</b><span class="hint">${gs.length}명</span></div>
       ${gs.length ? `<div class="list">${gs.map(g => `<div class="li"><span style="flex:1"><b>${esc(g.name)}</b><br><span class="hint">${esc([g.pos, nameOf(g.by) + " 님 지인"].filter(Boolean).join(", "))}</span></span>${adm ? `<button class="iconbtn" data-act="guestDel" data-eid="${esc(e.id)}" data-g="${esc(g.id)}" aria-label="빼기">✕</button>` : ""}</div>`).join("")}</div>` : ""}
@@ -396,7 +396,7 @@ function voteCloseField(f, chip) {
       <div class="spread"><button class="btn sm" data-act="aVoteTime" data-d="-30" aria-label="30분 앞당기기" style="width:44px;font-size:18px">−</button><b style="font-size:24px;letter-spacing:-.5px">${ampm(t)}</b><button class="btn sm" data-act="aVoteTime" data-d="30" aria-label="30분 늦추기" style="width:44px;font-size:18px">+</button></div>
       <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px">${["18:00", "20:00", "21:00", "22:00"].map(x => `<button class="chip sm ${t === x ? "on" : ""}" data-act="pick" data-k="voteTime" data-v="${x}" style="justify-content:center;white-space:nowrap;padding:9px 0;font-size:13px">${ampm(x).replace(":00", "시")}</button>`).join("")}</div></div>` : ""}
     ${when ? `<div style="background:${passed ? "#FEF2F2" : "#F0FDF4"};color:${passed ? "#B91C1C" : "#166534"};border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.55">${passed ? `${when}은(는) 이미 지났어요. 시간을 늦추거나 경기 시작 전까지로 골라 주세요.` : `${when}에 마감돼요. 그 뒤에 빠지면 불참 변경 신청으로 바꾸고 팀 수칙의 불참 벌금이 붙어요.`}</div>` : ""}
-    <span class="hint">마감이 지나면 참석, 늦참, 불참을 바꿀 수 없어요</span></div>`;
+    <span class="hint">마감이 지나면 ${noLate() ? "참석, 불참을" : "참석, 늦참, 불참을"} 바꿀 수 없어요</span></div>`;
 }
 const dayBefore = d => new Date(Date.parse(d + "T12:00:00Z") - 864e5).toISOString().slice(0, 10);
 function eventFormInit(id) {
