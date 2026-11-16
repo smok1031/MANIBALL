@@ -1059,6 +1059,8 @@ function render() {
 }
 let lastRoute = "";
 window.addEventListener("hashchange", () => onRoute(false));
+// 정기 점검 시간이 되면 열려 있던 화면도 점검 안내로 (maint-gate.js가 시간을 판단)
+setInterval(() => { try { if (window.MB_MAINT && window.MB_MAINT.active()) location.replace("../maint.html" + (/[?&]maint=preview/.test(location.search) ? "?maint=preview" : "")); } catch (e) { /* 점검 확인 실패는 무시 */ } }, 60000);
 function onRoute(force) {
   const r = route(); if (r === lastRoute && !force) return; lastRoute = r; trackRoute(r);
   // 폼 화면에 들어올 때 폼 값을 채운다
