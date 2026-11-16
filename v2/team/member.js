@@ -60,7 +60,7 @@ function feed() {
   Object.values(((D("payreq")[u] || {}).items) || {}).forEach(p => { if (p.status === "ok") add(p.doneAt, "입금을 확인했어요", won(p.amount) + " 납부 완료", "#/dues"); if (p.status === "no") add(p.doneAt, "입금이 확인되지 않았어요", "운영진에게 물어봐 주세요", "#/dues"); });
   const pr = (S.rsvp[u] || {}).posReq; if (pr && pr.doneAt) add(pr.doneAt, pr.status === "ok" ? "포지션 변경이 수락됐어요" : "포지션 변경 요청이 반려됐어요", "", "#/players");
   const rm = remindInfo(); if (rm && (rm.to || []).includes(u) && S.events[rm.eid] && !started(S.events[rm.eid]) && !myVote(S.events[rm.eid]).s) add(rm.at, "참석 응답을 기다리고 있어요", `${md(S.events[rm.eid].date)} ${evName(S.events[rm.eid])}, 운영진이 미응답 알림을 보냈어요`, "#/schedule");
-  const owe = oweNow(); if (owe.total && owe.dueAt) add(owe.dueAt, `${owe.label}이 아직이에요`, owe.items.map(x => x.label + " " + won(x.amount)).join(", "), "#/dues");
+  const owe = oweNow(); if (owe.total && owe.dueAt) add(owe.dueAt, `${owe.label}${iga(owe.label)} 아직이에요`, owe.items.map(x => x.label + " " + won(x.amount)).join(", "), "#/dues");
   const dr = D("team").duesRemind; if (dr && (dr.to || []).includes(u) && owe.total) add(dr.at, "회비 알림", `운영진이 회비 알림을 보냈어요. ${won(owe.total)}`, "#/dues");
   if (S.settings.rulesAt) add(S.settings.rulesAt, "팀 수칙이 바뀌었어요", (S.settings.rules || []).map(r => r.label + (Number(r.amount) ? " " + won(r.amount) : "")).join(", "), "#/players");
   noticesList().forEach(n => add(n.at, "공지: " + n.title, String(n.body || "").slice(0, 60), "#/notices"));
@@ -366,6 +366,8 @@ function mPosReq() {
 }
 
 /* ---------- 길찾기 ---------- */
+// 받침이 있으면 "이", 없으면 "가" (회비가, 벌금이)
+const iga = w => { const c = String(w || "").trim().slice(-1).charCodeAt(0); return c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 ? "이" : "가"; };
 export function memberRoute(r) {
   let m;
   if (r === "/" || r === "") return mHome();
