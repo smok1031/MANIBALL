@@ -412,6 +412,7 @@ function vCreate(edit) {
       ${f.feeMode === "monthly" ? `<div class="field"><span class="lab">납부일</span><div class="chips">${days.map(d => chip("dueDay", d, d === "말일" ? "말일" : d + "일")).join("")}</div></div>` : ""}
     </div>
     ${rulesForm(f)}
+    ${policyForm(f, !edit || S.role === "owner")}
     <div class="card"><span class="lab">유니폼 색</span><div class="row" style="gap:12px">${jersey(64, "7", f.kit)}<div class="chips">${KIT.map(([c, l]) => `<button class="chip sm ${f.kit === c ? "on" : ""}" data-act="pick" data-k="kit" data-v="${c}">${l}</button>`).join("")}</div></div><span class="hint">팀원 홈의 유니폼 카드에 이 색으로 보여요.</span></div>
     ${edit && S.role === "owner" ? `<button class="btn danger" data-act="delTeam">팀 지우기</button>` : ""}
   </div><div class="cta">${edit ? `<button class="btn pri block" data-act="saveSettings">저장</button>` : `<button class="btn pri block" data-act="createTeam">팀 만들기</button><span class="hint" style="text-align:center">설정은 나중에 바꿀 수 있어요</span>`}</div>`;
@@ -437,6 +438,39 @@ function vProfile(editing) {
       <div class="field"><span class="lab">주발</span><div class="chips">${["오른발", "왼발", "양발"].map(x => pchip("foot", x)).join("")}</div></div>
     </div>
   </div><div class="cta"><button class="btn pri block" data-act="saveProfile">${editing ? "저장" : "다음"}</button></div>`;
+}
+// 팀 기본 운영 규칙 (팀 만들 때 정하고, 팀 설정에서 Admin만 바꿈): 일정 만들 때 기본값, 지각 기준, 내전 기준
+export const POLICY_DEF = { voteClose: "eve", voteTime: "21:00", waitCap: 0, checkBefore: 10, scrimMin: 20, scrimDays: 3 };
+export const pol = k => { const v = (S.settings || {})[k]; if (k === "cap") return Number(v) || (sport() === "soccer" ? 22 : 12); if (v === undefined || v === null || v === "") return POLICY_DEF[k]; return typeof POLICY_DEF[k] === "number" ? (Number.isFinite(Number(v)) ? Number(v) : POLICY_DEF[k]) : v; };
+const PBOUND = { pCap: [2, 40], pWait: [0, 30], pScrimMin: [4, 40], pScrimDays: [1, 7] };
+const capDef = f => f.sport === "soccer" ? 22 : 12;
+export const policyFormInit = st => ({ pVoteClose: st.voteClose === "start" ? "start" : "eve", pVoteTime: st.voteTime || POLICY_DEF.voteTime, pCap: Number(st.cap) ? String(st.cap) : "", pWait: String(Number(st.waitCap) || 0), pCheck: String(st.checkBefore === undefined || st.checkBefore === "" ? POLICY_DEF.checkBefore : Number(st.checkBefore) || 0), pScrimMin: String(Number(st.scrimMin) || POLICY_DEF.scrimMin), pScrimDays: String(Number(st.scrimDays) || POLICY_DEF.scrimDays) });
+export function policyFromForm(f) {
+  const cl = (v, [a, b], d) => { const n = Number(v); return Number.isFinite(n) && String(v) !== "" ? Math.max(a, Math.min(b, Math.round(n))) : d; };
+  return { voteClose: f.pVoteClose === "start" ? "start" : "eve", voteTime: /^\d\d:\d\d$/.test(f.pVoteTime || "") ? f.pVoteTime : POLICY_DEF.voteTime, cap: cl(f.pCap, PBOUND.pCap, capDef(f)), waitCap: cl(f.pWait, PBOUND.pWait, 0), checkBefore: cl(f.pCheck, [0, 60], POLICY_DEF.checkBefore), scrimMin: cl(f.pScrimMin, PBOUND.pScrimMin, POLICY_DEF.scrimMin), scrimDays: cl(f.pScrimDays, PBOUND.pScrimDays, POLICY_DEF.scrimDays) };
+}
+const hm12 = t => { const [h, m] = String(t).split(":").map(Number); return (h < 12 ? "오전 " : "오후 ") + (h % 12 || 12) + (m ? ":" + String(m).padStart(2, "0") : "시"); };
+export function policyLines(p) {
+  return [["투표 마감", p.voteClose === "start" ? "경기 시작 전까지" : "경기 전날 " + hm12(p.voteTime), "마감 뒤에 불참으로 바꾸면 수칙의 불참 벌금이 붙어요"],
+    ["정원과 대기", `${p.cap}명, 대기 ${p.waitCap ? p.waitCap + "명까지" : "제한 없음"}`, "일정 만들 때 기본으로 들어가요"],
+    ["지각 기준", p.checkBefore ? `킥오프 ${p.checkBefore}분 전` : "킥오프 시간", "현장 출석에서 이 시간 뒤에 오면 지각이에요"],
+    ["내전 기준", `${p.scrimDays}일 전까지 ${p.scrimMin}명 이상`, "상대팀이 미정일 때 참석과 대기를 합친 인원이에요"]];
+}
+export function policyForm(f, canEdit) {
+  const p = policyFromForm(f);
+  if (!canEdit) return `<div class="card"><div class="spread"><span class="lab">기본 운영 규칙</span><span class="hint">Admin만 바꿀 수 있어요</span></div><div class="list">${policyLines(p).map(([a, b, c]) => `<div class="li"><span style="flex:1">${a}<br><span class="hint">${c}</span></span><b>${esc(b)}</b></div>`).join("")}</div></div>`;
+  const ch = (k, v, l) => `<button class="chip sm ${String(f[k] || "") === String(v) ? "on" : ""}" data-act="pick" data-k="${k}" data-v="${v}">${l}</button>`;
+  const step = (k, val, unit, zero) => `<div class="row" style="gap:8px"><button class="btn sm" data-act="pStep" data-k="${k}" data-d="-1" aria-label="줄이기">−</button><b style="min-width:76px;text-align:center">${zero && !Number(val) ? zero : val + unit}</b><button class="btn sm" data-act="pStep" data-k="${k}" data-d="1" aria-label="늘리기">+</button></div>`;
+  return `<div class="card"><div class="spread"><span class="lab">기본 운영 규칙</span><span class="hint">일정마다 바꿀 수도 있어요</span></div>
+    <div class="field"><span class="lab">투표 마감</span><div class="chips">${ch("pVoteClose", "eve", "경기 전날")}${ch("pVoteClose", "start", "경기 시작 전까지")}</div>
+      ${p.voteClose === "eve" ? `<div class="chips">${["18:00", "19:00", "20:00", "21:00", "22:00", "23:00"].map(t => ch("pVoteTime", t, hm12(t))).join("")}</div>` : ""}
+      <span class="hint">마감 뒤에는 투표를 못 바꾸고, 불참으로 바꾸면 수칙의 불참 벌금이 붙어요</span></div>
+    <div class="spread"><span class="lab">정원</span>${step("pCap", p.cap, "명")}</div>
+    <div class="spread"><span class="lab">대기</span>${step("pWait", p.waitCap, "명", "제한 없음")}</div>
+    <div class="field"><span class="lab">지각 기준</span><div class="chips">${[0, 5, 10, 15, 20, 30].map(m => ch("pCheck", m, m ? `킥오프 ${m}분 전` : "킥오프 시간")).join("")}</div></div>
+    <div class="field"><span class="lab">내전 기준</span><span class="hint">상대팀이 미정일 때, 경기 며칠 전까지 참석과 대기를 합쳐 몇 명이 넘으면 내전을 검토할지 정해요</span>
+      <div class="spread"><span>경기</span>${step("pScrimDays", p.scrimDays, "일 전까지")}</div><div class="spread"><span>인원</span>${step("pScrimMin", p.scrimMin, "명 이상")}</div></div>
+  </div>`;
 }
 // 팀 수칙: 수칙은 글로 (1. 2. 직접 번호), 벌금은 금액이 있는 항목만. 예전 "글 수칙"(벌금 0원)은 번호 붙인 글로 바꿔 보여 준다
 export const rulesTextOf = st => typeof (st || {}).rulesText === "string" ? st.rulesText : ((st || {}).rules || []).filter(r => !Number(r.amount)).map((r, i) => `${i + 1}. ${r.label}`).join("\n");
@@ -745,7 +779,7 @@ function vLineup(id) {
 }
 
 /* ---------- 내전 ---------- */
-function scrimReady(e) { if (e.type !== "match" || e.opponent || e.scrimKeep || started(e)) return false; const a = att(e); return a.in + a.wait.length >= 20; }
+function scrimReady(e) { if (e.type !== "match" || e.opponent || e.scrimKeep || started(e)) return false; const a = att(e); return a.in + a.wait.length >= pol("scrimMin"); }
 
 
 /* ---------- 선수 관리 ---------- */
@@ -1043,7 +1077,7 @@ function onRoute(force) {
   else if (/^\/(lineup|game)\//.test(r)) { S.form = {}; UI.q = 1; UI.mom = ""; UI.sel = null; }
   else if (r === "/notices") markSeen();
   else if (r === "/roster-import") S.form = { text: "" };
-  else if (r === "/settings") { const st = S.settings; S.form = { name: (S.team && S.team.name) || st.teamName || "", sport: st.sport || "futsal", feeMode: st.feeMode || "none", fee: st.fee ? String(st.fee) : "", dueDay: st.dueDay || "5", kit: st.uniformColor || "#164F33", ...rulesFormInit(st) }; }
+  else if (r === "/settings") { const st = S.settings; S.form = { name: (S.team && S.team.name) || st.teamName || "", sport: st.sport || "futsal", feeMode: st.feeMode || "none", fee: st.fee ? String(st.fee) : "", dueDay: st.dueDay || "5", kit: st.uniformColor || "#164F33", ...rulesFormInit(st), ...policyFormInit(st) }; }
   render(); window.scrollTo(0, 0);
 }
 
@@ -1073,6 +1107,7 @@ const ACT = {
   },
   pick: t => { S.form[t.dataset.k] = t.dataset.v; if (t.dataset.k === "pos1" && S.form.pos2 === t.dataset.v) S.form.pos2 = ""; render(); },
   ruleAdd: () => { (S.form.rules = S.form.rules || []).push({ label: "", amount: "" }); render(); const ins = document.querySelectorAll('[data-f="label"]'); if (ins.length) ins[ins.length - 1].focus(); },
+  pStep: t => { const k = t.dataset.k; const [a, b] = PBOUND[k]; const cur = k === "pCap" ? policyFromForm(S.form).cap : Number(S.form[k]) || 0; S.form[k] = String(Math.max(a, Math.min(b, cur + Number(t.dataset.d)))); render(); },
   ruleDel: t => { S.form.rules.splice(Number(t.dataset.i), 1); render(); },
   createTeam: async t => {
     const f = S.form; const name = String(f.name || "").trim();
@@ -1082,7 +1117,7 @@ const ACT = {
       const { data: tid, error } = await sb.rpc("create_team", { p_name: name });
       if (error) throw error;
       await loadTeams(); await loadTeam(tid);
-      await setDoc("team", "settings", { app: "maniball", since: todayStr().slice(0, 7), teamName: name, sport: f.sport, feeMode: f.feeMode, fee: f.feeMode === "none" ? 0 : Number(String(f.fee || "").replace(/\D/g, "")) || 0, dueDay: f.feeMode === "monthly" ? f.dueDay : "", ...rulesFromForm(f), cap: f.sport === "soccer" ? 22 : 12, uniformColor: f.kit || "#164F33" });
+      await setDoc("team", "settings", { app: "maniball", since: todayStr().slice(0, 7), teamName: name, sport: f.sport, feeMode: f.feeMode, fee: f.feeMode === "none" ? 0 : Number(String(f.fee || "").replace(/\D/g, "")) || 0, dueDay: f.feeMode === "monthly" ? f.dueDay : "", ...rulesFromForm(f), ...policyFromForm(f), uniformColor: f.kit || "#164F33" });
       S.afterProfile = "invite"; startProfile();
     } catch (e) { t.disabled = false; fail(e); }
   },
@@ -1093,7 +1128,7 @@ const ACT = {
     try {
       const R = rulesFromForm(f); const had = rulesTextOf(S.settings).trim() || fineRulesOf(S.settings).length;
       const rulesAt = had && (R.rulesText !== rulesTextOf(S.settings).trim() || JSON.stringify(R.rules) !== JSON.stringify(fineRulesOf(S.settings).map(r => ({ label: r.label, amount: Number(r.amount) })))) ? new Date().toISOString() : (S.settings.rulesAt || "");
-      await setDoc("team", "settings", { ...S.settings, rulesAt, app: "maniball", teamName: name, sport: f.sport, feeMode: f.feeMode, fee: f.feeMode === "none" ? 0 : Number(String(f.fee || "").replace(/\D/g, "")) || 0, dueDay: f.feeMode === "monthly" ? f.dueDay : "", ...R, uniformColor: f.kit || "#164F33" });
+      await setDoc("team", "settings", { ...S.settings, rulesAt, app: "maniball", teamName: name, sport: f.sport, feeMode: f.feeMode, fee: f.feeMode === "none" ? 0 : Number(String(f.fee || "").replace(/\D/g, "")) || 0, dueDay: f.feeMode === "monthly" ? f.dueDay : "", ...R, ...(S.role === "owner" ? policyFromForm(f) : {}), uniformColor: f.kit || "#164F33" });
       if (S.team && name !== S.team.name) { const { error } = await sb.from("teams").update({ name: name.slice(0, 40) }).eq("id", S.tid); if (!error) S.team.name = name.slice(0, 40); }
       toast("저장했어요"); location.hash = "#/players";
     } catch (e) { t.disabled = false; fail(e); }
@@ -1237,7 +1272,7 @@ document.addEventListener("click", ev => {
 });
 
 /* ---------- 시작 ---------- */
-function startCreate() { S.flow = "create"; S.form = { name: "", sport: "futsal", feeMode: "monthly", fee: "", dueDay: "5", kit: "#164F33", rulesText: "", rules: [{ label: "지각 (킥오프 10분 전 기준)", amount: "" }, { label: "무단 결석", amount: "" }, { label: "불참 (투표 마감 뒤)", amount: "" }] }; render(); }
+function startCreate() { S.flow = "create"; S.form = { name: "", sport: "futsal", feeMode: "monthly", fee: "", dueDay: "5", kit: "#164F33", ...policyFormInit({}), rulesText: "", rules: [{ label: "지각 (킥오프 10분 전 기준)", amount: "" }, { label: "무단 결석", amount: "" }, { label: "불참 (투표 마감 뒤)", amount: "" }] }; render(); }
 function startProfile() { const p = myProfile() || {}; S.flow = "profile"; S.form = { name: p.name || nameOf(S.uid) || suggestedName(), num: p.num || "", pos1: p.pos1 || "", pos2: p.pos2 || "", foot: p.foot || "" }; render(); }
 function suggestedName() { const m = (S.session && S.session.user.user_metadata) || {}; return String(m.nickname || m.name || m.full_name || "").slice(0, 20); }
 async function enter(tid) {

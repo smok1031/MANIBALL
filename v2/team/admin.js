@@ -1,6 +1,6 @@
 // 운영진 화면: 디자인 시안 [운영진] 1-1 ~ 5-9. 팀원 화면은 member.js에 있다.
 import { mCalendar } from "./member.js";
-import { rulesView, rulesForm, rulesFromForm, rulesFormInit, ampm, closeAt, $, D, KIT, LOGO, POS, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, refreshMembers, remindInfo, render, ruleAmt, sb, scrimReady, setDoc, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym } from "./main.js";
+import { pol, rulesView, rulesForm, rulesFromForm, rulesFormInit, ampm, closeAt, $, D, KIT, LOGO, POS, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, refreshMembers, remindInfo, render, ruleAmt, sb, scrimReady, setDoc, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym } from "./main.js";
 
 function homeExtras() {
   const out = [];
@@ -134,7 +134,7 @@ function vEventForm(id) {
       ${voteCloseField(f, chip)}
       <div class="field"><span class="lab">정원</span><div class="row"><button class="btn sm" data-act="cap" data-d="-1" aria-label="정원 줄이기">−</button><b style="min-width:72px;text-align:center">${Number(f.cap) ? f.cap + "명" : "제한 없음"}</b><button class="btn sm" data-act="cap" data-d="1" aria-label="정원 늘리기">+</button></div></div>
       ${Number(f.cap) ? `<div class="field"><span class="lab">대기</span><div class="row"><button class="btn sm" data-act="aWait" data-d="-1" aria-label="대기 줄이기">−</button><b style="min-width:72px;text-align:center">${Number(f.waitCap) ? f.waitCap + "명" : "제한 없음"}</b><button class="btn sm" data-act="aWait" data-d="1" aria-label="대기 늘리기">+</button></div><span class="hint">정원이 차면 순서대로 기다려요</span></div>` : ""}
-      ${f.type === "match" ? `<div class="spread hint"><span>내전 알림</span><b style="color:${fixed ? "#6B7280" : "#3730A3"}">${fixed ? "불가, 상대팀이 정해져 있어요" : "가능, 20명이 넘으면 알려 드려요"}</b></div>` : ""}
+      ${f.type === "match" ? `<div class="spread hint"><span>내전 알림</span><b style="color:${fixed ? "#6B7280" : "#3730A3"}">${fixed ? "불가, 상대팀이 정해져 있어요" : `가능, ${pol("scrimMin")}명 이상이면 알려 드려요`}</b></div>` : ""}
       <label class="field"><span class="lab">메모</span><textarea class="inp" data-bind="memo" placeholder="준비물, 주차 같은 안내" style="min-height:72px">${esc(f.memo || "")}</textarea></label>
     </div>
     ${isNew ? "" : `<button class="btn danger" data-act="delEvent" data-eid="${esc(id)}">일정 지우기</button>`}
@@ -206,7 +206,7 @@ function vLedger() {
 }
 function vCheck(id) {
   const e = S.events[id]; if (!e) return vSchedule(); const ck = e.check || {}; const at = e.checkAt || {};
-  const before = Number(S.settings.checkBefore) || 10; const lim = new Date(evStart(e) - before * 60000 + 9 * 3600e3).toISOString().slice(11, 16);
+  const before = pol("checkBefore"); const lim = new Date(evStart(e) - before * 60000 + 9 * 3600e3).toISOString().slice(11, 16);
   const { rows, others } = checkRows(e); const cnt = { in: 0, late: 0, absent: 0 }; Object.values(ck).forEach(v => { if (cnt[v] != null) cnt[v]++; });
   const fc = fineCalc(e);
   const b = (u, v, l) => `<button class="vote ${ck[u] === v ? "on " + (v === "in" ? "yes" : v === "late" ? "late" : "no") : ""}" style="padding:8px 0;min-height:40px;font-size:13px" data-act="checkSet" data-eid="${esc(e.id)}" data-u="${esc(u)}" data-v="${v}">${l}</button>`;
@@ -344,10 +344,10 @@ function adminTodo() {
   const prs = []; Object.entries(D("payreq")).forEach(([u, d]) => Object.values((d && d.items) || {}).forEach(it => { if (it && it.status === "req") prs.push(nameOf(u)); }));
   if (prs.length) todo.push([`입금 확인 ${prs.length}건`, `${[...new Set(prs)].slice(0, 3).join(", ")}이(가) 입금했다고 눌렀어요`, "#/dues", "확인하기"]);
   Object.values(S.events).filter(e => !started(e)).forEach(e => { const g = guestReqs(e).filter(x => x.status === "req"); if (g.length) todo.push([`용병 신청 ${g.length}건`, `${md(e.date)} ${evName(e)}, ${[...new Set(g.map(x => nameOf(x.u)))].join(", ")}이(가) 신청했어요`, "#/guests/" + e.id, "확인"]); });
-  Object.values(S.events).filter(scrimReady).forEach(e => todo.push([`${md(e.date)} 경기 신청 ${att(e).in + att(e).wait.length}명`, "상대팀 미정, 20명이 넘어서 내전으로 바꿀 수 있어요", "#/scrim/" + e.id, "검토"]));
+  Object.values(S.events).filter(scrimReady).forEach(e => todo.push([`${md(e.date)} 경기 신청 ${att(e).in + att(e).wait.length}명`, `상대팀 미정, ${pol("scrimMin")}명이 넘어서 내전으로 바꿀 수 있어요`, "#/scrim/" + e.id, "검토"]));
   if (next && isPlay(next) && !(next.lineup && Object.keys(next.lineup).length) && att(next).in >= 5) todo.push(["라인업 짜기", `참석 ${att(next).in}명, 포지션 맞춰 휴식 자동 배치`, "#/lineup/" + next.id, "라인업"]);
   const today = Object.values(S.events).find(e => e.date === todayStr() && !Object.keys(e.check || {}).length);
-  if (today) todo.push(["오늘 현장 출석을 불러 주세요", `${today.time || ""} ${evName(today)}, 킥오프 ${Number(S.settings.checkBefore) || 10}분 전 기준`, "#/check/" + today.id, "출석"]);
+  if (today) todo.push(["오늘 현장 출석을 불러 주세요", `${today.time || ""} ${evName(today)}, ${pol("checkBefore") ? "킥오프 " + pol("checkBefore") + "분 전 기준" : "킥오프 시간 기준"}`, "#/check/" + today.id, "출석"]);
   past().filter(e => isPlay(e) && !e.score && Date.now() - evStart(e) < 7 * 864e5).forEach(e => todo.push(["경기 결과를 넣어 주세요", `${md(e.date)} ${evName(e)}, 넣으면 MOM 투표가 열려요`, "#/result/" + e.id, "결과 입력"]));
   const posN = people().filter(x => ((S.rsvp[x.uid] || {}).posReq || {}).status === "req").length;
   if (posN) todo.push([`포지션 변경 요청 ${posN}건`, "선수 탭에서 수락하거나 거절해요", "#/players", "보기"]);
@@ -403,7 +403,7 @@ function eventFormInit(id) {
   const e = id ? S.events[id] : null; const d = nextDates();
   const toLocal = iso => iso ? new Date(Date.parse(iso) + 9 * 3600e3).toISOString().slice(0, 16) : "";
   S.form = e ? { type: e.type, date: e.date, time: e.time, end: e.end || "", place: e.place || "", oppMode: e.opponent ? "set" : "none", opponent: e.opponent || "", cap: Number(e.cap) || 0, waitCap: Number(e.waitCap) || 0, memo: e.memo || "", voteClose: e.voteClose === "eve21" ? "eve" : e.voteClose || "start", voteTime: e.voteClose === "eve21" ? "21:00" : e.voteTime || "21:00", openMode: e.openAt ? "later" : "now", openAt: toLocal(e.openAt) }
-    : { type: "match", date: d[0], time: "", end: "", place: "", oppMode: "none", opponent: "", cap: Number(S.settings.cap) || (sport() === "soccer" ? 22 : 12), waitCap: 0, memo: "", voteClose: "eve", voteTime: "21:00", openMode: "now", openAt: "" };
+    : { type: "match", date: d[0], time: "", end: "", place: "", oppMode: "none", opponent: "", cap: pol("cap"), waitCap: pol("waitCap"), memo: "", voteClose: pol("voteClose"), voteTime: pol("voteTime"), openMode: "now", openAt: "" };
 }
 function vGuests(id) {
   const e = S.events[id]; if (!e) return vSchedule(); const a = att(e); const reqs = guestReqs(e); const gs = guestsOf(e); const fee = Number(S.settings.guestFee) || 0;
@@ -444,7 +444,7 @@ function vScrim(id) {
   const ck = (ok, t, s2) => `<div class="li"><span style="width:24px;height:24px;border-radius:8px;flex:none;display:inline-flex;align-items:center;justify-content:center;font-size:13px;${ok ? "background:#15803D;color:#FFFFFF" : "background:#F3F4F6;color:#9CA3AF"}">✓</span><span style="flex:1"><b>${t}</b><br><span class="hint">${s2}</span></span></div>`;
   return `${top("내전 검토", "#/event/" + id)}<div class="body">
     <div class="card"><b>${esc(md(e.date) + " " + wd(e.date) + " " + (e.time || "") + ", " + (e.place || "") + ", 상대팀 미정")}</b><div class="stat"><span><b>${n}명</b><span>참석 ${a.in} + 대기 ${a.wait.length}</span></span></div></div>
-    <div class="card"><div class="list">${ck(n >= 20, "참석과 대기를 합쳐 20명 이상", "내전을 하려면 20명이 필요해요")}${ck(daysLeft >= 3, "3일 전까지 20명 유지", daysLeft >= 3 ? `경기까지 ${daysLeft}일 남았어요` : "3일 전이 지났어요")}${ck(!e.opponent, "상대팀 미정", "매칭된 팀이 있으면 내전으로 바꿀 수 없어요")}</div></div>
+    <div class="card"><div class="list">${ck(n >= pol("scrimMin"), `참석과 대기를 합쳐 ${pol("scrimMin")}명 이상`, `내전을 하려면 ${pol("scrimMin")}명이 필요해요`)}${ck(daysLeft >= pol("scrimDays"), `${pol("scrimDays")}일 전까지 ${pol("scrimMin")}명 유지`, daysLeft >= pol("scrimDays") ? `경기까지 ${daysLeft}일 남았어요` : `${pol("scrimDays")}일 전이 지났어요`)}${ck(!e.opponent, "상대팀 미정", "매칭된 팀이 있으면 내전으로 바꿀 수 없어요")}</div></div>
     <div class="card"><b>내전으로 바꾸면</b><div class="list">${ck(true, "대기 " + a.wait.length + "명도 모두 참석으로 올라가요", "")}${ck(true, "A팀, B팀으로 나눠서 해요", "팀은 운영진이 스쿼드에서 직접 골라요")}${ck(true, "신청한 " + n + "명 알림함에 바로 보여요", "")}</div></div>
     <div class="card"><div class="spread"><b>운영진 의견</b><span class="hint">운영진끼리만 보여요</span></div>
       <div class="list">${S.members.filter(m => m.role !== "member").map(m => { const o = ops[m.user_id] || {}; return `<div class="li"><span style="flex:1"><b>${esc(nameOf(m.user_id))}</b> <span class="hint">${ROLE[m.role]}${m.user_id === S.uid ? ", 나" : ""}</span>${o.note ? `<br><span class="hint">${esc(o.note)}</span>` : ""}</span>${o.v ? `<span class="tag ${o.v === "yes" ? "" : "gray"}">${o.v === "yes" ? "찬성" : "반대"}</span>` : `<span class="hint">아직</span>`}</div>`; }).join("")}</div>
