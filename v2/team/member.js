@@ -128,7 +128,7 @@ function mEventCard(e) {
   const a = att(e); const v = myVote(e); const mine = !!myProfile(); const changing = MU.change === e.id;
   const sub = e.type === "match" ? (e.opponent ? "vs " + e.opponent : "상대팀 미정") : e.type === "scrim" ? "내전 (A팀 대 B팀)" : "훈련";
   const greqs = guestReqs(e).filter(g => g.u === S.uid && g.status !== "no");
-  const hasLine = e.lineup && Object.keys(e.lineup).length;
+  const hasLine = e.lineupAt && e.lineup && Object.keys(e.lineup).length; // 저장만 하면 안 보이고, 운영진이 팀원에게 알리기를 눌러야 열린다
   const cr = cancelRule();
   let vote = "";
   const vs = voteState(e);

@@ -645,6 +645,7 @@ function applyFix(e, side, u, i, qs) {
 function vLineup(id) {
   const e = S.events[id]; if (!e) return `${top("라인업", "#/schedule")}<div class="body"><div class="card empty"><b>지워진 일정이에요</b></div></div>`;
   const side = e.type === "scrim" ? UI.side : "main"; const L = curLineup(e, side); const edit = isAdmin() && viewMode() === "admin";
+  if (!edit && !e.lineupAt) return `${top("라인업", "#/schedule")}<div class="body"><div class="card empty"><b>라인업 준비 중이에요</b><span class="hint">운영진이 라인업을 알리면 여기서 내 출전과 휴식 쿼터를 볼 수 있어요</span></div></div>`; // 운영진이 알리기 전에는 팀원에게 안 보여 준다
   const ps = lineupPlayers(e, side); const qn = QN[sport()]; const k = Math.min(UI.q, qn); const fs = sport() === "futsal"; const a = att(e);
   const nm = u => !u ? "" : u.startsWith("g:") ? (((e.guests || {})[u.slice(2)] || {}).name || "용병") : nameOf(u);
   const dr = draftOf(e, side); const fkey = (L && L.fkey) || dr.fkey; const fl = L ? L.formation : (edit ? formOf(fkey) || [] : []);
