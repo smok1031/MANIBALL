@@ -463,13 +463,13 @@ export function policyForm(f, canEdit) {
   const step = (k, val, unit, zero) => `<div class="row" style="gap:8px"><button class="btn sm" data-act="pStep" data-k="${k}" data-d="-1" aria-label="줄이기">−</button><b style="min-width:76px;text-align:center">${zero && !Number(val) ? zero : val + unit}</b><button class="btn sm" data-act="pStep" data-k="${k}" data-d="1" aria-label="늘리기">+</button></div>`;
   return `<div class="card"><div class="spread"><span class="lab">기본 운영 규칙</span><span class="hint">일정마다 바꿀 수도 있어요</span></div>
     <div class="field"><span class="lab">투표 마감</span><div class="chips">${ch("pVoteClose", "eve", "경기 전날")}${ch("pVoteClose", "start", "경기 시작 전까지")}</div>
-      ${p.voteClose === "eve" ? `<div class="chips">${["18:00", "19:00", "20:00", "21:00", "22:00", "23:00"].map(t => ch("pVoteTime", t, hm12(t))).join("")}</div>` : ""}
+      ${p.voteClose === "eve" ? `<div class="row" style="gap:8px"><span>경기 전날</span><input class="inp" type="time" data-bind="pVoteTime" value="${esc(p.voteTime)}" aria-label="투표 마감 시간" style="width:140px;flex:none"><span>까지</span></div>` : ""}
       <span class="hint">마감 뒤에는 투표를 못 바꾸고, 불참으로 바꾸면 수칙의 불참 벌금이 붙어요</span></div>
     <div class="spread"><span class="lab">정원</span>${step("pCap", p.cap, "명")}</div>
     <div class="spread"><span class="lab">대기</span>${step("pWait", p.waitCap, "명", "제한 없음")}</div>
-    <div class="field"><span class="lab">지각 기준</span><div class="chips">${[0, 5, 10, 15, 20, 30].map(m => ch("pCheck", m, m ? `킥오프 ${m}분 전` : "킥오프 시간")).join("")}</div></div>
+    <div class="field"><span class="lab">지각 기준</span><div class="row" style="gap:8px"><span>킥오프</span><input class="inp" type="number" inputmode="numeric" min="0" max="60" data-bind="pCheck" value="${esc(String(p.checkBefore))}" aria-label="지각 기준 몇 분 전" style="width:84px;flex:none;text-align:right"><span>분 전</span></div><span class="hint">0으로 두면 킥오프 시간부터 지각이에요</span></div>
     <div class="field"><span class="lab">내전 기준</span><span class="hint">상대팀이 미정일 때, 경기 며칠 전까지 참석과 대기를 합쳐 몇 명이 넘으면 내전을 검토할지 정해요</span>
-      <div class="spread"><span>경기</span>${step("pScrimDays", p.scrimDays, "일 전까지")}</div><div class="spread"><span>인원</span>${step("pScrimMin", p.scrimMin, "명 이상")}</div></div>
+      <div class="spread"><span>경기</span>${step("pScrimDays", p.scrimDays, "일 전까지")}</div><div class="spread"><span>총인원 [대기포함]</span>${step("pScrimMin", p.scrimMin, "명 이상")}</div></div>
   </div>`;
 }
 // 팀 수칙: 수칙은 글로 (1. 2. 직접 번호), 벌금은 금액이 있는 항목만. 예전 "글 수칙"(벌금 0원)은 번호 붙인 글로 바꿔 보여 준다
