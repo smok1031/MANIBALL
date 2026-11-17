@@ -6,7 +6,8 @@
 <title>매니볼 | 정기 점검 중</title>
 <meta name="theme-color" content="#14182B">
 <meta name="robots" content="noindex">
-<script src="maint-gate.js"></script>
+<script src="maint-config.js?v=668c003"></script>
+<script src="maint-gate.js?v=668c003"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
@@ -51,6 +52,8 @@ body *{-webkit-user-drag:none}
 .ch-a .tx{font-size:15px;line-height:1.55;font-weight:500}
 .more{min-height:52px;border:2px solid #14182B;border-radius:12px;background:#F0EEE9;color:#14182B;font:700 15px 'IBM Plex Sans KR',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;flex-shrink:0;width:100%}
 .more:focus-visible{outline:3px solid #5B8DEF;outline-offset:2px}
+.unsaved{border:2px solid #14182B;border-radius:14px;background:#E46A2E;color:#14182B;padding:12px 14px;display:flex;flex-direction:column;gap:2px;font-size:14px;line-height:1.5;flex-shrink:0}
+[hidden]{display:none!important}
 .pc{display:none}
 /* PC: 왼쪽 점검 표, 오른쪽 바뀌는 것 (오른쪽만 안에서 내림) */
 @media (min-width:900px){
@@ -87,14 +90,15 @@ body *{-webkit-user-drag:none}
         <div class="tk-top">
           <span class="kick">MAINTENANCE</span>
           <h1 class="h1" id="ttl">지금은 정기 점검<br class="pc"> 중이에요</h1>
-          <span class="when" id="win">매주 수요일 04:00~05:00</span>
+          <span class="when" id="win">업로드하는 동안 잠시 멈춰요</span>
         </div>
         <div class="tk-stub" aria-live="polite">
-          <span class="lb">다시 열리기까지</span>
-          <span class="v" id="leftBox"><span>약</span><span class="n" id="left">-</span><span>분</span></span>
+          <span class="lb" id="leftLb">다시 열리기까지</span>
+          <span class="v" id="leftBox" hidden><span>약</span><span class="n" id="left">-</span><span>분</span></span>
         </div>
       </section>
-      <p class="muted"><span class="mo">점검하는 동안에는 매니볼을 쓸 수 없어요.</span><span class="pc">점검하는 동안에는 매니볼 홈페이지와 앱을 쓸 수 없어요.</span> 점검이 끝나면 이 화면에서 바로 다시 열려요. 시간은 한국 시간이에요.</p>
+      <p class="muted"><span class="mo">점검하는 동안에는 매니볼을 쓸 수 없어요.</span><span class="pc">점검하는 동안에는 매니볼 홈페이지와 앱을 쓸 수 없어요.</span> 점검 전에 저장한 내용은 그대로 있어요. 점검이 끝나면 이 화면에서 바로 다시 열려요. 시간은 한국 시간이에요.</p>
+      <div class="unsaved" id="unsaved" role="status" hidden><b>점검 시작 직전에 누른 것 <span id="unsavedN">1</span>건은 저장되지 않았어요.</b><span>다시 열리면 한 번 더 눌러 주세요.</span></div>
     </div>
     <div class="right">
       <h2 class="h2"><b>이번 점검에서 바뀌는 것</b><span id="total"></span></h2>
@@ -102,6 +106,6 @@ body *{-webkit-user-drag:none}
     </div>
   </div>
 </main>
-<script src="maint.js"></script>
+<script src="maint.js?v=668c003"></script>
 </body>
 </html>

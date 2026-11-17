@@ -1,0 +1,1 @@
+import"./modulepreload-polyfill-B5Qt9EMX.js";const t=location.search;/\/test\//.test(location.pathname)&&/[?&]maint=preview/.test(t)?location.replace("v2/maint.html"+t):location.replace((/[?&](code|error|state|join)=/.test(t)?"v2/team/":"v2/")+t+location.hash);
