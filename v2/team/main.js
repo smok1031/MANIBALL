@@ -45,7 +45,31 @@ const canKick = x => !!x && x.uid !== S.uid && x.role !== "owner" && (S.role ===
 /* ---------- 작은 도구 ---------- */
 let toastT = 0;
 function toast(m) { const l = $("#layer"); let t = l.querySelector(".toast"); if (!t) { t = document.createElement("div"); t.className = "toast"; t.setAttribute("role", "status"); l.appendChild(t); } t.textContent = m; clearTimeout(toastT); toastT = setTimeout(() => t.remove(), 2600); }
-function sheet(html) { $("#layer").innerHTML = `<div class="scrim" data-act="closeSheet"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`; }
+/* ---------- 입력 칸 자판 ----------
+   숫자 칸(inputmode="numeric")은 숫자 키패드가 뜨고 숫자만 들어간다. 금액 칸은 쉼표를 붙인다 (저장할 때는 숫자만 읽음)
+   글자 칸은 자동 대문자, 자동 고침, 맞춤법 밑줄을 끈다. 웹에서는 한글 자판을 강제로 띄울 수 없다 */
+const isMoney = t => t.dataset.bind === "fee" || t.dataset.bind === "amount" || t.dataset.f === "amount";
+const fmtMoney = v => { const d = String(v || "").replace(/\D/g, "").replace(/^0+(?=\d)/, "").slice(0, 9); return d ? Number(d).toLocaleString("ko-KR") : ""; };
+function cleanNum(t) {
+  if (t.getAttribute("inputmode") !== "numeric" || t.type === "number") return;
+  const old = t.value, caret = t.selectionStart == null ? old.length : t.selectionStart;
+  const keep = t.dataset.bind === "account" ? /[0-9-]/ : /\d/;
+  const next = isMoney(t) ? fmtMoney(old) : old.split("").filter(c => keep.test(c)).join("");
+  if (next === old) return;
+  const before = old.slice(0, caret).split("").filter(c => keep.test(c)).length;
+  t.value = next;
+  let pos = 0, seen = 0; while (pos < next.length && seen < before) { if (keep.test(next[pos])) seen++; pos++; }
+  try { t.setSelectionRange(pos, pos); } catch (e) { /* 지원 안 하는 칸 */ }
+}
+function tuneInputs(root) {
+  root.querySelectorAll("input, textarea").forEach(el => {
+    if (el.tagName === "INPUT" && !["", "text", "search"].includes(el.getAttribute("type") || "")) return;
+    if (el.getAttribute("inputmode") === "numeric") { if (el.dataset.bind !== "account") el.setAttribute("pattern", "[0-9]*"); if (isMoney(el) && el.value) el.value = fmtMoney(el.value); return; }
+    el.setAttribute("autocapitalize", "off"); el.setAttribute("autocorrect", "off"); el.spellcheck = false;
+    if (el.tagName === "INPUT" && !el.hasAttribute("autocomplete")) el.setAttribute("autocomplete", "off");
+  });
+}
+function sheet(html) { $("#layer").innerHTML = `<div class="scrim" data-act="closeSheet"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`; tuneInputs($("#layer")); }
 function closeSheet() { $("#layer").innerHTML = ""; }
 function confirmBox(title, msg, ok, fn, danger) {
   sheet(`<h3>${esc(title)}</h3><div class="hint">${esc(msg)}</div><div class="row"><button class="btn block" data-act="closeSheet">취소</button><button class="btn block ${danger ? "danger" : "pri"}" id="okBtn">${esc(ok)}</button></div>`);
@@ -1055,6 +1079,7 @@ function render() {
   const sel = d.bind ? `[data-bind="${d.bind}"]` : d.rule != null ? `[data-rule="${d.rule}"][data-f="${d.f}"]` : d.opt != null ? `[data-opt="${d.opt}"]` : "";
   const pos = sel && "selectionStart" in act ? act.selectionStart : null;
   app.innerHTML = html;
+  tuneInputs(app);
   if (sel) { const el = app.querySelector(sel); if (el) { el.focus(); try { if (pos != null) el.setSelectionRange(pos, pos); } catch (e) { /* 날짜 칸 */ } } }
 }
 let lastRoute = "";
@@ -1088,6 +1113,7 @@ function onRoute(force) {
 /* ---------- 입력 ---------- */
 document.addEventListener("input", ev => {
   const t = ev.target;
+  cleanNum(t);
   if (t.dataset.bind) {
     S.form[t.dataset.bind] = t.type === "checkbox" ? t.checked : t.value;
     if (t.dataset.liveSrc) document.querySelectorAll(`[data-live="${t.dataset.liveSrc}"]`).forEach(el => { el.textContent = t.value || (t.dataset.liveSrc === "name" ? "이름" : ""); });
