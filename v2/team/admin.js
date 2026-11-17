@@ -1,669 +1,649 @@
-// 운영진 화면: 디자인 시안 [운영진] 1-1 ~ 5-9. 팀원 화면은 member.js에 있다.
-import { mCalendar } from "./member.js";
-import { noLate, pol, rulesView, rulesForm, rulesFromForm, rulesFormInit, ampm, closeAt, $, D, KIT, LOGO, POS, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, refreshMembers, remindInfo, render, ruleAmt, sb, scrimReady, setDoc, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym } from "./main.js";
+// 운영진 화면 (뉴버전 시안 [운영진]). 팀원 화면은 member.js가 그리고, 운영진에게만 보이는 화면과 도구를 여기에 둔다.
+import { S, D, $, att, esc, md, wd, evName, started, evStart, isPlay, momClosed, momDeadline, momWinners, nameOf, people, guestReqs, guestsOf, scrimReady, won, pol, POS, QN, ROLE, UI,
+  isAdmin, viewMode, route, backHref, render, toast, fail, sheet, closeSheet, confirmBox, setDoc, delDoc, patchDoc, sb, uid36, todayStr, ym, mLabel, monthsList, feeMode, paidOf, cameTo,
+  syncMyDues, refreshMembers, remindInfo, inviteUrl, canKick, profileOf, posFix, sport, voteState, closeAt, past, rulesFormInit, rulesFromForm, rulesTextOf, fineRulesOf, ruleKind,
+  curLineup, lineupPlayers, draftOf, formOf, autoLineup, FORMS, FORM_DESC, applyFix, spotXY, FUTSAL_N, loadReqs, ls, APP } from "./main.js";
+import { C, IC, navBar, hd, hdTab, lrow, dlg, empty, sw, teamLogo } from "./ui.js";
+import { bigTicket, strip, whenText, kindOf, vsText, myStats, teamRecord, memberGroups, seasonEvents } from "./member.js";
+import { canPlay, isKeeper } from "./lineup-core.js";
 
-function homeExtras() {
-  const out = [];
-  const rm = remindInfo(); const re = rm && S.events[rm.eid];
-  if (!isAdmin() && re && !started(re) && Date.now() - Date.parse(rm.at) < 2 * 864e5 && !myVote(re).s && myProfile()) out.push(`<a class="card" href="#/event/${esc(re.id)}" style="text-decoration:none;color:inherit;background:#FEF2F2"><b style="color:#B91C1C">참석 응답을 기다리고 있어요</b><span class="hint">${esc(md(re.date) + " " + wd(re.date) + " " + (re.time || "") + " " + evName(re))}, 운영진이 미응답 알림을 보냈어요</span></a>`);
-  const n = noticesList()[0];
-  if (n) out.push(`<div class="spread"><b>공지</b><a href="#/notices" class="hint" style="text-decoration:none">전체</a></div>${noticeCard(n, false)}`);
-  else if (!isAdmin()) out.push(`<a class="btn" href="#/notices">공지와 설문</a>`);
-  past().filter(e => momOpen(e) && cameTo(e, S.uid) && !(myUv().mom || {})[e.id]).slice(0, 1).forEach(e => out.push(`<a class="card" href="#/game/${esc(e.id)}" style="text-decoration:none;color:inherit;background:#FFFBEB"><b>오늘의 MOM을 골라 주세요</b><span class="hint">${esc(md(e.date) + " " + evName(e))}, 다음 날 12시 마감</span></a>`));
-  if (!isAdmin()) { const my = D("mydues")[S.uid] || {}; const owe = Object.values(my.dues || {}).filter(v => v !== "paid").length * (Number(S.settings.fee) || 0) + (my.fines || []).filter(f => !f.paid).reduce((s2, f) => s2 + (Number(f.amount) || 0), 0); if (owe) out.push(`<a class="card" href="#/dues" style="text-decoration:none;color:inherit"><div class="spread"><b>낼 돈이 있어요</b><b>${won(owe)}</b></div><span class="hint">회비 탭에서 입금하기를 눌러요</span></a>`); }
-  return out.join("");
-}
-function vHomeAdmin() {
-  const next = upcoming().find(e => !started(e)); const a = next ? att(next) : null; const todo = adminTodo();
-  const mon = ym(); const key = feeMode() === "monthly" ? "m-" + mon : ""; const allP = people();
-  const paidN = key ? allP.filter(x => paidOf(key, x.uid)).length : 0;
-  const prN = Object.values(D("payreq")).reduce((n, d) => n + Object.values((d && d.items) || {}).filter(it => it && it.status === "req").length, 0);
-  const fineSum = Object.values(D("fines")).filter(f => !f.paid).reduce((s2, f) => s2 + (Number(f.amount) || 0), 0);
-  const lastPlay = past().filter(isPlay)[0]; const momTxt = !lastPlay ? ["-", "아직 경기가 없어요"] : !lastPlay.score ? ["결과 대기", `${md(lastPlay.date)} 결과를 넣으면 열려요`] : momOpen(lastPlay) ? ["투표 중", `${md(lastPlay.date)} 다음 날 12시 마감`] : [momWinners(lastPlay).map(nameOf).join(", ") || "투표 없음", `${md(lastPlay.date)} MOM`];
-  const pin = noticesList()[0]; const poll = noticesList().find(n => n.poll && n !== pin);
-  const st = (v, l, sub, href, c) => `<a href="${href}" style="text-decoration:none;color:inherit;background:#FFFFFF;border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:2px"><span class="hint" style="font-size:12px">${l}</span><b style="font-size:20px;${c ? "color:" + c : ""}">${v}</b><span class="hint" style="font-size:12px">${sub}</span></a>`;
-  return `<header class="top" style="padding:10px 4px 10px 12px">${LOGO(32)}<span style="flex:1;line-height:1.2"><b style="font-size:17px">${esc(S.team.name)}</b><br><span class="hint" style="font-size:12px">${sport() === "soccer" ? "축구팀" : "풋살팀"}, 팀원 ${S.members.length + unclaimed().length}명</span></span>${S.teams.length > 1 ? `<button class="iconbtn" data-act="switchTeam" aria-label="다른 팀">⇄</button>` : ""}${ABELL()}</header>
-  <div class="body">
-    ${weekStrip()}
-    <div class="card"><div class="spread"><b style="font-size:16px">운영진이 할 일 ${todo.length}개</b><span class="hint">${Number(todayStr().slice(5, 7))}월 ${Number(todayStr().slice(8, 10))}일 ${"일월화수목금토"[new Date(todayStr() + "T00:00:00Z").getUTCDay()]}요일</span></div>
-      ${todo.length ? `<div class="list">${todo.map(t => `<div class="li"><span style="flex:1;min-width:0"><b style="font-size:15px">${esc(t[0])}</b><br><span class="hint">${esc(t[1])}</span></span><a class="btn sm" href="${t[2]}" style="flex:none">${esc(t[3])}</a></div>`).join("")}</div>` : `<span class="hint">할 일을 다 했어요.</span>`}</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      ${st(next ? `${a.in}${a.cap ? " / " + a.cap : ""}` : "-", "참석", next ? `${md(next.date)}, 미응답 ${a.none.length + unclaimed().length}명` : "일정 없음", next ? "#/event/" + next.id : "#/new")}
-      ${st(key ? `${paidN} / ${allP.length}` : feeMode() === "per_game" ? "경기마다" : "-", `${Number(mon.slice(5))}월 회비`, prN ? `입금 확인 ${prN}건` : "입금 확인 없음", "#/dues", "")}
-      ${st(won(fineSum), "벌금 미납", "현재 금액 합계", "#/dues", fineSum ? "#B91C1C" : "")}
-      ${st(esc(momTxt[0]), "MOM", esc(momTxt[1]), lastPlay ? "#/game/" + lastPlay.id : "#/records", "#B45309")}
-    </div>
-    <div class="spread"><b>공지</b><a class="hint" href="#/notices" style="text-decoration:none">전체 ›</a></div>
-    ${pin ? `<a class="card" href="#/notices" style="text-decoration:none;color:inherit;gap:6px">${pin.pinned ? `<span class="tag" style="align-self:flex-start">고정</span>` : ""}<b>${esc(pin.title)}</b></a>` : `<a class="card" href="#/notice-new" style="text-decoration:none;color:inherit"><b>공지를 써 보세요</b><span class="hint">팀원 알림함에 바로 보여요</span></a>`}
-    ${poll ? `<a class="card" href="#/notices" style="text-decoration:none;color:inherit;gap:6px"><span class="tag blue" style="align-self:flex-start">설문</span><b>${esc(poll.title)}</b><span class="hint">${(D("tally")["poll-" + poll.id] || {}).n || 0}명 참여</span></a>` : ""}
-    ${myProfile() ? "" : `<div class="card"><b>나도 선수로 등록하기</b><span class="hint">운영진도 선수로 등록하면 참석을 누르고 명단에 보여요.</span><a class="btn" href="${unclaimed().length ? "#/claim" : "#/me"}">선수 등록</a></div>`}
-  </div>${nav("홈")}`;
-}
-function vSchedule() {
-  if (isAdmin()) return vScheduleAdmin();
-  const ev = upcoming();
-  return `<header class="top"><span style="width:8px"></span><h1>일정</h1></header><div class="body">
-    ${ev.length ? ev.map(e => eventCard(e)).join("") : `<div class="card empty"><b>다가오는 일정이 없어요</b><span class="hint">운영진이 일정을 올리면 여기에 보여요.</span></div>`}
-    ${past().length ? `<b style="margin-top:8px">지난 일정</b>${past().slice(0, 10).map(e => eventCard(e, { noVote: true })).join("")}` : ""}
-  </div>${nav("일정")}`;
-}
-const REMIND_GAP = 3600e3;
-const remindLeft = () => { const r = remindInfo(); return r && r.at ? Math.max(0, Date.parse(r.at) + REMIND_GAP - Date.now()) : 0; };
-function adminEventCard(e, opt = {}) {
-  const a = att(e); const closed = started(e); const pct = a.cap ? Math.min(100, Math.round(a.in * 100 / a.cap)) : 0;
-  const greq = guestReqs(e).filter(g => g.status === "req").length; const un = unclaimed().length;
-  const sub = e.type === "match" ? (e.opponent ? "vs " + e.opponent : "상대팀 미정") : e.type === "scrim" ? "내전 (A팀 대 B팀)" : "훈련";
-  return `<div class="card">
-    <div class="row" style="gap:12px"><a href="#/event/${esc(e.id)}" style="text-decoration:none;color:inherit;display:flex;gap:12px;align-items:center;flex:1;min-width:0"><span class="datebox ${closed ? "gray" : ""}"><span>${wd(e.date)}</span><b>${Number(e.date.slice(8, 10))}</b></span><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><span class="row" style="gap:6px"><span class="tag ${e.type === "training" ? "blue" : ""}">${e.type === "match" ? "경기" : e.type === "scrim" ? "내전" : "훈련"}</span><b style="font-size:16px">${esc(e.time || "")}${e.end ? " ~ " + esc(e.end) : ""}</b></span><span class="hint">${esc(e.place || "장소 미정")}, ${esc(sub)}</span></span></a>${closed || opt.detail ? "" : `<a href="#/edit/${esc(e.id)}" class="hint" style="text-decoration:none;padding:8px 0;flex:none">수정</a>`}</div>
-    ${closed ? `<div class="spread hint"><span>출석 ${Object.values(e.check || {}).filter(v => v === "in" || v === "late").length}명${e.score ? `, 결과 ${e.score.us} : ${e.score.them}` : ""}</span>${isPlay(e) && !e.score ? `<a href="#/result/${esc(e.id)}" style="font-weight:700;text-decoration:none">결과 입력</a>` : `<a href="#/event/${esc(e.id)}" style="text-decoration:none">보기</a>`}</div>` : `
-    <div class="field" style="gap:6px"><div class="spread" style="font-size:13px"><span>참석 <b>${a.in}</b>${a.cap ? " / 정원 " + a.cap : ""}${a.late.length ? ", 늦참 " + a.late.length : ""}${a.wait.length ? ", 대기 <b>" + a.wait.length + "</b>" : ""}${a.no.length ? ", 불참 " + a.no.length : ""}</span><span style="color:#B91C1C;font-weight:700">미응답 ${a.none.length + un}</span></div>
-      ${a.cap ? `<div style="height:8px;border-radius:999px;background:#E5E7EB;overflow:hidden"><div style="width:${pct}%;height:100%;background:#15803D"></div></div>` : ""}
-      <span class="hint" style="font-size:12px">${voteState(e) === "soon" ? "투표 열림 예약 " + md(e.openAt.slice(0, 10)) : closeText(e)}${a.wait.length ? ", 대기 " + a.wait.length + "명" : ""}${un ? `. 미응답 중 ${un}명은 아직 앱에 안 들어왔어요` : ""}</span></div>
-    ${greq ? `<div class="spread" style="background:#FFFBEB;border-radius:12px;padding:10px 12px;font-size:13px;color:#92400E"><span><b>용병 신청 ${greq}건</b> 수락을 기다려요</span><a href="#/guests/${esc(e.id)}" style="font-weight:700;text-decoration:none;color:#92400E">확인</a></div>` : ""}
-    ${scrimReady(e) ? `<div style="display:flex;flex-direction:column;gap:10px;background:#EEF2FF;border-radius:14px;padding:12px 14px"><span style="font-size:13px;color:#3730A3;line-height:1.5"><b>내전 가능</b> 상대팀이 미정이고 참석과 대기를 합쳐 ${a.in + a.wait.length}명이에요.</span><a class="btn sm" href="#/scrim/${esc(e.id)}" style="background:#3730A3;color:#FFFFFF">내전 검토하기</a></div>` : ""}
-    <div style="display:grid;grid-template-columns:repeat(${e.type === "training" ? 2 : 3},minmax(0,1fr));gap:8px"><button class="btn sm" data-act="remindOpen" data-eid="${esc(e.id)}" style="background:#FEF2F2;color:#B91C1C;font-size:13px;padding:8px 2px;white-space:nowrap">미응답 알리기</button>${e.type !== "training" ? `<a class="btn sm pri" href="#/lineup/${esc(e.id)}" style="font-size:13px;padding:8px 2px;white-space:nowrap">라인업 짜기</a>` : ""}<a class="btn sm" href="#/check/${esc(e.id)}" style="font-size:13px;padding:8px 2px;white-space:nowrap">현장 출석</a></div>`}
-  </div>`;
-}
-function vScheduleAdmin() {
-  const m = UI.month || ym(); const [y, mo] = m.split("-").map(Number);
-  const inMonth = e => e.date.slice(0, 7) === m;
-  const up = upcoming().filter(inMonth), done = past().filter(inMonth);
-  const later = upcoming().filter(e => e.date.slice(0, 7) > m).length;
-  return `<header class="top" style="padding:10px 12px">${LOGO(32)}<h1 style="font-size:20px;font-weight:900">일정</h1><a class="btn sm" href="#/calendar">달력</a><a class="btn sm pri" href="#/new">+ 일정 만들기</a></header><div class="body">
-    <div class="spread card" style="padding:6px;flex-direction:row"><button class="iconbtn" data-act="monthGo" data-d="-1" aria-label="이전 달">‹</button><b style="font-size:16px">${y}년 ${mo}월</b><button class="iconbtn" data-act="monthGo" data-d="1" aria-label="다음 달">›</button></div>
-    <b style="font-size:15px;color:#374151">다가오는 일정</b>
-    ${up.length ? up.map(adminEventCard).join("") : `<div class="card empty"><b>${mo}월에 남은 일정이 없어요</b><span class="hint">${later ? `다음 달에 일정 ${later}개가 있어요.` : "일정을 만들면 팀원이 참석을 눌러요."}</span><a class="btn pri" href="#/new">일정 만들기</a></div>`}
-    ${done.length ? `<b style="font-size:15px;color:#374151;margin-top:8px">지난 일정</b>${done.map(adminEventCard).join("")}` : ""}
-  </div>${nav("일정")}`;
-}
-function remindSheet(eid) {
-  const e = S.events[eid]; if (!e) return; const a = att(e); const un = unclaimed();
-  const left = remindLeft(); const r = remindInfo();
-  const ago = r && r.at ? Math.max(1, Math.round((Date.now() - Date.parse(r.at)) / 60000)) : 0;
-  const agoTxt = ago < 60 ? ago + "분 전" : Math.round(ago / 60) + "시간 전";
-  sheet(`<h3>미응답 ${a.none.length + un.length}명에게 알려요</h3><span class="hint">${esc(md(e.date) + " " + wd(e.date) + " " + (e.time || "") + " " + evName(e))}, ${closeText(e)}</span>
-    <div class="list" style="max-height:36vh;overflow:auto">${a.none.map(x => `<label class="li" style="cursor:pointer"><input type="checkbox" data-rm="${esc(x.uid)}" checked style="width:22px;height:22px;accent-color:#15803D"><b style="flex:1">${esc(x.name)}</b><span class="hint">앱 알림</span></label>`).join("")}${un.map(p => `<div class="li"><span style="width:22px"></span><b style="flex:1">${esc(p.name)}</b><span class="tag gray">가입 전, 알림 못 받아요</span></div>`).join("")}${a.none.length + un.length ? "" : `<span class="hint">미응답이 없어요.</span>`}</div>
-    <div style="background:#FFFBEB;border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.5;color:#92400E"><b>미응답 알림은 1시간에 한 번만 보낼 수 있어요</b><br>운영진 모두 합친 횟수예요.${r && r.at ? ` 마지막 알림은 ${agoTxt} ${esc(nameOf(r.by))} 님이 보냈어요.` : ""}</div>
-    <div class="row"><button class="btn block" data-act="closeSheet">취소</button>${left ? `<button class="btn block" disabled>${Math.ceil(left / 60000)}분 뒤 가능</button>` : `<button class="btn pri block" data-act="remindSend" data-eid="${esc(e.id)}" ${a.none.length + un.length ? "" : "disabled"}>알림 보내기</button>`}</div>`);
-}
-function vEvent(id) {
-  const e = S.events[id]; if (!e) return `${top("일정", "#/schedule")}<div class="body"><div class="card empty"><b>지워진 일정이에요</b></div></div>`;
-  const a = att(e); const adm = isAdmin(); const day = e.date <= todayStr();
-  const grp = (t, arr, fmt) => `<div class="card"><div class="spread"><b>${t}</b><span class="hint">${arr.length}명</span></div>${arr.length ? `<div class="chips">${arr.map(x => `<span class="pill" style="background:#F3F4F6">${esc(x.name)}${fmt ? fmt(x) : ""}</span>`).join("")}</div>` : `<span class="hint">없어요</span>`}</div>`;
-  const gs = guestsOf(e); const greq = guestReqs(e); const myG = greq.filter(g => g.u === S.uid);
-  const hasLine = e.lineup && Object.keys(e.lineup).length;
-  const tools = [];
-  if (adm && day && started(e)) tools.push(`<a class="btn block" href="#/check/${esc(e.id)}">현장 출석</a>`);
-  if (isPlay(e) && ((adm && started(e)) || (!adm && hasLine))) tools.push(`<a class="btn block" href="#/lineup/${esc(e.id)}">라인업</a>`);
-  if (e.type === "scrim" && adm) tools.push(`<a class="btn block" href="#/squad/${esc(e.id)}">스쿼드 나누기</a>`);
-  if (started(e) && isPlay(e)) tools.push(`<a class="btn block" href="#/game/${esc(e.id)}">결과와 MOM</a>`);
-  const T = e.teams || {};
-  const mv = myVote(e);
-  return `${top(md(e.date) + " " + wd(e.date) + " " + evName(e), "#/schedule", adm ? `<a class="btn sm" href="#/edit/${esc(e.id)}">수정</a>` : "")}<div class="body">
-    ${adm ? adminEventCard(e, { detail: true }) + (myProfile() && !started(e) ? `<div class="card"><b>내 참석</b>${voteRow(e, mv)}${mv.s === "late" ? lateRow(e, mv) : ""}</div>` : "") : eventCard(e)}
-    ${adm && scrimReady(e) ? `<div class="card" style="background:#FFFBEB"><b>내전을 할 수 있어요</b><span class="hint">상대팀이 미정이고 참석과 대기를 합쳐 ${a.in + a.wait.length}명이에요. 운영진끼리 상의해서 내전으로 바꾸면 팀원 모두에게 보여요.</span><button class="btn pri" data-act="scrimConvert" data-eid="${esc(e.id)}">내전으로 바꾸기</button></div>` : ""}
-    ${tools.length ? `<div class="row" style="flex-wrap:wrap">${tools.join("")}</div>` : ""}
-    ${e.memo ? `<div class="card"><b>메모</b><div class="hint" style="white-space:pre-wrap;color:#374151">${esc(e.memo)}</div></div>` : ""}
-    ${e.type === "scrim" ? grp("A팀 (조끼)", [...a.yes, ...a.late, ...a.wait].filter(x => T[x.uid] === "A")) + grp("B팀", [...a.yes, ...a.late, ...a.wait].filter(x => T[x.uid] === "B")) : ""}
-    ${adm && Object.keys(e.lateCancel || {}).length ? `<div class="card"><div class="spread"><b>마감 후 불참</b><span class="hint">${Object.keys(e.lateCancel).length}명</span></div><div class="list">${Object.entries(e.lateCancel).map(([u, c]) => `<div class="li"><span style="flex:1;min-width:0"><b>${esc(nameOf(u))}</b><br><span class="hint">${esc([Number(c.amount) ? "벌금 " + won(c.amount) : "벌금 없음", c.reason].filter(Boolean).join(", "))}</span></span><span class="hint" style="font-size:12px">${esc(new Date(Date.parse(c.t) + 9 * 3600e3).toISOString().slice(5, 16).replace("-", ".").replace("T", " "))}</span></div>`).join("")}</div></div>` : ""}
-    ${grp("참석", a.yes)}${noLate() ? "" : grp("늦참", a.late, x => x.q ? `, ${x.q}Q부터` : "")}${a.cap ? grp("대기", a.wait, () => "") : ""}${grp("불참", a.no)}${grp("미응답", a.none)}${unclaimed().length ? `<span class="hint">아직 앱에 안 들어온 선수 ${unclaimed().length}명은 참석을 누를 수 없어요. 초대 링크로 들어와 이름을 고르면 돼요.</span>` : ""}
-    ${a.cap ? `<span class="hint">정원이 차면 다음 신청은 대기로 들어가고, 자리가 나면 순서대로 올라가요.</span>` : ""}
-    ${e.type !== "training" ? `<div class="card"><div class="spread"><b>용병</b><span class="hint">${gs.length}명</span></div>
-      ${gs.length ? `<div class="list">${gs.map(g => `<div class="li"><span style="flex:1"><b>${esc(g.name)}</b><br><span class="hint">${esc([g.pos, nameOf(g.by) + " 님 지인"].filter(Boolean).join(", "))}</span></span>${adm ? `<button class="iconbtn" data-act="guestDel" data-eid="${esc(e.id)}" data-g="${esc(g.id)}" aria-label="빼기">✕</button>` : ""}</div>`).join("")}</div>` : ""}
-      ${adm ? greq.filter(g => g.status === "req").map(g => `<div class="li" style="background:#F9FAFB;border-radius:12px;padding:10px"><span style="flex:1"><b>${esc(g.name)}</b> 신청<br><span class="hint">${esc([g.pos, g.rel, nameOf(g.u) + " 님이 신청"].filter(Boolean).join(", "))}</span></span><button class="btn sm" data-act="guestNo" data-u="${esc(g.u)}" data-k="${esc(g.k)}">거절</button><button class="btn sm pri" data-act="guestOk" data-eid="${esc(e.id)}" data-u="${esc(g.u)}" data-k="${esc(g.k)}">수락</button></div>`).join("") : myG.map(g => `<span class="hint">${esc(g.name)} 신청: ${g.status === "ok" ? "수락됐어요" : g.status === "no" ? "이번에는 어려워요" : "운영진이 보고 있어요"}</span>`).join("")}
-      ${!started(e) && myProfile() ? `<button class="btn" data-act="guestReq" data-eid="${esc(e.id)}">+ 용병 신청</button>` : ""}</div>` : ""}
-  </div>`;
-}
-function vEventForm(id) {
-  const f = S.form; const isNew = !id;
-  const chip = (k, v, l) => `<button class="chip sm ${String(f[k]) === String(v) ? "on" : ""}" data-act="pick" data-k="${k}" data-v="${v}">${l}</button>`;
-  const places = [...new Set(Object.values(S.events).sort((a, b) => b.date.localeCompare(a.date)).map(e => e.place).filter(Boolean))].slice(0, 3);
-  const dates = nextDates(); const custom = f.date && !dates.includes(f.date);
-  const fixed = f.oppMode === "set";
-  return `${top(isNew ? "일정 만들기" : "일정 수정", isNew ? "#/schedule" : "#/event/" + id)}<div class="body">
-    ${f.type === "scrim" ? `<div class="hint" style="background:#EEF2FF;color:#3730A3;border-radius:14px;padding:12px">내전으로 바뀐 일정이에요. A팀과 B팀은 스쿼드에서 정해요.</div>` : `<div class="hint" style="background:#F9FAFB;border-radius:14px;padding:12px">내전 일정은 경기로 만들어요. 상대팀이 미정이고 참석과 대기를 합쳐 20명 이상이 경기 3일 전까지 유지될 때만 내전으로 바꿀 수 있어요.</div>`}
-    <div class="card">
-      ${f.type === "scrim" ? "" : `<div class="field"><span class="lab">종류</span><div class="chips">${chip("type", "match", "경기")}${chip("type", "training", "훈련")}</div></div>`}
-      <div class="field"><span class="lab">날짜</span><div class="chips">${dates.map(d => chip("date", d, md(d) + " " + wd(d))).join("")}<button class="chip sm ${custom ? "on" : ""}" data-act="pick" data-k="dateCustom" data-v="${f.dateCustom ? "" : "1"}">직접 고르기</button></div>${f.dateCustom || custom ? `<input class="inp" type="date" data-bind="date" value="${esc(f.date || "")}" min="${todayStr()}" aria-label="날짜">` : ""}</div>
-      <div class="row" style="gap:8px"><label class="field" style="flex:1"><span class="lab">시작</span><input class="inp" type="time" data-bind="time" value="${esc(f.time || "")}"></label><label class="field" style="flex:1"><span class="lab">끝</span><input class="inp" type="time" data-bind="end" value="${esc(f.end || "")}"></label></div>
-      <div class="field"><span class="lab">장소</span><input class="inp" data-bind="place" value="${esc(f.place || "")}" maxlength="40" placeholder="구장" aria-label="장소">${places.length ? `<div class="chips"><span class="hint">최근</span>${places.map(p => `<button class="chip sm ${f.place === p ? "on" : ""}" data-act="pick" data-k="place" data-v="${esc(p)}">${esc(p)}</button>`).join("")}</div>` : ""}</div>
-      ${f.type === "match" ? `<div class="field"><span class="lab">상대팀</span><div class="chips">${chip("oppMode", "none", "미정")}${chip("oppMode", "set", "정해짐")}</div>${fixed ? `<input class="inp" data-bind="opponent" value="${esc(f.opponent || "")}" maxlength="30" placeholder="팀 이름" aria-label="상대팀 이름"><span class="hint">매칭된 팀이 있어서 이 일정은 내전으로 바꿀 수 없어요</span>` : `<span class="hint">미정이면 참석과 대기가 20명이 넘을 때 내전으로 바꿀 수 있어요</span>`}</div>` : ""}
-    </div>
-    <div class="card">
-      <div class="field"><span class="lab">참석 투표</span><div class="chips">${chip("openMode", "now", "올리면 바로 열기")}${chip("openMode", "later", "열림 예약")}</div>${f.openMode === "later" ? `<input class="inp" type="datetime-local" data-bind="openAt" value="${esc(f.openAt || "")}" aria-label="투표 열 시각">` : ""}</div>
-      ${voteCloseField(f, chip)}
-      <div class="field"><span class="lab">정원</span><div class="row"><button class="btn sm" data-act="cap" data-d="-1" aria-label="정원 줄이기">−</button><b style="min-width:72px;text-align:center">${Number(f.cap) ? f.cap + "명" : "제한 없음"}</b><button class="btn sm" data-act="cap" data-d="1" aria-label="정원 늘리기">+</button></div></div>
-      ${Number(f.cap) ? `<div class="field"><span class="lab">대기</span><div class="row"><button class="btn sm" data-act="aWait" data-d="-1" aria-label="대기 줄이기">−</button><b style="min-width:72px;text-align:center">${Number(f.waitCap) ? f.waitCap + "명" : "제한 없음"}</b><button class="btn sm" data-act="aWait" data-d="1" aria-label="대기 늘리기">+</button></div><span class="hint">정원이 차면 순서대로 기다려요</span></div>` : ""}
-      ${f.type === "match" ? `<div class="spread hint"><span>내전 알림</span><b style="color:${fixed ? "#6B7280" : "#3730A3"}">${fixed ? "불가, 상대팀이 정해져 있어요" : `가능, ${pol("scrimMin")}명 이상이면 알려 드려요`}</b></div>` : ""}
-      <label class="field"><span class="lab">메모</span><textarea class="inp" data-bind="memo" placeholder="준비물, 주차 같은 안내" style="min-height:72px">${esc(f.memo || "")}</textarea></label>
-    </div>
-    ${isNew ? "" : `<button class="btn danger" data-act="delEvent" data-eid="${esc(id)}">일정 지우기</button>`}
-  </div><div class="cta"><button class="btn pri block" data-act="aSaveEvent" data-eid="${esc(id || "")}">${isNew ? "일정 올리기" : "저장"}</button></div>`;
-}
-function vPlayers() {
-  const ps = people(); const y = todayStr().slice(0, 4); const evs = past().filter(e => e.date.startsWith(y));
-  const attN = u => evs.filter(e => cameTo(e, u)).length; const low = ps.filter(x => evs.length && attN(x.uid) * 2 <= evs.length);
-  const dueTag = u => { const o = owedOf(u); return o.months > 1 ? `<span class="tag" style="background:#FEF2F2;color:#B91C1C">${o.months}달 미납</span>` : o.months ? `<span class="tag" style="background:#FEF2F2;color:#B91C1C">${Number(ym().slice(5))}월 미납</span>` : ""; };
-  const admins = ps.filter(x => x.role !== "member").sort((a, b) => (a.role === "owner" ? -1 : 1) - (b.role === "owner" ? -1 : 1));
-  const num = x => Number(x) || 999; const mem = ps.filter(x => x.role === "member").sort((a, b) => num(a.p.num) - num(b.p.num));
-  const row = x => `<a class="li" href="#/player/${esc(x.uid)}" style="text-decoration:none;color:inherit"><span class="av">${esc(ini(x.name))}</span><span style="flex:1;min-width:0"><b>${esc(x.name)}</b> ${x.role !== "member" ? `<span class="tag">${ROLE[x.role]}</span>` : ""} ${dueTag(x.uid)}${x.uid === S.uid ? ` <span class="hint">나</span>` : ""}<br><span class="hint">${esc([x.p.num ? x.p.num + "번" : "", x.p.pos1, "출석 " + attN(x.uid) + "/" + evs.length].filter(Boolean).join(", "))}</span></span><span class="hint">›</span></a>`;
-  const posReqs = ps.filter(x => ((S.rsvp[x.uid] || {}).posReq || {}).status === "req");
-  const rules = S.settings.rules || []; const un = unclaimed();
-  return `<header class="top" style="padding:10px 12px">${LOGO(32)}<h1 style="font-size:20px;font-weight:900">선수</h1><a class="btn sm pri" href="#/invite">+ 초대</a></header><div class="body">
-    ${tilesA([tileA(ps.length + un.length + "명", "전체"), tileA(admins.length + "명", "운영진"), tileA(low.length + "명", "출석 절반 이하", "#B45309")])}
-    ${(S.reqs || []).length ? `<a class="card" href="#/requests" style="text-decoration:none;color:inherit;flex-direction:row;align-items:center;gap:14px;box-shadow:inset 0 0 0 2px #15803D"><span class="av" style="background:#15803D;color:#FFFFFF">${S.reqs.length}</span><span style="flex:1;min-width:0"><b>가입 신청 ${S.reqs.length}명</b><br><span class="hint">${esc(S.reqs.slice(0, 3).map(r => r.display_name).join(", "))}${S.reqs.length > 3 ? " 외" : ""}</span></span><span class="btn sm pri">확인</span></a>` : ""}
-    <a class="card" href="#/uniform" style="text-decoration:none;color:inherit;flex-direction:row;align-items:center;gap:14px">${jersey(64, (myProfile() || {}).num || "7", S.settings.uniformColor)}<span style="flex:1"><b>팀 유니폼</b><br><span class="hint">팀원 선수 카드에 등번호와 같이 보여요</span></span><span class="btn sm">바꾸기</span></a>
-    ${posReqs.length ? `<div class="card"><b>요청 ${posReqs.length}건</b>${posReqs.map(x => { const r = S.rsvp[x.uid].posReq; return `<div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid #F3F4F6;padding-top:10px"><div class="row" style="gap:10px"><span class="av">${esc(ini(x.name))}</span><span style="flex:1"><b>${esc(x.name)}</b> <span class="hint">포지션 변경 요청</span><br><span class="hint">${esc((x.p.pos1 || "-") + "에서 " + [r.pos1, r.pos2].filter(Boolean).join(", ") + (r.note ? ", " + r.note : ""))}</span></span></div><div class="row"><button class="btn block" data-act="posNo" data-u="${esc(x.uid)}">거절</button><button class="btn pri block" data-act="posOk" data-u="${esc(x.uid)}">수락</button></div></div>`; }).join("")}</div>` : ""}
-    <div class="card"><div class="spread"><b>운영진 ${admins.length}명</b></div><div class="list">${admins.map(row).join("")}</div></div>
-    <div class="card"><div class="spread"><b>팀원 ${mem.length}명</b></div><div class="list">${mem.map(row).join("")}</div></div>
-    ${un.length ? `<div class="card"><div class="spread"><b>가입 전 ${un.length}명</b><span class="hint">초대 링크로 들어와 이름을 고르면 연결돼요</span></div><div class="list">${un.map(p => `<div class="li" data-act="rosterOpen" data-pid="${esc(p.id)}" role="button" tabindex="0" style="cursor:pointer"><span class="av" style="background:#F3F4F6;color:#6B7280">${esc(ini(p.name))}</span><span style="flex:1"><b>${esc(p.name)}</b><br><span class="hint">${esc([p.num ? p.num + "번" : "", p.pos1, p.pos2].filter(Boolean).join(", "))}</span></span><span class="tag gray">가입 전</span></div>`).join("")}</div></div>` : ""}
-    <a class="btn" href="#/roster-import">명단 붙여 넣어 한 번에 등록</a>
-    <div class="card"><div class="spread"><b>우리 팀 수칙</b><a class="btn sm" href="#/rules-edit">수정</a></div>${rulesView(S.settings)}</div>
-    <div class="card"><div class="row" style="justify-content:space-between"><a class="btn sm" href="#/settings">팀 설정</a><span class="row"><button class="btn sm" data-act="switchTeam">다른 팀, 새 팀</button><button class="btn sm" data-act="logout">로그아웃</button></span></div><a class="hint" href="../../privacy.html">개인정보처리방침과 이용약관</a></div>
-  </div>${nav("선수")}`;
-}
-function vDues() {
-  const mode = feeMode(); const fee = Number(S.settings.fee) || 0; const ps = people(); const mon = ym();
-  const reqs = []; Object.entries(D("payreq")).forEach(([u, d]) => Object.entries((d && d.items) || {}).forEach(([k, it]) => { if (it && it.status === "req") reqs.push({ u, k, ...it }); }));
-  const key = "m-" + mon; const paidN = mode === "monthly" ? ps.filter(x => paidOf(key, x.uid)).length : 0;
-  const due = mon + "-" + String(Math.min(28, Number(S.settings.dueDay) || 5)).padStart(2, "0"); const late = Math.round((new Date(todayStr() + "T00:00:00+09:00") - new Date(due + "T00:00:00+09:00")) / 864e5);
-  const unpaid = ps.map(x => ({ ...x, o: owedOf(x.uid) })).filter(x => x.o.total).sort((a, b) => b.o.total - a.o.total);
-  const fines = Object.entries(D("fines")).map(([id, f]) => ({ id, ...f })).filter(f => !f.paid).sort((a, b) => String(b.date).localeCompare(String(a.date)));
-  const items = ((D("team").ledger || {}).items || []); const bal = items.reduce((s2, x) => s2 + (x.type === "in" ? 1 : -1) * (Number(x.amount) || 0), 0);
-  const mi = items.filter(x => String(x.date).startsWith(mon)); const inM = mi.filter(x => x.type === "in").reduce((n, x) => n + (Number(x.amount) || 0), 0), outM = mi.filter(x => x.type !== "in").reduce((n, x) => n + (Number(x.amount) || 0), 0);
-  const sel = UI.paySel || {};
-  return `<header class="top" style="padding:10px 12px">${LOGO(32)}<h1 style="font-size:20px;font-weight:900">회비</h1><a class="btn sm" href="#/dues-settings">회비 설정</a></header><div class="body">
-    ${mode === "none" ? `<div class="card"><b>회비를 받지 않는 팀이에요</b><span class="hint">회비 설정에서 월회비나 경기마다로 바꿀 수 있어요.</span></div>` : mode === "monthly" ? `<div class="card"><div class="spread"><b>${mLabel(mon)} 회비</b><span class="hint" style="${late > 0 ? "color:#B91C1C" : ""}">${md(due)} 마감${late > 0 ? ", " + late + "일 지났어요" : ""}</span></div>${tilesA([tileA(`${paidN} / ${ps.length}명`, "낸 사람"), tileA(`${won(paidN * fee).replace("원", "")} / ${won(ps.length * fee)}`, "모인 돈")])}</div>` : `<div class="card"><b>경기마다 ${won(fee)}</b><span class="hint">출석한 경기마다 회비가 쌓여요.</span></div>`}
-    ${reqs.length ? `<div class="card"><div class="spread"><b>입금 확인 요청 ${reqs.length}건</b><span class="hint">팀원이 보냈어요를 눌렀어요</span></div><div class="list">${reqs.map(r => `<label class="li" style="cursor:pointer"><input type="checkbox" data-act="aPaySel" data-id="${esc(r.u + "|" + r.k)}" ${sel[r.u + "|" + r.k] !== false ? "checked" : ""} style="width:22px;height:22px;accent-color:#15803D"><span style="flex:1"><b>${esc(nameOf(r.u))}</b><br><span class="hint">${esc(r.label || "")}, ${esc(md(String(r.at).slice(0, 10)))} ${new Date(Date.parse(r.at) + 9 * 3600e3).toISOString().slice(11, 16)}</span></span><b>${won(r.amount)}</b><button class="btn sm" data-act="payNo" data-u="${esc(r.u)}" data-k="${esc(r.k)}">아님</button></label>`).join("")}</div><span class="hint">통장에 들어온 게 맞는지 확인하고 눌러 주세요. 거래내역을 올리면 이름과 금액이 같은 건 자동으로 확인돼요.</span><button class="btn pri" data-act="aPayBulk">체크한 ${reqs.filter(r => sel[r.u + "|" + r.k] !== false).length}건 확인</button></div>` : ""}
-    <div class="card"><div class="spread"><b>미납 ${unpaid.length}명</b><span class="hint">현금으로 받았으면 받음을 눌러요</span></div>${unpaid.length ? `<div class="list">${unpaid.map(x => `<div class="li"><a href="#/player/${esc(x.uid)}" style="flex:1;text-decoration:none;color:inherit"><b>${esc(x.name)}</b>${x.uid === S.uid ? ` <span class="hint">나</span>` : ""}<br><span class="hint">${esc([x.o.months > 1 ? x.o.months + "달 미납" : x.o.months ? x.o.items.find(i => i.kind === "dues").label : "", x.o.fines ? "벌금 " + won(x.o.fines) : ""].filter(Boolean).join(", "))}</span></a><b>${won(x.o.total)}</b><button class="btn sm" data-act="aCash" data-u="${esc(x.uid)}">받음</button></div>`).join("")}</div><button class="btn" data-act="aDuesRemind">회비 알림 보내기</button>` : `<span class="hint">다 냈어요.</span>`}</div>
-    <div class="card"><div class="spread"><b>벌금 미납</b><b>${won(fines.reduce((n, f) => n + (Number(f.amount) || 0), 0))}</b></div>${fines.length ? `<div class="list">${fines.map(f => `<div class="li"><span style="flex:1"><b>${esc(nameOf(f.uid))}</b><br><span class="hint">${esc(md(f.date || todayStr()) + " " + f.reason)}</span></span><b>${won(f.amount)}</b><button class="btn sm" data-act="fineToggle" data-id="${esc(f.id)}">받음</button></div>`).join("")}</div>` : `<span class="hint">미납 벌금이 없어요.</span>`}<span class="hint">벌금은 현장 출석에서 매겨지고, 회비 알림에 같이 담겨요</span></div>
-    <div class="card"><div class="spread"><b>팀 통장</b><span class="hint">${items.length ? md(items.slice().sort((a, b) => String(b.date).localeCompare(String(a.date)))[0].date) + " 기준" : ""}</span></div><b style="font-size:24px">${won(bal)}</b><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><span style="background:#F9FAFB;border-radius:12px;padding:10px 12px"><span class="hint" style="font-size:12px">${Number(mon.slice(5))}월 들어온 돈</span><br><b style="color:#15803D">+ ${won(inM)}</b></span><span style="background:#F9FAFB;border-radius:12px;padding:10px 12px"><span class="hint" style="font-size:12px">${Number(mon.slice(5))}월 나간 돈</span><br><b style="color:#B91C1C">- ${won(outM)}</b></span></div><div class="row"><a class="btn block" href="#/ledger">통장 내역</a><a class="btn block" href="#/upload">거래내역 올리기</a></div></div>
-  </div>${nav("회비")}`;
-}
-function vDuesSettings() {
-  const f = S.form; const chip = (k, v, l) => `<button class="chip sm ${String(f[k]) === String(v) ? "on" : ""}" data-act="pick" data-k="${k}" data-v="${v}">${l}</button>`;
-  return `${top("회비 설정", "#/dues")}<div class="body"><div class="card">
-    <div class="field"><span class="lab">회비 방식</span><div class="chips">${chip("feeMode", "monthly", "월회비")}${chip("feeMode", "per_game", "경기마다")}${chip("feeMode", "none", "안 받음")}</div></div>
-    ${f.feeMode !== "none" ? `<label class="field"><span class="lab">금액</span><div class="row"><span class="hint">${f.feeMode === "per_game" ? "한 경기에" : "한 달에"}</span><input class="inp" data-bind="fee" value="${esc(f.fee || "")}" inputmode="numeric" placeholder="30000" style="flex:1"><span>원</span></div><span class="hint">바꾼 금액은 다음 달부터 적용돼요</span></label>` : ""}
-    ${f.feeMode === "monthly" ? `<div class="field"><span class="lab">납부일</span><div class="chips">${["1", "5", "10", "25", "28"].map(d => chip("dueDay", d, d === "28" ? "말일" : d + "일")).join("")}</div></div>` : ""}
-  </div><div class="card"><span class="lab">받을 계좌</span>
-    <input class="inp" data-bind="bank" value="${esc(f.bank || "")}" placeholder="은행 (예: 카카오뱅크)" aria-label="은행">
-    <input class="inp" data-bind="account" value="${esc(f.account || "")}" inputmode="numeric" placeholder="계좌번호" aria-label="계좌번호">
-    <input class="inp" data-bind="holder" value="${esc(f.holder || "")}" placeholder="예금주" aria-label="예금주">
-    <span class="hint">모임통장이면 거래내역 파일로 입금을 자동 확인해요</span>
-  </div><div class="card"><span class="lab">자동 알림</span>
-    <label class="spread" style="min-height:44px"><span>납부일 전날 알림<br><span class="hint">아직 안 낸 팀원 알림함에만 가요</span></span><input type="checkbox" data-bind="remindEve" ${f.remindEve ? "checked" : ""} style="width:24px;height:24px;accent-color:#15803D"></label>
-    <label class="spread" style="min-height:44px"><span>마감이 지나면 3일마다<br><span class="hint">다 낼 때까지 보내요</span></span><input type="checkbox" data-bind="remindAfter" ${f.remindAfter ? "checked" : ""} style="width:24px;height:24px;accent-color:#15803D"></label>
-  </div></div><div class="cta"><button class="btn pri block" data-act="aSaveDues">저장하기</button></div>`;
-}
-function vLedger() {
-  const items = ((D("team").ledger || {}).items || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date))); const bal = items.reduce((s2, x) => s2 + (x.type === "in" ? 1 : -1) * (Number(x.amount) || 0), 0);
-  const groups = {}; items.forEach(x => { (groups[String(x.date).slice(0, 7)] = groups[String(x.date).slice(0, 7)] || []).push(x); }); const b = S.settings.bank || {}; const up = D("team").ledger || {};
-  return `${top("통장 내역", "#/dues", `<a class="btn sm pri" href="#/spend">+ 직접 기록</a>`)}<div class="body">
-    <div class="card"><span class="hint">${esc([b.bank, b.holder ? "예금주 " + b.holder : ""].filter(Boolean).join(", ") || "팀 통장")}</span><b style="font-size:28px">${won(bal)}</b>${up.uploadAt ? `<span class="hint">${md(up.uploadAt.slice(0, 10))}에 ${esc(nameOf(up.uploadBy))} 님이 거래내역을 올렸어요</span>` : ""}<a class="btn" href="#/upload">거래내역 올리기</a></div>
-    ${Object.keys(groups).length ? Object.entries(groups).map(([k, xs]) => `<b style="color:#374151">${Number(k.slice(5))}월</b><div class="card" style="padding:4px 16px"><div class="list">${xs.map(x => `<div class="li"><span class="hint" style="width:44px;flex:none">${md(x.date)}</span><span style="flex:1"><b>${esc(x.label)}</b>${x.cat ? `<br><span class="hint">${esc(x.cat)}</span>` : ""}</span><b style="color:${x.type === "in" ? "#15803D" : "#B91C1C"}">${x.type === "in" ? "+" : "-"} ${won(x.amount)}</b><button class="iconbtn" data-act="ledgerDel" data-id="${esc(x.id)}" aria-label="지우기">✕</button></div>`).join("")}</div></div>`).join("") : `<div class="card empty"><b>아직 내역이 없어요</b></div>`}
-    <span class="hint">팀원 모두 같은 내역을 봐요.</span></div>`;
-}
-function vCheck(id) {
-  const e = S.events[id]; if (!e) return vSchedule(); const ck = e.check || {}; const at = e.checkAt || {};
-  const before = pol("checkBefore"); const lim = new Date(evStart(e) - before * 60000 + 9 * 3600e3).toISOString().slice(11, 16);
-  const { rows, others } = checkRows(e); const cnt = { in: 0, late: 0, absent: 0 }; Object.values(ck).forEach(v => { if (cnt[v] != null) cnt[v]++; });
-  const fc = fineCalc(e);
-  const b = (u, v, l) => `<button class="vote ${ck[u] === v ? "on " + (v === "in" ? "yes" : v === "late" ? "late" : "no") : ""}" style="padding:8px 0;min-height:40px;font-size:13px" data-act="checkSet" data-eid="${esc(e.id)}" data-u="${esc(u)}" data-v="${v}">${l}</button>`;
-  return `${top("현장 출석", "#/event/" + e.id)}<div class="body">
-    <div class="card" style="gap:6px"><b>${esc(md(e.date) + " " + wd(e.date) + " " + (e.time || "") + " " + evName(e))}</b><div class="spread hint"><span>지금 <b style="color:#111827">${hhmmNow()}</b></span><span>지각 기준 <b style="color:#111827">${lim}</b> (킥오프 ${before}분 전)</span></div>
-      ${tilesA([tileA(cnt.in, "출석"), tileA(cnt.late, "지각", "#B45309"), tileA(cnt.absent, "결석", "#B91C1C")])}</div>
-    <div class="spread"><b>참석 신청 ${rows.length}명</b><button class="btn sm" data-act="aGuestAddCheck" data-eid="${esc(e.id)}">+ 용병 추가</button></div>
-    <div class="card" style="padding:4px 16px"><div class="list">${rows.map(x => `<div class="li" style="flex-wrap:wrap;gap:8px"><span style="flex:1;min-width:110px"><b>${esc(x.name)}</b><br><span class="hint">${at[x.uid] ? at[x.uid] + (ck[x.uid] === "late" ? " 도착, 지각" : " 도착") : ck[x.uid] === "absent" ? "도착 안 함" : x.sub || "아직"}</span></span><span style="display:grid;grid-template-columns:repeat(3,56px);gap:6px">${b(x.uid, "in", "출석")}${b(x.uid, "late", "지각")}${b(x.uid, "absent", "결석")}</span></div>`).join("")}</div></div>
-    ${others.length ? `<details class="card"><summary style="cursor:pointer;font-weight:700">신청 안 한 사람 ${others.length}명 (왔으면 눌러요)</summary><div class="list">${others.map(x => `<div class="li"><span style="flex:1">${esc(x.name)}</span><span style="display:grid;grid-template-columns:repeat(2,56px);gap:6px">${b(x.uid, "in", "출석")}${b(x.uid, "late", "지각")}</span></div>`).join("")}</div></details>` : ""}
-    <div class="card" style="background:#FFFBEB"><div class="spread"><b style="color:#92400E">벌금</b><b style="color:#92400E">${won(fc.total)}</b></div><span class="hint" style="color:#92400E">지각 ${fc.late.length}명${ruleAmt("late") ? " (" + won(ruleAmt("late")) + ")" : ""}, 결석 ${fc.abs.length}명${ruleAmt("absent") ? " (" + won(ruleAmt("absent")) + ")" : ""}. 결석은 참석이라고 했는데 안 온 사람만이에요.</span></div>
-  </div><div class="cta"><button class="btn pri block" data-act="finesApply" data-eid="${esc(e.id)}">벌금 부과하기</button></div>`;
-}
-function vRecords() {
-  const y = UI.season || todayStr().slice(0, 4); const evs = past().filter(e => e.date.startsWith(y)); const tab = UI.rtab || "game"; const f = UI.rf || "all";
-  const games = evs.filter(e => e.type === "match" && e.score); const w = games.filter(e => +e.score.us > +e.score.them).length, d2 = games.filter(e => +e.score.us === +e.score.them).length, l = games.length - w - d2;
-  const avg = evs.length ? (evs.reduce((n, e) => n + people().filter(x => cameTo(e, x.uid)).length, 0) / evs.length) : 0;
-  const fineSum = Object.values(D("fines")).filter(x => String(x.date || "").startsWith(y)).reduce((n, x) => n + (Number(x.amount) || 0), 0);
-  const scr = evs.filter(e => e.type === "scrim").length, pend = evs.filter(e => isPlay(e) && !e.score).length;
-  const ps = people(); const rows = ps.map(x => ({ ...x, n: evs.filter(e => cameTo(e, x.uid)).length, late: evs.filter(e => (e.check || {})[x.uid] === "late").length, abs: evs.filter(e => (e.check || {})[x.uid] === "absent").length, mom: evs.filter(momClosed).filter(e => momWinners(e).includes(x.uid)).length })).sort((a, b) => b.n - a.n);
-  const half = r => evs.length && r.n * 2 <= evs.length;
-  const list = evs.filter(e => f === "all" ? true : f === "match" ? e.type === "match" : e.type === "scrim");
-  const evRow = e => { const ck = e.check || {}; const nIn = people().filter(x => cameTo(e, x.uid)).length; const nl = Object.values(ck).filter(v => v === "late").length, na = Object.values(ck).filter(v => v === "absent").length;
-    const fn = Object.values(D("fines")).filter(x => x.eventId === e.id).length; const t = D("tally")["mom-" + e.id] || {}; const win = momClosed(e) ? momWinners(e) : [];
-    return `<div class="card" style="gap:8px"><div class="row" style="gap:12px;align-items:flex-start"><span class="datebox" style="${e.type === "scrim" ? "background:#EEF2FF;color:#3730A3" : e.score ? "" : "background:#F3F4F6;color:#6B7280"}"><span>${wd(e.date)}</span><b style="font-size:15px">${e.date.slice(5, 7)}.${e.date.slice(8, 10)}</b></span><span style="flex:1;min-width:0"><span class="row" style="gap:6px"><span class="tag ${e.type === "training" ? "blue" : ""}">${e.type === "match" ? "경기" : e.type === "scrim" ? "내전" : "훈련"}</span><b>${e.score ? (e.type === "scrim" ? `A팀 ${e.score.us} : ${e.score.them} B팀` : `${e.score.us} : ${e.score.them} ${+e.score.us > +e.score.them ? "승" : +e.score.us < +e.score.them ? "패" : "무"}`) : esc(e.place || "")}</b></span><br><span class="hint">${esc([e.type === "match" && e.opponent ? "vs " + e.opponent : "", "참석 " + nIn, nl ? "지각 " + nl : "", na ? "결석 " + na : ""].filter(Boolean).join(", "))}</span></span>${isPlay(e) ? `<a class="btn sm ${e.score ? "" : "pri"}" href="#/result/${esc(e.id)}">${e.score ? "수정" : "결과 입력"}</a>` : ""}</div>
-      <div class="spread hint" style="font-size:12px"><span>${win.length ? "MOM " + esc(win.map(nameOf).join(", ")) : momOpen(e) ? `MOM 투표 중, 참석한 ${nIn}명 중 ${t.n || 0}명 투표` : isPlay(e) && !e.score ? "결과를 넣어야 MOM 투표가 열려요" : ""}</span><span>${fn ? "벌금 " + fn + "건" : "벌금 없음"}</span></div></div>`; };
-  return `<header class="top" style="padding:10px 12px">${LOGO(32)}<h1 style="font-size:20px;font-weight:900">기록</h1><button class="btn sm" data-act="aSeason">${y} 시즌 ▾</button></header><div class="body">
-    <div class="chips"><button class="chip ${tab === "game" ? "on" : ""}" data-act="aRtab" data-v="game">경기별</button><button class="chip ${tab === "player" ? "on" : ""}" data-act="aRtab" data-v="player">선수별</button></div>
-    ${tab === "game" ? `<div class="card"><b>시즌 요약</b>${tilesA([tileA(games.length + scr, "경기"), tileA(`<span style="font-size:16px">${w}승 ${d2}무 ${l}패</span>`, "전적"), tileA(Math.round(avg * 10) / 10, "평균 참석"), tileA(won(fineSum).replace("원", ""), "벌금 누적")])}${scr || pend ? `<span class="hint">${[scr ? "내전 " + scr + "번" : "", pend ? "결과 대기 " + pend + "경기" : ""].filter(Boolean).join("과 ")}은 승패에서 빠져 있어요</span>` : ""}</div>
-      <div class="spread"><b>경기 기록</b><span class="chips">${[["all", "전체"], ["match", "경기"], ["scrim", "내전"]].map(([k2, l2]) => `<button class="chip sm ${f === k2 ? "on" : ""}" data-act="aRf" data-v="${k2}">${l2}</button>`).join("")}</span></div>
-      ${list.length ? list.map(evRow).join("") : `<div class="card empty"><b>아직 지난 경기가 없어요</b></div>`}
-      <div class="card"><div class="spread"><b>선수별 출석</b><button class="btn sm" data-act="aRtab" data-v="player">전체</button></div><div class="list">${rows.slice(0, 5).map(r => `<div class="li" style="${half(r) ? "background:#FFFBEB;margin:0 -16px;padding:12px 16px" : ""}"><span style="flex:1">${esc(r.name)}</span><b>${r.n}/${evs.length}</b><span class="hint">지각 ${r.late}</span></div>`).join("")}</div><span class="hint">출석이 절반 이하인 선수는 노란색으로 보여요</span></div>`
-    : `<div class="card"><b>선수 ${ps.length}명</b>${tilesA([tileA(evs.length ? Math.round(rows.reduce((n, r) => n + r.n, 0) * 100 / (evs.length * Math.max(1, ps.length))) + "%" : "-", "평균 출석률"), tileA(rows.filter(half).length + "명", "절반 이하", "#B45309"), tileA(rows.filter(r => !r.late).length + "명", "지각 0회")])}</div>
-      <div class="card" style="overflow-x:auto;padding:12px"><table style="border-collapse:collapse;width:100%;font-size:14px;text-align:center"><thead><tr style="color:#6B7280;font-size:12px"><th style="text-align:left;padding:6px">이름</th><th>출석</th><th>지각</th><th>결석</th><th>MOM</th></tr></thead><tbody>${rows.map(r => `<tr style="border-top:1px solid #F3F4F6;${half(r) ? "background:#FFFBEB" : ""}"><td style="text-align:left;padding:10px 6px">${esc(r.name)}${r.uid === S.uid ? ` <span class="hint">나</span>` : ""}</td><td><b>${r.n}/${evs.length}</b></td><td>${r.late}</td><td>${r.abs}</td><td>${r.mom}</td></tr>`).join("")}</tbody></table></div>
-      <span class="hint">모임 ${evs.length}번 기준이에요. 출석이 절반 이하인 선수는 노란색이고, 결석은 연락 없이 빠진 횟수예요.</span>`}
-  </div>${nav("기록")}`;
-}
-function vGame(id) {
-  const e = S.events[id]; if (!e) return vRecords();
-  const came = people().filter(x => cameTo(e, x.uid)); const t = D("tally")["mom-" + e.id] || { n: 0, c: {} };
-  const myMom = (myUv().mom || {})[e.id]; const win = momWinners(e);
-  const goals = (e.goals || []);
-  return `${top(md(e.date) + " " + evName(e), "#/records", isAdmin() && isPlay(e) ? `<a class="btn sm" href="#/result/${esc(e.id)}">${e.score ? "결과 수정" : "결과 입력"}</a>` : "")}<div class="body">
-    <div class="card" style="align-items:center;text-align:center">${e.score ? `<b style="font-size:40px">${e.score.us} : ${e.score.them}</b><span class="hint">${e.type === "scrim" ? "A팀 대 B팀" : esc(evName(e))}</span>` : `<b>${isPlay(e) ? "결과를 기다리고 있어요" : "훈련"}</b><span class="hint">${isPlay(e) ? "운영진이 결과를 넣으면 MOM 투표가 열려요" : esc(e.place || "")}</span>`}
-      ${goals.length ? `<div class="chips" style="justify-content:center">${goals.map(g => `<span class="pill" style="background:#F3F4F6">골 ${esc(g.name || nameOf(g.uid))}</span>`).join("")}</div>` : ""}</div>
-    ${momOpen(e) && cameTo(e, S.uid) ? (myMom ? `<div class="card"><b>MOM 투표를 냈어요</b><span class="hint">${esc(md(momDeadline(e).toISOString().slice(0, 10)))} 12시에 마감돼요. 결과는 마감 뒤에 보여요.</span></div>` : `<div class="card"><b>오늘의 MOM을 골라 주세요</b><span class="hint">익명이에요. 한 번 내면 바꿀 수 없어요.</span><div class="chips">${came.filter(x => x.uid !== S.uid).map(x => `<button class="chip ${UI.mom === x.uid ? "on" : ""}" data-act="momPick" data-u="${esc(x.uid)}">${esc(x.name)}</button>`).join("")}</div><button class="btn pri" data-act="momSend" data-eid="${esc(e.id)}" ${UI.mom ? "" : "disabled"}>투표하기</button></div>`) : ""}
-    ${momClosed(e) && e.score ? `<div class="card"><b>MOM</b>${win.length ? `<b style="font-size:22px">${win.map(u => esc(nameOf(u))).join(", ")}</b><span class="hint">${t.n}명 투표</span>` : `<span class="hint">투표가 없었어요.</span>`}</div>` : ""}
-    <div class="card"><div class="spread"><b>출석</b><span class="hint">${came.length}명</span></div><div class="chips">${came.map(x => `<span class="pill" style="background:#F3F4F6">${esc(x.name)}${(e.check || {})[x.uid] === "late" ? " (지각)" : ""}</span>`).join("") || `<span class="hint">출석 기록이 없어요</span>`}</div></div>
-  </div>`;
-}
-function vResult(id) {
-  const e = S.events[id]; if (!e) return vRecords(); const f = S.form; const came = people().filter(x => cameTo(e, x.uid));
-  const gc = {}; (f.goals || []).forEach(g => { gc[g.uid] = (gc[g.uid] || 0) + 1; }); const total = (Number(f.us) || 0) + (e.type === "scrim" ? (Number(f.them) || 0) : 0); const entered = (f.goals || []).length;
-  const step = (k, label) => `<span style="display:flex;flex-direction:column;align-items:center;gap:6px"><b style="font-size:13px">${esc(label)}</b><span class="row"><button class="btn sm" data-act="score" data-k="${k}" data-d="-1" aria-label="${esc(label)} 줄이기">−</button><b style="font-size:32px;min-width:40px;text-align:center">${Number(f[k]) || 0}</b><button class="btn sm" data-act="score" data-k="${k}" data-d="1" aria-label="${esc(label)} 늘리기">+</button></span></span>`;
-  const gRow = x => `<div class="li"><span style="flex:1">${esc(x.name)}${x.uid === S.uid ? ` <span class="hint">나</span>` : ""}</span><button class="btn sm" data-act="aGoal" data-u="${esc(x.uid)}" data-d="-1" aria-label="${esc(x.name)} 골 빼기">−</button><b style="min-width:28px;text-align:center">${gc[x.uid] || 0}</b><button class="btn sm" data-act="aGoal" data-u="${esc(x.uid)}" data-d="1" aria-label="${esc(x.name)} 골 더하기">+</button></div>`;
-  const T = e.teams || {}; const win = momClosed(e) ? momWinners(e) : []; const t = D("tally")["mom-" + e.id] || {};
-  return `${top(e.score ? "결과 수정" : "결과 입력", "#/records")}<div class="body">
-    <div class="card" style="gap:6px"><span class="tag ${e.type === "scrim" ? "blue" : ""}" style="align-self:flex-start">${e.type === "scrim" ? "내전" : "경기"}</span><b>${esc(md(e.date) + " " + wd(e.date) + ", " + (e.place || ""))}</b><span class="hint">참석 ${came.length}</span></div>
-    <div class="card"><b>스코어</b><div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px">${step("us", e.type === "scrim" ? "A팀" : S.team.name)}<b style="font-size:24px">:</b>${step("them", e.type === "scrim" ? "B팀" : (e.opponent || "상대"))}</div></div>
-    <div class="card"><div class="spread"><b>골 넣은 사람</b><span class="hint" style="${entered !== total ? "color:#B45309" : ""}">${total}골 중 ${entered}골 입력</span></div>
-      ${e.type === "scrim" ? ["A", "B"].map(sd => `<span class="lab">${sd}팀</span><div class="list">${came.filter(x => T[x.uid] === sd).map(gRow).join("") || `<span class="hint">스쿼드에서 ${sd}팀을 골라 주세요</span>`}</div>`).join("") : `<div class="list">${came.map(gRow).join("") || `<span class="hint">출석 기록이 없어요. 현장 출석을 먼저 불러 주세요</span>`}</div>`}</div>
-    <div class="card"><b>MOM 투표</b>${win.length ? `<div class="spread"><b>${esc(win.map(nameOf).join(", "))}</b><span class="hint">투표 마감, ${came.length}명 중 ${t.n || 0}명 투표</span></div><span class="hint">투표 결과는 바꿀 수 없어요.</span>` : e.score ? `<span class="hint">투표 중이에요. 다음 날 12:00에 마감돼요. ${t.n || 0}명 투표했어요.</span>` : `<span class="hint">저장하면 투표가 열려요. 참석한 ${came.length}명만 투표할 수 있고, 다음 날 12:00에 마감돼요.</span>`}</div>
-    <span class="hint">벌금은 일정의 현장 출석에서 바꿀 수 있어요</span>
-  </div><div class="cta"><button class="btn pri block" data-act="saveResult" data-eid="${esc(e.id)}">${e.score ? "저장하기" : "결과 저장하기"}</button><span class="hint" style="text-align:center">저장하면 팀원 기록에도 바로 보여요</span></div>`;
-}
-function vNoticeNew() {
-  const f = S.form; const n = S.members.length;
-  return `${top("공지 쓰기", "#/notices")}<div class="body"><div class="card">
-    <div class="field"><span class="lab">종류</span><div class="chips"><button class="chip sm ${!f.poll ? "on" : ""}" data-act="pick" data-k="poll" data-v="">공지</button><button class="chip sm ${f.poll ? "on" : ""}" data-act="pick" data-k="poll" data-v="1">설문</button></div></div>
-    <label class="field"><span class="lab">제목</span><input class="inp" data-bind="title" value="${esc(f.title || "")}" maxlength="60" placeholder="제목"></label>
-    <label class="field"><span class="lab">내용</span><textarea class="inp" data-bind="body" placeholder="자세한 안내">${esc(f.body || "")}</textarea></label>
-    ${f.poll ? `<div class="field"><span class="lab">보기</span>${(f.opts || []).map((o, i) => `<input class="inp" data-opt="${i}" value="${esc(o.label)}" placeholder="보기 ${i + 1}" aria-label="보기 ${i + 1}">`).join("")}<button class="btn sm" data-act="optAdd" style="align-self:flex-start">+ 보기 추가</button></div><label class="field"><span class="lab">마감</span><input class="inp" type="date" data-bind="until" value="${esc(f.until || "")}"></label>` : ""}
-    <label class="spread" style="min-height:44px"><span><b>맨 위에 고정</b><br><span class="hint">고정은 하나만 돼요. 예전 고정은 풀려요</span></span><input type="checkbox" data-bind="pinned" ${f.pinned ? "checked" : ""} style="width:24px;height:24px;accent-color:#15803D"></label>
-    <span class="hint">팀원 ${n}명 모두의 알림함에 바로 보여요</span>
-  </div></div><div class="cta"><button class="btn pri block" data-act="aNoticeSave">올리기</button></div>`;
-}
-function vSquad(id) {
-  const e = S.events[id]; if (!e) return vSchedule(); const T = e.teams || {}; const a = att(e); const going = new Set([...a.yes, ...a.late, ...a.wait].map(x => x.uid));
-  const all = people().map(x => ({ uid: x.uid, name: x.name, pos: x.p.pos1 || "", going: going.has(x.uid) })).concat(guestsOf(e).map(g => ({ uid: "g:" + g.id, name: g.name + " (용병)", pos: g.pos || "", going: true })));
-  all.sort((x, y) => (y.going - x.going) || x.name.localeCompare(y.name, "ko"));
-  const sel = all.filter(x => T[x.uid]); const nA = sel.filter(x => T[x.uid] === "A").length, nB = sel.length - nA;
-  return `${top("내전 스쿼드 고르기", "#/event/" + id)}<div class="body">
-    <div class="card" style="gap:6px"><b>${esc(md(e.date) + " " + wd(e.date) + " " + (e.time || "") + " 내전")}</b><span class="hint">투표와 상관없이 골라요. 참석이라고 한 사람이 위에 있어요.</span>${tilesA([tileA(sel.length, "선택"), tileA(nA, "A 조끼", "#15803D"), tileA(nB, "B 일반", "#3730A3")])}</div>
-    <div class="row"><button class="btn block" data-act="squadAuto" data-eid="${esc(id)}">팀 실력 비슷하게 자동으로 나누기</button></div>
-    <div class="card" style="padding:4px 16px"><div class="spread" style="padding-top:10px"><b>전체 선수 ${all.length}명</b><button class="btn sm" data-act="aSquadAll" data-eid="${esc(id)}">${sel.length === all.length ? "모두 빼기" : "모두 선택"}</button></div><div class="list">${all.map(x => `<div class="li"><span style="flex:1;${T[x.uid] ? "" : "opacity:.55"}"><b>${esc(x.name)}</b><br><span class="hint">${esc([x.pos, x.going ? "참석 신청" : ""].filter(Boolean).join(", "))}</span></span>${T[x.uid] ? "" : `<span class="hint">빠짐</span>`}<button class="chip sm ${T[x.uid] === "A" ? "on" : ""}" data-act="squadSet" data-eid="${esc(id)}" data-u="${esc(x.uid)}" data-v="A">A 조끼</button><button class="chip sm ${T[x.uid] === "B" ? "on" : ""}" data-act="squadSet" data-eid="${esc(id)}" data-u="${esc(x.uid)}" data-v="B" style="${T[x.uid] === "B" ? "background:#3730A3;border-color:#3730A3" : ""}">B 일반</button></div>`).join("")}</div></div>
-  </div><div class="cta"><a class="btn pri block" href="#/lineup/${esc(id)}">다음: 팀별 라인업 짜기</a></div>`;
-}
-function playerSheet(u) {
-  const x = people().find(p => p.uid === u); if (!x) return; const me = S.members.find(m => m.user_id === S.uid) || {};
-  const owner = S.role === "owner"; const isMe = u === S.uid; const req = (S.rsvp[u] || {}).posReq;
-  sheet(`<h3>${esc(x.name)}</h3><span class="hint">${esc(ROLE[x.role])}${x.p.num ? ", " + esc(x.p.num) + "번" : ""}${x.p.pos1 ? ", " + esc([x.p.pos1, x.p.pos2].filter(Boolean).join(", ")) : ""}${joinedOf(u) ? ", 가입 " + dotDate(joinedOf(u)) : ""}</span>
-    ${isAdmin() && req && req.status === "req" ? `<div class="card" style="background:#F9FAFB"><b>포지션 변경 요청</b><span class="hint">${esc([req.pos1, req.pos2].filter(Boolean).join(", "))}${req.note ? ", " + esc(req.note) : ""}</span><div class="row"><button class="btn block" data-act="posNo" data-u="${esc(u)}">거절</button><button class="btn pri block" data-act="posOk" data-u="${esc(u)}">수락</button></div></div>` : ""}
-    ${owner && !isMe && x.role !== "owner" ? `<div class="row">${x.role === "member" ? `<button class="btn block" data-act="aPromote" data-u="${esc(u)}">운영진으로</button>` : `<button class="btn block" data-act="setRole" data-u="${esc(u)}" data-v="member">팀원으로</button>`}</div>` : ""}
-    ${canKick(x) ? `<button class="btn danger" data-act="kick" data-u="${esc(u)}">팀에서 내보내기</button>` : ""}
-    ${isMe ? `<button class="btn" data-act="goTo" data-h="#/me">프로필 수정</button>` : ""}
-    <button class="btn" data-act="closeSheet">닫기</button>`);
-}
-function vPosReq() {
-  const f = S.form; const pos = POS[sport()]; const req = (S.rsvp[S.uid] || {}).posReq;
-  return `${top("포지션 변경 요청", "#/players")}<div class="body">
-    ${req && req.status === "req" ? `<div class="card"><b>요청을 보냈어요</b><span class="hint">${esc([req.pos1, req.pos2].filter(Boolean).join(", "))}. 운영진이 수락하면 바뀌어요.</span><button class="btn" data-act="posCancel">요청 취소</button></div>` : ""}
-    <div class="card"><div class="field"><span class="lab">1선호</span><div class="chips">${pos.map(p => `<button class="chip ${f.pos1 === p ? "on" : ""}" data-act="pick" data-k="pos1" data-v="${p}">${p}</button>`).join("")}</div></div>
-      <div class="field"><span class="lab">2선호</span><div class="chips">${pos.filter(p => p !== f.pos1).map(p => `<button class="chip ${f.pos2 === p ? "on" : ""}" data-act="pick" data-k="pos2" data-v="${p}">${p}</button>`).join("")}<button class="chip ${!f.pos2 ? "on" : ""}" data-act="pick" data-k="pos2" data-v="">없음</button></div></div>
-      <label class="field"><span class="lab">한마디 (선택)</span><input class="inp" data-bind="note" value="${esc(f.note || "")}" maxlength="60" placeholder="예: 요즘 슈팅 감이 좋아서 앞에서 뛰어 보고 싶어요"></label></div>
-  </div><div class="cta"><button class="btn pri block" data-act="posSend">요청 보내기</button></div>`;
-}
-function vRosterImport() {
-  const { rows, bad } = parseRoster(S.form.text);
-  return `${top("명단 붙여 넣기", "#/players")}<div class="body">
-    <div class="card"><span class="hint">한 줄에 한 명씩: 이름, 1선호, 2선호, 등번호, 가입일. 엑셀에서 복사해 그대로 붙여 넣어도 돼요.</span>
-      <textarea class="inp" data-bind="text" style="min-height:200px" placeholder="김성우&#9;ST&#9;CAM&#9;1&#9;2025. 9. 10">${esc(S.form.text || "")}</textarea>
-      <button class="btn sm" data-act="rosterPreview" style="align-self:flex-start">확인하기</button></div>
-    ${rows.length ? `<div class="card"><div class="spread"><b>${rows.length}명</b>${bad.length ? `<span class="hint" style="color:#B91C1C">${bad.join(", ")}번째 줄은 읽지 못했어요</span>` : ""}</div><div class="list">${rows.map(r => `<div class="li"><span class="av">${esc(r.num || r.name.slice(0, 1))}</span><span style="flex:1"><b>${esc(r.name)}</b><br><span class="hint">${esc([r.pos1, r.pos2].filter(Boolean).join(", "))}${r.joined ? ", 가입 " + dotDate(r.joined) : ""}</span></span></div>`).join("")}</div><span class="hint">이미 들어온 팀원과 이름이 같으면 그 팀원에게 연결하고 번호와 포지션을 맞춰요. 같은 이름의 명단이 있으면 고쳐 써요.</span></div>` : ""}
-  </div><div class="cta"><button class="btn pri block" data-act="rosterSave" ${rows.length ? "" : "disabled"}>${rows.length ? rows.length + "명 등록하기" : "명단을 붙여 넣어 주세요"}</button></div>`;
-}
-function rosterSheet(pid) {
-  const p = D("players")[pid]; if (!p) return;
-  sheet(`<h3>${esc(p.name)}</h3><span class="hint">${esc([p.num ? p.num + "번" : "", p.pos1, p.pos2].filter(Boolean).join(", "))}${p.joined ? ", 가입 " + dotDate(p.joined) : ""}</span><span class="hint">아직 앱에 들어오지 않았어요. 초대 링크로 들어와 이 이름을 고르면 연결돼요.</span>
-    ${isAdmin() ? `<button class="btn danger" data-act="rosterDel" data-pid="${esc(pid)}">명단에서 빼기</button>` : ""}<button class="btn" data-act="closeSheet">닫기</button>`);
-}
+/* ---------- 작은 도구 ---------- */
+const AU = { fa: null, out: "leave", next: "", rf: "", ref: "", mset: null };
+const owner = () => S.role === "owner";
+const evLabel = e => `${md(e.date)} ${wd(e.date)} ${kindOf(e)}`;
+const gname = (e, u) => u && u.startsWith("g:") ? ((((e && e.guests) || {})[u.slice(2)] || {}).name || "용병") : nameOf(u);
+const numOf = u => ((profileOf(u) || {}).num || "");
+const posTxt = p => [p.pos1, p.pos2].filter(Boolean).join(" / ");
+const kstDate = iso => new Date(Date.parse(iso) + 9 * 3600e3).toISOString().slice(0, 10);
+const back = fb => backHref(fb);
+const cbOf = e => { const v = e.checkBefore; return v === undefined || v === "" || v === null ? pol("checkBefore") : Number(v) || 0; };
+const checkTime = e => { if (!/^\d\d:\d\d$/.test(e.time || "")) return ""; const [h, m] = e.time.split(":").map(Number); const t = (h * 60 + m - cbOf(e) + 1440) % 1440; return String(Math.floor(t / 60)).padStart(2, "0") + ":" + String(t % 60).padStart(2, "0"); };
+const sel = (id, opts, val, attrs = "") => `<select class="inp" id="${id}" ${attrs}>${opts.map(([v, l]) => `<option value="${esc(v)}"${String(v) === String(val) ? " selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
+const numInp = (bind, val, dis, w = 64) => `<input class="inp n" inputmode="numeric" data-bind="${bind}" value="${esc(String(val ?? ""))}" maxlength="3" style="width:${w}px;flex:none"${dis ? " disabled" : ""} aria-label="${bind}">`;
+const head2 = (t, right = "") => `<span class="spread" style="align-items:baseline;border-bottom:2px solid ${C.ink};padding-bottom:6px"><b style="font-size:15px">${t}</b>${right}</span>`;
+const nav = on => navBar(on);
+const stampT = iso => { const d = new Date(Date.parse(iso) + 9 * 3600e3); return `${d.getUTCMonth() + 1}.${String(d.getUTCDate()).padStart(2, "0")}`; };
 
-function weekStrip() {
-  const t = new Date(todayStr() + "T00:00:00Z"); const dow = (t.getUTCDay() + 6) % 7; const mon = new Date(t.getTime() - dow * 864e5);
-  const days = Array.from({ length: 7 }, (_, i) => new Date(mon.getTime() + i * 864e5).toISOString().slice(0, 10));
-  const wk = Math.ceil((Number(days[0].slice(8, 10)) + new Date(days[0].slice(0, 8) + "01T00:00:00Z").getUTCDay() - 1) / 7) + (Number(days[0].slice(8, 10)) <= 7 && new Date(days[0].slice(0, 8) + "01T00:00:00Z").getUTCDay() !== 1 ? 0 : 0);
-  return `<div class="card" style="gap:10px"><div class="spread"><b>${Number(todayStr().slice(5, 7))}월 ${["첫째", "둘째", "셋째", "넷째", "다섯째"][Math.min(4, Math.floor((Number(todayStr().slice(8, 10)) - 1) / 7))]} 주</b><a class="hint" href="#/calendar" style="text-decoration:none">달력 보기 ›</a></div>
-    <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center">${days.map(d => { const es = Object.values(S.events).filter(e => e.date === d); const on = d === todayStr();
-      return `<a href="${es[0] ? "#/event/" + esc(es[0].id) : "#/calendar"}" style="text-decoration:none;border-radius:12px;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;${on ? "background:#15803D;color:#FFFFFF" : "color:#111827"}"><span style="font-size:11px;${on ? "" : "color:#6B7280"}">${"월화수목금토일"[(new Date(d + "T00:00:00Z").getUTCDay() + 6) % 7]}</span><b style="font-size:16px">${Number(d.slice(8, 10))}</b><span style="width:6px;height:6px;border-radius:50%;background:${es.length ? (on ? "#FFFFFF" : es[0].type === "scrim" ? "#3730A3" : "#15803D") : "transparent"}"></span></a>`; }).join("")}</div></div>`;
-}
-function adminTodo() {
-  const next = upcoming().find(e => !started(e)); const a = next ? att(next) : null; const todo = [];
-  if ((S.reqs || []).length) todo.push([`가입 신청 ${S.reqs.length}명`, `${S.reqs.slice(0, 3).map(r => r.display_name).join(", ")}${S.reqs.length > 3 ? " 외" : ""}, 승인해야 팀원이 돼요`, "#/requests", "확인하기"]);
-  if (!S.members.some(m => m.user_id !== S.uid) && !unclaimed().length) todo.push(["팀원을 초대해 주세요", "초대 링크를 보내면 돼요", "#/invite", "초대하기"]);
-  if (!next) todo.push(["다가오는 일정이 없어요", "일정을 올리면 팀원이 참석을 눌러요", "#/new", "일정 만들기"]);
-  if (next && a.none.length) todo.push([`참석 미응답 ${a.none.length}명`, `${md(next.date)} ${wd(next.date)} ${evName(next)}, ${closeText(next)}`, "#/schedule", "알림 보내기"]);
-  const prs = []; Object.entries(D("payreq")).forEach(([u, d]) => Object.values((d && d.items) || {}).forEach(it => { if (it && it.status === "req") prs.push(nameOf(u)); }));
-  if (prs.length) todo.push([`입금 확인 ${prs.length}건`, `${[...new Set(prs)].slice(0, 3).join(", ")}이(가) 입금했다고 눌렀어요`, "#/dues", "확인하기"]);
-  Object.values(S.events).filter(e => !started(e)).forEach(e => { const g = guestReqs(e).filter(x => x.status === "req"); if (g.length) todo.push([`용병 신청 ${g.length}건`, `${md(e.date)} ${evName(e)}, ${[...new Set(g.map(x => nameOf(x.u)))].join(", ")}이(가) 신청했어요`, "#/guests/" + e.id, "확인"]); });
-  Object.values(S.events).filter(scrimReady).forEach(e => todo.push([`${md(e.date)} 경기 신청 ${att(e).in + att(e).wait.length}명`, `상대팀 미정, ${pol("scrimMin")}명이 넘어서 내전으로 바꿀 수 있어요`, "#/scrim/" + e.id, "검토"]));
-  if (next && isPlay(next) && !(next.lineup && Object.keys(next.lineup).length) && att(next).in >= 5) todo.push(["라인업 짜기", `참석 ${att(next).in}명, 포지션 맞춰 휴식 자동 배치`, "#/lineup/" + next.id, "라인업"]);
-  const today = Object.values(S.events).find(e => e.date === todayStr() && !Object.keys(e.check || {}).length);
-  if (today) todo.push(["오늘 현장 출석을 불러 주세요", `${today.time || ""} ${evName(today)}, ${pol("checkBefore") ? "킥오프 " + pol("checkBefore") + "분 전 기준" : "킥오프 시간 기준"}`, "#/check/" + today.id, "출석"]);
-  past().filter(e => isPlay(e) && !e.score && Date.now() - evStart(e) < 7 * 864e5).forEach(e => todo.push(["경기 결과를 넣어 주세요", `${md(e.date)} ${evName(e)}, 넣으면 MOM 투표가 열려요`, "#/result/" + e.id, "결과 입력"]));
-  const posN = people().filter(x => ((S.rsvp[x.uid] || {}).posReq || {}).status === "req").length;
-  if (posN) todo.push([`포지션 변경 요청 ${posN}건`, "선수 탭에서 수락하거나 거절해요", "#/players", "보기"]);
-  if (unclaimed().length) todo.push([`아직 앱에 안 들어온 선수 ${unclaimed().length}명`, "초대 링크를 올리면 명단에서 이름만 고르면 돼요", "#/invite", "초대하기"]);
-  return todo;
-}
-function afeed() {
+/* ---------- 운영진 알림 ---------- */
+export function afeed() {
   const out = []; const now = Date.now();
-  const add = (at, title, body, href) => { const t = Date.parse(at || ""); if (t && now - t < 30 * 864e5) out.push({ t, title, body, href }); };
+  const add = (at, where, text, href) => { const t = Date.parse(at || ""); if (t && now - t < 30 * 864e5) out.push({ t, where, text, href }); };
   Object.values(S.events).forEach(e => {
     const nm = `${md(e.date)} ${evName(e)}`;
-    if (scrimReady(e)) add(new Date(Math.min(now, new Date(e.date + "T09:00:00+09:00").getTime() - 3 * 864e5)).toISOString(), `${md(e.date)} 경기를 내전으로 바꿀 수 있어요`, `신청 ${att(e).in + att(e).wait.length}명. 운영진끼리 정해 주세요`, "#/scrim/" + e.id);
-    if (started(e) && isPlay(e) && !e.score) add(new Date(evStart(e)).toISOString(), `${nm} 결과를 아직 안 넣었어요`, "결과를 넣어야 MOM 투표가 열려요", "#/result/" + e.id);
-    if (!started(e) && e.createdAt) add(e.createdAt, `${nm} 참석 ${att(e).in}${att(e).cap ? " / " + att(e).cap : ""}`, `미응답 ${att(e).none.length}명, ${closeText(e)}`, "#/event/" + e.id);
-    if (e.score && momClosed(e) && momWinners(e).length) add(momDeadline(e).toISOString(), `${nm} MOM ${momWinners(e).map(nameOf).join(", ")}`, `${(D("tally")["mom-" + e.id] || {}).n || 0}명 투표`, "#/game/" + e.id);
-    Object.entries(e.lateCancel || {}).forEach(([u, c]) => add(c.t, `${nm} 마감 후 불참`, `${nameOf(u)}${Number(c.amount) ? ", 벌금 " + won(c.amount) : ""}${c.reason ? ", " + c.reason : ""}`, "#/event/" + e.id));
-    guestReqs(e).filter(g => g.status === "req").forEach(g => add(g.at, "용병 신청", `${nameOf(g.u)}이(가) ${nm}에 ${g.name}님을 데려오고 싶어해요`, "#/guests/" + e.id));
+    if (scrimReady(e)) add(new Date(Math.min(now, new Date(e.date + "T09:00:00+09:00").getTime() - pol("scrimDays") * 864e5)).toISOString(), "운영", `${md(e.date)} 경기 신청 ${att(e).in + att(e).wait.length}명, 내전으로 바꿀 수 있어요`, "#/scrim/" + e.id);
+    if (started(e) && isPlay(e) && !e.score) add(new Date(evStart(e)).toISOString(), "기록", `${nm} 결과를 아직 안 넣었어요`, "#/result/" + e.id);
+    if (!started(e) && e.createdAt) add(e.createdAt, "일정", `${nm} 참석 ${att(e).in}${att(e).cap ? " / " + att(e).cap : ""}, 미응답 ${att(e).none.length}명`, "#/manage/" + e.id);
+    if (e.score && momClosed(e) && momWinners(e).length) add(momDeadline(e).toISOString(), "기록", `${nm} MOM ${momWinners(e).map(nameOf).join(", ")}`, "#/game/" + e.id);
+    Object.entries(e.lateCancel || {}).forEach(([u, c]) => add(c.t, "일정", `${nm} ${nameOf(u)} 불참 변경${Number(c.amount) ? ", 벌금 " + won(c.amount) : ""}${c.reason ? ", " + c.reason : ""}`, "#/manage/" + e.id));
+    guestReqs(e).filter(g => g.status === "req").forEach(g => add(g.at, "용병", `${nameOf(g.u)} 님이 ${nm}에 ${g.name} 님 용병 신청`, "#/merc/" + e.id));
   });
-  Object.entries(D("payreq")).forEach(([u, d]) => Object.values((d && d.items) || {}).forEach(it => { if (it && it.status === "req") add(it.at, "입금 확인 요청", `${nameOf(u)}이(가) 보냈어요를 눌렀어요, ${won(it.amount)}`, "#/dues"); }));
-  people().forEach(x => { const r = (S.rsvp[x.uid] || {}).posReq; if (r && r.status === "req") add(r.at, "포지션 변경 요청", `${x.name}이(가) ${x.p.pos1 || "-"}에서 ${[r.pos1, r.pos2].filter(Boolean).join(", ")}(으)로 바꾸고 싶어해요`, "#/players"); });
-  const joined = S.members.filter(m => m.user_id !== S.uid && m.joined_at && now - Date.parse(m.joined_at) < 30 * 864e5).sort((a, b) => String(b.joined_at).localeCompare(String(a.joined_at)));
-  if (joined.length) add(joined[0].joined_at, `새 팀원 ${joined.length}명`, `${joined.slice(0, 5).map(m => nameOf(m.user_id)).join(", ")}${joined.length > 5 ? " 외 " + (joined.length - 5) + "명" : ""}이(가) 들어왔어요`, "#/players");
+  people().forEach(x => { const r = (S.rsvp[x.uid] || {}).posReq; if (r && r.status === "req") add(r.at, "포지션", `${x.name} 님 포지션 변경 요청 ${[r.pos1, r.pos2].filter(Boolean).join(", ")}`, "#/posreqs"); });
+  (S.reqs || []).forEach(r => add(r.created_at, "가입", `${r.display_name} 님 가입 신청`, "#/requests"));
   return out.sort((a, b) => b.t - a.t);
 }
-const ABELL = () => { const r = Date.parse(myUv().readAt || "") || 0; const n = afeed().filter(x => x.t > r).length; return `<a class="iconbtn" href="#/notify" aria-label="알림${n ? " " + n + "개 안 읽음" : ""}" style="position:relative"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>${n ? `<span style="position:absolute;top:9px;right:9px;width:9px;height:9px;border-radius:50%;background:#DC2626;box-shadow:0 0 0 2px #FFFFFF"></span>` : ""}</a>`; };
-function vNotifyAdmin() {
-  const list = afeed(); const r = Date.parse(myUv().readAt || "") || 0; const n = list.filter(x => x.t > r).length;
-  const ago = t => { const m = Math.round((Date.now() - t) / 60000); return m < 60 ? (m < 2 ? "방금" : m + "분 전") : m < 1440 ? Math.round(m / 60) + "시간 전" : m < 2880 ? "어제" : md(new Date(t + 9 * 3600e3).toISOString().slice(0, 10)); };
-  return `${top("알림", "#/", n ? `<button class="btn sm" data-act="readAll">모두 읽음</button>` : "")}<div class="body">
-    <b style="font-size:15px">안 읽은 알림 <span style="color:#DC2626">${n}개</span></b>
-    ${list.length ? `<div class="card" style="padding:4px 16px"><div class="list">${list.map(x => `<a class="li" href="${x.href}" style="text-decoration:none;color:inherit;${x.t > r ? "background:#F0FDF4;margin:0 -16px;padding:12px 16px" : ""}"><span style="width:8px;height:8px;border-radius:50%;flex:none;background:${x.t > r ? "#DC2626" : "transparent"}"></span><span style="flex:1;min-width:0"><b style="font-size:15px">${esc(x.title)}</b><br><span class="hint">${esc(x.body)}</span></span><span class="hint" style="flex:none;font-size:12px">${ago(x.t)}</span></a>`).join("")}</div></div>` : `<div class="card empty"><b>알림이 없어요</b></div>`}
-    <span class="hint" style="text-align:center">알림은 30일 동안 보관돼요</span></div>`;
+export const adminHomeRows = () => "";
+
+/* ===================== 운영 탭 ===================== */
+function duesNow() {
+  const fee = Number(S.settings.fee) || 0; const mode = feeMode();
+  if (mode === "monthly") { const key = "m-" + ym(); const n = S.members.filter(m => paidOf(key, m.user_id)).length; return { text: `${mLabel(ym())} ${n}/${S.members.length}`, fee }; }
+  if (mode === "per_game") { const e = past().filter(isPlay)[0]; if (!e) return { text: "", fee }; const ps = people().filter(x => cameTo(e, x.uid)); const n = ps.filter(x => paidOf("e-" + e.id, x.uid)).length; return { text: `${md(e.date)} ${n}/${ps.length}`, fee }; }
+  return { text: "안 받음", fee };
 }
-function nextDates() {
-  const last = Object.values(S.events).sort((a, b) => b.date.localeCompare(a.date))[0]; const dow = last ? new Date(last.date + "T00:00:00Z").getUTCDay() : 6;
-  const out = []; let d = new Date(todayStr() + "T00:00:00Z"); while (out.length < 3) { d = new Date(d.getTime() + 864e5); if (d.getUTCDay() === dow) out.push(d.toISOString().slice(0, 10)); } return out;
+function aOps() {
+  const reqN = (S.reqs || []).length; const posN = people().filter(x => ((S.rsvp[x.uid] || {}).posReq || {}).status === "req").length;
+  const fineN = Object.values(D("fines")).filter(f => !f.paid).length; const dn = duesNow();
+  const me = `<span class="tag ${owner() ? "blue" : "gray"}" style="margin-right:12px;font-size:13px;padding:2px 8px">${owner() ? "Admin" : "운영진"} ${esc(nameOf(S.uid))}</span>`;
+  const big = s => `<b class="bc" style="font-size:20px;color:${C.ink}">${esc(s)}</b>`;
+  return `${hdTab("운영", me)}<div class="body">
+    <span style="font-size:14px;border-bottom:2px solid ${C.ink};padding-bottom:14px">운영진만 보는 탭이에요. 팀원 화면에는 없어요.</span>
+    <nav class="lst" aria-label="운영 메뉴" style="border-top:0;margin-top:-18px">
+      ${lrow({ href: "#/requests", icon: IC.join, tone: "green", title: "가입 승인", sub: "초대 링크로 들어온 사람", right: reqN ? `<span class="tag orange">${reqN}명 기다림</span>` : "", big: true })}
+      ${lrow({ href: "#/posreqs", icon: IC.target, tone: "pink", title: "포지션 변경 요청", sub: "팀원이 보낸 요청", right: posN ? `<span class="tag pink">${posN}건</span>` : "", big: true })}
+      ${lrow({ href: "#/dues", icon: IC.card, tone: "clay", title: "회비 관리", sub: feeMode() === "none" ? "회비를 안 받아요" : "달마다 낸 사람 체크", right: dn.text && feeMode() !== "none" ? big(dn.text) : "", big: true })}
+      ${lrow({ href: "#/fines", icon: IC.receipt, tone: "orange", title: "벌금 관리", sub: "매기고, 낸 것 체크", right: fineN ? `<b style="color:${C.ink}">안 낸 ${fineN}건</b>` : "", big: true })}
+      ${lrow({ href: "#/policy", icon: IC.shield, tone: "blue", title: "기본 운영 규칙", sub: "정원, 마감, 출석, 내전, 벌금 기준", right: `<span class="tag blue">Admin</span>`, big: true })}
+      ${lrow({ href: "#/settings", icon: IC.gear, title: "팀 설정", sub: "초대 링크, 가입 승인제, 팀 지우기", right: `<span class="tag blue">Admin</span>`, big: true })}
+    </nav>
+  </div>${nav("운영")}`;
 }
-// 투표 마감: 경기 전날 몇 시까지(30분 단위, 자주 쓰는 시각 버튼) 또는 경기 시작 전까지. 마감 뒤에는 불참 변경 신청(벌금)만 된다
-function voteCloseField(f, chip) {
-  const eve = f.voteClose === "eve", t = f.voteTime || "21:00";
-  const fake = { date: f.date, time: f.time || "23:59", voteClose: f.voteClose, voteTime: t };
-  const at = f.date ? closeAt(fake) : 0, passed = at && at <= Date.now();
-  const when = !f.date ? "" : eve ? `${md(dayBefore(f.date))} ${wd(dayBefore(f.date))} ${ampm(t)}` : f.voteClose === "day06" ? `${md(f.date)} ${wd(f.date)} 오전 6:00` : `경기가 시작되는 ${md(f.date)} ${wd(f.date)}${f.time ? " " + f.time : ""}`;
-  return `<div class="field"><span class="lab">투표 마감</span><div class="chips">${chip("voteClose", "eve", "경기 전날")}${chip("voteClose", "start", "경기 시작 전까지")}${f.voteClose === "day06" ? chip("voteClose", "day06", "경기 당일 06:00") : ""}</div>
-    ${eve ? `<div style="display:flex;flex-direction:column;gap:10px;background:#F9FAFB;border-radius:14px;padding:12px">
-      <div class="spread"><button class="btn sm" data-act="aVoteTime" data-d="-30" aria-label="30분 앞당기기" style="width:44px;font-size:18px">−</button><b style="font-size:24px;letter-spacing:-.5px">${ampm(t)}</b><button class="btn sm" data-act="aVoteTime" data-d="30" aria-label="30분 늦추기" style="width:44px;font-size:18px">+</button></div>
-      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px">${["18:00", "20:00", "21:00", "22:00"].map(x => `<button class="chip sm ${t === x ? "on" : ""}" data-act="pick" data-k="voteTime" data-v="${x}" style="justify-content:center;white-space:nowrap;padding:9px 0;font-size:13px">${ampm(x).replace(":00", "시")}</button>`).join("")}</div></div>` : ""}
-    ${when ? `<div style="background:${passed ? "#FEF2F2" : "#F0FDF4"};color:${passed ? "#B91C1C" : "#166534"};border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.55">${passed ? `${when}은(는) 이미 지났어요. 시간을 늦추거나 경기 시작 전까지로 골라 주세요.` : `${when}에 마감돼요. 그 뒤에 빠지면 불참 변경 신청으로 바꾸고 팀 수칙의 불참 벌금이 붙어요.`}</div>` : ""}
-    <span class="hint">마감이 지나면 ${noLate() ? "참석, 불참을" : "참석, 늦참, 불참을"} 바꿀 수 없어요</span></div>`;
+
+/* ---------- 가입 승인 ---------- */
+function aRequests() {
+  const rs = S.reqs || []; const norm = s => String(s || "").replace(/\s/g, "");
+  const card = r => {
+    const same = people().find(x => norm(x.name) === norm(r.display_name));
+    return `<div class="box" style="border-radius:16px;gap:10px">
+      <div class="spread" style="align-items:flex-start"><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><b style="font-size:18px">${esc(r.display_name)}</b><span style="font-size:13px">카카오 이름 ${esc(r.kakao_name || "없음")}</span></span><span class="tag">기다림</span></div>
+      ${same ? `<div style="border:2px solid ${C.ink};background:${C.orange};border-radius:10px;padding:10px 12px;font-size:13px;font-weight:700;line-height:1.6">팀에 같은 이름이 있어요 (${esc((same.p.num ? same.p.num + " " : "") + same.name)}). 같은 사람이 다른 카카오 계정으로 들어온 건 아닌지 확인해 주세요.</div>` : ""}
+      ${r.message ? `<div style="background:${C.gray};border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.6">${esc(r.message)}</div>` : ""}
+      <span class="note">${esc(stampT(r.created_at))} 신청</span>
+      <div class="grid2"><button class="btn" data-act="reqNo" data-id="${esc(r.user_id)}">거절</button><button class="btn g" data-act="reqOk" data-id="${esc(r.user_id)}">받기</button></div></div>`;
+  };
+  return `${hd("가입 승인", back("#/ops"), { sub: "초대 링크로 들어온 사람을 받아요" })}<div class="body" style="gap:14px">
+    ${rs.length ? rs.map(card).join("") : empty("새 가입 신청이 없어요", "초대 링크로 신청이 들어오면 여기에 보여요.")}
+    <span class="note">받으면 팀원이 되고 선수 등록을 마친 뒤 팀원 홈으로 들어가요. 가입 승인제는 팀 설정에서 끌 수 있어요.</span>
+  </div>${nav("운영")}`;
 }
-const dayBefore = d => new Date(Date.parse(d + "T12:00:00Z") - 864e5).toISOString().slice(0, 10);
-function eventFormInit(id) {
-  const e = id ? S.events[id] : null; const d = nextDates();
-  const toLocal = iso => iso ? new Date(Date.parse(iso) + 9 * 3600e3).toISOString().slice(0, 16) : "";
-  S.form = e ? { type: e.type, date: e.date, time: e.time, end: e.end || "", place: e.place || "", oppMode: e.opponent ? "set" : "none", opponent: e.opponent || "", cap: Number(e.cap) || 0, waitCap: Number(e.waitCap) || 0, memo: e.memo || "", voteClose: e.voteClose === "eve21" ? "eve" : e.voteClose || "start", voteTime: e.voteClose === "eve21" ? "21:00" : e.voteTime || "21:00", openMode: e.openAt ? "later" : "now", openAt: toLocal(e.openAt) }
-    : { type: "match", date: d[0], time: "", end: "", place: "", oppMode: "none", opponent: "", cap: pol("cap"), waitCap: pol("waitCap"), memo: "", voteClose: pol("voteClose"), voteTime: pol("voteTime"), openMode: "now", openAt: "" };
+
+/* ---------- 포지션 변경 요청 ---------- */
+function aPosReqs() {
+  const ps = people(); const pend = ps.filter(x => ((S.rsvp[x.uid] || {}).posReq || {}).status === "req");
+  const done = ps.map(x => ({ x, r: (S.rsvp[x.uid] || {}).posReq })).filter(o => o.r && (o.r.status === "ok" || o.r.status === "no") && o.r.doneAt).sort((a, b) => String(b.r.doneAt).localeCompare(String(a.r.doneAt)));
+  const card = x => {
+    const r = S.rsvp[x.uid].posReq; const cur = posTxt(x.p) || "미정"; const want = [r.pos1, r.pos2].filter(Boolean).join(" / ");
+    return `<div class="box" style="border-radius:16px;gap:12px">
+      <div class="spread" style="align-items:flex-start"><span class="row" style="gap:10px"><b class="bc" style="font-size:26px">${esc(x.p.num || "")}</b><span style="display:flex;flex-direction:column"><b style="font-size:17px">${esc(x.name)}</b><span class="note">${r.at ? esc(stampT(r.at)) + " 요청" : ""}</span></span></span><span class="tag">기다림</span></div>
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px"><span style="background:${C.gray};border-radius:12px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:2px"><span style="font-size:12px">지금</span><b class="bc" style="font-size:20px">${esc(cur)}</b></span>${IC.arrow}<span style="background:${C.pink};border:2px solid ${C.ink};border-radius:12px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:2px"><span style="font-size:12px">바꿔 달라는 것</span><b class="bc" style="font-size:20px">${esc(want)}</b></span></div>
+      ${r.note ? `<span class="note">${esc(r.note)}</span>` : ""}
+      <div class="grid2"><button class="btn" data-act="aPosNo" data-u="${esc(x.uid)}">거절</button><button class="btn g" data-act="aPosOk" data-u="${esc(x.uid)}">받기</button></div></div>`;
+  };
+  return `${hd("포지션 변경 요청", back("#/ops"), { sub: "받으면 팀원 카드가 바로 바뀌어요" })}<div class="body" style="gap:14px">
+    ${pend.length ? pend.map(card).join("") : empty("기다리는 요청이 없어요")}
+    ${done.length ? `<section style="display:flex;flex-direction:column;margin-top:8px">${head2("지난 요청")}${done.slice(0, 20).map(({ x, r }) => `<div class="spread" style="min-height:56px;border-bottom:1px solid ${C.line};font-size:14px"><span>${esc(stampT(r.doneAt))} ${esc(x.name)} ${esc([r.from1, r.from2].filter(Boolean).join(" / ") || "")}${r.from1 ? " → " : ""}${esc([r.pos1, r.pos2].filter(Boolean).join(" / "))}</span><span class="tag ${r.status === "ok" ? "green" : "clay"}">${r.status === "ok" ? "받음" : "거절"}</span></div>`).join("")}</section>` : ""}
+  </div>${nav("운영")}`;
 }
-function vGuests(id) {
-  const e = S.events[id]; if (!e) return vSchedule(); const a = att(e); const reqs = guestReqs(e); const gs = guestsOf(e); const fee = Number(S.settings.guestFee) || 0;
-  const left = a.cap ? Math.max(0, a.cap - a.in - gs.length) : null;
-  const ago = t => { const m = Math.round((Date.now() - Date.parse(t || "")) / 60000); return !t ? "" : m < 60 ? m + "분 전" : m < 1440 ? Math.round(m / 60) + "시간 전" : md(t.slice(0, 10)); };
-  return `${top("용병 신청", "#/event/" + id)}<div class="body">
-    <div class="card"><div class="spread"><span><b>${esc(md(e.date) + " " + wd(e.date) + " " + (e.time || "") + " " + evName(e))}</b></span>${left != null ? `<span class="tag ${left ? "" : "gray"}">남은 자리 ${left}</span>` : ""}</div></div>
-    <b>확인할 신청 ${reqs.filter(g => g.status === "req").length}건</b>
-    ${reqs.filter(g => g.status === "req").map(g => `<div class="card"><div class="row" style="gap:12px"><span class="av">${esc(ini(g.name))}</span><span style="flex:1"><b>${esc(g.name)}</b> <span class="tag gray">용병</span><br><span class="hint">${esc([nameOf(g.u) + " 신청", g.rel, g.pos, ago(g.at)].filter(Boolean).join(", "))}</span></span></div><div class="row"><button class="btn block" data-act="guestNo" data-u="${esc(g.u)}" data-k="${esc(g.k)}">거절</button><button class="btn pri block" data-act="guestOk" data-eid="${esc(e.id)}" data-u="${esc(g.u)}" data-k="${esc(g.k)}">수락</button></div></div>`).join("") || `<div class="card empty"><b>확인할 신청이 없어요</b></div>`}
-    ${gs.length ? `<div class="card"><div class="spread"><b>명단에 든 용병</b><span class="hint">${gs.length}명</span></div><div class="list">${gs.map(g => `<div class="li"><span style="flex:1"><b>${esc(g.name)}</b><br><span class="hint">${esc([g.pos, g.by ? nameOf(g.by) + " 지인" : "운영진 추가"].filter(Boolean).join(", "))}</span></span><button class="iconbtn" data-act="guestDel" data-eid="${esc(e.id)}" data-g="${esc(g.id)}" aria-label="빼기">✕</button></div>`).join("")}</div></div>` : ""}
-    <span class="hint">수락하면 참석 명단에 용병으로 들어가고 신청한 팀원 알림함에 보여요.${fee ? ` 참가비 ${won(fee)}은 현장 출석에서 받아요.` : ""}</span>
-    <button class="btn" data-act="aGuestAdd" data-eid="${esc(e.id)}">운영진이 직접 추가하기</button>
-  </div>`;
+
+/* ---------- 회비 관리 ---------- */
+function duesRefs() {
+  if (feeMode() === "monthly") return monthsList().slice(0, 3).reverse().map(m => ({ key: "m-" + m, label: mLabel(m) }));
+  if (feeMode() === "per_game") return past().filter(isPlay).slice(0, 4).reverse().map(e => ({ key: "e-" + e.id, label: md(e.date), e }));
+  return [];
 }
-function guestAddSheet(eid, atCheck) {
-  const e = S.events[eid]; if (!e) return; const fee = Number(S.settings.guestFee) || 0;
-  sheet(`<h3>용병 추가</h3><span class="hint">오늘만 같이 뛰는 사람이에요. 팀원 명단에는 안 들어가요</span>
-    <input class="inp" id="agName" maxlength="20" placeholder="이름" aria-label="이름">
-    <div class="chips">${POS[sport()].map(p => `<button class="chip sm" data-agpos="${p}">${p}</button>`).join("")}</div>
-    ${fee ? `<label class="row" style="gap:10px;min-height:44px"><input type="checkbox" id="agFee" checked style="width:22px;height:22px;accent-color:#15803D"><span>참가비 ${won(fee)} 받기, 팀 통장 내역에 적혀요</span></label>` : ""}
-    <div class="row"><button class="btn block" data-act="closeSheet">취소</button><button class="btn pri block" id="agSend">추가하기</button></div>`);
-  let pos = ""; document.querySelectorAll("[data-agpos]").forEach(b => b.onclick = () => { pos = b.dataset.agpos; document.querySelectorAll("[data-agpos]").forEach(x => x.classList.toggle("on", x === b)); });
-  $("#agSend").onclick = async () => {
-    const name = $("#agName").value.trim(); if (!name) { toast("이름을 적어 주세요"); return; } const gid = uid36("g");
-    try {
-      const ev = S.events[eid]; const extra = atCheck ? { check: { ...(ev.check || {}), ["g:" + gid]: "in" }, checkAt: { ...(ev.checkAt || {}), ["g:" + gid]: hhmmNow() } } : {};
-      await setDoc("events", eid, { ...ev, guests: { ...(ev.guests || {}), [gid]: { name, pos, by: "", at: new Date().toISOString(), fee: $("#agFee") && $("#agFee").checked ? fee : 0 } }, ...extra });
-      if ($("#agFee") && $("#agFee").checked && fee) { const items = ((D("team").ledger || {}).items || []).concat([{ id: uid36("l"), date: todayStr(), type: "in", cat: "참가비", label: name + " 용병 참가비", amount: fee }]); await setDoc("team", "ledger", { items }); }
-      closeSheet(); render(); toast("용병을 추가했어요");
-    } catch (err) { fail(err); }
+function aDues() {
+  const refs = duesRefs(); const fee = Number(S.settings.fee) || 0; const mode = feeMode();
+  const sub = mode === "monthly" ? `한 달 ${won(fee)}` : mode === "per_game" ? `경기마다 ${won(fee)}` : "회비를 안 받아요";
+  const right = `<button class="btn xs" data-act="aDuesSet" style="margin-right:4px">회비 설정</button>`;
+  if (!refs.length) return `${hd("회비 관리", back("#/ops"), { sub, right })}<div class="body">${empty(mode === "none" ? "회비를 안 받는 팀이에요" : "아직 회비를 낼 경기가 없어요", "회비 설정에서 바꿀 수 있어요.")}</div>${nav("운영")}`;
+  const ref = refs.find(r => r.key === AU.ref) || refs[refs.length - 1];
+  const ps = (ref.e ? people().filter(x => cameTo(ref.e, x.uid)) : people()).sort((a, b) => (paidOf(ref.key, a.uid) ? 1 : 0) - (paidOf(ref.key, b.uid) ? 1 : 0) || (Number(a.p.num) || 999) - (Number(b.p.num) || 999));
+  const paidN = ps.filter(x => paidOf(ref.key, x.uid)).length; const unpaid = ps.filter(x => !paidOf(ref.key, x.uid));
+  return `${hd("회비 관리", back("#/ops"), { sub, right })}<div class="body" style="gap:14px">
+    <div class="row" style="gap:8px;flex-wrap:wrap">${refs.map(r => `<button class="chip${r.key === ref.key ? " ob on" : ""}" data-act="aDuesRef" data-k="${esc(r.key)}" style="border-radius:999px;min-width:56px">${esc(r.label)}</button>`).join("")}</div>
+    <div class="box clay" style="flex-direction:row;align-items:flex-end;justify-content:space-between;border-radius:16px"><span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;font-weight:700">모인 돈</span><b class="bc" style="font-size:40px;line-height:1">${won(paidN * fee)}</b></span><span style="display:flex;flex-direction:column;align-items:flex-end;font-size:13px">낸 사람 <span><b class="bc" style="font-size:20px">${paidN}</b> / ${ps.length}</span><span>안 낸 사람 ${unpaid.length}명</span></span></div>
+    <div style="display:flex;flex-direction:column">${ps.map(x => { const p = paidOf(ref.key, x.uid); return `<div class="row" style="min-height:54px;border-bottom:1px solid ${C.line};gap:12px"><b class="bc" style="width:30px;font-size:18px">${esc(x.p.num || "-")}</b><span style="flex:1;font-size:15px">${esc(x.name)}${x.uid === S.uid ? " (나)" : ""}</span><button class="btn xs${p ? " g" : ""}" data-act="duesToggle" data-key="${esc(ref.key)}" data-u="${esc(x.uid)}" aria-pressed="${p}" style="min-width:64px">${p ? "냄" : "안 냄"}</button></div>`; }).join("") || `<span class="note">대상이 없어요</span>`}</div>
+  </div>${unpaid.length ? `<div class="cta"><button class="btn o block" data-act="aDuesRemind" data-k="${esc(ref.key)}">안 낸 ${unpaid.length}명에게 알리기</button></div>` : ""}`;
+}
+function duesSetSheet() {
+  const f = AU.mset; const ch = (k, v, l) => `<button type="button" class="chip${String(f[k]) === String(v) ? " on" : ""}" data-ms="${k}" data-v="${esc(v)}">${l}</button>`;
+  sheet(`<h3>회비 설정</h3>
+    <div class="fld"><span class="lb">회비</span><div class="chips">${ch("feeMode", "monthly", "월회비")}${ch("feeMode", "per_game", "경기마다")}${ch("feeMode", "none", "안 받음")}</div></div>
+    ${f.feeMode !== "none" ? `<label class="fld"><span class="lb">금액</span><input class="inp" id="msFee" inputmode="numeric" value="${esc(f.fee)}" placeholder="예: 30000"></label>` : ""}
+    ${f.feeMode === "monthly" ? `<div class="fld"><span class="lb">매달 언제까지</span><div class="chips">${["1", "5", "10", "25", "말일"].map(d => ch("dueDay", d, d === "말일" ? "말일" : d + "일")).join("")}</div></div>` : ""}
+    <div class="fld"><span class="lb">받는 계좌</span><input class="inp" id="msBank" value="${esc(f.bank)}" placeholder="은행" maxlength="20"><input class="inp" id="msAcc" inputmode="numeric" data-bind="account" value="${esc(f.account)}" placeholder="계좌번호" maxlength="30"><input class="inp" id="msHolder" value="${esc(f.holder)}" placeholder="예금주" maxlength="20"></div>
+    <button class="btn o block" id="msSave">저장하기</button><button class="btn block" data-act="closeSheet">닫기</button>`);
+  const keep = () => { const g = id => ($(id) || {}).value; if ($("#msFee")) f.fee = g("#msFee"); f.bank = g("#msBank"); f.account = g("#msAcc"); f.holder = g("#msHolder"); };
+  document.querySelectorAll("[data-ms]").forEach(b => b.onclick = () => { keep(); f[b.dataset.ms] = b.dataset.v; duesSetSheet(); });
+  $("#msSave").onclick = async ev => {
+    keep(); ev.target.disabled = true;
+    try { await setDoc("team", "settings", { ...S.settings, feeMode: f.feeMode, fee: f.feeMode === "none" ? 0 : Number(String(f.fee || "").replace(/\D/g, "")) || 0, dueDay: f.feeMode === "monthly" ? f.dueDay || "5" : "", bank: { bank: String(f.bank || "").trim(), account: String(f.account || "").trim(), holder: String(f.holder || "").trim() } }); closeSheet(); await syncMyDues(); render(); toast("저장했어요"); } catch (err) { ev.target.disabled = false; fail(err); }
   };
 }
-const hhmmNow = () => new Date(Date.now() + 9 * 3600e3).toISOString().slice(11, 16);
-function vScrim(id) {
-  const e = S.events[id]; if (!e) return vSchedule(); const a = att(e); const n = a.in + a.wait.length;
-  const daysLeft = Math.round((new Date(e.date + "T00:00:00+09:00") - new Date(todayStr() + "T00:00:00+09:00")) / 864e5);
-  const ops = (D("contacts")["scrim-" + id] || {}).votes || {}; const mine = ops[S.uid] || {};
-  const ck = (ok, t, s2) => `<div class="li"><span style="width:24px;height:24px;border-radius:8px;flex:none;display:inline-flex;align-items:center;justify-content:center;font-size:13px;${ok ? "background:#15803D;color:#FFFFFF" : "background:#F3F4F6;color:#9CA3AF"}">✓</span><span style="flex:1"><b>${t}</b><br><span class="hint">${s2}</span></span></div>`;
-  return `${top("내전 검토", "#/event/" + id)}<div class="body">
-    <div class="card"><b>${esc(md(e.date) + " " + wd(e.date) + " " + (e.time || "") + ", " + (e.place || "") + ", 상대팀 미정")}</b><div class="stat"><span><b>${n}명</b><span>참석 ${a.in} + 대기 ${a.wait.length}</span></span></div></div>
-    <div class="card"><div class="list">${ck(n >= pol("scrimMin"), `참석과 대기를 합쳐 ${pol("scrimMin")}명 이상`, `내전을 하려면 ${pol("scrimMin")}명이 필요해요`)}${ck(daysLeft >= pol("scrimDays"), `${pol("scrimDays")}일 전까지 ${pol("scrimMin")}명 유지`, daysLeft >= pol("scrimDays") ? `경기까지 ${daysLeft}일 남았어요` : `${pol("scrimDays")}일 전이 지났어요`)}${ck(!e.opponent, "상대팀 미정", "매칭된 팀이 있으면 내전으로 바꿀 수 없어요")}</div></div>
-    <div class="card"><b>내전으로 바꾸면</b><div class="list">${ck(true, "대기 " + a.wait.length + "명도 모두 참석으로 올라가요", "")}${ck(true, "A팀, B팀으로 나눠서 해요", "팀은 운영진이 스쿼드에서 직접 골라요")}${ck(true, "신청한 " + n + "명 알림함에 바로 보여요", "")}</div></div>
-    <div class="card"><div class="spread"><b>운영진 의견</b><span class="hint">운영진끼리만 보여요</span></div>
-      <div class="list">${S.members.filter(m => m.role !== "member").map(m => { const o = ops[m.user_id] || {}; return `<div class="li"><span style="flex:1"><b>${esc(nameOf(m.user_id))}</b> <span class="hint">${ROLE[m.role]}${m.user_id === S.uid ? ", 나" : ""}</span>${o.note ? `<br><span class="hint">${esc(o.note)}</span>` : ""}</span>${o.v ? `<span class="tag ${o.v === "yes" ? "" : "gray"}">${o.v === "yes" ? "찬성" : "반대"}</span>` : `<span class="hint">아직</span>`}</div>`; }).join("")}</div>
-      <div class="chips"><button class="chip sm ${mine.v === "yes" ? "on" : ""}" data-act="aScrimVote" data-eid="${esc(id)}" data-v="yes">찬성</button><button class="chip sm ${mine.v === "no" ? "on" : ""}" data-act="aScrimVote" data-eid="${esc(id)}" data-v="no">반대</button></div>
-      <div class="row"><input class="inp" id="scrimNote" maxlength="60" value="${esc(mine.note || "")}" placeholder="예: 구장 시간 늘릴 수 있는지 볼게요" aria-label="의견"><button class="btn sm" data-act="aScrimNote" data-eid="${esc(id)}">남기기</button></div></div>
-  </div><div class="cta"><div class="row"><button class="btn block" data-act="aScrimKeep" data-eid="${esc(id)}">경기로 그대로</button><button class="btn pri block" data-act="scrimConvert" data-eid="${esc(id)}" style="background:#3730A3">내전으로 바꾸기</button></div><span class="hint" style="text-align:center">정하면 신청한 팀원 알림함에 보여요</span></div>`;
-}
-function vCalendarAdmin() { return mCalendar(adminEventCard, true); }
-const AACT1 = {
-  readAll: async () => { try { await patchDoc("uvote", S.uid, { readAt: new Date().toISOString() }); render(); toast("모두 읽음으로 바꿨어요"); } catch (err) { fail(err); } },
-  aVoteTime: t => { const [h, m] = String(S.form.voteTime || "21:00").split(":").map(Number); const v = Math.max(6 * 60, Math.min(23 * 60 + 30, h * 60 + m + Number(t.dataset.d))); S.form.voteTime = String(Math.floor(v / 60)).padStart(2, "0") + ":" + String(v % 60).padStart(2, "0"); render(); },
-  aWait: t => { S.form.waitCap = Math.max(0, (Number(S.form.waitCap) || 0) + Number(t.dataset.d)); render(); },
-  aSaveEvent: async t => {
-    const f = S.form; if (!f.date) { toast("날짜를 골라 주세요"); return; } if (!f.time) { toast("시작 시간을 골라 주세요"); return; }
-    if (f.type === "match" && f.oppMode === "set" && !String(f.opponent || "").trim()) { toast("상대팀 이름을 적어 주세요"); return; }
-    if (f.voteClose !== "start" && closeAt({ date: f.date, time: f.time, voteClose: f.voteClose, voteTime: f.voteTime }) <= Date.now() && !(t.dataset.eid && S.events[t.dataset.eid] && closeAt(S.events[t.dataset.eid]) <= Date.now())) { toast("투표 마감 시간이 이미 지났어요. 시간을 늦추거나 경기 시작 전까지로 골라 주세요"); return; }
-    t.disabled = true; const id = t.dataset.eid || uid36("e"); const old = S.events[id] || {};
-    const openAt = f.openMode === "later" && f.openAt ? new Date(f.openAt + ":00+09:00").toISOString() : "";
-    const data = { ...old, id, type: f.type, date: f.date, time: f.time, end: f.end || "", place: String(f.place || "").trim(), opponent: f.type === "match" && f.oppMode === "set" ? String(f.opponent || "").trim() : "", cap: f.type === "scrim" ? 0 : Number(f.cap) || 0, waitCap: Number(f.waitCap) || 0, memo: String(f.memo || "").trim(), voteClose: f.voteClose || "start", voteTime: f.voteClose === "eve" ? (f.voteTime || "21:00") : "", openAt, createdAt: old.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() };
-    try { await setDoc("events", id, data); toast(t.dataset.eid ? "저장했어요" : openAt ? "일정을 올렸어요. 예약한 시각에 투표가 열려요" : "일정을 올렸어요. 팀원이 바로 참석을 누를 수 있어요"); location.hash = "#/event/" + id; } catch (err) { t.disabled = false; fail(err); }
-  },
-  aGuestAdd: t => guestAddSheet(t.dataset.eid, false),
-  aGuestAddCheck: t => guestAddSheet(t.dataset.eid, true),
-  aScrimVote: async t => { const id = "scrim-" + t.dataset.eid; const cur = D("contacts")[id] || { votes: {} }; const me = (cur.votes || {})[S.uid] || {}; try { await setDoc("contacts", id, { votes: { ...(cur.votes || {}), [S.uid]: { ...me, v: t.dataset.v, at: new Date().toISOString() } } }); render(); } catch (err) { fail(err); } },
-  aScrimNote: async t => { const id = "scrim-" + t.dataset.eid; const cur = D("contacts")[id] || { votes: {} }; const me = (cur.votes || {})[S.uid] || {}; try { await setDoc("contacts", id, { votes: { ...(cur.votes || {}), [S.uid]: { ...me, note: $("#scrimNote").value.trim().slice(0, 60), at: new Date().toISOString() } } }); render(); toast("의견을 남겼어요"); } catch (err) { fail(err); } },
-  aScrimKeep: t => { const e = S.events[t.dataset.eid]; if (!e) return; const a = att(e);
-    confirmBox("이번엔 경기로 할까요?", `참석 ${a.in}명으로 경기를 해요. 대기 ${a.wait.length}명은 빠지는 사람이 생기면 순서대로 올라가요.`, "경기로 정하기", async () => {
-      try { await setDoc("events", e.id, { ...e, scrimKeep: new Date().toISOString() }); toast("경기로 정했어요"); location.hash = "#/event/" + e.id; } catch (err) { fail(err); }
-    }); },
-};
 
-function checkRows(e) {
-  const a = att(e); const rows = [...a.yes, ...a.late].map(x => ({ uid: x.uid, name: x.name, sub: x.s === "late" ? `늦참 신고, ${x.q || 1}Q부터` : "" }));
-  guestsOf(e).forEach(g => rows.push({ uid: "g:" + g.id, name: g.name, sub: "용병" }));
-  const extra = [...a.no, ...a.none].filter(x => (e.check || {})[x.uid]).map(x => ({ uid: x.uid, name: x.name, sub: "신청 안 함" }));
-  return { rows: rows.concat(extra), others: [...a.no, ...a.none].filter(x => !(e.check || {})[x.uid]) };
+/* ---------- 벌금 관리 ---------- */
+function aFines() {
+  const list = Object.entries(D("fines")).map(([id, f]) => ({ id, ...f })).sort((a, b) => (a.paid ? 1 : 0) - (b.paid ? 1 : 0) || String(b.date).localeCompare(String(a.date)));
+  return `${hd("벌금 관리", back("#/ops"), { sub: "팀원이 내면 냄으로 체크해요", right: `<button class="btn o sm" data-act="aFineAdd" style="margin-right:4px">벌금 매기기</button>` })}<div class="body" style="gap:0">
+    ${list.length ? list.map(f => { const e = S.events[f.eventId]; return `<div class="row" style="min-height:64px;border-bottom:1px solid ${C.line};gap:10px"><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span><b style="font-size:16px">${esc(nameOf(f.uid))}</b> <span style="font-size:14px">${esc(f.reason || "벌금")}</span></span><span class="note">${f.date ? esc(md(f.date)) : ""}${e ? " " + kindOf(e) : ""}</span></span><b class="bc" style="font-size:20px">${won(f.amount)}</b><button class="btn xs${f.paid ? " g" : ""}" data-act="fineToggle" data-id="${esc(f.id)}" aria-pressed="${!!f.paid}" style="min-width:60px">${f.paid ? "냄" : "안 냄"}</button></div>`; }).join("") : empty("매긴 벌금이 없어요")}
+  </div>${nav("운영")}`;
 }
-function fineCalc(e) {
-  const ck = e.check || {}; const a = att(e); const going = new Set([...a.yes, ...a.late].map(x => x.uid));
-  const late = Object.keys(ck).filter(u => ck[u] === "late" && !u.startsWith("g:")), abs = Object.keys(ck).filter(u => ck[u] === "absent" && going.has(u));
-  return { late, abs, total: late.length * ruleAmt("late") + abs.length * ruleAmt("absent") };
+function fineAddSheet() {
+  const f = AU.fa; const rules = fineRulesOf(S.settings); const ps = people().sort((a, b) => (Number(a.p.num) || 999) - (Number(b.p.num) || 999));
+  const evs = past().slice(0, 12); const r = rules[f.ri];
+  sheet(`<h3>벌금 매기기</h3>
+    <label class="fld"><span class="lb">누구</span>${sel("faU", [["", "골라 주세요"], ...ps.map(x => [x.uid, (x.p.num ? x.p.num + " " : "") + x.name])], f.u)}</label>
+    <label class="fld"><span class="lb">언제</span>${sel("faE", [["", "경기 없이 (오늘)"], ...evs.map(e => [e.id, `${md(e.date)} ${kindOf(e)}`])], f.eid)}</label>
+    <div class="fld"><span class="lb">무엇</span>${rules.length ? `<div class="grid3">${rules.map((x, i) => `<button type="button" class="box${i === f.ri ? "" : ""}" data-fr="${i}" aria-pressed="${i === f.ri}" style="align-items:center;gap:2px;padding:10px 6px;border-radius:12px;text-align:center;${i === f.ri ? `background:${C.orange};box-shadow:3px 3px 0 ${C.ink}` : ""}"><b style="font-size:14px">${esc(x.label)}</b><span class="bc" style="font-size:17px">${won(x.amount)}</span></button>`).join("")}</div>` : `<span class="note">수칙에 벌금이 없어요. 팀 탭의 수칙과 벌금에서 먼저 더해 주세요.</span>`}</div>
+    <span class="note">매기면 그 팀원의 내가 낼 돈에 바로 올라가고 알림이 가요.</span>
+    <button class="btn o block" id="faGo" ${f.u && r ? "" : "disabled"}>${f.u && r ? `${esc(nameOf(f.u))}에게 ${won(r.amount)} 매기기` : "누구와 무엇을 골라 주세요"}</button>`);
+  $("#faU").onchange = ev => { f.u = ev.target.value; fineAddSheet(); };
+  $("#faE").onchange = ev => { f.eid = ev.target.value; fineAddSheet(); };
+  document.querySelectorAll("[data-fr]").forEach(b => b.onclick = () => { f.ri = Number(b.dataset.fr); fineAddSheet(); });
+  $("#faGo").onclick = async ev => {
+    if (!f.u || !r) return; ev.target.disabled = true; const e = S.events[f.eid];
+    try { await setDoc("fines", uid36("f"), { uid: f.u, date: e ? e.date : todayStr(), eventId: e ? e.id : "", reason: r.label, amount: Number(r.amount) || 0, paid: false, paidAt: "", at: new Date().toISOString(), by: S.uid }); await syncMyDues([f.u]); closeSheet(); render(); toast(`${nameOf(f.u)}에게 벌금 ${won(r.amount)}을 매겼어요`); } catch (err) { ev.target.disabled = false; fail(err); }
+  };
 }
-function vCheckDone(id) {
-  const e = S.events[id]; if (!e) return vSchedule(); const ck = e.check || {}; const cnt = { in: 0, late: 0, absent: 0 }; Object.values(ck).forEach(v => { if (cnt[v] != null) cnt[v]++; });
-  return `${top("현장 출석", "#/event/" + id)}<div class="body">
-    <div class="hint" style="background:#F0FDF4;color:#166534;border-radius:12px;padding:10px 12px">벌금을 매기고 팀원 회비 탭과 알림함에 보이게 했어요</div>
-    <div class="card"><b>${esc(md(e.date) + " " + evName(e))} 출석 마감</b>${tilesA([tileA(cnt.in, "출석"), tileA(cnt.late, "지각", "#B45309"), tileA(cnt.absent, "결석", "#B91C1C")])}<div class="spread"><span>매긴 벌금</span><b>${won(fineCalc(e).total)}</b></div></div>
-    <div class="row"><a class="btn block" href="#/dues">회비에서 보기</a><a class="btn block" href="#/schedule">일정으로</a></div>
-  </div>`;
-}
-const tileA = (v, l, c) => `<span style="background:#F9FAFB;border-radius:14px;padding:12px 4px;text-align:center;display:flex;flex-direction:column;gap:2px"><b style="font-size:22px;${c ? "color:" + c : ""}">${v}</b><span style="font-size:12px;color:#6B7280">${l}</span></span>`;
-const tilesA = arr => `<div style="display:grid;grid-template-columns:repeat(${arr.length},minmax(0,1fr));gap:8px">${arr.join("")}</div>`;
-const AACT2 = {
-  aSquadAll: async t => { const e = S.events[t.dataset.eid]; if (!e) return; const T = e.teams || {}; const ids = people().map(x => x.uid).concat(guestsOf(e).map(g => "g:" + g.id));
-    const allOn = ids.every(u => T[u]); const N = {}; if (!allOn) ids.forEach((u, i) => { N[u] = T[u] || (i % 2 ? "B" : "A"); });
-    try { await setDoc("events", e.id, { ...e, teams: N }); render(); } catch (err) { fail(err); } },
-  aRtab: t => { UI.rtab = t.dataset.v; render(); window.scrollTo(0, 0); },
-  aRf: t => { UI.rf = t.dataset.v; render(); },
-  aSeason: () => { const years = [...new Set(past().map(e => e.date.slice(0, 4)).concat([todayStr().slice(0, 4)]))].sort().reverse();
-    sheet(`<h3>시즌 고르기</h3><div class="list">${years.map(y => `<button class="li" data-act="aSeasonPick" data-y="${y}" style="border:0;border-bottom:1px solid #F3F4F6;background:none;text-align:left;width:100%"><span style="flex:1"><b>${y} 시즌</b><br><span class="hint">모임 ${past().filter(e => e.date.startsWith(y)).length}번</span></span>${(UI.season || todayStr().slice(0, 4)) === y ? "✓" : ""}</button>`).join("")}</div><span class="hint">시즌은 매년 1월 1일에 새로 시작해요</span><button class="btn" data-act="closeSheet">닫기</button>`); },
-  aSeasonPick: t => { UI.season = t.dataset.y; closeSheet(); render(); },
-  aGoal: t => { const g = S.form.goals = S.form.goals || []; if (Number(t.dataset.d) > 0) g.push({ uid: t.dataset.u }); else { const i = g.map(x => x.uid).lastIndexOf(t.dataset.u); if (i >= 0) g.splice(i, 1); } render(); },
-};
 
-function owedOf(u) {
-  const fee = Number(S.settings.fee) || 0; const items = [];
-  if (feeMode() === "monthly") monthsList().forEach(m => { if (!paidOf("m-" + m, u)) items.push({ kind: "dues", key: "m-" + m, label: mLabel(m), amount: fee }); });
-  if (feeMode() === "per_game") past().filter(isPlay).forEach(e => { if (cameTo(e, u) && !paidOf("e-" + e.id, u)) items.push({ kind: "dues", key: "e-" + e.id, label: md(e.date) + " 경기", amount: fee }); });
-  finesOf(u).filter(f => !f.paid).forEach(f => items.push({ kind: "fine", id: f.id, label: (f.reason || "벌금") + " 벌금", amount: Number(f.amount) || 0 }));
-  return { items, total: items.reduce((n, x) => n + x.amount, 0), months: items.filter(x => x.kind === "dues").length, fines: items.filter(x => x.kind === "fine").reduce((n, x) => n + x.amount, 0) };
+/* ---------- 기본 운영 규칙 (Admin만 바꿈) ---------- */
+const h12 = t => { const [h] = String(t || "21:00").split(":").map(Number); return { ap: h < 12 ? "am" : "pm", h: h % 12 || 12 }; };
+const to24 = (ap, h) => { const n = Math.min(12, Math.max(1, Number(h) || 12)); return ap === "am" ? (n === 12 ? 0 : n) : (n === 12 ? 12 : n + 12); };
+function policyInit() { const st = S.settings || {}; const v = h12(pol("voteTime")); return { pCap: String(pol("cap")), pScrimMin: String(pol("scrimMin")), pScrimDays: String(pol("scrimDays")), pVoteAp: v.ap, pVoteH: String(v.h), pCheck: String(pol("checkBefore")), fineFrom: ["day", "custom"].includes(st.fineFrom) ? st.fineFrom : "close", fineDays: String(Number(st.fineDays) || 1), fineAp: st.fineAp === "am" ? "am" : "pm", fineHour: String(Number(st.fineHour) || 6) }; }
+function aPolicy() {
+  const f = S.form; const dis = !owner(); const apBtn = (k, v) => `<button type="button" class="chip${f[k] === v ? " on" : ""}" data-act="aPick" data-k="${k}" data-v="${v}" ${dis ? "disabled" : ""} style="min-height:44px;padding:0 10px">${v === "am" ? "오전" : "오후"}</button>`;
+  const vt = `${f.pVoteAp === "am" ? "오전" : "오후"} ${Number(f.pVoteH) || 9}시`;
+  const fineNote = f.fineFrom === "day" ? "경기 당일 0시부터" : f.fineFrom === "custom" ? `경기 ${Number(f.fineDays) || 1}일 전 ${f.fineAp === "am" ? "오전" : "오후"} ${Number(f.fineHour) || 6}시부터` : `투표 마감(경기 전날 ${vt})부터`;
+  const fb = (v, l) => `<button type="button" class="btn sm${f.fineFrom === v ? "" : ""}" data-act="aPick" data-k="fineFrom" data-v="${v}" aria-pressed="${f.fineFrom === v}" ${dis ? "disabled" : ""} style="padding:0 6px;font-size:13px${f.fineFrom === v ? `;background:${C.blue}` : ""}">${l}</button>`;
+  const rowF = (label, inner) => `<div style="display:flex;flex-direction:column;gap:8px;border-bottom:1px solid ${C.line};padding:12px 0"><b style="font-size:14px">${label}</b><div class="row" style="gap:10px;font-size:15px;flex-wrap:wrap">${inner}</div></div>`;
+  return `${hd("기본 운영 규칙", back("#/ops"), { sub: "Admin만 바꿀 수 있어요" })}<div class="body" style="gap:0">
+    <div style="background:${C.gray};border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.6;margin-bottom:10px">팀을 만들 때 정한 값이에요. 바꾸면 그 뒤에 올리는 일정부터 적용돼요.${dis ? " 운영진은 볼 수만 있어요." : ""}</div>
+    <div style="border-top:2px solid ${C.ink}"></div>
+    ${rowF("정원", `${numInp("pCap", f.pCap, dis)}<span>명, 넘으면 대기</span>`)}
+    ${rowF("내전 기준 인원", `<span>참석과 대기 합쳐</span>${numInp("pScrimMin", f.pScrimMin, dis)}<span>명</span>`)}
+    ${rowF("내전 정하는 날", `<span>경기</span>${numInp("pScrimDays", f.pScrimDays, dis)}<span>일 전까지 유지되면</span>`)}
+    ${rowF("투표 마감", `<span>경기 전날</span>${apBtn("pVoteAp", "am")}${apBtn("pVoteAp", "pm")}${numInp("pVoteH", f.pVoteH, dis)}<span>시</span>`)}
+    ${rowF("출석 부르는 시간", `<span>시작</span>${numInp("pCheck", f.pCheck, dis)}<span>분 전</span>`)}
+    <div style="display:flex;flex-direction:column;gap:8px;padding:12px 0"><b style="font-size:14px">불참 변경 벌금은 언제부터</b>
+      <div class="grid3">${fb("close", "투표 마감 뒤")}${fb("day", "경기 당일")}${fb("custom", "직접 정하기")}</div>
+      ${f.fineFrom === "custom" ? `<div class="row" style="gap:8px;flex-wrap:wrap;font-size:15px"><span>경기</span>${numInp("fineDays", f.fineDays, dis, 56)}<span>일 전</span>${apBtn("fineAp", "am")}${apBtn("fineAp", "pm")}${numInp("fineHour", f.fineHour, dis, 56)}<span>시</span></div>` : ""}
+      <span class="note">${fineNote} 참석이나 늦참에서 불참으로 바꾸면 수칙의 불참 벌금이 붙어요. 투표 마감보다 늦을 수는 없어요.</span></div>
+  </div>${dis ? nav("운영") : `<div class="cta"><button class="btn o block" data-act="aPolicySave">저장하기</button></div>`}`;
 }
-function vSpend() {
-  const f = S.form; const chip = (k, v, l) => `<button class="chip sm ${String(f[k]) === String(v) ? "on" : ""}" data-act="pick" data-k="${k}" data-v="${v}">${l}</button>`;
-  const d = n => new Date(Date.now() + 9 * 3600e3 - n * 864e5).toISOString().slice(0, 10);
-  return `${top("직접 기록", "#/ledger")}<div class="body"><div class="card">
-    <div class="field"><span class="lab">종류</span><div class="chips">${chip("type", "out", "나간 돈")}${chip("type", "in", "들어온 돈")}</div></div>
-    <label class="field"><span class="lab">금액</span><div class="row"><input class="inp" data-bind="amount" value="${esc(f.amount || "")}" inputmode="numeric" placeholder="얼마" style="flex:1"><span>원</span></div></label>
-    <div class="field"><span class="lab">날짜</span><div class="chips">${chip("date", d(0), "오늘 " + md(d(0)))}${chip("date", d(1), "어제 " + md(d(1)))}${chip("date", d(2), "그저께 " + md(d(2)))}</div></div>
-    <div class="field"><span class="lab">분류</span><div class="chips">${(f.type === "in" ? ["회비", "참가비", "후원", "기타"] : ["구장비", "장비", "회식", "기타"]).map(c => chip("cat", c, c)).join("")}</div></div>
-    <label class="field"><span class="lab">메모</span><input class="inp" data-bind="label" value="${esc(f.label || "")}" maxlength="40" placeholder="내용"></label>
-    <span class="hint">현금으로 쓰거나 받은 돈을 적어요. 팀원 통장 내역에도 똑같이 보여요.</span>
-  </div></div><div class="cta"><button class="btn pri block" data-act="aSpendSave">저장하기</button></div>`;
+
+/* ---------- 팀 설정 ---------- */
+function aSettings() {
+  const f = S.form; const own = owner(); const ap = f.joinApproval !== false;
+  const admins = S.members.filter(m => m.role === "owner" || m.role === "admin").sort((a, b) => (a.role === "owner" ? 0 : 1) - (b.role === "owner" ? 0 : 1));
+  const link = inviteUrl();
+  return `${hd("팀 설정", back("#/ops"), { sub: "Admin만 바꿀 수 있어요" })}<div class="body">
+    <div class="box blue" style="flex-direction:row;align-items:center;gap:14px;border-radius:18px">${teamLogo(52)}<label style="flex:1;display:flex;flex-direction:column;gap:4px;min-width:0"><span style="font-size:12px;font-weight:700">팀 이름</span>${own ? `<input class="inp" data-bind="tname" value="${esc(f.tname || "")}" maxlength="40" style="height:46px;font-weight:700;font-size:18px">` : `<b class="bh" style="font-size:22px">${esc(S.team.name)}</b>`}</label></div>
+    <div class="spread" style="border-bottom:1px solid ${C.line};padding-bottom:14px"><b style="font-size:15px">종목</b><span style="font-size:15px">${sport() === "soccer" ? "축구팀" : "풋살팀"} <span class="note">만든 뒤에는 바꿀 수 없어요</span></span></div>
+    <div class="fld"><b style="font-size:15px">초대 링크</b><div class="box" style="flex-direction:row;align-items:center;gap:10px;padding:10px 10px 10px 14px;border-radius:12px"><span class="bc" style="flex:1;min-width:0;font-size:16px;word-break:break-all">${esc(link.replace(/^https?:\/\//, "") || "링크를 만드는 중이에요")}</span><button class="btn sm" data-act="copyLink">복사</button></div><span class="note">${ap ? "링크로 들어온 사람은 가입 신청을 남기고, 운영진이 받으면 팀원이 돼요." : "링크로 들어온 사람은 바로 팀원으로 시작해요."}</span></div>
+    <button type="button" class="row" data-act="aJoinAp" aria-pressed="${ap}" ${own ? "" : "disabled"} style="width:100%;border:0;border-top:2px solid ${C.ink};background:transparent;padding:14px 0 0;text-align:left;gap:12px"><span style="flex:1;display:flex;flex-direction:column;gap:2px"><b style="font-size:16px">가입 승인제</b><span class="note">${ap ? "켜짐: 링크로 들어와도 운영진이 받아야 팀원이 돼요" : "꺼짐: 링크로 들어오면 바로 팀원이 돼요"}</span></span>${sw(ap)}</button>
+    <section style="display:flex;flex-direction:column">${head2("운영진", `<a href="#/members" style="font-size:13px">팀원에서 정하기</a>`)}${admins.map(m => { const p = profileOf(m.user_id) || {}; return `<div class="row" style="min-height:50px;border-bottom:1px solid ${C.line};gap:12px"><b class="bc" style="width:28px;font-size:18px">${esc(p.num || "-")}</b><span style="flex:1">${esc(nameOf(m.user_id))}${m.user_id === S.uid ? " (나)" : ""}</span><span class="tag ${m.role === "owner" ? "blue" : "gray"}">${ROLE[m.role]}</span></div>`; }).join("")}
+      <span class="note" style="padding-top:8px">Admin은 넘길 수 없어요. 팀을 나갈 때만 운영진 중에서 다음 Admin을 정해요.</span></section>
+    ${own ? `<button type="button" class="box" data-act="aTeamOut" style="flex-direction:row;align-items:center;gap:12px;border-radius:14px;text-align:left"><span class="ic clay" aria-hidden="true">${IC.bin}</span><b style="flex:1;color:#8C3B28">팀 지우기, 나가기</b>${IC.chev}</button>` : ""}
+  </div>${own ? `<div class="cta"><button class="btn o block" data-act="aSettingsSave">저장하기</button></div>` : nav("운영")}`;
 }
-function vUpload() {
-  const m = UI.match; const up = D("team").ledger || {};
-  if (!m) return `${top("거래내역 올리기", "#/dues")}<div class="body">
-    <div class="card"><b>통장 내역으로 한 번에 확인해요</b><span class="hint">보낸 사람 이름과 금액이 맞으면 납부 완료로 바꾸고, 나간 돈은 통장 내역에 적어 둬요.</span>
-      <div class="list">${[["카카오뱅크 앱에서 모임통장을 열어요", ""], ["거래내역을 파일로 저장해요", "엑셀이나 CSV"], ["저장한 파일을 아래에 올려요", ""]].map(([a, b], i) => `<div class="li"><span class="av" style="width:32px;height:32px">${i + 1}</span><span style="flex:1"><b>${a}</b>${b ? `<br><span class="hint">${b}</span>` : ""}</span></div>`).join("")}</div>
-      <label class="btn pri" style="cursor:pointer">파일 고르기<input type="file" id="upFile" accept=".csv,.xlsx,.xls,.txt" style="display:none"></label>
-      <span class="hint">안심: 날짜, 보낸 사람, 금액만 읽어요. 파일은 이 휴대폰 안에서만 읽고 어디에도 올리지 않아요.</span>${up.uploadAt ? `<span class="hint">마지막으로 올린 날 ${md(up.uploadAt.slice(0, 10))}, ${esc(nameOf(up.uploadBy))}</span>` : ""}</div></div>`;
-  const auto = m.rows.filter(r => r.kind === "auto"), ask = m.rows.filter(r => r.kind === "ask"), out = m.rows.filter(r => r.kind === "out");
-  return `${top("맞춰본 결과", "#/upload")}<div class="body">
-    <div class="card"><b>새 거래 ${m.rows.length}건을 찾았어요</b><span class="hint">${m.since ? md(m.since) + " 이후 내역이에요. " : ""}확인하고 반영해 주세요.</span></div>
-    ${auto.length ? `<div class="card"><b>자동으로 맞췄어요 ${auto.length}건</b><div class="list">${auto.map(r => `<div class="li"><span style="width:22px;color:#15803D;font-weight:900">✓</span><span style="flex:1"><b>${esc(nameOf(r.uid))}</b><br><span class="hint">${esc(md(r.date) + ", " + r.what)}</span></span><b style="color:#15803D">+ ${won(r.amount)}</b></div>`).join("")}</div></div>` : ""}
-    ${ask.length ? `<div class="card"><b>누가 보냈는지 골라 주세요 ${ask.length}건</b>${ask.map(r => `<div style="display:flex;flex-direction:column;gap:6px;border-top:1px solid #F3F4F6;padding-top:10px"><div class="spread"><span>${esc(md(r.date))}, 보낸 사람 <b>${esc(r.name)}</b></span><b style="color:#15803D">+ ${won(r.amount)}</b></div><select class="inp" data-match="${r.i}" aria-label="보낸 사람 고르기"><option value="">팀원 아님 (통장 내역에만)</option>${people().map(x => `<option value="${esc(x.uid)}" ${r.uid === x.uid ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select></div>`).join("")}<span class="hint">이름이 비슷한 팀원을 먼저 골라 뒀어요</span></div>` : ""}
-    ${out.length ? `<div class="card"><b>나간 돈 ${out.length}건</b>${out.map(r => `<div style="display:flex;flex-direction:column;gap:6px;border-top:1px solid #F3F4F6;padding-top:10px"><div class="spread"><span>${esc(md(r.date) + ", " + r.name)}</span><b style="color:#B91C1C">- ${won(r.amount)}</b></div><div class="chips">${["구장비", "장비", "회식", "기타"].map(c => `<button class="chip sm ${r.cat === c ? "on" : ""}" data-act="aMatchCat" data-i="${r.i}" data-v="${c}">${c}</button>`).join("")}</div></div>`).join("")}</div>` : ""}
-  </div><div class="cta"><button class="btn pri block" data-act="aMatchApply">${m.rows.length}건 반영하기</button><span class="hint" style="text-align:center">반영하면 팀원 회비 화면에도 바로 보여요</span></div>`;
+function teamOutSheet() {
+  const ads = S.members.filter(m => m.role === "admin"); if (!ads.some(m => m.user_id === AU.next)) AU.next = ads[0] ? ads[0].user_id : "";
+  const tab = (k, l) => `<button type="button" class="btn sm" data-to="${k}" aria-pressed="${AU.out === k}" style="font-size:13px;padding:0 6px${AU.out === k ? `;background:${C.blue}` : ""}">${l}</button>`;
+  const body = AU.out === "leave"
+    ? `<span style="font-size:14px;line-height:1.6">팀은 그대로 남고 나만 나가요. 다음 Admin은 운영진 중에서만 정할 수 있어요.</span>${ads.length ? `<label class="fld"><span class="lb">다음 Admin</span>${sel("toNext", ads.map(m => [m.user_id, `${numOf(m.user_id) ? numOf(m.user_id) + " " : ""}${nameOf(m.user_id)} (운영진)`]), AU.next)}</label><button class="btn block" id="toGo" style="background:${C.blue}">${esc(nameOf(AU.next))}에게 맡기고 나가기</button>` : `<div class="err">운영진이 없어요. 팀원 관리에서 먼저 운영진을 정해 주세요.</div>`}`
+    : `<span style="font-size:14px;line-height:1.6">매니볼에 평가를 남기면 팀을 지울 수 있어요. 일정, 참석, 회비, 기록, 팀원이 모두 지워지고 되돌릴 수 없어요.</span><label class="fld"><span class="lb">평가</span><textarea class="inp" id="toBody" maxlength="1000" placeholder="예: 팀이 해체돼서 지워요. 회비 화면은 편했어요"></textarea></label><button class="btn c block" id="toDel">평가 남기고 팀 지우기</button>`;
+  sheet(`<h3>${esc(S.team.name)}를 어떻게 할까요?</h3><div class="grid2">${tab("leave", "다음 Admin 정하고 나가기")}${tab("delete", "평가 남기고 팀 지우기")}</div>${body}<button class="btn block" data-act="closeSheet">닫기</button>`);
+  document.querySelectorAll("[data-to]").forEach(b => b.onclick = () => { AU.out = b.dataset.to; teamOutSheet(); });
+  if ($("#toNext")) $("#toNext").onchange = ev => { AU.next = ev.target.value; teamOutSheet(); };
+  if ($("#toGo")) $("#toGo").onclick = () => { const u = AU.next; if (!u) return; confirmBox(`${nameOf(u)}에게 맡기고 나갈까요?`, `${nameOf(u)} 님이 다음 Admin이 되고, 나는 ${S.team.name}에서 나가요. 다시 들어오려면 초대 링크가 필요해요. 되돌릴 수 없어요.`, "맡기고 나가기", async () => {
+    const { error } = await sb.rpc("leave_team_as_owner", { p_team: S.tid, p_next: u }); if (error) { fail(error); return; }
+    ls.set("mb-team", null); toast("팀에서 나왔어요"); setTimeout(() => location.replace(APP), 600);
+  }, true); };
+  if ($("#toDel")) $("#toDel").onclick = () => { const body = String(($("#toBody") || {}).value || "").trim(); if (body.length < 2) { toast("평가 내용을 적어 주세요"); return; }
+    confirmBox("팀을 지울까요?", `${S.team.name}의 일정, 참석, 회비, 기록, 팀원이 모두 사라져요. 되돌릴 수 없어요.`, "지우기", async () => {
+      const { error } = await sb.rpc("delete_team_with_review", { p_team: S.tid, p_body: body }); if (error) { fail(error); return; }
+      ls.set("mb-team", null); toast("팀을 지웠어요. 평가해 주셔서 고마워요"); setTimeout(() => location.replace(APP), 900);
+    }, true); };
 }
-async function readBankFile(file) {
-  let rows = [];
-  const head = new Uint8Array(await file.slice(0, 8).arrayBuffer());
-  if (head[0] === 0x50 && head[1] === 0x4B) { const { readSheet } = await import("read-excel-file/browser"); rows = (await readSheet(file)).map(r => r.map(c => c instanceof Date ? c.toISOString().slice(0, 16).replace("T", " ") : c == null ? "" : String(c))); }
-  else if (head[0] === 0xD0 && head[1] === 0xCF) throw new Error("예전 엑셀(.xls) 파일은 읽지 못해요. 엑셀에서 .xlsx나 CSV로 다시 저장해서 올려 주세요");
-  else if (/\.xls$/i.test(file.name) || /^\s*</.test(await file.slice(0, 200).text())) { const doc = new DOMParser().parseFromString(await file.text(), "text/html"); doc.querySelectorAll("script,style").forEach(e => e.remove()); rows = [...doc.querySelectorAll("tr")].map(tr => [...tr.cells].map(td => td.textContent.trim())); }
-  else { const txt = await file.text(); rows = txt.split(/\r?\n/).map(l => { const out = []; let cur = "", q = false; for (const ch of l) { if (ch === '"') q = !q; else if ((ch === "," || ch === "\t") && !q) { out.push(cur); cur = ""; } else cur += ch; } out.push(cur); return out; }); }
-  const hi = rows.findIndex(r => r.some(c => /거래일|일시|날짜/.test(String(c))) && r.some(c => /금액|입금|출금/.test(String(c))));
-  if (hi < 0) throw new Error("거래내역 표를 찾지 못했어요. 날짜, 내용, 금액 칸이 있는 파일인지 확인해 주세요");
-  const h = rows[hi].map(c => String(c || "").replace(/\s/g, ""));
-  const col = re => h.findIndex(c => re.test(c));
-  const cD = col(/거래일|일시|날짜/), cN = col(/적요|내용|보낸|받는|거래처|입금자|메모/), cIn = col(/입금/), cOut = col(/출금/), cAmt = col(/^거래금액$|^금액$/), cType = col(/구분|거래구분/);
-  const num = v => Number(String(v || "").replace(/[^0-9-]/g, "")) || 0;
-  return rows.slice(hi + 1).map(r => { const dm = String(r[cD] || "").match(/(\d{4})\D*(\d{1,2})\D*(\d{1,2})/); if (!dm) return null;
-    let amt = cIn >= 0 || cOut >= 0 ? (num(r[cIn]) || -num(r[cOut])) : num(r[cAmt]); if (cType >= 0 && /출금/.test(r[cType]) && amt > 0) amt = -amt;
-    return amt ? { date: `${dm[1]}-${dm[2].padStart(2, "0")}-${dm[3].padStart(2, "0")}`, name: String(r[cN] || "").trim().slice(0, 30), amount: amt } : null; }).filter(Boolean);
+
+/* ===================== 팀 탭 (운영진) ===================== */
+const GCODE = { 골키퍼: "GK", 수비: "DF", 미드필더: "MF", 공격: "FW" };
+function aMembers() {
+  const n = S.members.length;
+  return `${hd("팀원", back("#/team"), { sub: `${n}명, 눌러서 관리해요` })}<div class="body" style="gap:18px">
+    ${memberGroups().map(gr => `<section style="display:flex;flex-direction:column" aria-label="${esc(gr.g)}"><span class="spread" style="align-items:baseline;border-bottom:2px solid ${C.ink};padding-bottom:6px"><b class="bh" style="font-size:20px">${GCODE[gr.g] ? GCODE[gr.g] + " " : ""}${esc(gr.g)}</b><span style="font-size:13px">${gr.xs.length}명</span></span>
+      ${gr.xs.map(x => `<button type="button" class="row" data-act="aMember" data-u="${esc(x.uid)}" style="min-height:56px;border:0;border-bottom:1px solid ${C.line};background:transparent;gap:12px;text-align:left;padding:0"><b class="bc" style="flex:none;width:34px;font-size:22px;text-align:center">${esc(x.p.num || "-")}</b><span style="flex:1;font-size:16px;font-weight:700">${esc(x.name)}${x.uid === S.uid ? ` <span style="font-weight:500;color:${C.sub};font-size:13px">나</span>` : ""} ${x.role !== "member" ? `<span class="tag ${x.role === "owner" ? "blue" : "gray"}" style="font-size:11px">${ROLE[x.role]}</span>` : ""}</span><span class="bc" style="font-size:15px">${esc(posTxt(x.p))}</span></button>`).join("")}</section>`).join("") || empty("아직 팀원이 없어요")}
+  </div>${nav("팀")}`;
 }
-function buildMatch(tx) {
-  const since = (D("team").ledger || {}).uploadAt ? (D("team").ledger || {}).uploadLast || "" : "";
-  const ps = people(); const sim = n => ps.find(x => n && (n === x.name || n.includes(x.name) || x.name.includes(n) || (n.length >= 2 && x.name.startsWith(n.slice(0, 2)))));
-  const rows = tx.filter(t => !since || t.date > since).map((t, i) => {
-    if (t.amount < 0) return { i, kind: "out", date: t.date, name: t.name, amount: -t.amount, cat: /구장|풋살|축구장/.test(t.name) ? "구장비" : /마트|스포츠/.test(t.name) ? "장비" : "기타" };
-    const exact = ps.find(x => x.name === t.name); const o = exact ? owedOf(exact.uid) : null;
-    if (exact && o && o.total && (o.total === t.amount || o.items.some(it => it.amount === t.amount))) return { i, kind: "auto", date: t.date, name: t.name, amount: t.amount, uid: exact.uid, what: o.total === t.amount ? o.items.map(x => x.label).join(", ") : o.items.find(it => it.amount === t.amount).label };
-    const g = sim(t.name); return { i, kind: "ask", date: t.date, name: t.name, amount: t.amount, uid: g ? g.uid : "" };
-  });
-  return { rows, since, last: tx.reduce((m2, t) => t.date > m2 ? t.date : m2, since || "") };
+function memberSheet(u) {
+  const x = people().find(p => p.uid === u); if (!x) return;
+  const me = u === S.uid; const roleBtn = owner() && !me && x.role !== "owner";
+  sheet(`<div class="row" style="gap:12px"><b class="bc" style="font-size:44px;line-height:1">${esc(x.p.num || "")}</b><span style="display:flex;flex-direction:column;gap:2px"><b class="bh" style="font-size:24px">${esc(x.name)}</b><span style="font-size:13px">${esc(posTxt(x.p) || "포지션 미정")} ${ROLE[x.role]}</span></span></div>
+    ${me ? `<span class="note">나예요. 내 포지션은 홈에서 바꿔요.</span>` : ""}
+    ${roleBtn ? (x.role === "admin" ? `<button class="box" data-act="setRole" data-u="${esc(u)}" data-v="member" style="flex-direction:row;align-items:center;justify-content:space-between;border-radius:12px"><b>운영진에서 빼기</b><span class="tag blue">Admin</span></button>` : `<button class="box" data-act="setRole" data-u="${esc(u)}" data-v="admin" style="flex-direction:row;align-items:center;justify-content:space-between;border-radius:12px"><b>운영진으로 정하기</b><span class="tag blue">Admin</span></button>`) : ""}
+    ${canKick({ uid: u, role: x.role }) ? `<button class="box clay" data-act="aKick" data-u="${esc(u)}" style="border-radius:12px;text-align:left"><b>팀에서 내보내기</b></button>` : ""}
+    <span class="note">운영진은 팀원만 내보낼 수 있어요. 운영진을 정하고 빼는 일과 운영진을 내보내는 일은 Admin만 해요.</span>
+    <button class="btn block" data-act="closeSheet">닫기</button>`);
 }
-function vPlayerAdmin(u) {
-  const x = people().find(p => p.uid === u); if (!x) return vPlayers(); const y = todayStr().slice(0, 4); const evs = past().filter(e => e.date.startsWith(y));
-  const n = evs.filter(e => cameTo(e, u)).length, late = evs.filter(e => (e.check || {})[u] === "late").length, abs = evs.filter(e => (e.check || {})[u] === "absent").length;
-  let streak = 0; for (const e of evs) { if (cameTo(e, u)) break; streak++; }
-  const o = owedOf(u); const j = joinedOf(u); const owner = S.role === "owner";
-  const hist = []; if (feeMode() === "monthly") monthsList().slice(0, 4).forEach(m => hist.push([mLabel(m) + " 회비", paidOf("m-" + m, u)])); finesOf(u).slice(0, 4).forEach(f => hist.push([(f.reason || "벌금") + " 벌금 " + md(f.date || todayStr()), !!f.paid]));
-  return `${top("선수 정보", "#/players")}<div class="body">
-    <div class="card" style="align-items:center;text-align:center"><span class="av" style="width:72px;height:72px;font-size:28px">${esc(ini(x.name))}</span><b style="font-size:22px">${esc(x.name)} <span class="tag">${ROLE[x.role]}</span></b>${o.months ? `<span class="tag" style="background:#FEF2F2;color:#B91C1C">${o.months > 1 ? o.months + "달" : Number(ym().slice(5)) + "월"} 미납</span>` : ""}<span class="hint">${esc([x.p.num ? x.p.num + "번" : "", x.p.pos1, x.p.foot].filter(Boolean).join(", "))}</span>${j ? `<span class="hint">${j.slice(0, 4)}년 ${Number(j.slice(5, 7))}월에 들어왔어요</span>` : ""}</div>
-    <div class="card"><div class="spread"><b>이번 시즌</b><a class="hint" href="#/records" style="text-decoration:none">기록 보기 ›</a></div>${tilesA([tileA(n + "/" + evs.length, "출석"), tileA(late, "지각", "#B45309"), tileA(abs, "무단 결석", "#B91C1C")])}${streak >= 3 ? `<span class="hint" style="color:#B45309">최근 ${streak}번 연속 불참이에요</span>` : ""}</div>
-    <div class="card"><div class="spread"><b>회비와 벌금</b><a class="hint" href="#/dues" style="text-decoration:none">회비에서 보기 ›</a></div>${hist.length ? `<div class="list">${hist.map(([l, p]) => `<div class="li"><span style="flex:1">${esc(l)}</span><span class="tag ${p ? "" : "gray"}" style="${p ? "" : "background:#FEF2F2;color:#B91C1C"}">${p ? "납부" : "미납"}</span></div>`).join("")}</div>` : `<span class="hint">기록이 없어요.</span>`}${o.total ? `<div class="spread"><span>밀린 돈</span><b style="color:#B91C1C">${won(o.total)}</b></div><button class="btn sm" data-act="aCash" data-u="${esc(u)}" style="align-self:flex-start">현금으로 받음</button>` : ""}</div>
-    <div class="card"><b>포지션</b><div class="field"><span class="hint">1선호</span><div class="chips">${POS[sport()].map(p => `<button class="chip sm ${x.p.pos1 === p ? "on" : ""}" data-act="aSetPos" data-u="${esc(u)}" data-k="pos1" data-v="${p}">${p}</button>`).join("")}</div></div><div class="field"><span class="hint">2선호</span><div class="chips">${POS[sport()].filter(p => p !== x.p.pos1).map(p => `<button class="chip sm ${x.p.pos2 === p ? "on" : ""}" data-act="aSetPos" data-u="${esc(u)}" data-k="pos2" data-v="${p}">${p}</button>`).join("")}</div></div><span class="hint">누르면 바로 바뀌고 다음 라인업부터 반영돼요</span></div>
-    ${u !== S.uid ? `<div class="card"><div class="spread"><b>역할</b><span class="tag">${ROLE[x.role]}</span></div>${owner && x.role === "member" ? `<button class="btn" data-act="aPromote" data-u="${esc(u)}">운영진으로 지정</button>` : owner && x.role === "admin" ? `<button class="btn" data-act="setRole" data-u="${esc(u)}" data-v="member">팀원으로 바꾸기</button>` : ""}${canKick(x) ? `<button class="btn danger" data-act="kick" data-u="${esc(u)}">팀에서 내보내기</button>` : ""}<span class="hint">${x.role === "owner" ? "팀의 Admin이에요. Admin은 넘기거나 내보낼 수 없어요" : owner ? "운영진 지정과 해제는 Admin만 할 수 있어요" : x.role === "member" ? "운영진은 팀원을 내보낼 수 있어요. 운영진 지정과 해제는 Admin만 할 수 있어요" : "운영진 지정과 해제, 운영진 내보내기는 Admin만 할 수 있어요"}</span></div>` : `<a class="btn" href="#/me">내 프로필 수정</a>`}
-  </div>`;
+
+/* ---------- 공지 쓰기, 고치기 ---------- */
+function aNoticeForm(id) {
+  const f = S.form; const edit = !!id;
+  const tg = (k, t, s) => `<button type="button" class="row" data-act="aTog" data-k="${k}" aria-pressed="${!!f[k]}" style="width:100%;border:0;border-bottom:1px solid ${C.line};background:transparent;padding:12px 0;gap:12px;text-align:left"><span style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-size:16px">${t}</span><span class="note">${s}</span></span>${sw(!!f[k])}</button>`;
+  return `${hd(edit ? "공지 고치기" : "공지 쓰기", back("#/notices"), { sub: edit ? "고친 내용은 바로 보여요" : "올리면 팀원에게 보여요" })}<div class="body" style="gap:14px">
+    <label class="fld"><span class="lb">제목</span><input class="inp" data-bind="title" value="${esc(f.title || "")}" maxlength="60" placeholder="한 줄로 적어요"></label>
+    <label class="fld"><span class="lb">내용</span><textarea class="inp" data-bind="body" maxlength="3000" style="min-height:240px" placeholder="팀원에게 알릴 내용">${esc(f.body || "")}</textarea></label>
+    <div style="border-top:2px solid ${C.ink}">${tg("pinned", "맨 위에 고정", "고정 공지는 하나만 둘 수 있어요")}${edit ? "" : tg("notify", "팀원에게 알림 보내기", "끄면 공지 목록에만 올라가요")}</div>
+  </div><div class="cta"><button class="btn o block" id="nSave" data-act="aNoticeSave" data-id="${esc(id || "")}" ${String(f.title || "").trim() ? "" : "disabled"}>${edit ? "고친 내용 저장" : "올리기"}</button></div>`;
 }
-function vRulesEdit() {
+
+/* ---------- 수칙과 벌금 고치기 ---------- */
+function aRulesEdit() {
   const f = S.form;
-  return `${top("팀 수칙 수정", "#/players")}<div class="body">${rulesForm(f)}
-    <div class="card"><label class="spread" style="min-height:44px"><span><b>팀원에게 다시 동의 받기</b><br><span class="hint">저장하면 팀원이 다음에 들어올 때 바뀐 수칙에 동의해요</span></span><input type="checkbox" data-bind="reagree" ${f.reagree ? "checked" : ""} style="width:24px;height:24px;accent-color:#15803D"></label>
-    <span class="hint">벌금 금액을 바꾸면 그다음 일정부터 적용돼요. 이미 매긴 벌금은 그대로예요.</span></div>
-  </div><div class="cta"><button class="btn pri block" data-act="aRulesSave">저장하기</button></div>`;
+  return `${hd("수칙과 벌금 고치기", back("#/team"), { sub: "고치면 팀원에게 알림이 가요" })}<div class="body" style="gap:14px">
+    <label class="fld"><span class="lb">팀 수칙</span><span class="note" style="margin-top:-4px">"1. 2."처럼 번호를 직접 적어요</span><textarea class="inp" data-bind="rulesText" style="min-height:220px" maxlength="2000" placeholder="1. 경기 10분 전까지 와요">${esc(f.rulesText || "")}</textarea></label>
+    <section style="display:flex;flex-direction:column;gap:10px">${head2("벌금")}
+      ${(f.rules || []).map((r, i) => `<div style="display:grid;grid-template-columns:1fr 104px 46px;gap:8px"><input class="inp" data-rule="${i}" data-f="label" value="${esc(r.label)}" placeholder="예: 지각" maxlength="40" aria-label="벌금 ${i + 1} 이름"><input class="inp" data-rule="${i}" data-f="amount" value="${esc(r.amount || "")}" inputmode="numeric" placeholder="금액" aria-label="벌금 ${i + 1} 금액" style="text-align:right;font-weight:700"><button type="button" class="btn c" data-act="ruleDel" data-i="${i}" aria-label="벌금 ${i + 1} 지우기" style="padding:0;height:52px">✕</button></div>`).join("")}
+      <button type="button" data-act="ruleAdd" style="height:52px;border:2px dashed ${C.ink};border-radius:12px;background:transparent;font-weight:700;font-size:15px">벌금 항목 더하기</button>
+      <span class="note">지각, 말없이 불참은 현장 출석에서, 불참 변경 벌금은 팀원이 기준 시각 뒤에 불참으로 바꿀 때 이 금액으로 붙어요. 불참 벌금이 언제부터 붙는지 같은 기본 규칙은 운영 탭에서 Admin이 바꿔요.</span></section>
+  </div><div class="cta"><button class="btn o block" data-act="aRulesSave">저장하기</button></div>`;
 }
-function vUniform() {
-  const f = S.form; const me = myProfile() || {};
-  return `${top("팀 유니폼", "#/players")}<div class="body"><div class="card" style="align-items:center"><span class="hint">팀원마다 자기 등번호가 들어가요. 예시는 ${esc(me.name || "나")} ${esc(me.num || "7")}번</span>${jersey(200, me.num || "7", f.kit)}</div>
-    <div class="card"><span class="lab">유니폼 색</span><div class="chips">${KIT.map(([c, l]) => `<button class="chip sm ${f.kit === c ? "on" : ""}" data-act="pick" data-k="kit" data-v="${c}"><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${c};border:1px solid #D1D5DB;vertical-align:-2px"></span> ${l}</button>`).join("")}</div>
-      <span class="hint">사진으로 올리는 기능은 사진 저장 공간을 연결한 뒤에 열려요. 지금은 팀 색으로 기본 유니폼이 보여요.</span>
-      <span class="hint">팀원 홈 화면의 선수 카드와 가입할 때 선수 등록 화면에 쓰여요.</span></div>
-  </div><div class="cta"><button class="btn pri block" data-act="aUniformSave">저장하기</button></div>`;
+
+/* ===================== 기록 (운영진) ===================== */
+function aSeason() {
+  const y = todayStr().slice(0, 4); const evs = seasonEvents(y).filter(isPlay); const r = teamRecord(evs); const st = myStats(S.uid, y);
+  const mine = evs.slice().reverse();
+  const lateVote = (e, u) => ((((S.rsvp[u] || {}).ev || {})[e.id]) || {}).s === "late";
+  const cnt = u => { let a = 0, l = 0, t = 0, n = 0; evs.forEach(e => { if (!cameTo(e, u)) { n++; return; } if ((e.check || {})[u] === "late") t++; else if (lateVote(e, u)) l++; else a++; }); return { a, l, t, n }; };
+  const my = cnt(S.uid);
+  const cn = (v, l, c, ex = "") => `<span style="display:flex;flex-direction:column;gap:2px"><b class="bc" style="font-size:26px;line-height:1">${v}</b><span style="display:inline-flex;align-items:center;gap:5px;font-size:12px"><span style="width:9px;height:9px;background:${c};${ex}"></span>${l}</span></span>`;
+  const ps = people().sort((a, b) => (Number(a.p.num) || 999) - (Number(b.p.num) || 999));
+  return `${hd(y + " 시즌", back("#/records"), { sub: "내전은 팀 성적에서 빼고 셌어요" })}<div class="body" style="gap:16px">
+    <div class="spread" style="border-top:2px solid ${C.ink};border-bottom:1px solid ${C.line};padding:12px 0"><span style="font-size:13px;font-weight:700">팀 성적</span><span class="bc" style="display:flex;align-items:baseline;gap:10px"><span style="font-size:30px">${r.w}<small style="font-size:16px">승</small> ${r.d}<small style="font-size:16px">무</small> ${r.l}<small style="font-size:16px">패</small></span><span style="font-size:15px;color:${C.sub}">득 ${r.gf}  실 ${r.ga}</span></span></div>
+    <div class="box gray" style="border-radius:18px;gap:12px"><span class="spread" style="align-items:baseline"><b style="font-size:15px">내 출석</b><span style="font-size:13px">${st.n}번 중 <b class="bc" style="font-size:20px">${st.mine}</b>번 왔어요</span></span>
+      ${mine.length ? `<div style="display:grid;grid-template-columns:repeat(${Math.min(8, mine.length)},minmax(0,1fr));gap:4px;border-top:2px dashed rgba(20,24,43,.35);padding-top:12px">${mine.slice(-8).map(e => { const c = cameTo(e, S.uid); const late = (e.check || {})[S.uid] === "late" || (c && lateVote(e, S.uid)); return `<span style="display:flex;flex-direction:column;align-items:center;gap:4px"><span style="width:22px;height:22px;border-radius:50%;border:2px solid ${C.ink};background:${c ? (late ? C.orange : C.green) : C.bg}"></span><span class="bc" style="font-size:12px;font-weight:600">${md(e.date)}</span></span>`; }).join("")}</div>` : ""}
+      <div class="grid4" style="border-top:1px solid rgba(20,24,43,.2);padding-top:10px;gap:0">${cn(my.a, "참석", C.green)}${cn(my.l, "늦참", C.orange)}${cn(my.t, "지각", C.bg, `border:1.5px solid ${C.ink};box-sizing:border-box`)}${cn(my.n, "불참", C.clay)}</div></div>
+    <section style="display:flex;flex-direction:column">${head2("팀원 출석", `<span class="note">등번호 순, 운영진만 보여요</span>`)}
+      <div style="display:grid;grid-template-columns:28px 1fr repeat(4,38px);gap:4px;font-size:12px;color:${C.sub};padding:8px 0;border-bottom:1px solid ${C.line}"><span></span><span>이름</span><span style="text-align:center">참석</span><span style="text-align:center">늦참</span><span style="text-align:center">지각</span><span style="text-align:center">불참</span></div>
+      ${ps.map(x => { const c = cnt(x.uid); return `<div style="display:grid;grid-template-columns:28px 1fr repeat(4,38px);gap:4px;align-items:center;min-height:44px;border-bottom:1px solid ${C.line};font-size:15px"><b class="bc">${esc(x.p.num || "-")}</b><span>${esc(x.name)}</span>${[c.a, c.l, c.t, c.n].map(v => `<b class="bc" style="text-align:center;font-size:17px">${v}</b>`).join("")}</div>`; }).join("")}
+    </section>
+  </div>${nav("기록")}`;
 }
-const AACT3 = {
-  aPaySel: t => { UI.paySel = { ...(UI.paySel || {}), [t.dataset.id]: t.checked }; render(); },
-  aPayBulk: async t => {
-    const sel = UI.paySel || {}; const list = []; Object.entries(D("payreq")).forEach(([u, d]) => Object.entries((d && d.items) || {}).forEach(([k, it]) => { if (it && it.status === "req" && sel[u + "|" + k] !== false) list.push([u, k, it]); }));
-    if (!list.length) return; t.disabled = true;
-    try { for (const [u, k, it] of list) { for (const ref of it.refs || []) { if (ref.kind === "dues") { const cur = { ...(D("dues")[ref.key] || {}) }; cur[u] = "paid"; cur._at = { ...(cur._at || {}), [u]: todayStr() }; await setDoc("dues", ref.key, cur); } else if (ref.kind === "fine" && D("fines")[ref.id]) await setDoc("fines", ref.id, { ...D("fines")[ref.id], paid: true, paidAt: todayStr() }); } await patchDoc("payreq", u, { items: { [k]: { status: "ok", doneAt: new Date().toISOString() } } }); }
-      UI.paySel = {}; await syncMyDues(list.map(x => x[0])); render(); toast(`${[...new Set(list.map(x => nameOf(x[0])))].join(", ")} 납부를 확인했어요`); } catch (err) { t.disabled = false; fail(err); }
-  },
-  aCash: t => { const u = t.dataset.u; const o = owedOf(u);
-    confirmBox("현금으로 받았어요", `${nameOf(u)}, ${o.items.map(x => x.label).join(", ")} ${won(o.total)}을 받은 걸로 할까요?`, "받음", async () => {
-      try { for (const it of o.items) { if (it.kind === "dues") { const cur = { ...(D("dues")[it.key] || {}) }; cur[u] = "paid"; cur._at = { ...(cur._at || {}), [u]: todayStr() }; await setDoc("dues", it.key, cur); } else await setDoc("fines", it.id, { ...D("fines")[it.id], paid: true, paidAt: todayStr() }); }
-        const items = ((D("team").ledger || {}).items || []).concat([{ id: uid36("l"), date: todayStr(), type: "in", cat: "회비", label: nameOf(u) + " " + o.items.map(x => x.label).join(", ") + " (현금)", amount: o.total }]); await setDoc("team", "ledger", { ...(D("team").ledger || {}), items });
-        await syncMyDues([u]); render(); toast("받음으로 바꾸고 통장 내역에 적었어요"); } catch (err) { fail(err); } }); },
-  aDuesRemind: () => { const ps = people().filter(x => owedOf(x.uid).total);
-    sheet(`<h3>미납 ${ps.length}명에게 알려요</h3><span class="hint">팀원 알림함에 회비 알림이 가요</span><div class="list" style="max-height:40vh;overflow:auto">${ps.map(x => `<div class="li"><b style="flex:1">${esc(x.name)}</b><span>${won(owedOf(x.uid).total)}</span></div>`).join("")}</div><div class="row"><button class="btn block" data-act="closeSheet">취소</button><button class="btn pri block" id="drSend">알림 보내기</button></div>`);
-    $("#drSend").onclick = async () => { try { await setDoc("team", "duesRemind", { at: new Date().toISOString(), by: S.uid, to: ps.map(x => x.uid) }); closeSheet(); toast("미납 " + ps.length + "명에게 알렸어요"); } catch (err) { fail(err); } }; },
-  aSaveDues: async t => { const f = S.form; t.disabled = true;
-    try { await setDoc("team", "settings", { ...S.settings, feeMode: f.feeMode, fee: f.feeMode === "none" ? 0 : Number(String(f.fee || "").replace(/\D/g, "")) || 0, dueDay: f.feeMode === "monthly" ? f.dueDay || "5" : "", bank: { bank: String(f.bank || "").trim(), account: String(f.account || "").trim(), holder: String(f.holder || "").trim() }, remindEve: !!f.remindEve, remindAfter: !!f.remindAfter }); await syncMyDues(); toast("저장했어요"); location.hash = "#/dues"; } catch (err) { t.disabled = false; fail(err); } },
-  aSpendSave: async t => { const f = S.form; const amount = Number(String(f.amount || "").replace(/\D/g, "")); if (!amount) { toast("금액을 적어 주세요"); return; } t.disabled = true;
-    const items = ((D("team").ledger || {}).items || []).concat([{ id: uid36("l"), date: f.date || todayStr(), type: f.type === "in" ? "in" : "out", cat: f.cat || "기타", label: String(f.label || f.cat || "기타").trim().slice(0, 40), amount }]);
-    try { await setDoc("team", "ledger", { ...(D("team").ledger || {}), items }); toast("기록했어요"); location.hash = "#/ledger"; } catch (err) { t.disabled = false; fail(err); } },
-  aMatchCat: t => { const r = UI.match.rows.find(x => x.i === Number(t.dataset.i)); if (r) r.cat = t.dataset.v; render(); },
-  aMatchApply: async t => { const m = UI.match; if (!m) return; t.disabled = true; const items = ((D("team").ledger || {}).items || []).slice(); const touched = new Set();
-    try {
-      for (const r of m.rows) {
-        if (r.kind === "out") { items.push({ id: uid36("l"), date: r.date, type: "out", cat: r.cat, label: r.name, amount: r.amount }); continue; }
-        items.push({ id: uid36("l"), date: r.date, type: "in", cat: r.uid ? "회비" : "기타", label: r.uid ? nameOf(r.uid) + " 입금" : r.name, amount: r.amount });
-        if (!r.uid) continue; let left = r.amount; const o = owedOf(r.uid); touched.add(r.uid);
-        for (const it of o.items) { if (left < it.amount) continue; left -= it.amount; if (it.kind === "dues") { const cur = { ...(D("dues")[it.key] || {}) }; cur[r.uid] = "paid"; cur._at = { ...(cur._at || {}), [r.uid]: r.date }; await setDoc("dues", it.key, cur); } else await setDoc("fines", it.id, { ...D("fines")[it.id], paid: true, paidAt: r.date }); }
-        const pr = Object.entries(((D("payreq")[r.uid] || {}).items) || {}).filter(([, it]) => it.status === "req"); for (const [k] of pr) await patchDoc("payreq", r.uid, { items: { [k]: { status: "ok", doneAt: new Date().toISOString() } } });
-      }
-      await setDoc("team", "ledger", { ...(D("team").ledger || {}), items, uploadAt: new Date().toISOString(), uploadBy: S.uid, uploadLast: m.last });
-      await syncMyDues([...touched]); UI.match = null; toast(`${m.rows.length}건을 반영했어요`); location.hash = "#/dues";
-    } catch (err) { t.disabled = false; fail(err); } },
-  aSetPos: async t => { const u = t.dataset.u; const r = S.rsvp[u] || {}; const p = { ...(r.profile || {}) }; p[t.dataset.k] = p[t.dataset.k] === t.dataset.v && t.dataset.k === "pos2" ? "" : t.dataset.v; if (p.pos2 === p.pos1) p.pos2 = "";
-    try { await patchDoc("rsvp", u, { profile: p }); render(); } catch (err) { fail(err); } },
-  aPromote: t => { const u = t.dataset.u; confirmBox(`${nameOf(u)} 님을 운영진으로 지정할까요?`, "운영진은 일정 올리기, 라인업 짜기, 현장 출석과 벌금, 회비 확인과 알림, 선수 포지션 바꾸기를 할 수 있어요. 운영진 지정과 해제는 Admin만 할 수 있어요. 운영진은 팀원을 내보낼 수 있어요.", "지정하기", async () => { const { error } = await sb.rpc("set_member_role", { p_team: S.tid, p_user: u, p_role: "admin" }); if (error) fail(error); else { toast("운영진으로 지정했어요"); refreshMembers(); } }); },
-  aRulesSave: async t => { const f = S.form; t.disabled = true; const R = rulesFromForm(f);
-    try { await setDoc("team", "settings", { ...S.settings, ...R, rulesAt: new Date().toISOString(), rulesAgreeAt: f.reagree ? new Date().toISOString() : (S.settings.rulesAgreeAt || "") }); toast(f.reagree ? "저장했어요. 팀원이 다음에 들어오면 다시 동의해요" : "저장했어요"); location.hash = "#/players"; } catch (err) { t.disabled = false; fail(err); } },
-  aUniformSave: async t => { t.disabled = true; try { await setDoc("team", "settings", { ...S.settings, uniformColor: S.form.kit || S.settings.uniformColor }); toast("저장했어요"); location.hash = "#/players"; } catch (err) { t.disabled = false; fail(err); } },
-  aNoticeSave: async t => {
-    const f = S.form; if (!String(f.title || "").trim()) { toast("제목을 적어 주세요"); return; } t.disabled = true;
-    const opts = (f.opts || []).filter(o => String(o.label).trim()).map((o, i) => ({ id: "o" + (i + 1), label: String(o.label).trim().slice(0, 40) }));
-    if (f.poll && opts.length < 2) { t.disabled = false; toast("설문 보기를 두 개 이상 적어 주세요"); return; }
-    try {
-      if (f.pinned) for (const [id, n] of Object.entries(D("notices"))) if (n.pinned) await setDoc("notices", id, { ...n, pinned: false });
-      await setDoc("notices", uid36("n"), { title: String(f.title).trim(), body: String(f.body || "").trim(), pinned: !!f.pinned, by: S.uid, at: new Date().toISOString(), poll: f.poll ? { opts, until: f.until ? new Date(f.until + "T23:59:00+09:00").toISOString() : "" } : null });
-      toast("공지를 올렸어요"); location.hash = "#/notices";
-    } catch (err) { t.disabled = false; fail(err); }
-  },
-};
-function adminForm(r) {
-  if (r === "/dues-settings") { const st = S.settings; const b = st.bank || {}; S.form = { feeMode: st.feeMode || "none", fee: st.fee ? String(st.fee) : "", dueDay: st.dueDay || "5", bank: b.bank || "", account: b.account || "", holder: b.holder || "", remindEve: !!st.remindEve, remindAfter: !!st.remindAfter }; return true; }
-  if (r === "/spend") { S.form = { type: "out", date: new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10), cat: "구장비", amount: "", label: "" }; return true; }
-  if (r === "/upload") { UI.match = null; return true; }
-  if (r === "/rules-edit") { S.form = { ...rulesFormInit(S.settings), reagree: false }; return true; }
-  if (r === "/uniform") { S.form = { kit: S.settings.uniformColor || "#164F33" }; return true; }
-  if (r === "/notice-new") { S.form = { title: "", body: "", pinned: false, poll: "", opts: [{ label: "" }, { label: "" }], until: "" }; return true; }
+function aResult(id) {
+  const e = S.events[id]; if (!e) return null; const f = S.form; const scrim = e.type === "scrim";
+  const home = scrim ? "A팀" : S.team.name; const away = scrim ? "B팀" : e.opponent || "상대";
+  const came = people().filter(x => cameTo(e, x.uid)); const pool = came.length ? came : people();
+  const opts = [["", "모름"], ...pool.map(x => [x.uid, x.name]), ...guestsOf(e).map(g => ["g:" + g.id, g.name + " (용병)"])];
+  const aopts = [["", "도움 없음"], ...opts.slice(1)];
+  const goals = f.goals || []; const need = scrim ? (Number(f.us) || 0) + (Number(f.them) || 0) : Number(f.us) || 0;
+  const sideOk = !scrim || (goals.filter(g => g.side === "A").length === (Number(f.us) || 0) && goals.filter(g => g.side === "B").length === (Number(f.them) || 0));
+  const ok = goals.length === need && sideOk;
+  const step = (k, plus) => `<button type="button" class="btn sm" data-act="aScore" data-k="${k}" data-d="${plus ? 1 : -1}" aria-label="${plus ? "더하기" : "빼기"}" style="width:40px;padding:0;font-size:20px${plus ? `;background:${k === "us" ? C.blue : C.gray}` : ""}">${plus ? "+" : "−"}</button>`;
+  return `${hd("결과 입력", back("#/game/" + id), { sub: `${md(e.date)} ${wd(e.date)} ${vsText(e)}` })}<div class="body" style="gap:16px">
+    <div class="box gray" style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;border-radius:18px;padding:18px 12px"><b style="font-size:15px;text-align:center">${esc(home)}</b><b class="bc" style="font-size:56px;line-height:1">${Number(f.us) || 0} : ${Number(f.them) || 0}</b><b style="font-size:15px;text-align:center">${esc(away)}</b></div>
+    <section style="display:flex;flex-direction:column;gap:10px">${head2("최종 점수")}
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px"><span style="display:flex;flex-direction:column;align-items:center;gap:6px"><span style="font-size:12px;font-weight:700">${esc(home)}</span><span class="row">${step("us", false)}<b class="bc" style="width:34px;text-align:center;font-size:30px">${Number(f.us) || 0}</b>${step("us", true)}</span></span><b>:</b><span style="display:flex;flex-direction:column;align-items:center;gap:6px"><span style="font-size:12px;font-weight:700">${esc(away)}</span><span class="row">${step("them", false)}<b class="bc" style="width:34px;text-align:center;font-size:30px">${Number(f.them) || 0}</b>${step("them", true)}</span></span></div></section>
+    <section style="display:flex;flex-direction:column;gap:10px">${head2(scrim ? "골" : "우리 골", ok ? `<span class="tag green">점수와 골 기록이 맞아요</span>` : `<span class="tag orange">골 기록 ${goals.length}개, 점수 ${need}골</span>`)}
+      ${goals.map((g, i) => `<div class="box" style="border-radius:14px;gap:8px"><span class="spread"><b style="font-size:14px">${i + 1}번째 골</b><button type="button" class="lnk" data-act="aGoalDel" data-i="${i}" style="min-height:32px;padding:0;color:#8C3B28;font-size:13px">빼기</button></span>
+        <div class="grid2"><label class="fld"><span style="font-size:12px;font-weight:700">골</span>${sel("g" + i, opts, g.uid || "", `data-goal="${i}" data-gf="uid"`)}</label><label class="fld"><span style="font-size:12px;font-weight:700">도움</span>${sel("a" + i, aopts, g.assist || "", `data-goal="${i}" data-gf="assist"`)}</label></div>
+        ${scrim ? `<div class="grid2">${["A", "B"].map(s => `<button type="button" class="chip${g.side === s ? " on" : ""}" data-act="aGoalSide" data-i="${i}" data-v="${s}">${s}팀 골</button>`).join("")}</div>` : ""}</div>`).join("")}
+      <button type="button" data-act="aGoalAdd" style="height:48px;border:2px dashed ${C.ink};border-radius:12px;background:transparent;font-weight:700">골 더하기</button>
+      <span class="note">저장하면 이날 온 사람에게 MOM 투표가 열려요. 투표는 다음 날 12시에 마감돼요.</span></section>
+  </div><div class="cta"><button class="btn o block" data-act="aSaveResult" data-eid="${esc(e.id)}">저장하기</button></div>`;
+}
+
+/* ===================== 일정 (운영진) ===================== */
+function schedSheet() {
+  const ready = Object.values(S.events).filter(scrimReady);
+  const row = (h, icon, tone, t, s, tag, dis) => `<button type="button" class="box" ${dis ? "disabled" : `data-act="goTo" data-h="${esc(h)}"`} style="flex-direction:row;align-items:center;gap:12px;border-radius:14px;text-align:left;${dis ? `opacity:.55;border-style:dashed` : ""}"><span class="ic ${tone}" aria-hidden="true">${icon}</span><span style="flex:1;display:flex;flex-direction:column;gap:2px"><b style="font-size:16px">${t}</b><span style="font-size:12px">${s}</span></span>${tag || IC.chev}</button>`;
+  sheet(`<div class="spread"><h3>일정 관리</h3><span class="note">운영진만 보여요</span></div>
+    ${row("#/new", IC.plus, "orange", "일정 올리기", "올리면 팀원에게 알림이 가요")}
+    ${ready.length ? ready.map(e => { const a = att(e); return row("#/scrim/" + e.id, IC.split, "green", "내전 정하기", `${md(e.date)} ${wd(e.date)} 상대 미정, ${a.in + a.wait.length}명 모였어요`, `<span class="tag orange">결정 필요</span>`); }).join("") : row("", IC.split, "green", "내전 정하기", `상대 미정 일정에 ${pol("scrimMin")}명이 모이면 열려요`, "", true)}
+    <span class="note">한 경기의 명단, 라인업, 출석, 용병은 그 경기를 열고 관리를 눌러요.</span>
+    <button class="btn block" data-act="closeSheet">닫기</button>`);
+}
+function toolCard(href, act, icon, tone, t, s, extra = "") {
+  const inner = `<span class="ic ${tone}" aria-hidden="true" style="width:34px;height:34px;border-radius:10px">${icon}</span><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><b style="font-size:15px">${t}</b><span style="font-size:12px;color:${C.sub};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s}</span></span>`;
+  const st = `flex-direction:row;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;text-decoration:none;text-align:left;min-height:60px`;
+  return href ? `<a class="box" href="${esc(href)}" style="${st}">${inner}</a>` : `<button type="button" class="box" data-act="${act}" ${extra} style="${st}">${inner}</button>`;
+}
+function aManage(id) {
+  const e = S.events[id]; if (!e) return null; const a = att(e); const play = isPlay(e);
+  const pend = guestReqs(e).filter(g => g.status === "req").length; const ck = Object.values(e.check || {}).filter(Boolean).length;
+  const lu = e.lineupAt ? "알렸어요" : e.lineup && Object.keys(e.lineup).length ? "아직 안 알림" : "아직 안 짰어요";
+  return `${hd("일정 관리", back("#/event/" + id), { sub: evLabel(e) })}<div class="body tight">
+    ${bigTicket(e, a)}
+    ${strip(a)}
+    ${scrimReady(e) ? `<a class="box orange" href="#/scrim/${esc(id)}" style="flex-direction:row;align-items:center;gap:10px;border-radius:12px;background:${C.orange};text-decoration:none"><b style="flex:1">내전으로 할지 정해 주세요</b>${IC.chev}</a>` : ""}
+    <section style="display:flex;flex-direction:column;gap:10px;margin-top:4px"><span class="row" style="border-bottom:2px solid ${C.ink};padding-bottom:6px;gap:8px"><b style="font-size:15px">운영진</b><span class="note">팀원 화면에는 보이지 않아요</span></span>
+      <div class="grid2">
+        ${toolCard("#/roster/" + id, "", IC.list, "blue", "참석 명단", `미응답 ${a.none.length}명`)}
+        ${play ? toolCard("#/lineup/" + id, "", IC.field, "green", "라인업 짜기", lu) : ""}
+        ${toolCard("#/check/" + id, "", IC.check, "orange", "현장 출석", ck ? `${ck}명 체크함` : `경기 날 ${checkTime(e) || "-"}`)}
+        ${e.type !== "training" ? toolCard("#/merc/" + id, "", IC.merc, "pink", "용병 받기", e.guestOpen ? `받는 중${pend ? ", 신청 " + pend : ""}` : pend ? `신청 ${pend}` : "안 받음") : ""}
+        ${play && started(e) ? toolCard("#/result/" + id, "", IC.ball, "pink", "결과 넣기", e.score ? `${e.score.us}:${e.score.them}` : "아직 안 넣었어요") : ""}
+        ${toolCard("#/edit/" + id, "", IC.pen, "", "일정 고치기", "시간, 장소, 정원")}
+        ${toolCard("", "aDelEvent", IC.trash, "clay", "일정 지우기", "되돌릴 수 없어요", `data-eid="${esc(id)}"`)}
+      </div></section>
+  </div>${nav("일정")}`;
+}
+const RF = [["yes", "참석"], ["late", "늦참"], ["wait", "대기"], ["no", "불참"], ["none", "미응답"]];
+const REMIND_GAP = 3600e3;
+export const remindLeft = () => { const r = remindInfo(); return r && r.at ? Math.max(0, Date.parse(r.at) + REMIND_GAP - Date.now()) : 0; };
+function aRoster(id) {
+  const e = S.events[id]; if (!e) return null; const a = att(e);
+  const rf = RF.some(([k]) => k === AU.rf) ? AU.rf : a.none.length ? "none" : "yes";
+  const list = a[rf] || []; const left = remindLeft(); const vs = voteState(e);
+  const sub = x => { const v = (((S.rsvp[x.uid] || {}).ev || {})[e.id]) || {}; if (x.guest) return "용병"; if (rf === "late" || (rf === "wait" && x.s === "late")) return `${posTxt(x.p)}${v.q ? ", " + v.q + "Q부터" : ""}`; if (rf === "no" && v.lateCancel) return `마감 뒤 불참${v.reason ? ", " + v.reason : ""}`; return posTxt(x.p); };
+  return `${hd("참석 명단", back("#/manage/" + id), { sub: `${md(e.date)} ${wd(e.date)} ${kindOf(e)}, 팀원 ${S.members.length}명` })}<div class="body" style="gap:10px">
+    <div class="row" style="gap:6px;flex-wrap:wrap">${RF.filter(([k]) => !(k === "late" && sport() === "futsal")).map(([k, l]) => `<button type="button" class="chip" data-act="aRf" data-v="${k}" aria-pressed="${k === rf}" style="border-radius:999px;padding:0 10px;font-size:14px${k === rf ? `;background:${C.gray};box-shadow:2px 2px 0 ${C.ink}` : ""}">${l} ${(a[k] || []).length}</button>`).join("")}</div>
+    <div style="display:flex;flex-direction:column">${list.map((x, i) => `<div class="row" style="min-height:56px;border-bottom:1px solid ${C.line};gap:12px"><b class="bc" style="width:30px;font-size:19px;text-align:center">${rf === "wait" ? i + 1 : esc(x.p && x.p.num || "")}</b><span style="flex:1;display:flex;flex-direction:column;gap:1px"><b style="font-size:16px">${esc(x.name)}</b><span style="font-size:12px;color:${C.sub}">${esc(sub(x))}</span></span>${x.guest ? `<span class="tag pink">용병</span>` : ""}</div>`).join("") || `<span class="note" style="padding:16px 0">없어요</span>`}</div>
+  </div>${rf === "none" && a.none.length && vs !== "done" ? `<div class="cta"><button class="btn o block" data-act="aRemind" data-eid="${esc(id)}" ${left ? "disabled" : ""}>${left ? `${Math.ceil(left / 60000)}분 뒤에 다시 보낼 수 있어요` : `미응답 ${a.none.length}명에게 알리기`}</button><span class="note" style="text-align:center">운영진 모두 합쳐 1시간에 한 번만 보낼 수 있어요.</span></div>` : nav("일정")}`;
+}
+export function remindSheet(eid) { const e = S.events[eid]; if (!e) return; const a = att(e);
+  confirmBox(`미응답 ${a.none.length}명에게 알릴까요?`, `${md(e.date)} ${wd(e.date)} ${kindOf(e)} 참석 응답을 기다린다고 알림이 가요. 운영진 모두 합쳐 1시간에 한 번만 보낼 수 있어요.`, "알리기", async () => {
+    if (remindLeft()) { toast("조금 전에 다른 운영진이 보냈어요"); render(); return; }
+    try { await setDoc("team", "remind", { at: new Date().toISOString(), by: S.uid, eid: e.id, to: a.none.map(x => x.uid) }); render(); toast(`미응답 ${a.none.length}명에게 알렸어요`); } catch (err) { fail(err); }
+  });
+}
+function aCheck(id) {
+  const e = S.events[id]; if (!e) return null; const a = att(e); const ck = e.check || {};
+  const rows = [...a.yes, ...a.late].concat([...a.no, ...a.none, ...a.wait].filter(x => ck[x.uid]));
+  const going = new Set([...a.yes, ...a.late].map(x => x.uid));
+  const fl = Object.keys(ck).filter(u => !u.startsWith("g:") && (ck[u] === "late" || (ck[u] === "absent" && going.has(u)))).length;
+  const b = (u, v, l, c) => `<button type="button" class="btn xs" data-act="checkSet" data-eid="${esc(id)}" data-u="${esc(u)}" data-v="${v}" aria-pressed="${ck[u] === v}" style="min-width:44px;padding:0 6px${ck[u] === v ? `;background:${c}` : ""}">${l}</button>`;
+  return `${hd("현장 출석", back("#/manage/" + id), { sub: checkTime(e) ? `${checkTime(e)}에 출석 불러요 (시작 ${cbOf(e)}분 전)` : evLabel(e) })}<div class="body" style="gap:8px">
+    <span class="note">출석 부를 때 없으면 지각이에요. 늦참은 고른 쿼터에 맞춰 오면 지각이 아니에요.</span>
+    <div style="display:flex;flex-direction:column">${rows.map(x => `<div class="row" style="min-height:58px;border-bottom:1px solid ${C.line};gap:10px"><b class="bc" style="width:28px;font-size:18px;text-align:center">${esc(x.p && x.p.num || "")}</b><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px"><b style="font-size:15px">${esc(x.name)}</b><span style="font-size:12px;color:${C.sub}">${x.guest ? "용병" : x.s === "late" ? `늦참, ${x.q || 2}Q부터` : going.has(x.uid) ? esc(posTxt(x.p)) : "신청 안 함"}</span></span>${b(x.uid, "in", "왔음", C.green)}${b(x.uid, "late", "지각", C.orange)}${b(x.uid, "absent", "안 옴", C.clay)}</div>`).join("") || `<span class="note" style="padding:16px 0">참석한 사람이 없어요</span>`}</div>
+    ${fl ? "" : `<span class="note">벌금 매길 사람: 지각하거나 안 온 사람이 없어요.</span>`}
+  </div><div class="cta"><button class="btn o block" data-act="finesApply" data-eid="${esc(id)}">${fl ? `벌금 ${fl}건 매기고 출석 마치기` : "출석 마치기"}</button></div>`;
+}
+function aMerc(id) {
+  const e = S.events[id]; if (!e) return null; const on = !!e.guestOpen; const a = att(e);
+  const reqs = guestReqs(e).filter(g => g.status === "req"); const got = guestsOf(e);
+  const waitN = (a.cap && a.in >= a.cap) ? a.wait.length + 1 : 0;
+  return `${hd("용병 받기", back("#/manage/" + id), { sub: evLabel(e) })}<div class="body" style="gap:14px">
+    <button type="button" class="box${on ? " pink" : ""}" data-act="aMercToggle" data-eid="${esc(id)}" aria-pressed="${on}" style="flex-direction:row;align-items:center;gap:12px;border-radius:14px;text-align:left"><span style="flex:1;display:flex;flex-direction:column;gap:2px"><b style="font-size:16px">이 경기 용병 받기</b><span style="font-size:12px">${on ? "받는 중이에요. 팀원이 신청할 수 있어요." : "꺼져 있어요. 팀원은 신청할 수 없어요."}</span></span>${sw(on)}</button>
+    <span class="note">켜면 팀원 일정 화면에 '용병 신청하기' 버튼이 열려요. 받은 용병은 정원${a.cap ? " " + a.cap + "명" : ""} 안에 들어가고, 정원이 다 찼으면 대기 뒤에 서요. 투표가 마감되면 신청도 같이 닫혀요.</span>
+    ${reqs.map(g => `<div class="box" style="border-radius:16px;gap:10px"><div class="spread" style="align-items:flex-start"><span style="display:flex;flex-direction:column;gap:2px"><b style="font-size:17px">${esc(g.name)}</b><span style="font-size:13px">${esc(nameOf(g.u))}가 신청했어요 ${esc([g.pos, g.pos2].filter(Boolean).join(" / "))}</span></span><span class="tag pink">기다림</span></div>
+      ${g.rel ? `<div style="background:${C.gray};border-radius:10px;padding:10px 12px;font-size:14px">${esc(g.rel)}</div>` : ""}
+      ${waitN ? `<span class="note">정원 ${a.cap}명이 다 차서, 받으면 대기 ${waitN}번으로 들어가요.</span>` : ""}
+      <div class="grid2"><button class="btn" data-act="guestNo" data-u="${esc(g.u)}" data-k="${esc(g.k)}">거절</button><button class="btn g" data-act="aGuestOk" data-eid="${esc(id)}" data-u="${esc(g.u)}" data-k="${esc(g.k)}">받기</button></div></div>`).join("")}
+    ${!reqs.length ? `<div class="box dash" style="text-align:center;font-size:14px;padding:16px">${on ? "아직 들어온 신청이 없어요." : "지금은 받지 않아요. 팀원 화면의 신청 버튼도 닫혀 있어요."}</div>` : ""}
+    ${got.length ? `<section style="display:flex;flex-direction:column">${head2("받은 용병", `<span class="bc" style="font-size:16px">${got.length}명</span>`)}${got.map(g => `<div class="row" style="min-height:52px;border-bottom:1px solid ${C.line};gap:10px"><span style="flex:1"><b>${esc(g.name)}</b> <span class="note">${esc([g.pos, g.pos2].filter(Boolean).join(" / "))}${g.by ? ", " + esc(nameOf(g.by)) + " 신청" : ""}</span></span><button class="lnk" data-act="guestDel" data-eid="${esc(id)}" data-g="${esc(g.id)}" style="color:#8C3B28">빼기</button></div>`).join("")}</section>` : ""}
+  </div>${nav("일정")}`;
+}
+const nextDate = () => { const last = Object.values(S.events).sort((a, b) => b.date.localeCompare(a.date))[0]; const dow = last ? new Date(last.date + "T00:00:00Z").getUTCDay() : 6; let d = new Date(todayStr() + "T00:00:00Z"); for (let i = 0; i < 8; i++) { d = new Date(d.getTime() + 864e5); if (d.getUTCDay() === dow) break; } return d.toISOString().slice(0, 10); };
+export function eventFormInit(id) {
+  const e = id ? S.events[id] : null;
+  const v = h12(e ? (e.voteClose === "eve" && /^\d\d:\d\d$/.test(e.voteTime || "") ? e.voteTime : e.voteClose === "eve21" ? "21:00" : pol("voteTime")) : pol("voteTime"));
+  S.form = e ? { type: e.type, date: e.date, time: e.time || "", end: e.end || "", place: e.place || "", opponent: e.opponent || "", oppTbd: e.type === "match" && !e.opponent, cap: String(Number(e.cap) || ""), openDate: e.openAt ? kstDate(e.openAt) : "", voteAp: v.ap, voteH: String(v.h), cb: String(cbOf(e)) }
+    : { type: "match", date: nextDate(), time: "", end: "", place: "", opponent: "", oppTbd: false, cap: String(pol("cap")), openDate: "", voteAp: v.ap, voteH: String(v.h), cb: String(pol("checkBefore")) };
+}
+function aEventForm(id) {
+  const e = id ? S.events[id] : null; if (id && !e) return null; const f = S.form; const scrim = f.type === "scrim";
+  const tb = (v, l) => `<button type="button" class="box${f.type === v ? " blue" : ""}" data-act="aPick" data-k="type" data-v="${v}" aria-pressed="${f.type === v}" style="align-items:center;padding:12px;border-radius:12px;font-weight:700;${f.type === v ? `box-shadow:4px 4px 0 ${C.ink};transform:rotate(-1.5deg)` : ""}">${l}</button>`;
+  const apb = v => `<button type="button" class="chip${f.voteAp === v ? " on" : ""}" data-act="aPick" data-k="voteAp" data-v="${v}" style="min-height:44px;padding:0 10px">${v === "am" ? "오전" : "오후"}</button>`;
+  return `${hd(id ? "일정 고치기" : "일정 올리기", back(id ? "#/manage/" + id : "#/schedule"), { sub: id ? evLabel(e) : "올리면 팀원에게 알림이 가요" })}<div class="body" style="gap:16px">
+    <div class="fld"><span class="lb">종류</span>${scrim ? `<b style="font-size:16px">내전</b>` : `<div class="grid2" style="padding:2px">${tb("match", "경기")}${tb("training", "훈련")}</div><span class="note">내전은 직접 만들지 않아요. 상대가 미정인 일정에 사람이 모이면 정해요.</span>`}</div>
+    <label class="fld"><span class="lb">날짜</span><input class="inp" type="date" data-bind="date" value="${esc(f.date || "")}"></label>
+    <div class="grid2"><label class="fld"><span class="lb">시작</span><input class="inp" type="time" data-bind="time" value="${esc(f.time || "")}"></label><label class="fld"><span class="lb">끝</span><input class="inp" type="time" data-bind="end" value="${esc(f.end || "")}"></label></div>
+    <label class="fld"><span class="lb">장소</span><input class="inp" data-bind="place" value="${esc(f.place || "")}" maxlength="40" placeholder="구장 이름"></label>
+    ${f.type === "match" ? `<div class="fld"><span class="lb">상대팀</span><div class="row"><input class="inp" data-bind="opponent" value="${esc(f.oppTbd ? "" : f.opponent || "")}" maxlength="30" placeholder="${f.oppTbd ? "상대 미정" : "팀 이름"}" ${f.oppTbd ? "disabled" : ""} style="flex:1"><button type="button" class="btn${f.oppTbd ? " ink" : ""}" data-act="aOppTbd" aria-pressed="${!!f.oppTbd}" style="flex:none;padding:0 14px">미정</button></div><span class="note">상대팀이 정해진 일정은 내전으로 바꿀 수 없어요.</span></div>` : ""}
+    <div style="border-top:2px solid ${C.ink};display:flex;flex-direction:column;gap:12px;padding-top:14px;font-size:15px">
+      ${scrim ? "" : `<div class="row" style="gap:10px"><span style="width:52px">정원</span>${numInp("cap", f.cap)}<span>명, 넘으면 대기로</span></div>`}
+      <div class="row" style="gap:10px"><span style="width:52px">투표는</span><input class="inp bc" type="date" data-bind="openDate" value="${esc(f.openDate || "")}" style="width:170px;flex:none;font-size:17px"><span>부터 받아요</span></div>
+      <div class="row" style="gap:8px;flex-wrap:wrap"><span>경기 전날</span>${apb("am")}${apb("pm")}${numInp("voteH", f.voteH)}<span>시에 마감</span></div>
+      <div class="row" style="gap:10px"><span style="width:52px">시작</span>${numInp("cb", f.cb)}<span>분 전에 출석 불러요</span></div>
+      <span class="note">투표 날짜를 비워 두면 올리자마자 받아요. 마감 시각과 출석 시간은 기본 운영 규칙에서 가져왔어요. 이 일정만 바꿀 수 있어요.</span>
+    </div>
+  </div><div class="cta"><button class="btn o block" data-act="aSaveEvent" data-eid="${esc(id || "")}">${id ? "고친 내용 저장" : "올리기"}</button></div>`;
+}
+function aScrim(id) {
+  const e = S.events[id]; if (!e) return null; const a = att(e); const total = a.in + a.wait.length;
+  const days = Math.max(0, Math.round((new Date(e.date + "T00:00:00+09:00") - new Date(todayStr() + "T00:00:00+09:00")) / 864e5));
+  return `${hd("내전 정하기", back("#/schedule"), { sub: `${md(todayStr())} ${wd(todayStr())}, 경기 ${days}일 전` })}<div class="body" style="gap:16px">
+    <div class="box gray" style="border-radius:20px;gap:6px;padding:16px 18px"><span class="cn"><b class="bc" style="font-size:22px">${md(e.date)} ${wd(e.date)}</b><span style="font-size:13px;font-weight:700">${e.opponent ? "vs " + esc(e.opponent) : "상대 미정"}</span></span><b class="bc" style="font-size:36px;line-height:1">${esc(e.time || "")}${e.end ? " ~ " + esc(e.end) : ""}</b><span style="font-size:14px">${esc(e.place || "장소 미정")}</span>
+      <span style="border-top:2px dashed rgba(20,24,43,.35);margin-top:8px;padding-top:10px" class="cn"><b class="bc" style="font-size:44px;line-height:1">${total}</b><span style="font-size:14px">명 (참석 ${a.in}, 대기 ${a.wait.length})</span></span></div>
+    <span style="font-size:15px;line-height:1.7">${e.scrimKeep ? "이번에는 경기로 정했어요." : e.type === "scrim" ? "이미 내전으로 바꿨어요." : `경기 ${pol("scrimDays")}일 전까지 ${pol("scrimMin")}명이 넘게 모였어요. 상대팀이 미정이라 내전을 할 수 있어요. 운영진끼리 상의해서 정하면 팀원에게 알림이 가요.`}</span>
+  </div>${e.type === "match" && !e.scrimKeep ? `<div class="cta"><button class="btn o block" data-act="aScrimGo" data-eid="${esc(id)}">내전 하기</button><button class="btn block" data-act="aScrimKeep" data-eid="${esc(id)}">이번에는 안 하기</button></div>` : nav("일정")}`;
+}
+
+/* ---------- 라인업 짜기 ---------- */
+const sideOf = e => e.type === "scrim" ? UI.side || "A" : "main";
+async function saveL(e, side, L) {
+  const cur = S.events[e.id] || e;
+  try { await setDoc("events", e.id, { ...cur, lineup: { ...(cur.lineup || {}), [side]: L } }); S.form.lineup = null; S.form.lineupFor = ""; render(); } catch (err) { fail(err); }
+}
+const PITCH = `<span class="l" style="left:10px;right:10px;top:10px;bottom:10px;border-radius:4px"></span><span class="l" style="left:10px;right:10px;top:50%;height:0;border-width:2px 0 0"></span><span class="l" style="left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%"></span><span class="l" style="left:50%;top:10px;width:150px;height:48px;margin-left:-75px;border-top:0"></span><span class="l" style="left:50%;bottom:10px;width:150px;height:48px;margin-left:-75px;border-bottom:0"></span>`;
+function aLineup(id) {
+  const e = S.events[id]; if (!e) return null; const side = sideOf(e); const L = curLineup(e, side); const d = draftOf(e, side);
+  const qn = QN[sport()]; const k = Math.min(UI.q || 1, qn); const fs = sport() === "futsal";
+  const ps = lineupPlayers(e, side); const fl = L ? L.formation : formOf(d.fkey) || [];
+  const fkey = (L && L.fkey) || d.fkey; const xy = spotXY(fl, fkey); const q = (L && L.q && L.q[k]) || {};
+  const pOf = u => ps.find(p => p.uid === u);
+  const pinned = (u, i) => !!u && (d.pins || []).some(x => x.u === u && x.pos === fl[i] && x.qs.includes(k));
+  const fbtn = `<button type="button" class="btn sm" data-act="aForm" data-eid="${esc(id)}" style="margin-right:4px;font-family:'Barlow Condensed','IBM Plex Sans KR';font-size:16px">${fl.length ? esc(fs ? fl.length + "대" + fl.length : fkey) : "인원"} ▾</button>`;
+  const sideTabs = e.type === "scrim" ? `<div class="grid2">${["A", "B"].map(s => `<button type="button" class="chip${side === s ? " on" : ""}" data-act="lineSide" data-v="${s}">${s}팀</button>`).join("")}</div>` : "";
+  if (!fl.length) return `${hd("라인업 짜기", back("#/manage/" + id), { sub: evLabel(e), right: fbtn })}<div class="body">${sideTabs}<div class="box gray" style="gap:10px"><b>몇 명이 뛰나요?</b><span class="note" style="color:${C.ink}">골레이로를 포함한 한 팀 인원이에요. 참석 ${ps.length}명</span><div class="chips">${FUTSAL_N.map(n => `<button type="button" class="chip" data-act="aFormPick" data-eid="${esc(id)}" data-k="${n}대${n}">${n}대${n}</button>`).join("")}</div></div></div>${nav("일정")}`;
+  const cnt = {}; if (L) Object.values(L.q || {}).forEach(r => Object.values(r).forEach(u => { cnt[u] = (cnt[u] || 0) + 1; }));
+  const bench = ps.filter(p => !Object.values(q).includes(p.uid));
+  const spot = i => { const p = xy[i] || { x: 50, y: 50 }; const u = q[i]; const pin = pinned(u, i); const off = u && !pin && !canPlay(pOf(u), fl[i]);
+    const bg = !u ? "rgba(240,238,233,.55)" : pin ? C.pink : off ? C.gray : C.bg;
+    return `<button type="button" class="spot" data-act="aSpot" data-eid="${esc(id)}" data-i="${i}" aria-label="${esc(fl[i])} ${u ? esc(pOf(u) ? pOf(u).name : gname(e, u)) : "빈자리"}" style="left:${p.x}%;top:${p.y}%;border:0;background:transparent;padding:0;gap:1px"><span style="border:2px ${u ? "solid" : "dashed"} ${C.ink};border-radius:999px;background:${bg};padding:2px 8px;font-size:12px;font-weight:700;white-space:nowrap;max-width:76px;overflow:hidden;text-overflow:ellipsis">${u ? esc((pOf(u) ? pOf(u).name : gname(e, u)).replace(" (용병)", "")) : "빈자리"}</span><span class="p" style="color:${C.bg};text-shadow:0 1px 2px rgba(0,0,0,.5)">${esc(fl[i])}</span></button>`; };
+  const qcards = `<div style="display:grid;grid-template-columns:repeat(${Math.min(qn, 4)},minmax(0,1fr));gap:10px;padding:2px">${Array.from({ length: qn }, (_, i) => i + 1).map(n => `<button type="button" class="box${n === k ? " blue" : ""}" data-act="lineQ" data-v="${n}" aria-pressed="${n === k}" style="align-items:center;padding:8px 0;border-radius:10px;${n === k ? `box-shadow:3px 3px 0 ${C.ink}` : ""}"><b class="bc" style="font-size:20px">${n}Q</b></button>`).join("")}</div>`;
+  const qrow = p => `<div class="row" style="gap:8px;min-height:34px;font-size:13px"><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.name.replace(" (용병)", ""))}${p.from > 1 ? ` <span class="note">${p.from}Q~</span>` : ""}</span><span style="display:flex;gap:3px">${Array.from({ length: qn }, (_, i) => { const on = Object.values((L && L.q && L.q[i + 1]) || {}).includes(p.uid); return `<i style="width:10px;height:10px;border:1.5px solid ${C.ink};background:${on ? (i + 1 === k ? C.blue : C.ink) : "transparent"}"></i>`; }).join("")}</span><b class="bc" style="width:16px;text-align:right">${cnt[p.uid] || 0}</b></div>`;
+  const shown = e.lineupAt && L && !(S.form.lineup && S.form.lineupFor === e.id + side);
+  return `${hd("라인업 짜기", back("#/manage/" + id), { sub: evLabel(e), right: fbtn })}<div class="body" style="gap:14px">
+    ${sideTabs}${qcards}
+    <div class="pitch" style="height:${fs ? 330 : 400}px">${PITCH}${fl.map((_, i) => spot(i)).join("")}${!L ? `<span class="stamp" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-4deg);font-size:16px;white-space:nowrap">자동 배치를 눌러요</span>` : ""}</div>
+    ${L && fl.some((_, i) => !q[i]) ? `<div class="err">${k}Q 빈자리 ${esc(fl.filter((_, i) => !q[i]).join(", "))}: 이 포지션을 1선호나 2선호로 둔 선수가 없거나 모두 뛰고 있어요. 자리를 눌러 직접 넣어 주세요.</div>` : ""}
+    <span class="note">자리를 눌러 선수를 넣고 고정해요. 핑크는 고정한 자리, 회색은 1선호와 2선호가 아닌 자리예요. 자동 배치는 고정한 자리는 두고 나머지를 쿼터 수가 고르게 채워요.</span>
+    ${L ? `<section style="display:flex;flex-direction:column;gap:6px">${head2("출전 쿼터", `<span class="note">${k}Q 쉬는 사람 ${bench.length}명</span>`)}<div style="display:grid;grid-template-columns:1fr 1fr;column-gap:14px">${ps.slice().sort((a, b) => (cnt[b.uid] || 0) - (cnt[a.uid] || 0) || a.name.localeCompare(b.name)).map(qrow).join("")}</div></section>` : ""}
+  </div><div class="cta"><div class="grid2"><button class="btn" data-act="aAuto" data-eid="${esc(id)}">자동 배치</button><button class="btn o" data-act="lineShare" data-eid="${esc(id)}" ${L ? "" : "disabled"}>${shown ? "다시 알리기" : "라인업 알리기"}</button></div></div>`;
+}
+function spotSheet(eid, i) {
+  const e = S.events[eid]; if (!e) return; const side = sideOf(e); const L = curLineup(e, side); const d = draftOf(e, side); const fl = L ? L.formation : formOf(d.fkey) || [];
+  const qn = QN[sport()]; const k = Math.min(UI.q || 1, qn); const q = (L && L.q && L.q[k]) || {}; const u = q[i]; const pos = fl[i];
+  const ps = lineupPlayers(e, side); const cnt = {}; if (L) Object.values(L.q || {}).forEach(r => Object.values(r).forEach(x => { cnt[x] = (cnt[x] || 0) + 1; }));
+  const where = p => { const j = Object.keys(q).find(x => q[x] === p.uid); return j != null ? `${k}Q ${fl[j]}에 있어요` : `${k}Q 쉬어요`; };
+  const pin = !!u && (d.pins || []).some(x => x.u === u && x.pos === pos && x.qs.includes(k));
+  const list = ps.filter(p => p.uid !== u).sort((a, b) => (canPlay(b, pos) ? 1 : 0) - (canPlay(a, pos) ? 1 : 0) || (cnt[a.uid] || 0) - (cnt[b.uid] || 0));
+  sheet(`<div class="spread"><h3>${k}Q ${esc(pos)} 자리</h3><span class="note">${u ? "지금 " + esc(gname(e, u).replace(" (용병)", "")) : "비어 있어요"}</span></div>
+    ${u ? `<button type="button" class="box" data-act="aPin" data-eid="${esc(eid)}" data-i="${i}" style="flex-direction:row;align-items:center;gap:10px;border-radius:12px;padding:12px 14px${pin ? `;background:${C.pink}` : ""}"><b style="flex:1;text-align:left">이 자리에 고정</b><span style="font-size:13px;font-weight:700">${pin ? "켜짐" : "꺼짐"}</span></button>` : ""}
+    <div style="display:flex;flex-direction:column;max-height:46dvh;overflow-y:auto">${list.map(p => { const late = p.from > k; const ok = canPlay(p, pos); const num = p.uid.startsWith("g:") ? "" : numOf(p.uid);
+      return `<button type="button" data-act="aPut" data-eid="${esc(eid)}" data-i="${i}" data-u="${esc(p.uid)}" ${late ? "disabled" : ""} class="row" style="border:0;border-bottom:1px solid ${C.line};background:${ok ? "transparent" : "rgba(220,216,207,.5)"};min-height:56px;gap:12px;text-align:left;padding:0 4px;${late ? "opacity:.45" : ""}"><b class="bc" style="width:26px;font-size:18px">${esc(num)}</b><span style="flex:1;display:flex;flex-direction:column;gap:1px"><b style="font-size:15px">${esc(p.name)}</b><span style="font-size:12px;color:${C.sub}">${late ? p.from + "Q부터 와요" : where(p)}, 지금까지 ${cnt[p.uid] || 0}쿼터${ok ? "" : ", " + esc([p.pos[0], p.pos[1]].filter(Boolean).join("/") || "포지션 미정")}</span></span></button>`; }).join("")}</div>
+    ${u ? `<button class="lnk" data-act="aEmpty" data-eid="${esc(eid)}" data-i="${i}" style="align-self:center">이 자리 비우기</button>` : ""}
+    <button class="btn block" data-act="closeSheet">닫기</button>`);
+}
+function formSheet(eid) {
+  const e = S.events[eid]; if (!e) return; const n = att(e).in;
+  if (sport() === "futsal") { sheet(`<h3>몇 명이 뛰나요?</h3><span class="note">골레이로를 포함한 한 팀 인원이에요. 참석 ${n}명</span><div class="chips">${FUTSAL_N.map(x => `<button type="button" class="chip" data-act="aFormPick" data-eid="${esc(eid)}" data-k="${x}대${x}">${x}대${x}</button>`).join("")}</div><button class="btn block" data-act="closeSheet">닫기</button>`); return; }
+  const cur = draftOf(e, sideOf(e)).fkey;
+  sheet(`<h3>포메이션</h3><span class="note">바꾸면 고정한 자리는 풀리고 다시 자동으로 채워요.</span><div style="display:flex;flex-direction:column">${Object.keys(FORMS.soccer).map(x => `<button type="button" class="row" data-act="aFormPick" data-eid="${esc(eid)}" data-k="${esc(x)}" style="border:0;border-bottom:1px solid ${C.line};background:transparent;min-height:54px;gap:12px;text-align:left"><b class="bc" style="width:84px;font-size:20px">${esc(x)}</b><span style="flex:1;font-size:13px">${esc(FORM_DESC[x] || "")}</span>${x === cur ? IC.check : ""}</button>`).join("")}</div><button class="btn block" data-act="closeSheet">닫기</button>`);
+}
+
+/* ---------- 길찾기 ---------- */
+export function adminRoute(r) {
+  let m; const id = x => decodeURIComponent(x);
+  if (r === "/ops") return aOps();
+  if (r === "/requests") return aRequests();
+  if (r === "/posreqs") return aPosReqs();
+  if (r === "/dues") return aDues();
+  if (r === "/fines") return aFines();
+  if (r === "/policy") return aPolicy();
+  if (r === "/settings") return aSettings();
+  if (r === "/members") return aMembers();
+  if (r === "/season") return aSeason();
+  if (r === "/new") return aEventForm("");
+  if (r === "/notice-new") return aNoticeForm("");
+  if (r === "/rules-edit") return aRulesEdit();
+  if ((m = r.match(/^\/notice-edit\/(.+)$/))) return D("notices")[id(m[1])] ? aNoticeForm(id(m[1])) : null;
+  if ((m = r.match(/^\/edit\/(.+)$/))) return aEventForm(id(m[1]));
+  if ((m = r.match(/^\/manage\/(.+)$/))) return aManage(id(m[1]));
+  if ((m = r.match(/^\/roster\/(.+)$/))) return aRoster(id(m[1]));
+  if ((m = r.match(/^\/lineup\/(.+)$/))) return aLineup(id(m[1]));
+  if ((m = r.match(/^\/check\/(.+)$/))) return aCheck(id(m[1]));
+  if ((m = r.match(/^\/merc\/(.+)$/))) return aMerc(id(m[1]));
+  if ((m = r.match(/^\/scrim\/(.+)$/))) return aScrim(id(m[1]));
+  if ((m = r.match(/^\/result\/(.+)$/))) return aResult(id(m[1]));
+  return null;
+}
+export function adminForm(r) {
+  let m;
+  if (r === "/new") { eventFormInit(""); return true; }
+  if ((m = r.match(/^\/edit\/(.+)$/)) && S.events[decodeURIComponent(m[1])]) { eventFormInit(decodeURIComponent(m[1])); return true; }
+  if (r === "/notice-new") { S.form = { title: "", body: "", pinned: false, notify: true }; return true; }
+  if ((m = r.match(/^\/notice-edit\/(.+)$/))) { const n = D("notices")[decodeURIComponent(m[1])] || {}; S.form = { title: n.title || "", body: n.body || "", pinned: !!n.pinned }; return true; }
+  if (r === "/rules-edit") { S.form = rulesFormInit(S.settings); return true; }
+  if (r === "/policy") { S.form = policyInit(); return true; }
+  if (r === "/settings") { S.form = { tname: (S.team && S.team.name) || "", joinApproval: S.settings.joinApproval !== false }; return true; }
+  if ((m = r.match(/^\/result\/(.+)$/)) && S.events[decodeURIComponent(m[1])]) { const e = S.events[decodeURIComponent(m[1])]; S.form = { us: (e.score || {}).us || 0, them: (e.score || {}).them || 0, goals: (e.goals || []).map(g => ({ uid: g.uid || "", assist: g.assist || "", side: g.side || "" })) }; return true; }
+  if (/^\/lineup\//.test(r)) { S.form = {}; UI.q = 1; UI.side = "A"; return true; }
+  if (/^\/roster\//.test(r)) { AU.rf = ""; return true; }
+  if (r === "/dues") { AU.ref = ""; return true; }
+  if (r === "/requests") { loadReqs().then(render).catch(() => {}); return false; }
   return false;
 }
-document.addEventListener("change", async ev => {
-  const t = ev.target;
-  if (t.id === "upFile" && t.files && t.files[0]) { try { const tx = await readBankFile(t.files[0]); UI.match = buildMatch(tx); if (!UI.match.rows.length) { toast("새 거래가 없어요"); UI.match = null; } render(); } catch (err) { toast(String(err.message || err)); } }
-  if (t.dataset && t.dataset.match != null && UI.match) { const r = UI.match.rows.find(x => x.i === Number(t.dataset.match)); if (r) r.uid = t.value; }
-});
+export function playerSheet(u) { memberSheet(u); }
+export function rosterSheet() {}
 
-export { AACT1, AACT2, AACT3, adminForm, eventFormInit, playerSheet, remindLeft, remindSheet, rosterSheet, vCalendarAdmin, vCheck, vCheckDone, vDues, vDuesSettings, vEvent, vEventForm, vGame, vGuests, vHomeAdmin, vLedger, vNoticeNew, vNotifyAdmin, vPlayerAdmin, vPlayers, vPosReq, vRecords, vResult, vRosterImport, vRulesEdit, vSchedule, vScrim, vSpend, vSquad, vUniform, vUpload };
+/* ---------- 누르면 ---------- */
+const clamp = (v, a, b, d) => { const n = Number(String(v ?? "").replace(/\D/g, "")); return String(v ?? "") !== "" && Number.isFinite(n) ? Math.max(a, Math.min(b, Math.round(n))) : d; };
+function putAt(e, side, i, u) {
+  const d = draftOf(e, side); const cur = curLineup(e, side); const fl = cur ? cur.formation : formOf(d.fkey); const k = Math.min(UI.q || 1, QN[sport()]);
+  const L = JSON.parse(JSON.stringify(cur || { fkey: d.fkey, formation: fl, q: {} })); const row = L.q[k] = L.q[k] || {};
+  const old = row[i]; const j = u ? Object.keys(row).find(x => row[x] === u) : null;
+  const drop = (who, pos) => { d.pins = (d.pins || []).map(x => x.u === who && x.pos === pos ? { ...x, qs: x.qs.filter(z => z !== k) } : x).filter(x => x.qs.length); };
+  if (old) drop(old, fl[i]); if (j != null) drop(u, fl[j]);
+  if (j != null) { if (old) row[j] = old; else delete row[j]; }
+  if (u) row[i] = u; else delete row[i];
+  L.pins = JSON.parse(JSON.stringify(d.pins || [])); return L;
+}
+export const AACT = {
+  aSchedSheet: () => schedSheet(),
+  aPick: t => { S.form[t.dataset.k] = t.dataset.v; render(); },
+  aTog: t => { S.form[t.dataset.k] = !S.form[t.dataset.k]; render(); },
+  aRf: t => { AU.rf = t.dataset.v; render(); },
+  aDuesRef: t => { AU.ref = t.dataset.k; render(); },
+  aDuesSet: () => { const st = S.settings; const b = st.bank || {}; AU.mset = { feeMode: st.feeMode || "none", fee: st.fee ? String(st.fee) : "", dueDay: st.dueDay || "5", bank: b.bank || "", account: b.account || "", holder: b.holder || "" }; duesSetSheet(); },
+  aDuesRemind: t => { const key = t.dataset.k; const ref = duesRefs().find(r => r.key === key); if (!ref) return; const ps = (ref.e ? people().filter(x => cameTo(ref.e, x.uid)) : people()).filter(x => !paidOf(key, x.uid));
+    confirmBox(`안 낸 ${ps.length}명에게 알릴까요?`, `${ref.label} 회비를 아직 안 냈다고 팀원 알림함에 알림이 가요.`, "알리기", async () => { try { await setDoc("team", "duesRemind", { at: new Date().toISOString(), by: S.uid, key, to: ps.map(x => x.uid) }); toast(`${ps.length}명에게 알렸어요`); } catch (err) { fail(err); } }); },
+  aFineAdd: () => { AU.fa = { u: "", eid: "", ri: 0 }; fineAddSheet(); },
+  aPosOk: async t => { const u = t.dataset.u; const r = S.rsvp[u] || {}; const req = r.posReq || {}; const p = r.profile || {};
+    try { await patchDoc("rsvp", u, { profile: { ...p, pos1: req.pos1, pos2: req.pos2 || "" }, posReq: { ...req, status: "ok", from1: p.pos1 || "", from2: p.pos2 || "", doneAt: new Date().toISOString() } }); render(); toast(`${nameOf(u)} 포지션을 바꿨어요`); } catch (err) { fail(err); } },
+  aPosNo: t => { const u = t.dataset.u; confirmBox("요청을 거절할까요?", `${nameOf(u)} 님에게 포지션 변경 요청이 반려됐다고 알림이 가요.`, "거절", async () => { const r = S.rsvp[u] || {}; const p = r.profile || {};
+    try { await patchDoc("rsvp", u, { posReq: { ...(r.posReq || {}), status: "no", from1: p.pos1 || "", from2: p.pos2 || "", doneAt: new Date().toISOString() } }); render(); toast("거절했어요"); } catch (err) { fail(err); } }, true); },
+  aPolicySave: async t => {
+    if (!owner()) return; const f = S.form; t.disabled = true;
+    const data = { ...S.settings, voteClose: "eve", voteTime: String(to24(f.pVoteAp, f.pVoteH)).padStart(2, "0") + ":00", cap: clamp(f.pCap, 2, 40, pol("cap")), checkBefore: clamp(f.pCheck, 0, 60, pol("checkBefore")), scrimMin: clamp(f.pScrimMin, 4, 40, pol("scrimMin")), scrimDays: clamp(f.pScrimDays, 1, 7, pol("scrimDays")),
+      fineFrom: ["day", "custom"].includes(f.fineFrom) ? f.fineFrom : "close", fineDays: clamp(f.fineDays, 1, 14, 1), fineAp: f.fineAp === "am" ? "am" : "pm", fineHour: clamp(f.fineHour, 1, 12, 6) };
+    try { await setDoc("team", "settings", data); toast("저장했어요. 다음에 올리는 일정부터 적용돼요"); location.hash = "#/ops"; } catch (err) { t.disabled = false; fail(err); }
+  },
+  aJoinAp: () => { if (!owner()) return; S.form.joinApproval = S.form.joinApproval === false; render(); },
+  aSettingsSave: async t => {
+    if (!owner()) return; const name = String(S.form.tname || "").trim(); if (!name) { toast("팀 이름을 적어 주세요"); return; } t.disabled = true;
+    try {
+      await setDoc("team", "settings", { ...S.settings, teamName: name.slice(0, 40), joinApproval: S.form.joinApproval !== false });
+      if (S.team && name !== S.team.name) { const { error } = await sb.from("teams").update({ name: name.slice(0, 40) }).eq("id", S.tid); if (error) throw error; S.team.name = name.slice(0, 40); }
+      toast("저장했어요"); location.hash = "#/ops";
+    } catch (err) { t.disabled = false; fail(err); }
+  },
+  aTeamOut: () => { AU.out = "leave"; teamOutSheet(); },
+  aMember: t => memberSheet(t.dataset.u),
+  aKick: t => { const u = t.dataset.u; closeSheet();
+    dlg(`<h3 style="text-align:center">${esc(nameOf(u))}를 내보낼까요?</h3><span style="font-size:14px;line-height:1.6;text-align:center">내보내면 이 팀의 일정과 기록을 볼 수 없어요.<br>다시 들어오려면 초대 링크를 받아야 해요.</span><div class="grid2"><button class="btn" data-act="closeSheet" style="background:${C.blue}">남기기</button><button class="btn c" id="kOk">내보내기</button></div>`);
+    $("#kOk").onclick = async ev => { ev.target.disabled = true; const { error } = await sb.rpc("remove_member", { p_team: S.tid, p_user: u }); closeSheet(); if (error) fail(error); else { toast("내보냈어요"); refreshMembers(); } }; },
+  aNoticeSave: async t => {
+    const f = S.form; const title = String(f.title || "").trim(); if (!title) { toast("제목을 적어 주세요"); return; } t.disabled = true; const id = t.dataset.id;
+    try {
+      if (f.pinned) for (const [nid, n] of Object.entries(D("notices"))) if (n.pinned && nid !== id) await setDoc("notices", nid, { ...n, pinned: false });
+      if (id) { const n = D("notices")[id] || {}; await setDoc("notices", id, { ...n, title: title.slice(0, 60), body: String(f.body || "").trim(), pinned: !!f.pinned, editedAt: new Date().toISOString() }); toast("고쳤어요"); location.hash = "#/notice/" + id; }
+      else { await setDoc("notices", uid36("n"), { title: title.slice(0, 60), body: String(f.body || "").trim(), pinned: !!f.pinned, by: S.uid, at: new Date().toISOString(), quiet: !f.notify }); toast("공지를 올렸어요"); location.hash = "#/notices"; }
+    } catch (err) { t.disabled = false; fail(err); }
+  },
+  aRulesSave: async t => {
+    const R = rulesFromForm(S.form); t.disabled = true;
+    const changed = R.rulesText !== rulesTextOf(S.settings).trim() || JSON.stringify(R.rules.map(r => [r.label, r.amount])) !== JSON.stringify(fineRulesOf(S.settings).map(r => [r.label, Number(r.amount)]));
+    try { await setDoc("team", "settings", { ...S.settings, ...R, rulesAt: changed ? new Date().toISOString() : S.settings.rulesAt || "" }); toast("저장했어요"); location.hash = "#/team"; } catch (err) { t.disabled = false; fail(err); }
+  },
+  aScore: t => { const f = S.form; const k = t.dataset.k; const d = Number(t.dataset.d); const v = Math.max(0, Math.min(30, (Number(f[k]) || 0) + d)); if (v === (Number(f[k]) || 0)) return; f[k] = v; f.goals = f.goals || [];
+    const rid = (route().match(/^\/result\/(.+)$/) || [])[1]; const e = rid ? S.events[decodeURIComponent(rid)] : null; const scrim = !!e && e.type === "scrim";
+    if (scrim || k === "us") { const side = scrim ? (k === "us" ? "A" : "B") : ""; if (d > 0) f.goals.push({ uid: "", assist: "", side }); else { let i = -1; f.goals.forEach((g, j) => { if (!g.uid && !g.assist && (!scrim || g.side === side)) i = j; }); if (i >= 0) f.goals.splice(i, 1); } }
+    render(); },
+  aGoalAdd: () => { (S.form.goals = S.form.goals || []).push({ uid: "", assist: "", side: "" }); render(); },
+  aGoalDel: t => { S.form.goals.splice(Number(t.dataset.i), 1); render(); },
+  aGoalSide: t => { const g = S.form.goals[Number(t.dataset.i)]; if (g) g.side = t.dataset.v; render(); },
+  aSaveResult: async t => {
+    const e = S.events[t.dataset.eid]; if (!e) return; const f = S.form; t.disabled = true;
+    const goals = (f.goals || []).map(g => ({ uid: g.uid || "", assist: g.assist && g.assist !== g.uid ? g.assist : "", ...(e.type === "scrim" ? { side: g.side || "" } : {}) }));
+    try { await setDoc("events", e.id, { ...e, score: { us: Number(f.us) || 0, them: Number(f.them) || 0 }, scoredAt: e.scoredAt || new Date().toISOString(), goals }); await syncMyDues(); toast(e.scoredAt ? "고쳤어요" : "저장했어요. MOM 투표가 열렸어요"); location.hash = "#/game/" + e.id; } catch (err) { t.disabled = false; fail(err); }
+  },
+  aOppTbd: () => { S.form.oppTbd = !S.form.oppTbd; if (S.form.oppTbd) S.form.opponent = ""; render(); },
+  aSaveEvent: async t => {
+    const f = S.form; const eid = t.dataset.eid; const old = (eid && S.events[eid]) || {};
+    if (!f.date) { toast("날짜를 골라 주세요"); return; } if (!/^\d\d:\d\d$/.test(f.time || "")) { toast("시작 시간을 골라 주세요"); return; }
+    if (f.end && f.end <= f.time) { toast("끝 시간이 시작보다 늦어야 해요"); return; }
+    if (f.type === "match" && !f.oppTbd && !String(f.opponent || "").trim() && !(eid && old.type === "scrim")) { toast("상대팀 이름을 적거나 미정을 눌러 주세요"); return; }
+    const voteTime = String(to24(f.voteAp, f.voteH)).padStart(2, "0") + ":00";
+    const probe = { date: f.date, time: f.time, voteClose: "eve", voteTime };
+    if (closeAt(probe) <= Date.now() && !(eid && closeAt(old) <= Date.now())) { toast("투표 마감 시각이 이미 지났어요. 날짜나 마감 시각을 바꿔 주세요"); return; }
+    const openAt = f.openDate && f.openDate > todayStr() && f.openDate <= f.date ? new Date(f.openDate + "T00:00:00+09:00").toISOString() : (eid && old.openAt && f.openDate === kstDate(old.openAt) ? old.openAt : "");
+    t.disabled = true; const id = eid || uid36("e"); const type = old.type === "scrim" ? "scrim" : f.type;
+    const data = { ...old, id, type, date: f.date, time: f.time, end: f.end || "", place: String(f.place || "").trim().slice(0, 40), opponent: type === "match" && !f.oppTbd ? String(f.opponent || "").trim().slice(0, 30) : "", cap: type === "scrim" ? 0 : clamp(f.cap, 0, 60, pol("cap")), voteClose: "eve", voteTime, checkBefore: clamp(f.cb, 0, 60, pol("checkBefore")), openAt, createdAt: old.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() };
+    try { await setDoc("events", id, data); toast(eid ? "저장했어요" : openAt ? "일정을 올렸어요. 고른 날부터 투표를 받아요" : "일정을 올렸어요. 팀원이 바로 투표할 수 있어요"); location.hash = eid ? "#/manage/" + id : "#/event/" + id; } catch (err) { t.disabled = false; fail(err); }
+  },
+  aDelEvent: t => { const e = S.events[t.dataset.eid]; if (!e) return; const voters = people().filter(x => ((((S.rsvp[x.uid] || {}).ev || {})[e.id]) || {}).s).map(x => x.uid);
+    dlg(`<h3 style="text-align:center">${md(e.date)} ${kindOf(e)}를 지울까요?</h3><span style="font-size:14px;line-height:1.6;text-align:center">${voters.length ? `투표한 ${voters.length}명에게 일정이 없어졌다고 알림이 가요.<br>` : ""}지우면 투표와 라인업도 함께 사라지고 되돌릴 수 없어요.</span><div class="grid2"><button class="btn" data-act="closeSheet" style="background:${C.blue}">남기기</button><button class="btn c" id="dOk">지우기</button></div>`);
+    $("#dOk").onclick = async ev => { ev.target.disabled = true;
+      try { const items = (((D("team").evlog || {}).items) || []).filter(x => Date.now() - Date.parse(x.at || 0) < 30 * 864e5).concat([{ at: new Date().toISOString(), text: `${md(e.date)} ${wd(e.date)} ${evName(e)} 일정이 없어졌어요`, to: voters }]).slice(-20);
+        if (voters.length) await setDoc("team", "evlog", { items }); await delDoc("events", e.id); closeSheet(); toast("지웠어요"); location.hash = "#/schedule"; } catch (err) { ev.target.disabled = false; fail(err); } }; },
+  aMercToggle: async t => { const e = S.events[t.dataset.eid]; if (!e) return; try { await setDoc("events", e.id, { ...e, guestOpen: !e.guestOpen }); render(); toast(e.guestOpen ? "용병 신청을 닫았어요" : "용병 신청을 열었어요"); } catch (err) { fail(err); } },
+  aGuestOk: async t => {
+    const e = S.events[t.dataset.eid]; const g = (((D("guestreq")[t.dataset.u] || {}).items) || {})[t.dataset.k]; if (!e || !g) return; t.disabled = true;
+    try { await setDoc("events", e.id, { ...e, guests: { ...(e.guests || {}), [t.dataset.k]: { name: g.name, pos: g.pos || "", pos2: g.pos2 || "", by: t.dataset.u, at: new Date().toISOString() } } }); await patchDoc("guestreq", t.dataset.u, { items: { [t.dataset.k]: { status: "ok", doneAt: new Date().toISOString() } } }); render(); toast(`${g.name} 님을 받았어요`); } catch (err) { t.disabled = false; fail(err); }
+  },
+  aRemind: t => remindSheet(t.dataset.eid),
+  aScrimGo: async t => {
+    const e = S.events[t.dataset.eid]; if (!e) return; const a = att(e); t.disabled = true;
+    const ids = [...a.yes, ...a.late, ...a.wait].map(x => x.uid); const order = POS[sport()]; const pos = u => u.startsWith("g:") ? posFix((((e.guests || {})[u.slice(2)] || {}).pos) || "") : ((profileOf(u) || {}).pos1 || "");
+    ids.sort((x, y) => ((order.indexOf(pos(x)) + 99) % 99) - ((order.indexOf(pos(y)) + 99) % 99)); const T = {}; ids.forEach((u, i) => { T[u] = (i % 4 === 0 || i % 4 === 3) ? "A" : "B"; });
+    try { await setDoc("events", e.id, { ...e, type: "scrim", cap: 0, teams: T, scrimAt: new Date().toISOString() }); toast("내전으로 바꿨어요. 팀원에게 알림이 가요"); location.hash = "#/manage/" + e.id; } catch (err) { t.disabled = false; fail(err); }
+  },
+  aScrimKeep: async t => { const e = S.events[t.dataset.eid]; if (!e) return; t.disabled = true; try { await setDoc("events", e.id, { ...e, scrimKeep: new Date().toISOString() }); toast("이번에는 경기로 해요"); location.hash = "#/manage/" + e.id; } catch (err) { t.disabled = false; fail(err); } },
+  aForm: t => formSheet(t.dataset.eid),
+  aFormPick: t => { closeSheet(); const e = S.events[t.dataset.eid]; if (!e) return; const side = sideOf(e); const d = draftOf(e, side); d.fkey = t.dataset.k; d.pins = [];
+    if (!curLineup(e, side)) { render(); return; } UI.q = 1; saveL(e, side, autoLineup(e, side)); toast("다시 짰어요"); },
+  aAuto: t => { const e = S.events[t.dataset.eid]; if (!e) return; const side = sideOf(e); if (!formOf(draftOf(e, side).fkey, curLineup(e, side))) { toast("몇 명이 뛸지 먼저 골라 주세요"); return; } const L = autoLineup(e, side); L.pins = JSON.parse(JSON.stringify(draftOf(e, side).pins || [])); saveL(e, side, L); toast(draftOf(e, side).pins.length ? "고정한 자리는 두고 다시 짰어요" : "쿼터 수를 고르게 짰어요"); },
+  aSpot: t => spotSheet(t.dataset.eid, Number(t.dataset.i)),
+  aPut: t => { const e = S.events[t.dataset.eid]; if (!e) return; const side = sideOf(e); closeSheet(); saveL(e, side, putAt(e, side, Number(t.dataset.i), t.dataset.u)); },
+  aEmpty: t => { const e = S.events[t.dataset.eid]; if (!e) return; const side = sideOf(e); closeSheet(); saveL(e, side, putAt(e, side, Number(t.dataset.i), "")); },
+  aPin: t => { const e = S.events[t.dataset.eid]; if (!e) return; const side = sideOf(e); const i = Number(t.dataset.i); const k = Math.min(UI.q || 1, QN[sport()]); const d = draftOf(e, side); const L = curLineup(e, side); if (!L) return; const u = (L.q[k] || {})[i]; if (!u) return;
+    const on = (d.pins || []).some(x => x.u === u && x.pos === L.formation[i] && x.qs.includes(k));
+    if (on) { d.pins = d.pins.map(x => x.u === u && x.pos === L.formation[i] ? { ...x, qs: x.qs.filter(z => z !== k) } : x).filter(x => x.qs.length); const N = JSON.parse(JSON.stringify(L)); N.pins = JSON.parse(JSON.stringify(d.pins)); closeSheet(); saveL(e, side, N); }
+    else { applyFix(e, side, u, i, [k]); closeSheet(); saveL(e, side, S.form.lineup); } },
+};
+// 결과 입력: 골과 도움 고르기
+document.addEventListener("change", ev => { const t = ev.target; if (t.dataset && t.dataset.goal != null && S.form.goals) { const g = S.form.goals[Number(t.dataset.goal)]; if (g) { g[t.dataset.gf] = t.value; render(); } } });
+// 공지 제목을 적으면 올리기 버튼이 켜진다
+document.addEventListener("input", ev => { const t = ev.target; if (t.dataset && t.dataset.bind === "title" && $("#nSave")) $("#nSave").disabled = !t.value.trim(); });
+void [rulesTextOf, isKeeper, whenText, vsText, momDeadline, D];
