@@ -1,6 +1,17 @@
 // 디자인 시안 A(design/home/Main.dc.html)에 실제 앱 화면 사진 5장을 넣어 한 장짜리 정적 페이지로 묶는다.
 // 결과: public/v2/index.html (vite가 dist/v2/로 복사)
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from "node:fs";
+import { execSync } from "node:child_process";
+
+// 점검 문지기와 새 버전 확인에 쓰는 값: 이 빌드의 버전(git 짧은 번호)과 Supabase 공개 주소, 공개 키, 스키마
+const VER = (() => { try { return execSync("git rev-parse --short HEAD", { stdio: ["ignore", "pipe", "ignore"] }).toString().trim(); } catch (e) { return ""; } })();
+const cfgSrc = readFileSync(new URL("../src/config.js", import.meta.url), "utf8");
+const MB_CFG = {
+  url: process.env.VITE_SUPABASE_URL || (cfgSrc.match(/SUPABASE_URL = "([^"]+)"/) || [])[1] || "",
+  key: process.env.VITE_SUPABASE_KEY || (cfgSrc.match(/SUPABASE_KEY = "([^"]+)"/) || [])[1] || "",
+  schema: process.env.VITE_SUPABASE_SCHEMA || "public",
+  ver: VER,
+};
 
 const ACCENT = "#15803D";
 const APP_URL = "team/"; // 새 디자인 화면(눌러 보기용). 실제 앱이 붙으면 여기만 바꾼다.
@@ -51,7 +62,8 @@ const html = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="maint-gate.js"></script>
+<script src="maint-config.js?v=${VER}"></script>
+<script src="maint-gate.js?v=${VER}"></script>
 <title>매니볼 | 축구팀, 풋살팀 관리를 편하게</title>
 <meta name="description" content="참석 투표 집계, 축구장 위 라인업과 휴식 자동 배치, 현장 출석과 벌금, 회비, 공지와 MOM 투표까지. 우리 팀 링크 하나로 관리해요.">
 <meta property="og:title" content="매니볼">
@@ -87,3 +99,7 @@ ${main}
 mkdirSync(new URL("../public/v2/", import.meta.url), { recursive: true });
 writeFileSync(new URL("../public/v2/index.html", import.meta.url), html);
 console.log("public/v2/index.html", html.length, "bytes");
+
+// 점검 안내 화면과 문지기 (원본은 maint/). 캐시에 옛 파일이 남지 않게 주소에 버전을 붙인다
+writeFileSync(new URL("../public/v2/maint-config.js", import.meta.url), `window.MB_CFG = ${JSON.stringify(MB_CFG)};\n`);
+for (const f of ["maint.html", "maint.js", "maint-gate.js"]) writeFileSync(new URL(`../public/v2/${f}`, import.meta.url), readFileSync(new URL(`../maint/${f}`, import.meta.url), "utf8").replaceAll("__VER__", VER));

@@ -329,7 +329,7 @@ function toolCard(href, act, icon, tone, t, s, extra = "") {
 function aManage(id) {
   const e = S.events[id]; if (!e) return null; const a = att(e); const play = isPlay(e);
   const pend = guestReqs(e).filter(g => g.status === "req").length; const ck = Object.values(e.check || {}).filter(Boolean).length;
-  const lu = e.lineupAt ? "알렸어요" : e.lineup && Object.keys(e.lineup).length ? "아직 안 알림" : "아직 안 짰어요";
+  const lu = (e.lineupAt || e.lineupOld) ? "알렸어요" : e.lineup && Object.keys(e.lineup).length ? "아직 안 알림" : "아직 안 짰어요";
   return `${hd("일정 관리", back("#/event/" + id), { sub: evLabel(e) })}<div class="body tight">
     ${bigTicket(e, a)}
     ${strip(a)}
@@ -452,7 +452,7 @@ function aLineup(id) {
     return `<button type="button" class="spot" data-act="aSpot" data-eid="${esc(id)}" data-i="${i}" aria-label="${esc(fl[i])} ${u ? esc(pOf(u) ? pOf(u).name : gname(e, u)) : "빈자리"}" style="left:${p.x}%;top:${p.y}%;border:0;background:transparent;padding:0;gap:1px"><span style="border:2px ${u ? "solid" : "dashed"} ${C.ink};border-radius:999px;background:${bg};padding:2px 8px;font-size:12px;font-weight:700;white-space:nowrap;max-width:76px;overflow:hidden;text-overflow:ellipsis">${u ? esc((pOf(u) ? pOf(u).name : gname(e, u)).replace(" (용병)", "")) : "빈자리"}</span><span class="p" style="color:${C.bg};text-shadow:0 1px 2px rgba(0,0,0,.5)">${esc(fl[i])}</span></button>`; };
   const qcards = `<div style="display:grid;grid-template-columns:repeat(${Math.min(qn, 4)},minmax(0,1fr));gap:10px;padding:2px">${Array.from({ length: qn }, (_, i) => i + 1).map(n => `<button type="button" class="box${n === k ? " blue" : ""}" data-act="lineQ" data-v="${n}" aria-pressed="${n === k}" style="align-items:center;padding:8px 0;border-radius:10px;${n === k ? `box-shadow:3px 3px 0 ${C.ink}` : ""}"><b class="bc" style="font-size:20px">${n}Q</b></button>`).join("")}</div>`;
   const qrow = p => `<div class="row" style="gap:8px;min-height:34px;font-size:13px"><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.name.replace(" (용병)", ""))}${p.from > 1 ? ` <span class="note">${p.from}Q~</span>` : ""}</span><span style="display:flex;gap:3px">${Array.from({ length: qn }, (_, i) => { const on = Object.values((L && L.q && L.q[i + 1]) || {}).includes(p.uid); return `<i style="width:10px;height:10px;border:1.5px solid ${C.ink};background:${on ? (i + 1 === k ? C.blue : C.ink) : "transparent"}"></i>`; }).join("")}</span><b class="bc" style="width:16px;text-align:right">${cnt[p.uid] || 0}</b></div>`;
-  const shown = e.lineupAt && L && !(S.form.lineup && S.form.lineupFor === e.id + side);
+  const shown = (e.lineupAt || e.lineupOld) && L && !(S.form.lineup && S.form.lineupFor === e.id + side);
   return `${hd("라인업 짜기", back("#/manage/" + id), { sub: evLabel(e), right: fbtn })}<div class="body" style="gap:14px">
     ${sideTabs}${qcards}
     <div class="pitch" style="height:${fs ? 330 : 400}px">${PITCH}${fl.map((_, i) => spot(i)).join("")}${!L ? `<span class="stamp" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-4deg);font-size:16px;white-space:nowrap">자동 배치를 눌러요</span>` : ""}</div>
@@ -625,7 +625,7 @@ export const AACT = {
   aMercToggle: async t => { const e = S.events[t.dataset.eid]; if (!e) return; try { await setDoc("events", e.id, { ...e, guestOpen: !e.guestOpen }); render(); toast(e.guestOpen ? "용병 신청을 닫았어요" : "용병 신청을 열었어요"); } catch (err) { fail(err); } },
   aGuestOk: async t => {
     const e = S.events[t.dataset.eid]; const g = (((D("guestreq")[t.dataset.u] || {}).items) || {})[t.dataset.k]; if (!e || !g) return; t.disabled = true;
-    try { await setDoc("events", e.id, { ...e, guests: { ...(e.guests || {}), [t.dataset.k]: { name: g.name, pos: g.pos || "", pos2: g.pos2 || "", by: t.dataset.u, at: new Date().toISOString() } } }); await patchDoc("guestreq", t.dataset.u, { items: { [t.dataset.k]: { status: "ok", doneAt: new Date().toISOString() } } }); render(); toast(`${g.name} 님을 받았어요`); } catch (err) { t.disabled = false; fail(err); }
+    try { await setDoc("events", e.id, { ...e, guests: { ...(e.guests || {}), [t.dataset.k]: { name: g.name, pos: g.pos || "", pos2: g.pos2 || "", by: t.dataset.u, at: new Date().toISOString(), inCap: true } } }); await patchDoc("guestreq", t.dataset.u, { items: { [t.dataset.k]: { status: "ok", doneAt: new Date().toISOString() } } }); render(); toast(`${g.name} 님을 받았어요`); } catch (err) { t.disabled = false; fail(err); }
   },
   aRemind: t => remindSheet(t.dataset.eid),
   aScrimGo: async t => {

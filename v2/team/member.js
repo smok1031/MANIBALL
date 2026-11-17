@@ -1,5 +1,5 @@
 // 팀원 화면 (뉴버전 시안 4장 화면 구성). 운영진도 같은 화면을 쓰고, 운영진에게만 관리 버튼과 운영 탭이 더 보인다.
-import { noLate, pol, rulesTextOf, fineRulesOf, $, D, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, confirmBox, esc, evName, evStart, fail, feeMode, guestReqs, guestsOf, isAdmin, isPlay, md, momClosed, momDeadline, momOpen, momWinners, myProfile, myUv, myVote, nameOf, noticesList, past, patchDoc, people, render, ruleKind, sb, sheet, sport, started, toast, todayStr, uid36, upcoming, voteState, wd, won, ym, mLabel, closeAt, remindInfo, promotedAt, spotXY, viewMode, fineAt, fineNow, fineText, lateCancel, ls, APP } from "./main.js";
+import { noLate, pol, rulesTextOf, fineRulesOf, $, D, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, confirmBox, esc, evName, evStart, fail, feeMode, guestReqs, guestsOf, isAdmin, isPlay, md, momClosed, momDeadline, momOpen, momWinners, myProfile, myUv, myVote, nameOf, noticesList, past, patchDoc, people, render, ruleKind, sb, sheet, sport, started, toast, todayStr, uid36, upcoming, voteState, wd, won, ym, mLabel, closeAt, remindInfo, promotedAt, spotXY, viewMode, fineAt, fineNow, fineText, lateCancel, ls, APP, maintLocked } from "./main.js";
 import { C, IC, navBar, hd, hdTab, hdBrand, mngBtn, lrow, dlg, empty, initial, sw, teamLogo } from "./ui.js";
 import { afeed, adminHomeRows } from "./admin.js";
 
@@ -228,7 +228,7 @@ export function strip(a) {
 }
 // 라인업 (팀원은 내 자리와 쉬는 쿼터만)
 function myLineup(e) {
-  const ready = e.lineupAt && e.lineup && Object.keys(e.lineup).length;
+  const ready = (e.lineupAt || e.lineupOld) && e.lineup && Object.keys(e.lineup).length;
   const side = e.type === "scrim" ? sideOf(e, S.uid) || "A" : "main";
   const L = ready ? (e.lineup[side] || Object.values(e.lineup)[0]) : null;
   const fk = L && (L.fkey || "");
@@ -510,6 +510,7 @@ function toastUndo(msg, fn) {
 // 투표: 화면을 먼저 바꾸고 서버에 저장한다. back이면 카드가 움직인 뒤 일정 목록으로 돌아가 티켓이 뜯긴다(처음 투표) 또는 도장이 다시 찍힌다
 export async function saveVote(e, val, opts = {}) {
   if (typeof opts === "boolean") opts = { quiet: opts };
+  if (maintLocked()) { render(); fail(new Error("maintenance")); return; } // 점검 직전: 화면을 바꾸지 않고 알린다
   const prev = { ...myVote(e) };
   if (opts.back) {
     const delay = opts.delay || 900; S.freezeUntil = Date.now() + delay;
@@ -531,6 +532,7 @@ function pressCard(btn, cls) {
 export const MACT = {
   readAll: async () => { try { await patchDoc("uvote", S.uid, { readAt: new Date().toISOString() }); render(); toast("모두 읽음으로 바꿨어요"); } catch (err) { fail(err); } },
   mVote: t => {
+    if (maintLocked()) { fail(new Error("maintenance")); return; }
     const e = S.events[t.dataset.eid]; if (!e) return; const v = t.dataset.v; const cur = myVote(e); const vs = voteState(e);
     const a = att(e); const w = waitNo(e, S.uid); const seat = (cur.s === "yes" || cur.s === "late") && !w;
     if (v === cur.s && v !== "late") return;

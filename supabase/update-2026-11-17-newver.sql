@@ -62,7 +62,7 @@ begin
                 and coalesce(nullif(x.data -> 'ev' -> k ->> 'at', ''), '~') < coalesce(nullif(oe ->> 'at', ''), '~')
                 and exists (select 1 from public.members m where m.team_id = new.team_id and m.user_id::text = x.id);
             ahead := ahead + (select count(*) from jsonb_each(case when jsonb_typeof(ev -> 'guests') = 'object' then ev -> 'guests' else '{}'::jsonb end) gg
-              where coalesce(nullif(gg.value ->> 'at', ''), '~') < coalesce(nullif(oe ->> 'at', ''), '~'));
+              where gg.value ->> 'inCap' = 'true' and coalesce(nullif(gg.value ->> 'at', ''), '~') < coalesce(nullif(oe ->> 'at', ''), '~'));
           end if;
           if cap = 0 or ahead < cap then raise exception 'need_late_cancel' using errcode = '42501'; end if;
         end if;

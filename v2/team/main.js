@@ -11,7 +11,24 @@ const URL_ = import.meta.env.VITE_SUPABASE_URL || SUPABASE_URL;
 const KEY_ = import.meta.env.VITE_SUPABASE_KEY || SUPABASE_KEY;
 // 다른 용도로 쓰는 Supabase 프로젝트에 넣을 때는 public 대신 따로 만든 스키마(예: maniball)를 쓴다
 const DB_SCHEMA = import.meta.env.VITE_SUPABASE_SCHEMA || "public";
-const sb = createClient(URL_, KEY_, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }, db: { schema: DB_SCHEMA } });
+// 저장(쓰기) 요청을 세어 둔다: 점검으로 넘어가거나 새 버전으로 새로 고치기 전에 보내던 저장을 끝까지 기다린다(MB_FLUSH).
+// 점검 시작 10초 전부터는 새 저장을 보내지 않고 바로 실패로 돌려서, 화면이 먼저 바뀌었다가 사라지는 일이 없게 한다.
+let inflight = 0; const idle = [];
+const isWrite = (url, init) => { const m = ((init && init.method) || "GET").toUpperCase(); return m !== "GET" && m !== "HEAD" && /\/rest\/v1\//.test(String(url)); };
+const maintFail = () => new Response(JSON.stringify({ code: "42501", message: "maintenance", details: null, hint: null }), { status: 403, headers: { "Content-Type": "application/json" } });
+const markUnsaved = () => { try { sessionStorage.setItem("mb-unsaved", String((Number(sessionStorage.getItem("mb-unsaved")) || 0) + 1)); } catch (e) { /* 무시 */ } };
+async function trackedFetch(url, init) {
+  if (!isWrite(url, init)) return fetch(url, init);
+  if (window.MB_MAINT && window.MB_MAINT.locked && window.MB_MAINT.locked()) return maintFail();
+  inflight++;
+  try {
+    const r = await fetch(url, init);
+    if (!r.ok && r.status !== 409) { try { const t = await r.clone().text(); if (/maintenance/.test(t)) markUnsaved(); } catch (e) { /* 무시 */ } }
+    return r;
+  } finally { inflight--; if (!inflight) idle.splice(0).forEach(f => f()); }
+}
+window.MB_FLUSH = () => inflight ? new Promise(res => idle.push(res)) : Promise.resolve();
+const sb = createClient(URL_, KEY_, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }, db: { schema: DB_SCHEMA }, global: { fetch: trackedFetch } });
 const KAKAO_KEY = "e5c9ffdb309018215f5fcbc89eddb201"; // REST API 키 (공개 값)
 const APP = location.origin + location.pathname.replace(/index\.html$/, "");
 const KAKAO_REDIRECT = new URL("../../", APP).href; // 카카오에 등록된 주소: 사이트 첫 주소가 이 화면으로 넘겨준다
@@ -183,7 +200,11 @@ const clone = x => x === undefined ? undefined : JSON.parse(JSON.stringify(x));
 function getDoc(c, id) { if (c === "team" && id === "settings") return S.settings; if (c === "events") { const e = S.events[id]; if (!e) return undefined; const x = { ...e }; delete x.id; return x; } if (c === "rsvp") return S.rsvp[id]; return (S.d[c] || {})[id]; }
 function restore(c, id, old) { if (old === undefined) drop(c, id); else put(c, id, old); scheduleRender(); }
 const deepMerge = (a, b) => (a && b && typeof a === "object" && typeof b === "object" && !Array.isArray(a) && !Array.isArray(b)) ? Object.keys({ ...a, ...b }).reduce((o, k) => { o[k] = k in b ? deepMerge(a[k], b[k]) : a[k]; return o; }, {}) : b;
+// 점검 직전(시작 10초 전부터)에는 화면을 바꾸기 전에 막는다: 눌렀다가 사라지는 일이 없게
+const maintLocked = () => !!(window.MB_MAINT && window.MB_MAINT.locked && window.MB_MAINT.locked());
+const MAINT_ERR = () => Object.assign(new Error("maintenance"), { code: "42501" });
 async function setDoc(c, id, data) {
+  if (maintLocked()) throw MAINT_ERR();
   const old = clone(getDoc(c, id)); put(c, id, data); scheduleRender();
   const { error } = await sb.from("docs").upsert({ team_id: S.tid, coll: c, id, data }, { onConflict: "team_id,coll,id" });
   if (error) { restore(c, id, old); throw error; }
@@ -191,12 +212,13 @@ async function setDoc(c, id, data) {
 async function patchDoc(c, id, patch) {
   const exists = c === "rsvp" ? !!S.rsvp[id] : c === "events" ? !!S.events[id] : c === "team" ? (id === "settings" || !!D("team")[id]) : !!D(c)[id];
   if (!exists) { await setDoc(c, id, patch); return; }
+  if (maintLocked()) throw MAINT_ERR();
   const old = clone(getDoc(c, id)); put(c, id, deepMerge(clone(old) || {}, patch)); scheduleRender();
   const { data, error } = await sb.rpc("doc_patch", { p_team: S.tid, p_coll: c, p_id: id, p_patch: patch });
-  if (error) { restore(c, id, old); throw error; } put(c, id, data.data); scheduleRender();
+  if (error) { restore(c, id, old); throw error; } if (data && data.data) put(c, id, data.data); scheduleRender();
 }
 async function delDoc(c, id) { const { error } = await sb.from("docs").delete().eq("team_id", S.tid).eq("coll", c).eq("id", id); if (error) throw error; drop(c, id); }
-const GUARD = { maintenance: "지금은 정기 점검 중이에요 (매주 수요일 04:00~05:00)", not_closed: "아직 벌금 기준 시각 전이에요. 투표에서 바로 바꿔 주세요", need_late_cancel: "벌금 기준 시각이 지나서 사유를 남기고 불참으로 바꿔야 해요", mom_self: "MOM은 다른 사람에게만 줄 수 있어요", mom_not_came: "이날 온 사람만 MOM 투표를 할 수 있어요", guest_closed: "지금은 이 경기 용병 신청을 받지 않아요", event_started: "경기가 시작돼서 바꿀 수 없어요", not_going: "참석이나 늦참일 때만 바꿀 수 있어요", need_agree: "벌금에 동의해야 바꿀 수 있어요", admin_only: "Admin이나 운영진만 할 수 있어요", no_request: "이미 처리된 신청이에요", bad_request: "이름을 확인해 주세요", request_limit: "가입 신청은 한 번에 5팀까지 남길 수 있어요", vote_closed: "투표가 마감돼서 바꿀 수 없어요", no_event: "지워진 일정이에요", bad_vote: "저장할 수 없는 응답이에요", team_limit: "팀은 한 사람당 5개까지 만들 수 있어요", bad_code: "초대 링크가 바뀌었거나 잘못됐어요. 운영진에게 새 링크를 받아 주세요", mom_locked: "MOM 투표는 한 번만 낼 수 있어요", mom_closed: "MOM 투표 시간이 아니에요", no_player: "팀에 없는 사람이에요", poll_closed: "마감된 설문이에요", no_option: "없는 보기예요", no_poll: "지워진 설문이에요", owner_only: "Admin만 할 수 있어요", bad_inquiry: "평가 내용을 확인해 주세요", kick_denied: "운영진은 팀원만 내보낼 수 있어요", next_not_admin: "다음 Admin은 운영진 중에서 골라 주세요", owner_cannot_leave: "Admin은 다음 Admin을 정해야 나갈 수 있어요", not_self: "나에게는 할 수 없어요", not_allowed: "운영진만 할 수 있어요", owner_has_members: "팀원이 남아 있어요. 팀 설정에서 다음 Admin을 정하고 팀을 나가 주세요" };
+const GUARD = { maintenance: "점검이 곧 시작돼서 저장되지 않았어요. 다시 열리면 한 번 더 눌러 주세요", not_closed: "아직 벌금 기준 시각 전이에요. 투표에서 바로 바꿔 주세요", need_late_cancel: "벌금 기준 시각이 지나서 사유를 남기고 불참으로 바꿔야 해요", mom_self: "MOM은 다른 사람에게만 줄 수 있어요", mom_not_came: "이날 온 사람만 MOM 투표를 할 수 있어요", guest_closed: "지금은 이 경기 용병 신청을 받지 않아요", event_started: "경기가 시작돼서 바꿀 수 없어요", not_going: "참석이나 늦참일 때만 바꿀 수 있어요", need_agree: "벌금에 동의해야 바꿀 수 있어요", admin_only: "Admin이나 운영진만 할 수 있어요", no_request: "이미 처리된 신청이에요", bad_request: "이름을 확인해 주세요", request_limit: "가입 신청은 한 번에 5팀까지 남길 수 있어요", vote_closed: "투표가 마감돼서 바꿀 수 없어요", no_event: "지워진 일정이에요", bad_vote: "저장할 수 없는 응답이에요", team_limit: "팀은 한 사람당 5개까지 만들 수 있어요", bad_code: "초대 링크가 바뀌었거나 잘못됐어요. 운영진에게 새 링크를 받아 주세요", mom_locked: "MOM 투표는 한 번만 낼 수 있어요", mom_closed: "MOM 투표 시간이 아니에요", no_player: "팀에 없는 사람이에요", poll_closed: "마감된 설문이에요", no_option: "없는 보기예요", no_poll: "지워진 설문이에요", owner_only: "Admin만 할 수 있어요", bad_inquiry: "평가 내용을 확인해 주세요", kick_denied: "운영진은 팀원만 내보낼 수 있어요", next_not_admin: "다음 Admin은 운영진 중에서 골라 주세요", owner_cannot_leave: "Admin은 다음 Admin을 정해야 나갈 수 있어요", not_self: "나에게는 할 수 없어요", not_allowed: "운영진만 할 수 있어요", owner_has_members: "팀원이 남아 있어요. 팀 설정에서 다음 Admin을 정하고 팀을 나가 주세요" };
 function fail(e) { const m = errMsg(e); const k = Object.keys(GUARD).find(x => m.includes(x)); toast(k ? GUARD[k] : /JWT|fetch|network/i.test(m) ? "연결이 끊겼어요. 잠시 후 다시 해 주세요" : "저장하지 못했어요. 잠시 후 다시 해 주세요"); console.error(e); }
 
 /* ---------- 사람과 참석 ---------- */
@@ -218,10 +240,13 @@ function att(e) {
     if (s === "yes" || s === "late") going.push({ ...x, s, q: Number(r.q) || 0, at: r.at || "" });
     else if (s === "no") out.no.push(x); else out.none.push(x);
   });
-  // 받은 용병도 정원 안에 들어가고, 정원이 찼으면 받은 순서대로 대기 뒤에 선다
-  Object.entries(e.guests || {}).forEach(([id, g]) => going.push({ uid: "g:" + id, name: (g && g.name) || "용병", guest: true, role: "guest", s: "yes", q: 0, at: (g && g.at) || "", p: { pos1: posFix((g && g.pos) || ""), pos2: (g && g.pos2) || "" } }));
+  // 받은 용병도 정원 안에 들어가고, 정원이 찼으면 받은 순서대로 대기 뒤에 선다 (inCap 표시가 있는 용병만)
+  // 예전 버전에서 받은 용병(inCap 없음)은 예전처럼 정원 밖에 둔다: 업데이트로 팀원이 대기로 밀리는 일이 없게
+  const extra = [];
+  Object.entries(e.guests || {}).forEach(([id, g]) => (g && g.inCap ? going : extra).push({ uid: "g:" + id, name: (g && g.name) || "용병", guest: true, role: "guest", s: "yes", q: 0, at: (g && g.at) || "", p: { pos1: posFix((g && g.pos) || ""), pos2: (g && g.pos2) || "" } }));
   going.sort((a, b) => (a.at || "~") < (b.at || "~") ? -1 : 1);
   going.forEach((x, i) => { if (out.cap && i >= out.cap) out.wait.push(x); else (x.s === "late" ? out.late : out.yes).push(x); });
+  out.yes.push(...extra);
   out.in = out.yes.length + out.late.length;
   return out;
 }
@@ -729,7 +754,7 @@ function applyFix(e, side, u, i, qs) {
 function vLineup(id) {
   const e = S.events[id]; if (!e) return `${top("라인업", "#/schedule")}<div class="body"><div class="card empty"><b>지워진 일정이에요</b></div></div>`;
   const side = e.type === "scrim" ? UI.side : "main"; const L = curLineup(e, side); const edit = isAdmin() && viewMode() === "admin";
-  if (!edit && !e.lineupAt) return `${top("라인업", "#/schedule")}<div class="body"><div class="card empty"><b>라인업 준비 중이에요</b><span class="hint">운영진이 라인업을 알리면 여기서 내 출전과 휴식 쿼터를 볼 수 있어요</span></div></div>`; // 운영진이 알리기 전에는 팀원에게 안 보여 준다
+  if (!edit && !e.lineupAt && !e.lineupOld) return `${top("라인업", "#/schedule")}<div class="body"><div class="card empty"><b>라인업 준비 중이에요</b><span class="hint">운영진이 라인업을 알리면 여기서 내 출전과 휴식 쿼터를 볼 수 있어요</span></div></div>`; // 운영진이 알리기 전에는 팀원에게 안 보여 준다
   const ps = lineupPlayers(e, side); const qn = QN[sport()]; const k = Math.min(UI.q, qn); const fs = sport() === "futsal"; const a = att(e);
   const nm = u => !u ? "" : u.startsWith("g:") ? (((e.guests || {})[u.slice(2)] || {}).name || "용병") : nameOf(u);
   const dr = draftOf(e, side); const fkey = (L && L.fkey) || dr.fkey; const fl = L ? L.formation : (edit ? formOf(fkey) || [] : []);
@@ -948,7 +973,7 @@ const ACT2 = {
   guestReq: t => guestSheet(t.dataset.eid),
   guestOk: async t => {
     const e = S.events[t.dataset.eid]; const g = (((D("guestreq")[t.dataset.u] || {}).items) || {})[t.dataset.k]; if (!e || !g) return;
-    try { await setDoc("events", e.id, { ...e, guests: { ...(e.guests || {}), [t.dataset.k]: { name: g.name, pos: g.pos || "", by: t.dataset.u, at: new Date().toISOString() } } }); await patchDoc("guestreq", t.dataset.u, { items: { [t.dataset.k]: { status: "ok", doneAt: new Date().toISOString() } } }); render(); toast("명단에 넣었어요"); } catch (err) { fail(err); }
+    try { await setDoc("events", e.id, { ...e, guests: { ...(e.guests || {}), [t.dataset.k]: { name: g.name, pos: g.pos || "", by: t.dataset.u, at: new Date().toISOString(), inCap: true } } }); await patchDoc("guestreq", t.dataset.u, { items: { [t.dataset.k]: { status: "ok", doneAt: new Date().toISOString() } } }); render(); toast("명단에 넣었어요"); } catch (err) { fail(err); }
   },
   guestNo: async t => { try { await patchDoc("guestreq", t.dataset.u, { items: { [t.dataset.k]: { status: "no", doneAt: new Date().toISOString() } } }); render(); toast("거절했어요"); } catch (e) { fail(e); } },
   guestDel: async t => { const e = S.events[t.dataset.eid]; if (!e) return; const gs = { ...(e.guests || {}) }; delete gs[t.dataset.g]; try { await setDoc("events", e.id, { ...e, guests: gs }); render(); } catch (err) { fail(err); } },
@@ -1046,8 +1071,6 @@ function render() {
 }
 let lastRoute = "";
 window.addEventListener("hashchange", () => onRoute(false));
-// 정기 점검 시간이 되면 열려 있던 화면도 점검 안내로 (maint-gate.js가 시간을 판단)
-setInterval(() => { try { if (window.MB_MAINT && window.MB_MAINT.active()) location.replace("../maint.html"); } catch (e) { /* 점검 확인 실패는 무시 */ } }, 60000);
 function onRoute(force) {
   const r = route(); if (r === lastRoute && !force) return; lastRoute = r; trackRoute(r);
   // 폼 화면에 들어올 때 폼 값을 채운다
@@ -1373,4 +1396,4 @@ function vRest(id) {
 }
 
 // member.js와 admin.js가 같이 쓰는 것
-export { scheduleRender, backHref, delDoc, FUTSAL_N, loadReqs, ls, APP, route, viewMode, fineAt, fineNow, fineText, lateCancel, spotXY, delSheet, curLineup, lineupPlayers, draftOf, formOf, autoLineup, FORMS, FORM_DESC, applyFix, qText, rowsOf, loadTeam, enter, showTeams, inviteUrl, policyFromForm as polFromForm, posFix, profileOf, refreshTally, hmK, promotedAt, ampm, closeAt, voteTimeOf, $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };
+export { maintLocked, scheduleRender, backHref, delDoc, FUTSAL_N, loadReqs, ls, APP, route, viewMode, fineAt, fineNow, fineText, lateCancel, spotXY, delSheet, curLineup, lineupPlayers, draftOf, formOf, autoLineup, FORMS, FORM_DESC, applyFix, qText, rowsOf, loadTeam, enter, showTeams, inviteUrl, policyFromForm as polFromForm, posFix, profileOf, refreshTally, hmK, promotedAt, ampm, closeAt, voteTimeOf, $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };

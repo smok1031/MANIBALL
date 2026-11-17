@@ -13,7 +13,8 @@ if [ ! -e "$GHP/.git" ]; then git fetch -q origin gh-pages && git worktree add -
 git -C "$GHP" fetch -q origin gh-pages && git -C "$GHP" reset -q --hard FETCH_HEAD
 publish() { # $1: 빌드 폴더, $2: gh-pages 안의 대상 폴더 ("" 이면 맨 위)
   local src=$1 dst="$GHP/${2:-}"; mkdir -p "$dst"
-  if [ -n "${2:-}" ]; then find "$dst" -mindepth 1 -delete; else find "$dst" -mindepth 1 -maxdepth 1 ! -name .git ! -name test ! -name .nojekyll -exec rm -rf {} +; fi
+  # assets/ 는 지우지 않는다: 브라우저에 남은 예전 화면(최대 10분 캐시)이 예전 스크립트를 못 찾아 빈 화면이 되지 않게
+  if [ -n "${2:-}" ]; then find "$dst" -mindepth 1 -maxdepth 1 ! -name assets -exec rm -rf {} +; else find "$dst" -mindepth 1 -maxdepth 1 ! -name .git ! -name test ! -name .nojekyll ! -name assets -exec rm -rf {} +; fi
   cp -r "$src"/. "$dst"/
 }
 case "$MODE" in
