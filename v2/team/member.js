@@ -4,7 +4,7 @@ import { C, IC, navBar, hd, hdTab, hdBrand, mngBtn, lrow, dlg, empty, initial, s
 import { afeed, adminHomeRows } from "./admin.js";
 
 /* ---------- 공통 계산 ---------- */
-const MU = { season: "", lq: 1, mom: "", gpos: [], tq: {} };
+const MU = { season: "", lq: 1, mom: "", gpos: [], tq: {}, anim: null };
 const yearOf = () => MU.season || todayStr().slice(0, 4);
 export const seasonEvents = y => past().filter(e => e.date.startsWith(y));
 const pad2 = n => String(n).padStart(2, "0");
@@ -147,8 +147,11 @@ export function ticket(e, opts = {}) {
   const a = att(e); const v = myVote(e); const w = waitNo(e, S.uid); const torn = !!v.s;
   const bg = e.type === "match" ? C.blue : C.gray; const href = opts.href || "#/event/" + e.id;
   const count = a.cap ? `${a.in}/${a.cap}` : `${a.in}명`;
-  const stamp = torn ? `<a class="st" href="${href}" aria-label="다시 투표하기" style="background:${w ? C.teal : VC[v.s]};color:${w ? C.bg : C.ink}"><b>${w ? "대기" : VS[v.s]}</b><span>${w ? w + "번" : v.s === "late" && v.q ? v.q + "Q부터" : "TICKET"}</span></a>` : "";
-  return `<div class="tk${torn ? " torn" : ""}">
+  const an = MU.anim && MU.anim.id === e.id && Date.now() - MU.anim.t0 < 1600 ? MU.anim : null; const el = an ? (Date.now() - an.t0) / 1000 : 0;
+  const stampBg = w ? C.teal : VC[v.s];
+  const fly = an && an.tear && torn ? `<span class="s fly" aria-hidden="true" style="background:${stampBg};animation-delay:${(0.12 - el).toFixed(3)}s"></span>` : "";
+  const stamp = torn ? `${fly}<a class="st${an ? " pop" : ""}" href="${href}" aria-label="다시 투표하기" style="background:${stampBg};color:${w ? C.bg : C.ink}${an ? `;animation-delay:${((an.tear ? 0.62 : 0.05) - el).toFixed(3)}s` : ""}"><b>${w ? "대기" : VS[v.s]}</b><span>${w ? w + "번" : v.s === "late" && v.q ? v.q + "Q부터" : "TICKET"}</span></a>` : "";
+  return `<div class="tk${torn ? " torn" : ""}" data-tk="${esc(e.id)}">
     <a class="m" href="${href}" style="background:${bg}">
       <span class="spread" style="min-height:24px"><span class="cn"><b class="bc" style="font-size:20px">${md(e.date)} ${wd(e.date)}</b><span style="font-size:13px;font-weight:700">${esc(e.type === "match" && !e.opponent ? "상대 미정" : kindOf(e))}</span></span>${torn ? "" : `<span class="dd">${dday(e)}</span>`}</span>
       <b class="bc" style="font-size:30px;line-height:1">${esc(e.time || "")}${e.end ? " ~ " + esc(e.end) : ""}</b>
@@ -276,7 +279,7 @@ function giveSeatDlg(e, a, nextVote) {
   const v = myVote(e);
   dlg(`<h3>${VS[v.s]}에서 불참으로 바꿀까요?</h3><span style="font-size:14px;line-height:1.6">정원 ${a.cap}명이 다 찼고 대기 ${a.wait.length}명이 있어요. 지금 바꾸면 내 자리는 대기 1번에게 넘어가고, 다시 참석을 누르면 대기 ${a.wait.length}번이 돼요.</span>
     <div class="grid2"><button class="btn" data-act="closeSheet">${VS[v.s]} 그대로 두기</button><button class="btn c" id="dOk">불참으로 바꾸기</button></div>`);
-  $("#dOk").onclick = () => { closeSheet(); saveVote(e, nextVote); };
+  $("#dOk").onclick = () => { closeSheet(); const card = document.querySelector(`.qc[data-v="no"]`); if (card) pressCard(card, "no"); saveVote(e, nextVote, { back: true }); };
 }
 // 벌금 창: 벌금 기준 시각이 지났거나 마감 뒤에 참석, 늦참에서 불참으로
 function fineDlg(e) {
@@ -291,7 +294,7 @@ function fineDlg(e) {
     const reason = $("#fReason").value.trim(); if (!reason) { toast("사유를 적어 주세요"); return; }
     if (amt && !($("#fAgree") || {}).checked) { toast("벌금에 동의해야 바꿀 수 있어요"); return; }
     ev.target.disabled = true;
-    try { const r = await lateCancel(e, reason, !!amt); closeSheet(); render(); toast(r && r.amount ? `불참으로 바꿨어요. 벌금 ${won(r.amount)}이 매겨졌어요` : "불참으로 바꿨어요"); } catch (err) { ev.target.disabled = false; fail(err); }
+    try { const r = await lateCancel(e, reason, !!amt); closeSheet(); MU.anim = { id: e.id, tear: false, t0: Date.now() }; location.hash = "#/schedule"; render(); toast(r && r.amount ? `불참으로 바꿨어요. 벌금 ${won(r.amount)}이 매겨졌어요` : "불참으로 바꿨어요"); } catch (err) { ev.target.disabled = false; fail(err); }
   };
 }
 function guestSheet(eid) {
@@ -504,14 +507,26 @@ function toastUndo(msg, fn) {
   if (fn) el.querySelector("button").onclick = () => { el.remove(); fn(); };
   undoT = setTimeout(() => el.remove(), 4000);
 }
-export async function saveVote(e, val, quiet) {
+// 투표: 화면을 먼저 바꾸고 서버에 저장한다. back이면 카드가 움직인 뒤 일정 목록으로 돌아가 티켓이 뜯긴다(처음 투표) 또는 도장이 다시 찍힌다
+export async function saveVote(e, val, opts = {}) {
+  if (typeof opts === "boolean") opts = { quiet: opts };
   const prev = { ...myVote(e) };
+  if (opts.back) {
+    const delay = opts.delay || 900; S.freezeUntil = Date.now() + delay;
+    setTimeout(() => { S.freezeUntil = 0; if (location.hash === "#/event/" + e.id) { MU.anim = { id: e.id, tear: !prev.s, t0: Date.now() }; location.hash = "#/schedule"; setTimeout(() => { const tk = document.querySelector(`[data-tk="${e.id}"]`); if (tk && tk.getBoundingClientRect().bottom > innerHeight - 80) tk.scrollIntoView({ block: "center" }); }, 60); } else render(); }, delay);
+  }
   try {
     await patchDoc("rsvp", S.uid, { ev: { [e.id]: val } });
-    render();
+    if (!opts.back) render();
     const w = waitNo(e, S.uid);
-    if (!quiet) toastUndo(`${md(e.date)} ${evName(e)}, ${w && val.s !== "no" ? "대기 " + w + "번으로" : (val.s === "late" ? (val.q ? val.q + "Q부터 늦참" : "늦참") : VS[val.s]) + "으로"} 저장했어요`, prev.s === "yes" || prev.s === "late" ? null : () => saveVote(e, prev.s ? { s: prev.s, q: prev.q || 0 } : { s: "", q: 0 }, true));
-  } catch (err) { fail(err); }
+    const show = (m, f) => opts.back ? setTimeout(() => toastUndo(m, f), 1500) : toastUndo(m, f);
+    if (!opts.quiet) show(`${md(e.date)} ${evName(e)}, ${w && val.s !== "no" ? "대기 " + w + "번으로" : (val.s === "late" ? (val.q ? val.q + "Q부터 늦참" : "늦참") : VS[val.s]) + "으로"} 저장했어요`, prev.s === "yes" || prev.s === "late" ? null : () => saveVote(e, prev.s ? { s: prev.s, q: prev.q || 0 } : { s: "", q: 0 }, { quiet: true }));
+  } catch (err) { S.freezeUntil = 0; MU.anim = null; render(); fail(err); }
+}
+// 누른 카드를 바로 움직인다 (다시 그리지 않아서 기울어지는 모션이 보인다)
+function pressCard(btn, cls) {
+  btn.parentElement.querySelectorAll(".qc").forEach(b => { b.classList.remove("on", "yes", "late", "no", "wait"); b.setAttribute("aria-pressed", "false"); });
+  btn.classList.add("on", cls); btn.setAttribute("aria-pressed", "true");
 }
 export const MACT = {
   readAll: async () => { try { await patchDoc("uvote", S.uid, { readAt: new Date().toISOString() }); render(); toast("모두 읽음으로 바꿨어요"); } catch (err) { fail(err); } },
@@ -524,9 +539,12 @@ export const MACT = {
     const next = { s: v, q: v === "late" ? (cur.s === "late" ? cur.q || 0 : 0) : 0 };
     if (v === "no" && seat && a.cap && a.wait.length) { giveSeatDlg(e, a, next); return; }
     if (v === "late" && cur.s === "late") return;
-    saveVote(e, next, v === "late");
+    const full = a.cap && a.in >= a.cap; const toWait = v !== "no" && !seat && (w || full);
+    if (v === "late" && !next.q) { saveVote(e, next, { quiet: true }); return; } // 늦참은 몇 쿼터부터인지 고른 뒤 돌아간다
+    pressCard(t, toWait ? "wait" : v);
+    saveVote(e, next, { back: true });
   },
-  mLateQ: t => { const e = S.events[t.dataset.eid]; if (!e) return; saveVote(e, { ...myVote(e), s: "late", q: Number(t.dataset.q) }); },
+  mLateQ: t => { const e = S.events[t.dataset.eid]; if (!e) return; t.parentElement.querySelectorAll(".qq").forEach(b => b.classList.toggle("on", b === t)); saveVote(e, { ...myVote(e), s: "late", q: Number(t.dataset.q) }, { back: true, delay: 700 }); },
   mLq: t => { MU.lq = Number(t.dataset.q) || 1; render(); },
   mGuest: t => guestSheet(t.dataset.eid),
   mGuestCancel: t => confirmBox("용병 신청 취소", "보낸 용병 신청을 취소할까요?", "취소하기", async () => { try { await patchDoc("guestreq", S.uid, { items: { [t.dataset.k]: { status: "cancel", doneAt: new Date().toISOString() } } }); render(); } catch (err) { fail(err); } }),

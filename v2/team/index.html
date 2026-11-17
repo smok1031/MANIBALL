@@ -124,6 +124,12 @@ textarea.inp{height:auto;min-height:120px;padding:12px 14px;line-height:1.7;resi
 .tk .dd{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;background:var(--ink);color:var(--bg);border-radius:6px;padding:1px 8px}
 .tk .st{position:absolute;top:50%;right:22px;margin-top:-31px;width:62px;height:62px;border-radius:50%;border:2.5px solid var(--ink);transform:rotate(-12deg);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;text-decoration:none}
 .tk .st b{font-size:14px}.tk .st span{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px}
+/* 티켓 뜯기: 처음 투표하면 오른쪽 조각이 떨어져 나가고 도장이 찍힌다. 다시 투표하면 도장만 다시 찍힌다 */
+.tk .s.fly{position:absolute;right:0;top:0;bottom:0;width:80px;z-index:3;transform-origin:0 0;animation:tkfly .6s cubic-bezier(.55,0,.8,.3) both}
+@keyframes tkfly{0%{transform:none;opacity:1}35%{opacity:1}100%{transform:translate(36px,18px) rotate(14deg);opacity:0}}
+.tk .st.pop{animation:tkpop .32s cubic-bezier(.3,1.6,.6,1) both}
+@keyframes tkpop{from{transform:rotate(-12deg) scale(1.8);opacity:0}to{transform:rotate(-12deg) scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){.tk .s.fly{display:none}.tk .st.pop,.qc{animation:none;transition:none}}
 .mon{display:flex;align-items:baseline;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:6px}
 .mon b{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:36px;line-height:1}
 /* 일정 상세 큰 표 */

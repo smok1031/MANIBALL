@@ -123,7 +123,7 @@ async function loadTeam(tid) {
   const me = S.members.find(x => x.user_id === S.uid); S.role = me ? me.role : "";
   S.settings = {}; S.events = {}; S.rsvp = {}; S.d = {};
   (d.data || []).forEach(r => put(r.coll, r.id, r.data));
-  if (isAdmin()) { S.invite = await getInvite(tid); await loadReqs(); } else S.reqs = [];
+  if (isAdmin()) { const [inv] = await Promise.all([getInvite(tid), loadReqs()]); S.invite = inv; } else S.reqs = [];
   ls.set("mb-team", tid);
   watch(tid);
 }
@@ -158,7 +158,7 @@ function watch(tid) {
   const onDoc = p => {
     const n = p.new || {}; if (n.team_id !== tid) return;
     if (n.coll === "gone") { const i = n.id.indexOf(":"); const c = n.id.slice(0, i), id = n.id.slice(i + 1); if (c === "member") refreshMembers(); else drop(c, id); render(); return; }
-    put(n.coll, n.id, n.data); render();
+    put(n.coll, n.id, n.data); scheduleRender();
   };
   S.ch = sb.channel("mb-" + tid)
     .on("postgres_changes", { event: "INSERT", schema: DB_SCHEMA, table: "docs", filter: "team_id=eq." + tid }, onDoc)
@@ -178,18 +178,25 @@ async function refreshMembers() {
 }
 document.addEventListener("keydown", ev => { if (ev.key === "Enter" && ev.target.getAttribute && ev.target.getAttribute("role") === "button" && ev.target.dataset.act) ev.target.click(); });
 document.addEventListener("visibilitychange", () => { if (!document.hidden && S.ready) refreshMembers(); });
+// 화면은 먼저 바꾸고(기다리지 않게), 서버가 거절하면 되돌린다
+const clone = x => x === undefined ? undefined : JSON.parse(JSON.stringify(x));
+function getDoc(c, id) { if (c === "team" && id === "settings") return S.settings; if (c === "events") { const e = S.events[id]; if (!e) return undefined; const x = { ...e }; delete x.id; return x; } if (c === "rsvp") return S.rsvp[id]; return (S.d[c] || {})[id]; }
+function restore(c, id, old) { if (old === undefined) drop(c, id); else put(c, id, old); scheduleRender(); }
+const deepMerge = (a, b) => (a && b && typeof a === "object" && typeof b === "object" && !Array.isArray(a) && !Array.isArray(b)) ? Object.keys({ ...a, ...b }).reduce((o, k) => { o[k] = k in b ? deepMerge(a[k], b[k]) : a[k]; return o; }, {}) : b;
 async function setDoc(c, id, data) {
+  const old = clone(getDoc(c, id)); put(c, id, data); scheduleRender();
   const { error } = await sb.from("docs").upsert({ team_id: S.tid, coll: c, id, data }, { onConflict: "team_id,coll,id" });
-  if (error) throw error; put(c, id, data);
+  if (error) { restore(c, id, old); throw error; }
 }
 async function patchDoc(c, id, patch) {
   const exists = c === "rsvp" ? !!S.rsvp[id] : c === "events" ? !!S.events[id] : c === "team" ? (id === "settings" || !!D("team")[id]) : !!D(c)[id];
   if (!exists) { await setDoc(c, id, patch); return; }
+  const old = clone(getDoc(c, id)); put(c, id, deepMerge(clone(old) || {}, patch)); scheduleRender();
   const { data, error } = await sb.rpc("doc_patch", { p_team: S.tid, p_coll: c, p_id: id, p_patch: patch });
-  if (error) throw error; put(c, id, data.data);
+  if (error) { restore(c, id, old); throw error; } put(c, id, data.data); scheduleRender();
 }
 async function delDoc(c, id) { const { error } = await sb.from("docs").delete().eq("team_id", S.tid).eq("coll", c).eq("id", id); if (error) throw error; drop(c, id); }
-const GUARD = { maintenance: "지금은 정기 점검 중이에요 (매주 수요일 04:00~05:00)", not_closed: "아직 벌금 기준 시각 전이에요. 투표에서 바로 바꿔 주세요", need_late_cancel: "벌금 기준 시각이 지나서 사유를 남기고 불참으로 바꿔야 해요", event_started: "경기가 시작돼서 바꿀 수 없어요", not_going: "참석이나 늦참일 때만 바꿀 수 있어요", need_agree: "벌금에 동의해야 바꿀 수 있어요", admin_only: "Admin이나 운영진만 할 수 있어요", no_request: "이미 처리된 신청이에요", bad_request: "이름을 확인해 주세요", request_limit: "가입 신청은 한 번에 5팀까지 남길 수 있어요", vote_closed: "투표가 마감돼서 바꿀 수 없어요", no_event: "지워진 일정이에요", bad_vote: "저장할 수 없는 응답이에요", team_limit: "팀은 한 사람당 5개까지 만들 수 있어요", bad_code: "초대 링크가 바뀌었거나 잘못됐어요. 운영진에게 새 링크를 받아 주세요", mom_locked: "MOM 투표는 한 번만 낼 수 있어요", mom_closed: "MOM 투표 시간이 아니에요", no_player: "팀에 없는 사람이에요", poll_closed: "마감된 설문이에요", no_option: "없는 보기예요", no_poll: "지워진 설문이에요", owner_only: "Admin만 할 수 있어요", bad_inquiry: "평가 내용을 확인해 주세요", kick_denied: "운영진은 팀원만 내보낼 수 있어요", next_not_admin: "다음 Admin은 운영진 중에서 골라 주세요", owner_cannot_leave: "Admin은 다음 Admin을 정해야 나갈 수 있어요", not_self: "나에게는 할 수 없어요", not_allowed: "운영진만 할 수 있어요", owner_has_members: "팀원이 남아 있어요. 팀 설정에서 다음 Admin을 정하고 팀을 나가 주세요" };
+const GUARD = { maintenance: "지금은 정기 점검 중이에요 (매주 수요일 04:00~05:00)", not_closed: "아직 벌금 기준 시각 전이에요. 투표에서 바로 바꿔 주세요", need_late_cancel: "벌금 기준 시각이 지나서 사유를 남기고 불참으로 바꿔야 해요", mom_self: "MOM은 다른 사람에게만 줄 수 있어요", mom_not_came: "이날 온 사람만 MOM 투표를 할 수 있어요", guest_closed: "지금은 이 경기 용병 신청을 받지 않아요", event_started: "경기가 시작돼서 바꿀 수 없어요", not_going: "참석이나 늦참일 때만 바꿀 수 있어요", need_agree: "벌금에 동의해야 바꿀 수 있어요", admin_only: "Admin이나 운영진만 할 수 있어요", no_request: "이미 처리된 신청이에요", bad_request: "이름을 확인해 주세요", request_limit: "가입 신청은 한 번에 5팀까지 남길 수 있어요", vote_closed: "투표가 마감돼서 바꿀 수 없어요", no_event: "지워진 일정이에요", bad_vote: "저장할 수 없는 응답이에요", team_limit: "팀은 한 사람당 5개까지 만들 수 있어요", bad_code: "초대 링크가 바뀌었거나 잘못됐어요. 운영진에게 새 링크를 받아 주세요", mom_locked: "MOM 투표는 한 번만 낼 수 있어요", mom_closed: "MOM 투표 시간이 아니에요", no_player: "팀에 없는 사람이에요", poll_closed: "마감된 설문이에요", no_option: "없는 보기예요", no_poll: "지워진 설문이에요", owner_only: "Admin만 할 수 있어요", bad_inquiry: "평가 내용을 확인해 주세요", kick_denied: "운영진은 팀원만 내보낼 수 있어요", next_not_admin: "다음 Admin은 운영진 중에서 골라 주세요", owner_cannot_leave: "Admin은 다음 Admin을 정해야 나갈 수 있어요", not_self: "나에게는 할 수 없어요", not_allowed: "운영진만 할 수 있어요", owner_has_members: "팀원이 남아 있어요. 팀 설정에서 다음 Admin을 정하고 팀을 나가 주세요" };
 function fail(e) { const m = errMsg(e); const k = Object.keys(GUARD).find(x => m.includes(x)); toast(k ? GUARD[k] : /JWT|fetch|network/i.test(m) ? "연결이 끊겼어요. 잠시 후 다시 해 주세요" : "저장하지 못했어요. 잠시 후 다시 해 주세요"); console.error(e); }
 
 /* ---------- 사람과 참석 ---------- */
@@ -1006,7 +1013,12 @@ async function refreshTally() { const { data } = await sb.from("docs").select("i
 
 /* ---------- 그리기와 길찾기 ---------- */
 function route() { return (location.hash || "#/").slice(1); }
+// 여러 번 바뀌어도 한 번만 다시 그린다. 투표 카드가 움직이는 동안(freezeUntil)은 다시 그리지 않는다
+let rq = 0, frT = 0;
+function scheduleRender() { if (rq) return; rq = requestAnimationFrame(() => { rq = 0; render(); }); }
 function render() {
+  const wait = (S.freezeUntil || 0) - Date.now();
+  if (wait > 0) { clearTimeout(frT); frT = setTimeout(render, wait + 20); return; }
   const app = $("#app"); let html = "";
   if (S.flow === "login") html = vLogin(qs.get("login_error"));
   else if (S.flow === "invite") html = vInvite(S.inviteTeam, qs.get("login_error"));
@@ -1302,7 +1314,7 @@ async function boot() {
   if (qs.get("view") === "member") setView("member"); else if (qs.get("view") === "admin") setView("admin");
   ls.set("mb-view", null);
   if (location.search) history.replaceState(null, "", APP + location.hash);
-  try { await loadTeams(); await loadMyReqs(); } catch (e) { $("#app").innerHTML = `<div class="loading">팀 정보를 불러오지 못했어요. 네트워크를 확인하고 새로고침해 주세요.</div>`; return; }
+  try { await Promise.all([loadTeams(), loadMyReqs()]); } catch (e) { $("#app").innerHTML = `<div class="loading">팀 정보를 불러오지 못했어요. 네트워크를 확인하고 새로고침해 주세요.</div>`; return; }
   if (code) {
     ls.set("mb-join", null);
     const { data } = await sb.rpc("team_by_code", { p_code: code }); const t = data && data[0];
@@ -1361,4 +1373,4 @@ function vRest(id) {
 }
 
 // member.js와 admin.js가 같이 쓰는 것
-export { backHref, delDoc, FUTSAL_N, loadReqs, ls, APP, route, viewMode, fineAt, fineNow, fineText, lateCancel, spotXY, delSheet, curLineup, lineupPlayers, draftOf, formOf, autoLineup, FORMS, FORM_DESC, applyFix, qText, rowsOf, loadTeam, enter, showTeams, inviteUrl, policyFromForm as polFromForm, posFix, profileOf, refreshTally, hmK, promotedAt, ampm, closeAt, voteTimeOf, $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };
+export { scheduleRender, backHref, delDoc, FUTSAL_N, loadReqs, ls, APP, route, viewMode, fineAt, fineNow, fineText, lateCancel, spotXY, delSheet, curLineup, lineupPlayers, draftOf, formOf, autoLineup, FORMS, FORM_DESC, applyFix, qText, rowsOf, loadTeam, enter, showTeams, inviteUrl, policyFromForm as polFromForm, posFix, profileOf, refreshTally, hmK, promotedAt, ampm, closeAt, voteTimeOf, $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };
