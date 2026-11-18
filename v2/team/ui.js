@@ -1,7 +1,9 @@
 // 뉴버전 공통 모양: 머리, 하단 탭(탭마다 줄 색), 팀 로고, 아이콘, 줄 버튼, 창
 import { S, esc, sport, isAdmin, route, viewMode } from "./main.js";
 
-export const C = { bg: "#F0EEE9", ink: "#14182B", sub: "#4A4F63", line: "#D3D0C8", mute: "#8E8B84", gray: "#DCD8CF", blue: "#5B8DEF", orange: "#E46A2E", green: "#7FA36A", pink: "#EE9BC0", clay: "#C08C7C", teal: "#2E6F6E" };
+// 17안 색: 종이 바탕, 먹색 글자와 선, 흰 카드. 예전 이름(blue, orange 등)은 같은 역할의 17안 색으로 바꿔 둠
+// blue: 가장 가까운 일정 같은 강조면(옅은 파랑), orange: 누를 곳 노랑, green: 옅은 초록, pink: MOM 분홍, clay: 옅은 분홍, teal(대기): 먹색
+export const C = { bg: "#FBF7EF", ink: "#121110", sub: "#5B5650", line: "#DDD6C8", mute: "#9C9488", gray: "#FFFFFF", white: "#FFFFFF", blue: "#CDDFFF", orange: "#FCD01A", green: "#C8E8CD", pink: "#FDD1D8", clay: "#FFECEF", teal: "#121110", yel: "#FCD01A", danger: "#8C3B28", fc: "#5B8DEF", fs: "#69BA7C", sec: "var(--sec)", sec2: "var(--sec2)", sec3: "var(--sec3)", sect: "var(--sect)", sh: "4px 4px 0 #121110" };
 const sv = (d, w = 20, sw = 2.2, extra = "") => `<svg width="${w}" height="${w}" viewBox="0 0 24 24" fill="none" stroke="${C.ink}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"${extra}>${d}</svg>`;
 export const IC = {
   back: sv(`<path d="M15 5l-7 7 7 7"></path>`, 22),
@@ -38,19 +40,21 @@ export const IC = {
 
 // 팀 로고: 축구 FC 파랑, 풋살 FS 초록 (남색 선과 글자)
 export function teamLogo(sz, sp) {
-  const soc = (sp || sport()) === "soccer"; const fill = soc ? C.blue : C.green; const tag = soc ? "FC" : "FS";
+  const soc = (sp || sport()) === "soccer"; const fill = soc ? C.fc : C.fs; const tag = soc ? "FC" : "FS";
   const lines = soc ? `<rect x="33" y="15" width="34" height="13"></rect><rect x="41" y="15" width="18" height="6"></rect><rect x="33" y="72" width="34" height="13"></rect><rect x="41" y="79" width="18" height="6"></rect>`
     : `<path d="M34 15 A10 10 0 0 0 44 25 L56 25 A10 10 0 0 0 66 15"></path><path d="M34 85 A10 10 0 0 1 44 75 L56 75 A10 10 0 0 1 66 85"></path>`;
   return `<svg width="${sz}" height="${sz}" viewBox="6 6 88 88" role="img" aria-label="${soc ? "축구" : "풋살"}" style="flex:none;display:block"><rect x="6" y="6" width="88" height="88" rx="22" fill="${fill}"></rect><g fill="none" stroke="${C.ink}" stroke-width="2.5" stroke-linejoin="round" opacity="0.9"><rect x="18" y="15" width="64" height="70" rx="1"></rect><line x1="18" y1="50" x2="82" y2="50"></line>${lines}</g><rect x="25" y="37" width="50" height="26" rx="6" fill="${fill}"></rect><text x="50" y="61" text-anchor="middle" font-family="Inter, 'Noto Sans KR', sans-serif" font-weight="800" font-size="30" fill="${C.ink}">${tag}</text></svg>`;
 }
 // 매니볼 로고 (로그인 전 화면)
-export const MB = sz => `<svg width="${sz}" height="${sz}" viewBox="0 0 64 64" role="img" aria-label="매니볼" style="flex:none;display:block"><rect width="64" height="64" rx="16" fill="${C.blue}" stroke="${C.ink}" stroke-width="3"></rect><circle cx="32" cy="32" r="20" fill="none" stroke="${C.ink}" stroke-width="4.5"></circle><circle cx="24" cy="26" r="3.2" fill="${C.orange}"></circle><circle cx="24" cy="38" r="3.2" fill="${C.orange}"></circle><path d="M30 26 H42 M30 38 H40" fill="none" stroke="${C.ink}" stroke-width="4.5" stroke-linecap="round"></path></svg>`;
+export const MB = sz => `<svg width="${sz}" height="${sz}" viewBox="0 0 64 64" role="img" aria-label="매니볼" style="flex:none;display:block"><rect width="64" height="64" rx="16" fill="${C.fc}" stroke="${C.ink}" stroke-width="3"></rect><circle cx="32" cy="32" r="20" fill="none" stroke="${C.ink}" stroke-width="4.5"></circle><circle cx="24" cy="26" r="3.2" fill="#E46A2E"></circle><circle cx="24" cy="38" r="3.2" fill="#E46A2E"></circle><path d="M30 26 H42 M30 38 H40" fill="none" stroke="${C.ink}" stroke-width="4.5" stroke-linecap="round"></path></svg>`;
 
-// 탭: 홈 파랑, 일정 초록, 기록 분홍, 팀 클레이, 운영 남색
-const TABS = [["#/", "홈", C.blue], ["#/schedule", "일정", C.green], ["#/records", "기록", C.pink], ["#/team", "팀", C.clay], ["#/ops", "운영", C.ink]];
+// 탭: 홈 파랑, 일정 청록, 기록 분홍, 팀 초록, 운영 보라 (색 한 벌은 index.html의 data-sec)
+const TABS = [["#/", "홈", "home"], ["#/schedule", "일정", "schedule"], ["#/records", "기록", "record"], ["#/team", "팀", "team"], ["#/ops", "운영", "ops"]];
+export const setSec = k => { if (document.documentElement.dataset.sec !== k) document.documentElement.dataset.sec = k; };
 export function navBar(on) {
   const t = isAdmin() && viewMode() === "admin" ? TABS : TABS.slice(0, 4);
-  return `<nav class="nav" aria-label="하단 메뉴">${t.map(([h, l, c]) => `<a href="${h}"${on === l ? ' aria-current="page"' : ""}><i style="background:${on === l ? c : "transparent"}"></i>${l}</a>`).join("")}</nav>`;
+  const cur = TABS.find(x => x[1] === on); if (cur) setSec(cur[2]);
+  return `<nav class="nav" aria-label="하단 메뉴">${t.map(([h, l]) => `<a href="${h}"${on === l ? ' aria-current="page"' : ""}>${l}</a>`).join("")}</nav>`;
 }
 // 머리: 뒤로가 있는 화면
 export function hd(title, back, opts = {}) {

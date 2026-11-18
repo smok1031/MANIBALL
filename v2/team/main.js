@@ -5,7 +5,7 @@ import { SUPABASE_URL, SUPABASE_KEY } from "../../src/config.js";
 import { memberRoute, memberForm, MACT } from "./member.js";
 import { planLineup, canPlay, FIELD, isKeeper } from "./lineup-core.js";
 import { adminRoute, adminForm, AACT, eventFormInit, remindLeft, remindSheet, playerSheet, rosterSheet } from "./admin.js";
-import { hd as uiHd, navBar, C, IC, teamLogo } from "./ui.js";
+import { hd as uiHd, navBar, C, IC, teamLogo, setSec } from "./ui.js";
 
 const URL_ = import.meta.env.VITE_SUPABASE_URL || SUPABASE_URL;
 const KEY_ = import.meta.env.VITE_SUPABASE_KEY || SUPABASE_KEY;
@@ -329,7 +329,7 @@ function eventCard(e, opts = {}) {
   return `<div class="card">
     <a href="#/event/${esc(e.id)}" style="text-decoration:none;color:inherit;display:flex;gap:12px;align-items:center">
       <span class="datebox ${closed ? "gray" : ""}"><span>${wd(e.date)}</span><b>${Number(e.date.slice(8, 10))}</b></span>
-      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><span class="row" style="gap:6px"><span class="tag ${e.type === "training" ? "blue" : ""}">${e.type === "match" ? "경기" : e.type === "scrim" ? "내전" : "훈련"}</span><b style="font-size:16px">${esc(e.time || "")}${e.end ? " ~ " + esc(e.end) : ""}</b></span><span class="hint">${esc(e.place || "장소 미정")}, ${esc(sub)}</span></span>
+      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px"><span class="row" style="gap:8px"><span class="tag ${e.type === "training" ? "blue" : ""}">${e.type === "match" ? "경기" : e.type === "scrim" ? "내전" : "훈련"}</span><b style="font-size:16px">${esc(e.time || "")}${e.end ? " ~ " + esc(e.end) : ""}</b></span><span class="hint">${esc(e.place || "장소 미정")}, ${esc(sub)}</span></span>
       <span class="hint" style="flex:none">${dLabel(e)}</span>
     </a>
     <div class="spread hint"><span>참석 <b style="color:#111827">${a.in}</b>${a.cap ? " / 정원 " + a.cap : ""}${a.wait.length ? ", 대기 " + a.wait.length : ""}</span><span>미응답 ${a.none.length}</span></div>
@@ -348,34 +348,34 @@ function lateRow(e, v) {
 
 /* ---------- 로그인 전 ---------- */
 const KKB = (label, act = "kakao") => `<button class="kkb" data-act="${act}">${KAKAO}${label}</button>`;
-const MBRAND = (sz = 44) => `<span style="display:inline-flex;align-items:center;gap:10px"><span role="img" aria-label="매니볼" style="width:${sz}px;height:${sz}px;border-radius:12px;background:${C.blue};border:2px solid ${C.ink};display:inline-flex;align-items:center;justify-content:center;flex:none"><svg width="${Math.round(sz * .75)}" height="${Math.round(sz * .75)}" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="22" fill="none" stroke="${C.ink}" stroke-width="5"></circle><circle cx="23" cy="26" r="3.6" fill="${C.orange}"></circle><circle cx="23" cy="38" r="3.6" fill="${C.orange}"></circle><path d="M30 26 H43 M30 38 H41" fill="none" stroke="${C.ink}" stroke-width="5" stroke-linecap="round"></path></svg></span><span style="display:flex;flex-direction:column;line-height:1"><b class="bh" style="font-size:${Math.round(sz * .55)}px">매니볼</b><span class="bc" style="font-size:11px;letter-spacing:3px;margin-top:3px">MANIBALL</span></span></span>`;
+const MBRAND = (sz = 44) => `<span style="display:inline-flex;align-items:center;gap:8px"><span role="img" aria-label="매니볼" style="width:${sz}px;height:${sz}px;border-radius:12px;background:${C.fc};border:2px solid ${C.ink};display:inline-flex;align-items:center;justify-content:center;flex:none"><svg width="${Math.round(sz * .75)}" height="${Math.round(sz * .75)}" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="22" fill="none" stroke="${C.ink}" stroke-width="5"></circle><circle cx="23" cy="26" r="3.6" fill="${C.orange}"></circle><circle cx="23" cy="38" r="3.6" fill="${C.orange}"></circle><path d="M30 26 H43 M30 38 H41" fill="none" stroke="${C.ink}" stroke-width="5" stroke-linecap="round"></path></svg></span><span style="display:flex;flex-direction:column;line-height:1"><b class="bh" style="font-size:${Math.round(sz * .55)}px">매니볼</b><span class="bc" style="font-size:12px;letter-spacing:3px;margin-top:3px">MANIBALL</span></span></span>`;
 const PRIV = `<a href="../../privacy.html">개인정보처리방침과 이용약관</a>`;
-const ERRBOX = `<div role="alert" style="display:flex;gap:10px;align-items:flex-start;border:2px solid ${C.ink};border-radius:12px;background:${C.clay};padding:12px 14px"><b style="flex:none;width:22px;height:22px;border-radius:50%;background:${C.ink};color:${C.bg};display:flex;align-items:center;justify-content:center;font-size:14px">!</b><span style="display:flex;flex-direction:column;gap:2px"><b style="font-size:15px">로그인하지 못했어요</b><span style="font-size:13px">카카오 화면에서 취소했거나 연결이 끊겼어요. 다시 눌러 주세요.</span></span></div>`;
+const ERRBOX = `<div role="alert" style="display:flex;gap:8px;align-items:flex-start;border:2px solid ${C.ink};border-radius:12px;background:${C.white};box-shadow:4px 4px 0 ${C.ink};padding:12px 16px"><b style="flex:none;width:22px;height:22px;border-radius:50%;background:${C.ink};color:${C.bg};display:flex;align-items:center;justify-content:center;font-size:14px">!</b><span style="display:flex;flex-direction:column;gap:4px"><b style="font-size:16px">로그인하지 못했어요</b><span style="font-size:12px">카카오 화면에서 취소했거나 연결이 끊겼어요. 다시 눌러 주세요.</span></span></div>`;
 function vLogin(err) {
-  const tag = (t, c) => `<span style="font-size:13px;font-weight:700;border:2px solid ${C.ink};border-radius:8px;padding:3px 10px;background:${c}">${t}</span>`;
-  const li = (t, c) => `<li style="display:flex;align-items:center;gap:12px;font-size:15px"><span aria-hidden="true" style="flex:none;width:28px;height:28px;border:2px solid ${C.ink};border-radius:8px;background:${c};display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${C.ink}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg></span>${t}</li>`;
-  return `<div style="flex:1;display:flex;flex-direction:column;padding:36px 24px 32px;gap:22px">
+  const tag = (t, c) => `<span style="font-size:12px;font-weight:700;border:2px solid ${C.ink};border-radius:8px;padding:4px 8px;background:${c}">${t}</span>`;
+  const li = (t, c) => `<li style="display:flex;align-items:center;gap:12px;font-size:16px"><span aria-hidden="true" style="flex:none;width:28px;height:28px;border:2px solid ${C.ink};border-radius:8px;background:${c};display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${C.ink}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg></span>${t}</li>`;
+  return `<div style="flex:1;display:flex;flex-direction:column;padding:36px 24px 32px;gap:24px">
     ${MBRAND(44)}
-    <div style="position:relative;margin-top:8px;background:${C.blue};border:2.5px solid ${C.ink};border-radius:24px;box-shadow:6px 6px 0 ${C.ink}">
-      <div style="padding:22px 22px 18px;display:flex;flex-direction:column;gap:10px"><span class="bc" style="font-size:14px;letter-spacing:3px">MANIBALL PASS</span><h1 class="bh" style="margin:0;font-weight:400;font-size:32px;line-height:1.25">운영진이 매주<br>손으로 하던 일,<br>이제 매니볼이 해요</h1></div>
-      <div style="height:0;margin:0 22px;border-top:2px dashed rgba(20,24,43,.4)"></div>
-      <div style="padding:16px 22px 20px;display:flex;flex-wrap:wrap;gap:8px">${tag("참석 투표", C.green)}${tag("라인업", C.bg)}${tag("출석과 벌금", C.orange)}${tag("회비", C.clay)}${tag("MOM", C.pink)}</div>
-      <span aria-hidden="true" style="position:absolute;right:18px;top:-26px;width:70px;height:70px;border-radius:50%;border:2.5px solid ${C.ink};background:${C.green};transform:rotate(12deg);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1"><b style="font-size:15px">입장</b><span class="bc" style="font-size:11px;letter-spacing:1px">HELLO</span></span>
+    <div style="position:relative;margin-top:8px;background:${C.white};border:2px solid ${C.ink};border-radius:12px;box-shadow:4px 4px 0 ${C.ink}">
+      <div style="padding:24px 24px 16px;display:flex;flex-direction:column;gap:8px"><span class="bc" style="font-size:14px;letter-spacing:3px">MANIBALL PASS</span><h1 class="bh" style="margin:0;font-weight:400;font-size:32px;line-height:1.25">운영진이 매주<br>손으로 하던 일,<br>이제 매니볼이 해요</h1></div>
+      <div style="height:0;margin:0 22px;border-top:2px dashed rgba(18,17,16,.4)"></div>
+      <div style="padding:16px 24px 24px;display:flex;flex-wrap:wrap;gap:8px">${tag("참석 투표", C.white)}${tag("라인업", C.white)}${tag("출석과 벌금", C.white)}${tag("회비", C.white)}${tag("MOM", C.white)}</div>
+      <span aria-hidden="true" style="position:absolute;right:18px;top:-26px;width:70px;height:70px;border-radius:50%;border:2.5px solid ${C.ink};background:${C.bg};transform:rotate(12deg);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1"><b style="font-size:16px">입장</b><span class="bc" style="font-size:12px;letter-spacing:1px">HELLO</span></span>
     </div>
-    <ul style="list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:12px">${li("참석 투표는 티켓 한 장으로", C.green)}${li("내 자리와 쉬는 쿼터를 바로 확인", C.blue)}${li("내가 낼 돈과 계좌를 한 화면에서", C.clay)}</ul>
+    <ul style="list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:12px">${li("참석 투표는 티켓 한 장으로", C.white)}${li("내 자리와 쉬는 쿼터를 바로 확인", C.white)}${li("내가 낼 돈과 계좌를 한 화면에서", C.white)}</ul>
     <div style="margin-top:auto;display:flex;flex-direction:column;gap:12px">${err ? ERRBOX : ""}${KKB("카카오 로그인")}
       <span class="note" style="text-align:center;font-size:12px">처음 한 번만 로그인하면 다음부터 바로 들어와요. 앱 설치는 필요 없어요.<br>로그인하면 ${PRIV}에 동의하는 것으로 봐요.</span>
       <a href="../../" style="text-align:center;font-size:14px;padding:8px">매니볼 둘러보기</a></div>
   </div>`;
 }
-const STEPS = (arr) => `<ol style="list-style:none;margin:0;padding:0;border-top:2px solid ${C.ink}">${arr.map(([a, b, c], i) => `<li style="display:flex;align-items:center;gap:14px;min-height:62px;border-bottom:1px solid ${C.line}"><span class="bc" style="flex:none;width:32px;height:32px;border-radius:50%;border:2px solid ${C.ink};background:${c};display:flex;align-items:center;justify-content:center;font-size:17px">${i + 1}</span><span style="display:flex;flex-direction:column;gap:2px"><b style="font-size:15px">${a}</b><span style="font-size:13px;color:${C.sub}">${b}</span></span></li>`).join("")}</ol>`;
-const INVCARD = (name, sub, note) => `<div style="background:${C.gray};border:2px solid ${C.ink};border-radius:20px;box-shadow:5px 5px 0 ${C.ink};padding:18px 20px;display:flex;flex-direction:column;gap:14px">
-    <div style="display:flex;align-items:center;gap:14px"><span role="img" aria-label="팀" style="flex:none;width:64px;height:64px;border-radius:16px;border:2px solid ${C.ink};background:${C.blue};display:flex;align-items:center;justify-content:center" class="bh"><span style="font-size:26px">${esc(ini(name))}</span></span><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="bc" style="font-size:12px;letter-spacing:3px">INVITATION</span><b class="bh" style="font-size:28px;line-height:1.1;overflow:hidden;text-overflow:ellipsis">${esc(name || "팀")}</b>${sub ? `<span style="font-size:13px">${sub}</span>` : ""}</span></div>
-    ${note ? `<div style="border-top:2px dashed rgba(20,24,43,.35);padding-top:12px;font-size:14px;line-height:1.6">${note}</div>` : ""}</div>`;
+const STEPS = (arr) => `<ol style="list-style:none;margin:0;padding:0;border-top:2px solid ${C.ink}">${arr.map(([a, b, c], i) => `<li style="display:flex;align-items:center;gap:16px;min-height:62px;border-bottom:2px solid ${C.line}"><span class="bc" style="flex:none;width:32px;height:32px;border-radius:50%;border:2px solid ${C.ink};background:${C.white};display:flex;align-items:center;justify-content:center;font-size:16px">${i + 1}</span><span style="display:flex;flex-direction:column;gap:4px"><b style="font-size:16px">${a}</b><span style="font-size:12px;color:${C.sub}">${b}</span></span></li>`).join("")}</ol>`;
+const INVCARD = (name, sub, note) => `<div style="background:${C.gray};border:2px solid ${C.ink};border-radius:12px;box-shadow:4px 4px 0 ${C.ink};padding:16px 24px;display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;align-items:center;gap:16px"><span role="img" aria-label="팀" style="flex:none;width:64px;height:64px;border-radius:12px;border:2px solid ${C.ink};background:${C.fc};color:${C.white};display:flex;align-items:center;justify-content:center" class="bh"><span style="font-size:24px">${esc(ini(name))}</span></span><span style="display:flex;flex-direction:column;gap:4px;min-width:0"><span class="bc" style="font-size:12px;letter-spacing:3px">INVITATION</span><b class="bh" style="font-size:28px;line-height:1.1;overflow:hidden;text-overflow:ellipsis">${esc(name || "팀")}</b>${sub ? `<span style="font-size:12px">${sub}</span>` : ""}</span></div>
+    ${note ? `<div style="border-top:2px dashed rgba(18,17,16,.35);padding-top:12px;font-size:14px;line-height:1.6">${note}</div>` : ""}</div>`;
 function vInvite(teamName, err) {
-  return `<div style="flex:1;display:flex;flex-direction:column;padding:28px 24px 28px;gap:20px">
+  return `<div style="flex:1;display:flex;flex-direction:column;padding:32px 24px 32px;gap:20px">
     ${MBRAND(36)}
-    <h1 class="bh" style="margin:0;font-weight:400;font-size:28px">팀 초대를 받았어요</h1>
+    <h1 class="bh" style="margin:0;font-weight:400;font-size:32px">팀 초대를 받았어요</h1>
     ${INVCARD(teamName, "", "카카오로 로그인하고 가입 신청을 남기면, 운영진이 확인한 뒤 팀원이 돼요.")}
     ${STEPS([["카카오로 로그인", "비밀번호 없이 바로 들어와요", "#FEE500"], ["가입 신청 남기기", "팀에서 쓰는 이름을 적어요", C.green], ["운영진 승인", "승인되면 바로 투표할 수 있어요", C.blue]])}
     <div style="margin-top:auto;display:flex;flex-direction:column;gap:12px">${err ? ERRBOX : ""}${KKB("카카오 로그인하고 가입하기")}<span class="note" style="text-align:center;font-size:12px">처음 한 번만 하면 다음부터 바로 들어와요. ${PRIV}</span></div>
@@ -393,16 +393,16 @@ function vTeams() {
   const card = t => {
     const x = info[t.id] || {}; const on = sw ? t.id === S.tid : t.id === last; const e = x.next;
     const what = e ? `${md(e.date)} ${wd(e.date)} ${e.time ? e.time + " " : ""}${e.type === "match" ? "경기" : e.type === "scrim" ? "내전" : "훈련"}` : "아직 없어요";
-    return `<button data-act="teamGo" data-id="${esc(t.id)}" style="display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:14px 14px 14px 16px;border:2px solid ${C.ink};border-radius:16px;background:${on ? C.blue : C.gray};${on ? `box-shadow:4px 4px 0 ${C.ink}` : ""}">
+    return `<button data-act="teamGo" data-id="${esc(t.id)}" style="display:flex;align-items:center;gap:16px;width:100%;text-align:left;padding:16px 16px 16px 16px;border:2px solid ${C.ink};border-radius:12px;background:${C.white};box-shadow:4px 4px 0 ${C.ink}">
       ${x.sport ? teamLogo(52, x.sport) : `<span class="bh" style="flex:none;width:52px;height:52px;border-radius:14px;border:2px solid ${C.ink};background:${C.bg};display:flex;align-items:center;justify-content:center;font-size:20px">${esc(ini(t.name))}</span>`}
-      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><span style="display:flex;align-items:center;gap:6px;min-width:0"><b style="font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.name)}</b><span class="tag ${RT[t.role] || ""}" style="${RT[t.role] ? "" : `background:${C.bg}`}">${ROLE[t.role] || "팀원"}</span></span>
-      <span style="font-size:13px">${x.sport ? (x.sport === "soccer" ? "축구팀" : "풋살팀") + " " : ""}${x.n ? "팀원 " + x.n + "명" : ""}</span>${S.teamsInfo ? `<b style="font-size:13px">다음 일정 ${esc(what)}</b>` : ""}</span>${IC.chev}</button>`;
+      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px"><span style="display:flex;align-items:center;gap:8px;min-width:0"><b style="font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.name)}</b><span class="tag ${RT[t.role] || ""}" style="${RT[t.role] ? "" : `background:${C.white};color:${C.ink}`}">${ROLE[t.role] || "팀원"}</span></span>
+      <span style="font-size:12px">${x.sport ? (x.sport === "soccer" ? "축구팀" : "풋살팀") + " " : ""}${x.n ? "팀원 " + x.n + "명" : ""}</span>${S.teamsInfo ? `<b style="font-size:12px">다음 일정 ${esc(what)}</b>` : ""}</span>${IC.chev}</button>`;
   };
-  const head = sw ? uiHd("팀 바꾸기", "#", { backAct: "teamsBack" }) : `<header class="hd" style="padding:0 12px 0 20px">${MBRAND(32).replace("font-size:18px", "font-size:18px")}<span style="flex:1"></span><button class="lnk" data-act="logout">로그아웃</button></header>`;
-  return `${head}<div class="body" style="gap:14px;padding-top:${sw ? 4 : 14}px">
-    ${sw ? `<span style="font-size:14px">들어갈 팀을 골라 주세요</span>` : `<div style="display:flex;flex-direction:column;gap:6px;padding-bottom:4px"><h1 class="bh" style="margin:0;font-weight:400;font-size:28px">어느 팀으로 들어갈까요?</h1><span style="font-size:14px;color:${C.sub}">${esc(myName ? myName + "님이" : "")} 속한 팀이에요. 들어갈 때마다 여기서 골라요.</span></div>`}
+  const head = sw ? uiHd("팀 바꾸기", "#", { backAct: "teamsBack" }) : `<header class="hd" style="padding:0 12px 0 24px">${MBRAND(32).replace("font-size:18px", "font-size:18px")}<span style="flex:1"></span><button class="lnk" data-act="logout">로그아웃</button></header>`;
+  return `${head}<div class="body" style="gap:16px;padding-top:${sw ? 4 : 14}px">
+    ${sw ? `<span style="font-size:14px">들어갈 팀을 골라 주세요</span>` : `<div style="display:flex;flex-direction:column;gap:8px;padding-bottom:4px"><h1 class="bh" style="margin:0;font-weight:400;font-size:24px">어느 팀으로 들어갈까요?</h1><span style="font-size:14px;color:${C.sub}">${esc(myName ? myName + "님이" : "")} 속한 팀이에요. 들어갈 때마다 여기서 골라요.</span></div>`}
     ${S.teams.map(card).join("")}
-    <button data-act="newTeam" style="height:58px;border:2px dashed ${C.ink};border-radius:16px;background:transparent;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px">${IC.plus}새 팀 만들기</button>
+    <button data-act="newTeam" style="height:56px;border:2px dashed ${C.ink};border-radius:12px;background:${C.white};font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px">${IC.plus}새 팀 만들기</button>
     <span class="note">다른 팀은 그 팀의 초대 링크로 들어오면 여기에 더해져요.</span></div>`;
 }
 async function showTeams(mode) {
@@ -415,22 +415,22 @@ const stamp = iso => { const d = new Date(new Date(iso).getTime() + 9 * 3600e3);
 // 초대 링크로 들어왔고 아직 팀원이 아니면: 가입 신청을 남긴다
 function vJoinReq() {
   const f = S.form, t = S.joinTeam || {};
-  return `<div style="flex:1;display:flex;flex-direction:column;padding:28px 24px 28px;gap:18px">
+  return `<div style="flex:1;display:flex;flex-direction:column;padding:32px 24px 32px;gap:16px">
     ${MBRAND(36)}
     <h1 class="bh" style="margin:0;font-weight:400;font-size:28px">가입 신청</h1>
     ${INVCARD(t.name, "", "가입 신청을 남기면 운영진이 확인하고 받아 줘요. 받으면 바로 들어갈 수 있어요.")}
     <label class="fld"><span class="lb">팀에서 쓰는 이름</span><input class="inp" data-bind="name" value="${esc(f.name || "")}" maxlength="20" placeholder="예: 김민준" autocomplete="off"></label>
     <label class="fld"><span class="lb">운영진에게 한마디 <span style="font-weight:500;color:${C.sub}">안 써도 돼요</span></span><textarea class="inp" data-bind="msg" maxlength="100" style="min-height:80px" placeholder="예: 수요일 풋살 같이 하는 김민준입니다">${esc(f.msg || "")}</textarea></label>
-    <span class="note">지금 로그인된 카카오 계정은 <b style="color:${C.ink}">${esc(suggestedName() || "이름 없음")}</b>이에요. 평소 쓰는 계정이 아니면 <button class="lnk" data-act="logout" style="min-height:0;padding:0;font-size:13px">로그아웃</button>하고 그 계정으로 다시 들어와 주세요.</span>
+    <span class="note">지금 로그인된 카카오 계정은 <b style="color:${C.ink}">${esc(suggestedName() || "이름 없음")}</b>이에요. 평소 쓰는 계정이 아니면 <button class="lnk" data-act="logout" style="min-height:0;padding:0;font-size:12px">로그아웃</button>하고 그 계정으로 다시 들어와 주세요.</span>
     <button class="btn o block" data-act="joinSend" style="margin-top:auto">가입 신청 보내기</button>
   </div>`;
 }
 function vJoinWait() {
   const rs = S.myReqs || [];
   const one = r => r.status === "rejected"
-    ? `<div class="box clay" style="align-items:center;text-align:center;gap:10px;padding:22px 16px;border-radius:18px"><b class="bh" style="font-size:22px">가입이 거절됐어요</b><span style="font-size:14px">${esc(r.team_name || "팀")} 운영진이 신청을 거절했어요. 궁금하면 운영진에게 직접 물어봐 주세요.</span><button class="btn block" data-act="joinCancel" data-id="${esc(r.team_id)}">확인</button></div>`
-    : `<div class="box" style="align-items:center;text-align:center;gap:10px;padding:24px 16px;border-radius:18px;box-shadow:4px 4px 0 ${C.ink}"><span style="width:56px;height:56px;border-radius:50%;border:2px solid ${C.ink};background:${C.green};display:inline-flex;align-items:center;justify-content:center">${IC.clock}</span><b class="bh" style="font-size:22px">가입 승인을 기다리고 있어요</b><b style="font-size:16px">${esc(r.team_name || "팀")}</b><span style="font-size:14px;line-height:1.6">운영진이 받으면 바로 들어갈 수 있어요. 이 화면은 저절로 새로 고쳐져요.</span><span class="note">신청 ${esc(stamp(r.created_at))}</span><button class="btn block" data-act="joinCancel" data-id="${esc(r.team_id)}">신청 취소</button></div>`;
-  return `<div style="flex:1;display:flex;flex-direction:column;padding:28px 24px 28px;gap:18px">
+    ? `<div class="box clay" style="align-items:center;text-align:center;gap:8px;padding:24px 16px;border-radius:18px"><b class="bh" style="font-size:24px">가입이 거절됐어요</b><span style="font-size:14px">${esc(r.team_name || "팀")} 운영진이 신청을 거절했어요. 궁금하면 운영진에게 직접 물어봐 주세요.</span><button class="btn block" data-act="joinCancel" data-id="${esc(r.team_id)}">확인</button></div>`
+    : `<div class="box" style="align-items:center;text-align:center;gap:8px;padding:24px 16px;border-radius:18px;box-shadow:4px 4px 0 ${C.ink}"><span style="width:56px;height:56px;border-radius:50%;border:2px solid ${C.ink};background:${C.green};display:inline-flex;align-items:center;justify-content:center">${IC.clock}</span><b class="bh" style="font-size:24px">가입 승인을 기다리고 있어요</b><b style="font-size:16px">${esc(r.team_name || "팀")}</b><span style="font-size:14px;line-height:1.6">운영진이 받으면 바로 들어갈 수 있어요. 이 화면은 저절로 새로 고쳐져요.</span><span class="note">신청 ${esc(stamp(r.created_at))}</span><button class="btn block" data-act="joinCancel" data-id="${esc(r.team_id)}">신청 취소</button></div>`;
+  return `<div style="flex:1;display:flex;flex-direction:column;padding:32px 24px 32px;gap:16px">
     ${MBRAND(36)}
     ${rs.map(one).join("")}
     ${S.teams.length ? `<button class="btn block" data-act="joinLeave">내 팀으로 가기</button>` : `<button class="btn block" data-act="newTeam">새 팀 만들기</button>`}
@@ -464,9 +464,9 @@ function vCreate() {
       ${f.feeMode !== "none" ? `<input class="inp" data-bind="fee" inputmode="numeric" value="${esc(f.fee || "")}" placeholder="금액, 예: 30000" aria-label="회비 금액">` : ""}
       ${f.feeMode === "monthly" ? `<div class="chips">${["1", "5", "10", "25", "말일"].map(d => chip("dueDay", d, d === "말일" ? "말일까지" : d + "일까지")).join("")}</div>` : ""}</div>
     <label class="fld"><span class="lb">팀 수칙</span><textarea class="inp" data-bind="rulesText" style="min-height:140px" placeholder="1. 경기 10분 전까지 와요&#10;2. 못 오면 투표 마감 전에 불참으로 바꿔요">${esc(f.rulesText || "")}</textarea><span class="note">"1. 2."처럼 번호를 직접 적어요.</span></label>
-    <section style="display:flex;flex-direction:column;gap:10px"><b style="font-size:14px;border-bottom:2px solid ${C.ink};padding-bottom:6px">벌금 <span style="font-weight:500;color:${C.sub}">금액을 적은 것만 매겨져요</span></b>
+    <section style="display:flex;flex-direction:column;gap:8px"><b style="font-size:14px;border-bottom:2px solid ${C.ink};padding-bottom:8px">벌금 <span style="font-weight:500;color:${C.sub}">금액을 적은 것만 매겨져요</span></b>
       ${(f.rules || []).map((r, i) => `<div style="display:grid;grid-template-columns:1fr 104px 46px;gap:8px"><input class="inp" data-rule="${i}" data-f="label" value="${esc(r.label)}" placeholder="예: 지각" maxlength="40" aria-label="벌금 ${i + 1} 이름"><input class="inp" data-rule="${i}" data-f="amount" value="${esc(r.amount || "")}" inputmode="numeric" placeholder="금액" aria-label="벌금 ${i + 1} 금액" style="text-align:right;font-weight:700"><button type="button" class="btn c" data-act="ruleDel" data-i="${i}" aria-label="벌금 ${i + 1} 지우기" style="padding:0;height:52px">✕</button></div>`).join("")}
-      <button type="button" data-act="ruleAdd" style="height:52px;border:2px dashed ${C.ink};border-radius:12px;background:transparent;font-weight:700;font-size:15px">벌금 항목 더하기</button></section>
+      <button type="button" data-act="ruleAdd" style="height:52px;border:2px dashed ${C.ink};border-radius:12px;background:transparent;font-weight:700;font-size:16px">벌금 항목 더하기</button></section>
     <span class="note">정원, 투표 마감, 출석 시간, 불참 벌금 기준 같은 기본 운영 규칙은 만든 뒤 운영 탭에서 Admin이 바꿔요.</span>
   </div><div class="cta"><button class="btn o block" data-act="createTeam">팀 만들기</button></div>`;
 }
@@ -478,7 +478,7 @@ function vProfile(editing) {
   const taken = new Set(people().filter(x => x.uid !== S.uid).map(x => String(x.p.num || ""))); const free = []; for (let i = 1; i <= 99 && free.length < 8; i++) if (!taken.has(String(i))) free.push(i);
   const g = sport() === "soccer" ? "grid5" : "grid4";
   return `${uiHd(editing ? "내 정보" : "선수 등록 1/2", editing ? "#/" : "", { sub: S.team ? S.team.name : "" })}<div class="body">
-    <div class="box blue" style="flex-direction:row;align-items:center;gap:16px;border-radius:20px;padding:16px 18px"><span class="bc" data-live="num" style="flex:none;width:72px;height:72px;border-radius:16px;background:${C.ink};color:${C.bg};display:flex;align-items:center;justify-content:center;font-size:40px">${esc(f.num || "")}</span><span style="display:flex;flex-direction:column;gap:6px;min-width:0"><b class="bh" data-live="name" style="font-size:26px;line-height:1.1">${esc(f.name || "이름")}</b><span class="bc" style="font-size:15px">1선호 ${esc(f.pos1 || "-")}  2선호 ${esc(f.pos2 || "-")}</span></span></div>
+    <div class="box blue" style="flex-direction:row;align-items:center;gap:16px;border-radius:20px;padding:16px 16px"><span class="bc" data-live="num" style="flex:none;width:72px;height:72px;border-radius:16px;background:${C.ink};color:${C.bg};display:flex;align-items:center;justify-content:center;font-size:40px">${esc(f.num || "")}</span><span style="display:flex;flex-direction:column;gap:8px;min-width:0"><b class="bh" data-live="name" style="font-size:24px;line-height:1.1">${esc(f.name || "이름")}</b><span class="bc" style="font-size:16px">1선호 ${esc(f.pos1 || "-")}  2선호 ${esc(f.pos2 || "-")}</span></span></div>
     <label class="fld"><span class="lb">팀에서 부를 이름</span><input class="inp" data-bind="name" data-live-src="name" value="${esc(f.name || "")}" maxlength="20" placeholder="예: 이서준"></label>
     <label class="fld"><span class="lb">등번호</span><input class="inp" data-bind="num" data-live-src="num" value="${esc(f.num || "")}" inputmode="numeric" maxlength="3" placeholder="예: 7">${taken.has(String(f.num || "-")) ? `<span class="err">다른 팀원이 쓰는 번호예요</span>` : `<span class="note">비어 있는 번호 ${free.join(", ")}</span>`}</label>
     <div class="fld"><span class="lb">1선호 포지션</span><div class="${g}">${pos.map(p => pchip("pos1", p)).join("")}</div></div>
@@ -524,12 +524,12 @@ export const fineRulesOf = st => ((st || {}).rules || []).filter(r => Number(r.a
 export function rulesView(st, empty = "아직 정한 수칙이 없어요.") {
   const txt = rulesTextOf(st).trim(); const fines = fineRulesOf(st);
   if (!txt && !fines.length) return `<span class="hint">${empty}</span>`;
-  return `${txt ? `<div style="white-space:pre-wrap;line-height:1.7;font-size:15px;color:#111827">${esc(txt)}</div>` : ""}${fines.length ? `<span class="lab" style="margin-top:4px">벌금</span><div class="list">${fines.map(r => `<div class="li"><span style="flex:1">${esc(r.label)}</span><b>${won(r.amount)}</b></div>`).join("")}</div>` : ""}`;
+  return `${txt ? `<div style="white-space:pre-wrap;line-height:1.7;font-size:16px;color:#111827">${esc(txt)}</div>` : ""}${fines.length ? `<span class="lab" style="margin-top:4px">벌금</span><div class="list">${fines.map(r => `<div class="li"><span style="flex:1">${esc(r.label)}</span><b>${won(r.amount)}</b></div>`).join("")}</div>` : ""}`;
 }
 export function rulesForm(f) {
   return `<div class="card"><span class="lab">팀 수칙</span><textarea class="inp" data-bind="rulesText" style="min-height:160px;line-height:1.7" placeholder="1. 경기 10분 전까지 와요&#10;2. 못 오면 투표 마감 전에 불참으로 바꿔요&#10;3. 회비는 매달 5일까지 내요">${esc(f.rulesText || "")}</textarea><span class="hint">번호를 직접 붙여 적어요. 줄을 바꾸면 그대로 보여요.</span></div>
     <div class="card"><div class="spread"><span class="lab">벌금</span><span class="hint">금액을 적은 것만 벌금으로 매겨져요</span></div>
-      ${(f.rules || []).map((r, i) => `<div class="row" style="gap:6px"><input class="inp" data-rule="${i}" data-f="label" value="${esc(r.label)}" placeholder="예: 지각 (킥오프 10분 전 기준)" aria-label="벌금 ${i + 1} 이름" style="flex:1"><input class="inp" data-rule="${i}" data-f="amount" value="${esc(r.amount || "")}" inputmode="numeric" placeholder="금액" aria-label="벌금 ${i + 1} 금액" style="width:96px;flex:none"><button class="iconbtn" data-act="ruleDel" data-i="${i}" aria-label="벌금 ${i + 1} 지우기">✕</button></div>`).join("")}
+      ${(f.rules || []).map((r, i) => `<div class="row" style="gap:8px"><input class="inp" data-rule="${i}" data-f="label" value="${esc(r.label)}" placeholder="예: 지각 (킥오프 10분 전 기준)" aria-label="벌금 ${i + 1} 이름" style="flex:1"><input class="inp" data-rule="${i}" data-f="amount" value="${esc(r.amount || "")}" inputmode="numeric" placeholder="금액" aria-label="벌금 ${i + 1} 금액" style="width:96px;flex:none"><button class="iconbtn" data-act="ruleDel" data-i="${i}" aria-label="벌금 ${i + 1} 지우기">✕</button></div>`).join("")}
       <button class="btn sm" data-act="ruleAdd" style="align-self:flex-start">+ 벌금 추가</button>
       <span class="hint">지각, 결석은 현장 출석에서, 불참(직전 취소)은 마감 후 불참 변경에서 이 금액으로 자동으로 매겨져요.</span></div>`;
 }
@@ -543,10 +543,10 @@ export const rulesFormInit = st => ({ rulesText: rulesTextOf(st), rules: fineRul
 function vRules() {
   const st = S.settings; const bk = st.bank || {}; const txt = rulesTextOf(st).trim(); const fines = fineRulesOf(st);
   return `${uiHd("팀 수칙 2/2", "", { sub: S.team ? S.team.name : "" })}<div class="body">
-    <span style="font-size:15px;line-height:1.6">읽고 동의하면 바로 시작해요.</span>
-    <section class="box gray" style="border-radius:18px;padding:16px 18px"><b class="bh" style="font-size:21px">팀 수칙</b><p style="margin:0;font-size:15px;line-height:1.8;white-space:pre-line">${txt ? esc(txt) : "아직 정한 수칙이 없어요."}</p></section>
-    ${fines.length ? `<section style="display:flex;flex-direction:column"><b style="font-size:15px;border-bottom:2px solid ${C.ink};padding-bottom:6px">벌금</b>${fines.map(r => `<div class="spread" style="min-height:52px;border-bottom:1px solid ${C.line}"><span>${esc(r.label)}</span><b class="bc" style="font-size:22px">${won(r.amount)}</b></div>`).join("")}</section>` : ""}
-    ${st.feeMode && st.feeMode !== "none" ? `<div class="box clay" style="border-radius:14px;gap:4px"><span style="font-size:13px;font-weight:700">회비</span><b class="bc" style="font-size:26px">${won(st.fee)}${st.feeMode === "per_game" ? " / 경기" : " / 월"}</b><span style="font-size:13px">${st.feeMode === "monthly" ? "매달 " + (st.dueDay === "말일" ? "말일" : (st.dueDay || "5") + "일") + "까지" : "경기에 온 날마다"}${bk.account ? `, ${esc(bk.bank || "")} ${esc(bk.account)}` : ""}</span></div>` : ""}
+    <span style="font-size:16px;line-height:1.6">읽고 동의하면 바로 시작해요.</span>
+    <section class="box gray" style="border-radius:18px;padding:16px 16px"><b class="bh" style="font-size:21px">팀 수칙</b><p style="margin:0;font-size:16px;line-height:1.8;white-space:pre-line">${txt ? esc(txt) : "아직 정한 수칙이 없어요."}</p></section>
+    ${fines.length ? `<section style="display:flex;flex-direction:column"><b style="font-size:16px;border-bottom:2px solid ${C.ink};padding-bottom:8px">벌금</b>${fines.map(r => `<div class="spread" style="min-height:52px;border-bottom:2px solid ${C.line}"><span>${esc(r.label)}</span><b class="bc" style="font-size:24px">${won(r.amount)}</b></div>`).join("")}</section>` : ""}
+    ${st.feeMode && st.feeMode !== "none" ? `<div class="box clay" style="border-radius:14px;gap:4px"><span style="font-size:12px;font-weight:700">회비</span><b class="bc" style="font-size:24px">${won(st.fee)}${st.feeMode === "per_game" ? " / 경기" : " / 월"}</b><span style="font-size:12px">${st.feeMode === "monthly" ? "매달 " + (st.dueDay === "말일" ? "말일" : (st.dueDay || "5") + "일") + "까지" : "경기에 온 날마다"}${bk.account ? `, ${esc(bk.bank || "")} ${esc(bk.account)}` : ""}</span></div>` : ""}
     <label class="row" style="gap:12px;min-height:48px;cursor:pointer;border-top:2px solid ${C.ink};padding-top:12px"><input type="checkbox" data-bind="agreeChk" ${S.form.agreeChk ? "checked" : ""} style="width:24px;height:24px;accent-color:${C.ink}"><b style="font-size:16px">수칙을 읽었고 지킬게요</b></label>
   </div><div class="cta"><button class="btn o block" data-act="agree">${esc(S.team ? S.team.name : "")} 시작하기</button></div>`;
 }
@@ -555,8 +555,8 @@ function vRules() {
 const inviteUrl = () => S.invite ? APP + "?join=" + S.invite : "";
 function vInviteMsg() {
   return `${uiHd("팀원 초대하기", "#/")}<div class="body">
-    <span style="font-size:15px;line-height:1.6">팀을 만들었어요. 이 링크를 팀 단톡방에 올려 주세요.</span>
-    <div class="box" style="flex-direction:row;align-items:center;gap:10px;padding:10px 10px 10px 14px;border-radius:12px"><span class="bc" style="flex:1;min-width:0;font-size:16px;word-break:break-all">${esc((inviteUrl() || "링크를 만드는 중이에요").replace(/^https?:\/\//, ""))}</span><button class="btn sm" data-act="copyLink">복사</button></div>
+    <span style="font-size:16px;line-height:1.6">팀을 만들었어요. 이 링크를 팀 단톡방에 올려 주세요.</span>
+    <div class="box" style="flex-direction:row;align-items:center;gap:8px;padding:8px 8px 8px 16px;border-radius:12px"><span class="bc" style="flex:1;min-width:0;font-size:16px;word-break:break-all">${esc((inviteUrl() || "링크를 만드는 중이에요").replace(/^https?:\/\//, ""))}</span><button class="btn sm" data-act="copyLink">복사</button></div>
     <span class="note">이 링크로 들어온 사람은 가입 신청을 남기고, 운영진이 받으면 팀원이 돼요. 가입 승인제는 운영 탭의 팀 설정에서 바꿔요.</span>
   </div><div class="cta"><a class="btn o block" href="#/">완료</a></div>`;
 }
@@ -778,35 +778,35 @@ function vLineup(id) {
       <div style="position:absolute;left:0;right:0;top:50%;border-top:1.5px solid rgba(255,255,255,.55)"></div>
       <div style="position:absolute;left:50%;top:50%;width:60px;height:60px;transform:translate(-50%,-50%);border:1.5px solid rgba(255,255,255,.55);border-radius:50%"></div>
       <div style="position:absolute;left:28%;right:28%;bottom:0;height:15%;border:1.5px solid rgba(255,255,255,.55);border-bottom:0;border-radius:40px 40px 0 0"></div>
-      ${fl.map((_, i) => tag(i)).join("")}${!edit && inLine && myI == null ? `<div style="position:absolute;inset:0;background:rgba(17,24,39,.5);display:flex;align-items:center;justify-content:center"><span style="background:#111827;color:#FFFFFF;border-radius:999px;padding:8px 16px;font-size:15px;font-weight:900">${k}쿼터는 쉬어요</span></div>` : ""}</div>`;
-  const qtabs = `<div style="display:grid;grid-template-columns:repeat(${qn},minmax(0,1fr));gap:2px;background:#E5E7EB;border-radius:12px;padding:3px">${Array.from({ length: qn }, (_, i) => i + 1).map(n => `<button data-act="lineQ" data-v="${n}" style="border:0;border-radius:9px;padding:8px 0;font-size:12px;font-weight:700;${n === k ? "background:#111827;color:#FFFFFF" : "background:transparent;color:#6B7280"}">${n}Q</button>`).join("")}</div>`;
+      ${fl.map((_, i) => tag(i)).join("")}${!edit && inLine && myI == null ? `<div style="position:absolute;inset:0;background:rgba(17,24,39,.5);display:flex;align-items:center;justify-content:center"><span style="background:#111827;color:#FFFFFF;border-radius:999px;padding:8px 16px;font-size:16px;font-weight:900">${k}쿼터는 쉬어요</span></div>` : ""}</div>`;
+  const qtabs = `<div style="display:grid;grid-template-columns:repeat(${qn},minmax(0,1fr));gap:4px;background:#E5E7EB;border-radius:12px;padding:4px">${Array.from({ length: qn }, (_, i) => i + 1).map(n => `<button data-act="lineQ" data-v="${n}" style="border:0;border-radius:9px;padding:8px 0;font-size:12px;font-weight:700;${n === k ? "background:#111827;color:#FFFFFF" : "background:transparent;color:#6B7280"}">${n}Q</button>`).join("")}</div>`;
   const selCard = () => {
     const pos = fl[sel]; const u = q[sel]; const fixd = pinned(u, pos);
-    return `<div class="card" style="padding:12px 14px;gap:6px;border:1.5px solid #15803D"><div class="spread"><span><b>${esc(pos)} 자리</b> <span class="hint">${k}쿼터</span><br><span style="font-size:15px;font-weight:700">${u ? esc(nm(u)) : "비어 있어요"}</span>${fixd ? ` <span class="tag">고정</span>` : ""}</span>
+    return `<div class="card" style="padding:12px 16px;gap:8px;border:1.5px solid #15803D"><div class="spread"><span><b>${esc(pos)} 자리</b> <span class="hint">${k}쿼터</span><br><span style="font-size:16px;font-weight:700">${u ? esc(nm(u)) : "비어 있어요"}</span>${fixd ? ` <span class="tag">고정</span>` : ""}</span>
       ${u ? (fixd ? `<button class="btn sm" data-act="unfix" data-eid="${esc(e.id)}" data-u="${esc(u)}">고정 풀기</button>` : `<button class="btn sm pri" data-act="fixOpen" data-eid="${esc(e.id)}" data-u="${esc(u)}" data-i="${sel}">고정</button>`) : ""}</div>
       <span class="hint">${u ? (fixd ? `${qText(dr.pins.filter(x => x.u === u && x.pos === pos).flatMap(x => x.qs), qn)} 고정돼 있어요. 고정 풀기는 ${k}쿼터만 풀어요.` : "휴식 선수를 누르면 이 자리에 들어가요. 고정하면 자동 배치를 다시 해도 이 자리에 그대로 있어요.") : "휴식 선수를 누르면 이 자리에 들어가요."}</span></div>`;
   };
-  const restCard = `<div class="card" style="padding:14px;gap:10px"><b style="font-size:14px">${k}쿼터 휴식 ${bench.length}명</b><div style="display:flex;flex-wrap:wrap;gap:6px">${bench.map(p => {
+  const restCard = `<div class="card" style="padding:16px;gap:8px"><b style="font-size:14px">${k}쿼터 휴식 ${bench.length}명</b><div style="display:flex;flex-wrap:wrap;gap:8px">${bench.map(p => {
       const late = p.from > k; const ok = sel == null || (canPlay(p, fl[sel]) && !late);
-      return `<button ${edit ? `data-act="lineBench" data-u="${esc(p.uid)}" data-eid="${esc(e.id)}"` : "disabled"} style="border:1px solid ${late ? "#FDE68A" : "#E5E7EB"};background:${late ? "#FFFBEB" : "#FFFFFF"};color:${late ? "#92400E" : "#111827"};border-radius:999px;padding:6px 11px;font-size:13px;min-height:36px;${p.uid === S.uid ? "font-weight:900;" : ""}${ok ? "" : "opacity:.45;"}">${esc(p.name)}${late ? ` ${p.from}Q부터` : ` <span style="font-size:11px;color:#6B7280">${esc([p.pos[0], p.pos[1]].filter(Boolean).join("/"))}</span>`}</button>`;
+      return `<button ${edit ? `data-act="lineBench" data-u="${esc(p.uid)}" data-eid="${esc(e.id)}"` : "disabled"} style="border:1px solid ${late ? "#FDE68A" : "#E5E7EB"};background:${late ? "#FFFBEB" : "#FFFFFF"};color:${late ? "#92400E" : "#111827"};border-radius:999px;padding:8px 11px;font-size:12px;min-height:36px;${p.uid === S.uid ? "font-weight:900;" : ""}${ok ? "" : "opacity:.45;"}">${esc(p.name)}${late ? ` ${p.from}Q부터` : ` <span style="font-size:12px;color:#6B7280">${esc([p.pos[0], p.pos[1]].filter(Boolean).join("/"))}</span>`}</button>`;
     }).join("") || `<span class="hint">없어요</span>`}</div></div>`;
   const field = ps.filter(p => !Object.entries((L && L.q) || {}).some(([, r]) => Object.entries(r).some(([i, u]) => u === p.uid && isKeeper(L.formation[i]))));
   const fc = field.map(p => cnt[p.uid] || 0).filter(n => n > 0); const mn = fc.length ? Math.min(...fc) : 0, mx = fc.length ? Math.max(...fc) : 0;
-  const countCard = !L ? "" : `<div class="card" style="padding:14px;gap:8px"><div class="spread"><b style="font-size:14px">쿼터 수</b><span style="font-size:12px;color:#15803D;font-weight:700">${mn === mx ? `필드 1인 ${mx}쿼터씩 맞췄어요` : `필드 1인 ${mn}~${mx}쿼터로 고르게 맞췄어요`}</span></div>
-      ${ps.slice().sort((x, y) => (cnt[y.uid] || 0) - (cnt[x.uid] || 0)).slice(0, 5).map(p => `<div style="display:flex;align-items:center;gap:8px;font-size:13px"><b style="width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${p.uid === S.uid ? "font-weight:900" : ""}">${esc(p.name.replace(" (용병)", ""))}</b><span style="flex:1;display:grid;grid-template-columns:repeat(${qn},minmax(0,1fr));gap:3px">${played(p.uid).map(on => `<i style="height:8px;border-radius:2px;background:${on ? "#15803D" : "#E5E7EB"}"></i>`).join("")}</span><b style="width:26px;text-align:right">${cnt[p.uid] || 0}</b></div>`).join("")}
-      <a href="#/rest/${esc(e.id)}" style="font-size:13px;font-weight:700;text-decoration:none;text-align:center;padding-top:4px;color:#15803D">${ps.length}명 모두 보기</a></div>`;
+  const countCard = !L ? "" : `<div class="card" style="padding:16px;gap:8px"><div class="spread"><b style="font-size:14px">쿼터 수</b><span style="font-size:12px;color:#15803D;font-weight:700">${mn === mx ? `필드 1인 ${mx}쿼터씩 맞췄어요` : `필드 1인 ${mn}~${mx}쿼터로 고르게 맞췄어요`}</span></div>
+      ${ps.slice().sort((x, y) => (cnt[y.uid] || 0) - (cnt[x.uid] || 0)).slice(0, 5).map(p => `<div style="display:flex;align-items:center;gap:8px;font-size:12px"><b style="width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${p.uid === S.uid ? "font-weight:900" : ""}">${esc(p.name.replace(" (용병)", ""))}</b><span style="flex:1;display:grid;grid-template-columns:repeat(${qn},minmax(0,1fr));gap:4px">${played(p.uid).map(on => `<i style="height:8px;border-radius:2px;background:${on ? "#15803D" : "#E5E7EB"}"></i>`).join("")}</span><b style="width:26px;text-align:right">${cnt[p.uid] || 0}</b></div>`).join("")}
+      <a href="#/rest/${esc(e.id)}" style="font-size:12px;font-weight:700;text-decoration:none;text-align:center;padding-top:4px;color:#15803D">${ps.length}명 모두 보기</a></div>`;
   const myQs = Array.from({ length: qn }, (_, i) => mineAt(i + 1)); const myN = myQs.filter(x => x != null).length;
-  const myCard = edit || !L ? "" : !inLine ? `<div class="card" style="gap:6px"><b>이번 라인업에 내 이름이 없어요</b><span class="hint">참석으로 바꿨는데 안 보이면 운영진에게 말해 주세요.</span></div>` : `<div class="card" style="padding:16px;gap:12px"><div class="spread" style="align-items:baseline"><b style="font-size:16px">내 출전</b><span style="font-size:13px;color:#6B7280">${qn}쿼터 중 <b style="color:#15803D">${myN}쿼터 출전</b>, ${qn - myN}쿼터 휴식</span></div>
-      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px">${myQs.map((j, i) => `<button data-act="lineQ" data-v="${i + 1}" aria-label="${i + 1}쿼터 ${j != null ? esc(L.formation[j]) : "휴식"}" style="border:0;border-radius:12px;padding:8px 0;min-height:44px;display:flex;flex-direction:column;align-items:center;gap:2px;${j != null ? "background:#DCFCE7;color:#166534" : "background:#F3F4F6;color:#6B7280"}${i + 1 === k ? ";box-shadow:inset 0 0 0 2px #15803D" : ""}"><span style="font-size:11px;font-weight:700">${i + 1}Q</span><b style="font-size:13px">${j != null ? esc(L.formation[j]) : "휴식"}</b></button>`).join("")}</div>
+  const myCard = edit || !L ? "" : !inLine ? `<div class="card" style="gap:8px"><b>이번 라인업에 내 이름이 없어요</b><span class="hint">참석으로 바꿨는데 안 보이면 운영진에게 말해 주세요.</span></div>` : `<div class="card" style="padding:16px;gap:12px"><div class="spread" style="align-items:baseline"><b style="font-size:16px">내 출전</b><span style="font-size:12px;color:#6B7280">${qn}쿼터 중 <b style="color:#15803D">${myN}쿼터 출전</b>, ${qn - myN}쿼터 휴식</span></div>
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">${myQs.map((j, i) => `<button data-act="lineQ" data-v="${i + 1}" aria-label="${i + 1}쿼터 ${j != null ? esc(L.formation[j]) : "휴식"}" style="border:0;border-radius:12px;padding:8px 0;min-height:44px;display:flex;flex-direction:column;align-items:center;gap:4px;${j != null ? "background:#DCFCE7;color:#166534" : "background:#F3F4F6;color:#6B7280"}${i + 1 === k ? ";box-shadow:inset 0 0 0 2px #15803D" : ""}"><span style="font-size:12px;font-weight:700">${i + 1}Q</span><b style="font-size:12px">${j != null ? esc(L.formation[j]) : "휴식"}</b></button>`).join("")}</div>
       <span style="font-size:12px;color:#6B7280">쿼터를 누르면 아래 포메이션에서 내 자리를 볼 수 있어요</span></div>`;
-  const myLine = edit || !L || !inLine ? "" : `<div class="card" style="padding:12px 14px;flex-direction:row;justify-content:space-between;align-items:center;font-size:14px"><span>${k}쿼터</span><b style="color:${myI == null ? "#6B7280" : "#15803D"}">${myI == null ? "휴식" : esc(fl[myI]) + "로 출전"}</b></div>`;
+  const myLine = edit || !L || !inLine ? "" : `<div class="card" style="padding:12px 16px;flex-direction:row;justify-content:space-between;align-items:center;font-size:14px"><span>${k}쿼터</span><b style="color:${myI == null ? "#6B7280" : "#15803D"}">${myI == null ? "휴식" : esc(fl[myI]) + "로 출전"}</b></div>`;
   const memNote = edit || !L ? "" : `<span style="font-size:12px;color:#9CA3AF;text-align:center">다른 팀원의 자리와 쿼터 수는 운영진 화면에서만 보여요</span>`;
   const emp = L && L.auto ? fl.map((pos, i) => q[i] ? "" : pos).filter(Boolean) : [];
   const empBox = !edit || !emp.length ? "" : fs ? `<div class="err">${k}쿼터 빈자리 ${emp.join(", ")}: ${emp.includes("골레이로") ? "골레이로를 1선호나 2선호로 둔 선수가 없어요. 자리를 누르고 고정으로 골레이로를 정해 주세요. " : ""}${emp.includes(FIELD) ? "뛸 수 있는 인원이 모자라요." : ""}</div>` : `<div class="err">${k}쿼터 빈자리 ${emp.join(", ")}: 이 포지션을 1선호나 2선호로 둔 선수가 없거나 모두 뛰고 있어요. 포메이션을 바꾸거나 자리를 눌러 고정으로 넣어 주세요.</div>`;
-  const formBtn = edit && (L || !fs || fl.length) ? `<button data-act="lineForm" data-eid="${esc(e.id)}" style="flex:none;background:#FFFFFF;border:1px solid #E5E7EB;color:#111827;border-radius:999px;padding:8px 12px;font-size:13px;font-weight:700;min-height:40px">${fs ? esc(futsalN(fkey) ? fkey : fl.length + "대" + fl.length) : fl.length + "대" + fl.length + ", " + esc(fkey)} ▾</button>` : "";
+  const formBtn = edit && (L || !fs || fl.length) ? `<button data-act="lineForm" data-eid="${esc(e.id)}" style="flex:none;background:#FFFFFF;border:1px solid #E5E7EB;color:#111827;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:700;min-height:40px">${fs ? esc(futsalN(fkey) ? fkey : fl.length + "대" + fl.length) : fl.length + "대" + fl.length + ", " + esc(fkey)} ▾</button>` : "";
   const askN = edit && fs && !L && !fl.length;
   return `${top("라인업" + (edit ? " 짜기" : ""), "#/event/" + e.id, edit && L ? `<button class="btn sm pri" data-act="saveLineup" data-eid="${esc(e.id)}">저장</button>` : "")}<div class="body" style="gap:12px">
-    <div class="spread"><span><b style="font-size:16px">${esc(md(e.date) + " " + wd(e.date) + " " + (e.time || "") + " " + evName(e))}</b><br><span style="font-size:13px;color:#6B7280">참석 ${a.yes.length}명${a.late.length ? ", 늦참 " + a.late.length + "명" : ""}${guestsOf(e).length ? ", 용병 " + guestsOf(e).length + "명" : ""}</span></span>${formBtn}</div>
+    <div class="spread"><span><b style="font-size:16px">${esc(md(e.date) + " " + wd(e.date) + " " + (e.time || "") + " " + evName(e))}</b><br><span style="font-size:12px;color:#6B7280">참석 ${a.yes.length}명${a.late.length ? ", 늦참 " + a.late.length + "명" : ""}${guestsOf(e).length ? ", 용병 " + guestsOf(e).length + "명" : ""}</span></span>${formBtn}</div>
     ${e.type === "scrim" ? `<div class="chips"><button class="chip sm ${side === "A" ? "on" : ""}" data-act="lineSide" data-v="A">A팀 (조끼)</button><button class="chip sm ${side === "B" ? "on" : ""}" data-act="lineSide" data-v="B">B팀</button></div>` : ""}
     ${askN ? `<div class="card" style="gap:8px"><b>몇 명이 뛰나요?</b><span class="hint">골레이로를 포함한 한 팀 인원이에요. 참석 ${ps.length}명</span><div class="chips">${FUTSAL_N.map(n => `<button class="chip" data-act="lineFormPick" data-eid="${esc(e.id)}" data-k="${n}대${n}">${n}대${n}</button>`).join("")}</div></div>`
       : !L && !edit ? `<div class="card empty"><b>아직 라인업이 없어요</b><span class="hint">운영진이 라인업을 알리면 여기에 보여요.</span></div>`
@@ -814,7 +814,7 @@ function vLineup(id) {
     ${edit ? (sel != null ? selCard() : `<span style="font-size:12px;color:#6B7280;text-align:center">선수를 눌러 휴식 선수와 바꾸거나, 그 자리에 고정해요</span>`) : ""}
     ${empBox}
     ${edit ? restCard : myLine + memNote}
-    ${edit ? `<button class="btn pri block" data-act="autoLineup" data-eid="${esc(e.id)}" style="font-size:15px">${fs ? "휴식 자동 배치" : "포지션 맞춰 휴식 자동 배치"}</button>` : ""}
+    ${edit ? `<button class="btn pri block" data-act="autoLineup" data-eid="${esc(e.id)}" style="font-size:16px">${fs ? "휴식 자동 배치" : "포지션 맞춰 휴식 자동 배치"}</button>` : ""}
     ${edit ? countCard : ""}`}
   </div>${edit && L ? `<div class="cta"><button class="btn pri block" data-act="lineShare" data-eid="${esc(e.id)}">팀원에게 알리기</button></div>` : ""}`;
 }
@@ -927,7 +927,7 @@ const ACT2 = {
     const refs = []; let total = 0;
     Object.entries(my.dues || {}).forEach(([k, v]) => { if (v !== "paid") { refs.push({ kind: "dues", key: k }); total += Number(S.settings.fee) || 0; } });
     (my.fines || []).forEach(f => { if (!f.paid) { refs.push({ kind: "fine", id: f.id }); total += Number(f.amount) || 0; } });
-    sheet(`<h3>입금하기</h3><div class="card" style="background:#F9FAFB"><span class="hint">보낼 금액</span><b style="font-size:26px">${won(total)}</b>${b.account ? `<span>${esc(b.bank || "")} ${esc(b.account)}<br><span class="hint">예금주 ${esc(b.holder || "")}</span></span><button class="btn sm" id="copyAcc" style="align-self:flex-start">계좌 복사</button>` : `<span class="hint">운영진이 아직 계좌를 적지 않았어요. 운영진에게 물어봐 주세요.</span>`}</div><span class="hint">보낸 뒤 아래 버튼을 누르면 운영진이 확인해요.</span><div class="row"><button class="btn block" data-act="closeSheet">닫기</button><button class="btn pri block" id="paySent">입금했어요</button></div>`);
+    sheet(`<h3>입금하기</h3><div class="card" style="background:#F9FAFB"><span class="hint">보낼 금액</span><b style="font-size:24px">${won(total)}</b>${b.account ? `<span>${esc(b.bank || "")} ${esc(b.account)}<br><span class="hint">예금주 ${esc(b.holder || "")}</span></span><button class="btn sm" id="copyAcc" style="align-self:flex-start">계좌 복사</button>` : `<span class="hint">운영진이 아직 계좌를 적지 않았어요. 운영진에게 물어봐 주세요.</span>`}</div><span class="hint">보낸 뒤 아래 버튼을 누르면 운영진이 확인해요.</span><div class="row"><button class="btn block" data-act="closeSheet">닫기</button><button class="btn pri block" id="paySent">입금했어요</button></div>`);
     if ($("#copyAcc")) $("#copyAcc").onclick = async () => { try { await navigator.clipboard.writeText(b.account); toast("계좌를 복사했어요"); } catch (e) { toast("길게 눌러 복사해 주세요"); } };
     $("#paySent").onclick = async () => { try { await patchDoc("payreq", S.uid, { items: { [uid36("p")]: { refs, amount: total, label: refs.length + "건", at: new Date().toISOString(), status: "req" } } }); closeSheet(); render(); toast("운영진에게 알렸어요"); } catch (e) { fail(e); } };
   },
@@ -1056,6 +1056,8 @@ function render() {
   else if (!S.ready) html = `<div class="loading">불러오는 중이에요</div>`;
   else {
     const r = route();
+    // 지금 화면이 속한 탭 색 (탭 첫 화면은 navBar가 다시 맞춤)
+    setSec(/^\/(records|game|season|result)/.test(r) ? "record" : /^\/(team|notices?|rules|money|members|kick|write)/.test(r) ? "team" : /^\/(ops|requests|posreqs|dues|fines|policy|settings|ledger)/.test(r) ? "ops" : /^\/(schedule|event|lineup|manage|roster|check|merc|new|edit|scrim)/.test(r) ? "schedule" : "home");
     if (r === "/invite" && isAdmin()) html = vInviteMsg();
     else if (r === "/me") html = vProfile(true);
     else if (viewMode() === "admin") html = adminRoute(r) || memberRoute(r) || memberRoute("/");
@@ -1209,10 +1211,10 @@ const ACT = {
     const cr = (S.settings.rules || []).find(r => ruleKind(r) === "cancel"); const amt = cr ? Number(cr.amount) || 0 : 0; const next = att(e).wait[0];
     S.form = { lcAgree: false, lcReason: "" };
     sheet(`<h3>불참 변경 신청</h3><div class="hint">투표가 마감돼서 지금 불참으로 바꾸면 팀 수칙대로 벌금이 붙어요. 신청하면 바로 불참으로 바뀌어요.</div>
-      ${amt ? `<div style="background:#FEF2F2;color:#991B1B;border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;gap:10px"><span>${esc(cr.label)}</span><b>${won(amt)}</b></div>` : `<div style="background:#F9FAFB;border-radius:12px;padding:12px 14px;font-size:14px">팀 수칙에 불참 벌금이 없어서 벌금 없이 바뀌어요</div>`}
+      ${amt ? `<div style="background:#FEF2F2;color:#991B1B;border-radius:12px;padding:12px 16px;display:flex;justify-content:space-between;gap:8px"><span>${esc(cr.label)}</span><b>${won(amt)}</b></div>` : `<div style="background:#F9FAFB;border-radius:12px;padding:12px 16px;font-size:14px">팀 수칙에 불참 벌금이 없어서 벌금 없이 바뀌어요</div>`}
       ${next ? `<div class="hint">대기 1번 ${esc(next.name)} 님이 참석으로 올라가요</div>` : ""}
       <label class="field"><span class="lab">사유 (안 써도 돼요)</span><input class="inp" data-bind="lcReason" maxlength="80" placeholder="예: 갑자기 야근이 생겼어요" autocomplete="off"></label>
-      ${amt ? `<label class="row" style="gap:10px;align-items:center;font-size:15px"><input type="checkbox" data-bind="lcAgree" style="width:22px;height:22px;accent-color:#15803D"><span>벌금 ${won(amt)}을 내는 것에 동의해요</span></label>` : ""}
+      ${amt ? `<label class="row" style="gap:8px;align-items:center;font-size:16px"><input type="checkbox" data-bind="lcAgree" style="width:22px;height:22px;accent-color:#15803D"><span>벌금 ${won(amt)}을 내는 것에 동의해요</span></label>` : ""}
       <div class="row"><button class="btn block" data-act="closeSheet">취소</button><button class="btn block danger" data-act="mLateCancelGo" data-eid="${esc(e.id)}" data-amt="${amt}">불참으로 바꾸기</button></div>`);
   },
   mLateCancelGo: async t => {
@@ -1314,7 +1316,7 @@ async function kakaoFinish() {
 }
 async function boot() {
   // 테스트 사이트 표시 (운영 사이트에는 없다)
-  if (STAGE) document.body.insertAdjacentHTML("beforeend", `<div aria-hidden="true" style="position:fixed;top:6px;left:50%;transform:translateX(-50%);z-index:9999;pointer-events:none;background:#B45309;color:#FFFFFF;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;opacity:.9">테스트 사이트</div>`);
+  if (STAGE) document.body.insertAdjacentHTML("beforeend", `<div aria-hidden="true" style="position:fixed;top:6px;left:50%;transform:translateX(-50%);z-index:9999;pointer-events:none;background:#B45309;color:#FFFFFF;font-size:12px;font-weight:700;padding:4px 8px;border-radius:999px;opacity:.9">테스트 사이트</div>`);
   if (qs.get("state") && (qs.get("code") || qs.get("error"))) {
     let next = ""; try { next = sessionStorage.getItem("mb-next") || ""; sessionStorage.removeItem("mb-next"); } catch (e) { /* 없음 */ }
     let ok = false; try { ok = !!next && new URL(next).origin === location.origin; } catch (e) { /* 잘못된 주소 */ }
@@ -1390,8 +1392,8 @@ function vRest(id) {
   const e = S.events[id]; if (!e || !(isAdmin() && viewMode() === "admin")) return vLineup(id); const side = e.type === "scrim" ? UI.side : "main"; const L = curLineup(e, side); const qn = QN[sport()];
   const ps = lineupPlayers(e, side); const cnt = {}; if (L) Object.values(L.q || {}).forEach(q => Object.values(q).forEach(u => { cnt[u] = (cnt[u] || 0) + 1; }));
   const posOf = (u, k) => { const q = (L && L.q && L.q[k]) || {}; const i = Object.keys(q).find(x => q[x] === u); return i != null ? L.formation[i] : ""; };
-  return `${top("휴식표", "#/lineup/" + id)}<div class="body"><div class="card" style="overflow-x:auto;padding:12px"><table style="border-collapse:collapse;width:100%;font-size:13px;text-align:center"><thead><tr><th style="text-align:left;padding:6px">선수</th>${Array.from({ length: qn }, (_, i) => `<th style="padding:6px">${i + 1}Q</th>`).join("")}<th style="padding:6px">출전</th></tr></thead><tbody>
-    ${ps.slice().sort((x, y) => (cnt[y.uid] || 0) - (cnt[x.uid] || 0)).map(p => `<tr style="border-top:1px solid #F3F4F6;${p.uid === S.uid ? "font-weight:900" : ""}"><td style="text-align:left;padding:8px 6px;white-space:nowrap">${esc(p.name)}</td>${Array.from({ length: qn }, (_, i) => { const ps2 = posOf(p.uid, i + 1); return `<td style="padding:4px"><span style="display:inline-block;min-width:34px;border-radius:8px;padding:4px 2px;font-size:11px;font-weight:700;${ps2 ? "background:#DCFCE7;color:#166534" : "background:#F3F4F6;color:#9CA3AF"}">${ps2 || "휴식"}</span></td>`; }).join("")}<td><b>${cnt[p.uid] || 0}</b></td></tr>`).join("")}
+  return `${top("휴식표", "#/lineup/" + id)}<div class="body"><div class="card" style="overflow-x:auto;padding:12px"><table style="border-collapse:collapse;width:100%;font-size:12px;text-align:center"><thead><tr><th style="text-align:left;padding:8px">선수</th>${Array.from({ length: qn }, (_, i) => `<th style="padding:8px">${i + 1}Q</th>`).join("")}<th style="padding:8px">출전</th></tr></thead><tbody>
+    ${ps.slice().sort((x, y) => (cnt[y.uid] || 0) - (cnt[x.uid] || 0)).map(p => `<tr style="border-top:1px solid #F3F4F6;${p.uid === S.uid ? "font-weight:900" : ""}"><td style="text-align:left;padding:8px 8px;white-space:nowrap">${esc(p.name)}</td>${Array.from({ length: qn }, (_, i) => { const ps2 = posOf(p.uid, i + 1); return `<td style="padding:4px"><span style="display:inline-block;min-width:34px;border-radius:8px;padding:4px 4px;font-size:12px;font-weight:700;${ps2 ? "background:#DCFCE7;color:#166534" : "background:#F3F4F6;color:#9CA3AF"}">${ps2 || "휴식"}</span></td>`; }).join("")}<td><b>${cnt[p.uid] || 0}</b></td></tr>`).join("")}
   </tbody></table></div><span class="hint">쿼터마다 ${L ? L.formation.length : 0}명이 뛰어요. ${sport() === "futsal" ? "골레이로" : "GK"}는 계속 뛰고, 나머지는 고르게 쉬어요.</span></div>`;
 }
 
