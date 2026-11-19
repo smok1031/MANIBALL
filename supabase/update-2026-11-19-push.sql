@@ -3,7 +3,8 @@
 -- 데이터가 바뀌면 트리거가 보낼 알림을 쌓고, 발송 함수(Edge Function "push")를 깨운다. 시간에 따른 알림(투표 마감 전, 내전 인원)은 5분마다 찾는다.
 -- 팀원: 라인업 공개, 투표 마감 3시간 전(아직 응답 안 했을 때), 벌금
 -- 운영진: 가입 신청, 요청(포지션 변경, 용병 신청), 마감 뒤 불참 변경, 내전 인원
--- 바꾼 사람 본인에게는 보내지 않는다. 구독한 기기가 있는 사람에게만 쌓는다.
+-- 카카오톡 "나에게 보내기": 메시지 전송에 동의한 사람은 같은 알림을 카톡 나와의 채팅으로도 받는다(push_kakao, 토큰은 발송 함수가 확인한 뒤 보관).
+-- 바꾼 사람 본인에게는 보내지 않는다. 받을 곳(기기 구독이나 카카오 동의)이 있는 사람에게만 쌓는다.
 
 -- Supabase에서는 pg_net(발송 함수 깨우기)과 pg_cron(5분마다 찾기)을 켠다. 없는 곳(로컬 시험)에서는 건너뛴다
 do $$ begin create extension if not exists pg_net with schema extensions; exception when others then raise notice 'pg_net 없음: %', sqlerrm; end $$;
@@ -19,6 +20,18 @@ create table if not exists public.push_subs (
   last_ok timestamptz
 );
 create index if not exists push_subs_user_idx on public.push_subs(user_id);
+
+-- 카카오톡 나에게 보내기용 토큰 (본인 카카오 계정인지 발송 함수가 확인한 뒤에만 넣는다)
+create table if not exists public.push_kakao (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  kakao_id text not null,
+  access_token text not null,
+  refresh_token text,
+  access_expires timestamptz not null,
+  refresh_expires timestamptz,
+  updated_at timestamptz not null default now(),
+  last_ok timestamptz
+);
 
 create table if not exists public.push_outbox (
   id bigserial primary key,
@@ -49,10 +62,11 @@ insert into public.push_conf (id) values (1) on conflict (id) do nothing;
 alter table public.push_subs enable row level security;
 alter table public.push_outbox enable row level security;
 alter table public.push_conf enable row level security;
-revoke all on public.push_subs, public.push_outbox, public.push_conf from public, anon, authenticated;
+alter table public.push_kakao enable row level security;
+revoke all on public.push_subs, public.push_outbox, public.push_conf, public.push_kakao from public, anon, authenticated;
 revoke all on sequence public.push_outbox_id_seq from public, anon, authenticated;
 grant usage on schema public to service_role;
-grant select, insert, update, delete on public.push_subs, public.push_outbox, public.push_conf to service_role;
+grant select, insert, update, delete on public.push_subs, public.push_outbox, public.push_conf, public.push_kakao to service_role;
 grant usage on sequence public.push_outbox_id_seq to service_role;
 
 -- 앱이 쓰는 함수 ---------------------------------------------------------------
@@ -109,6 +123,8 @@ begin
     update public.push_outbox o set tries = o.tries + 1 from c where o.id = c.id returning o.*
   )
   select coalesce(jsonb_agg(jsonb_build_object('id', u.id, 'team', u.team_id, 'title', u.title, 'body', u.body, 'url', u.url, 'tag', u.kind || ':' || u.id,
+    'user', u.user_id,
+    'kakao', (select jsonb_build_object('access', k.access_token, 'refresh', k.refresh_token, 'exp', k.access_expires) from public.push_kakao k where k.user_id = u.user_id),
     'subs', coalesce((select jsonb_agg(jsonb_build_object('endpoint', s.endpoint, 'p256dh', s.p256dh, 'auth', s.auth)) from public.push_subs s where s.user_id = u.user_id), '[]'::jsonb))), '[]'::jsonb)
   into r from u;
   return r;
@@ -132,6 +148,32 @@ $$;
 revoke all on function public.push_conf_get(), public.push_conf_init(text, jsonb, text), public.push_take(int), public.push_done(bigint[], text[], text[]), public.push_subs_of(uuid) from public, anon, authenticated;
 grant execute on function public.push_conf_get(), public.push_conf_init(text, jsonb, text), public.push_take(int), public.push_done(bigint[], text[], text[]), public.push_subs_of(uuid) to service_role;
 
+-- 카카오 토큰 (발송 함수만) ----------------------------------------------------------
+create or replace function public.push_kakao_put(p_user uuid, p_kakao_id text, p_access text, p_refresh text, p_access_exp timestamptz, p_refresh_exp timestamptz) returns void
+language sql security definer set search_path = public as $$
+  insert into public.push_kakao (user_id, kakao_id, access_token, refresh_token, access_expires, refresh_expires, updated_at)
+  values (p_user, p_kakao_id, p_access, p_refresh, p_access_exp, p_refresh_exp, now())
+  on conflict (user_id) do update set kakao_id = coalesce(nullif(excluded.kakao_id, ''), push_kakao.kakao_id), access_token = excluded.access_token,
+    refresh_token = coalesce(excluded.refresh_token, push_kakao.refresh_token), access_expires = excluded.access_expires,
+    refresh_expires = coalesce(excluded.refresh_expires, push_kakao.refresh_expires), updated_at = now()
+$$;
+create or replace function public.push_kakao_get(p_user uuid) returns jsonb
+language sql stable security definer set search_path = public as $$
+  select jsonb_build_object('access', access_token, 'refresh', refresh_token, 'exp', access_expires) from public.push_kakao where user_id = p_user
+$$;
+create or replace function public.push_kakao_del(p_user uuid) returns void
+language sql security definer set search_path = public as $$ delete from public.push_kakao where user_id = p_user $$;
+create or replace function public.push_kakao_ok(p_user uuid) returns void
+language sql security definer set search_path = public as $$ update public.push_kakao set last_ok = now() where user_id = p_user $$;
+revoke all on function public.push_kakao_put(uuid, text, text, text, timestamptz, timestamptz), public.push_kakao_get(uuid), public.push_kakao_del(uuid), public.push_kakao_ok(uuid) from public, anon, authenticated;
+grant execute on function public.push_kakao_put(uuid, text, text, text, timestamptz, timestamptz), public.push_kakao_get(uuid), public.push_kakao_del(uuid), public.push_kakao_ok(uuid) to service_role;
+
+-- 앱: 내가 카카오톡으로 받고 있는지
+create or replace function public.push_kakao_mine() returns boolean
+language sql stable security definer set search_path = public as $$ select exists (select 1 from public.push_kakao where user_id = auth.uid()) $$;
+revoke all on function public.push_kakao_mine() from public, anon;
+grant execute on function public.push_kakao_mine() to authenticated;
+
 -- 쌓기와 깨우기 -------------------------------------------------------------------
 -- 발송 함수를 깨운다 (pg_net이 있고 함수 주소를 알 때만). 요청은 저장이 끝난 뒤 나간다
 create or replace function public.push_kick() returns void
@@ -152,7 +194,7 @@ begin
   insert into public.push_outbox (team_id, user_id, kind, title, body, url, dedupe)
   select p_team, u, p_kind, left(p_title, 60), left(p_body, 180), p_url, left(p_key, 300) || ':' || u
   from (select distinct unnest(coalesce(p_uids, '{}')) u) x
-  where u is not null and u is distinct from auth.uid() and exists (select 1 from public.push_subs s where s.user_id = x.u)
+  where u is not null and u is distinct from auth.uid() and (exists (select 1 from public.push_subs s where s.user_id = x.u) or exists (select 1 from public.push_kakao k where k.user_id = x.u))
     -- 같은 사람에게 같은 알림은 10분에 한 번 (요청을 되풀이해 운영진 휴대폰을 울리지 못하게)
     and not exists (select 1 from public.push_outbox b where b.user_id = x.u and b.kind = p_kind and b.body = left(p_body, 180) and b.created_at > now() - interval '10 minutes')
   on conflict (dedupe) do nothing;
@@ -186,7 +228,7 @@ declare
   o jsonb := case when tg_op = 'UPDATE' then old.data else '{}'::jsonb end;
   n jsonb := new.data; tn text; nm text; k text; v jsonb; who text; uids uuid[]; ev jsonb;
 begin
-  if not exists (select 1 from public.push_subs) then return null; end if;
+  if not exists (select 1 from public.push_subs) and not exists (select 1 from public.push_kakao) then return null; end if;
   select name into tn from public.teams where id = new.team_id;
   tn := coalesce(tn, '매니볼');
   if new.coll = 'events' then
@@ -247,7 +289,7 @@ language plpgsql security definer set search_path = public as $$
 declare tn text;
 begin
   if new.status <> 'pending' or (tg_op = 'UPDATE' and old.status = 'pending' and old.created_at = new.created_at) then return null; end if;
-  if not exists (select 1 from public.push_subs) then return null; end if;
+  if not exists (select 1 from public.push_subs) and not exists (select 1 from public.push_kakao) then return null; end if;
   select name into tn from public.teams where id = new.team_id;
   perform public.push_add(new.team_id, public.push_admins(new.team_id), 'join', coalesce(tn, '매니볼'),
     coalesce(nullif(new.display_name, ''), '새 사람') || ' 님 가입 신청', '#/requests', 'join:' || new.team_id || ':' || new.user_id || ':' || new.created_at);
@@ -266,7 +308,7 @@ language plpgsql security definer set search_path = public as $$
 declare r record; dl timestamptz; uids uuid[]; st jsonb; sdays int; smin int; cnt int; tn text; total int := 0;
 begin
   delete from public.push_outbox where created_at < now() - interval '7 days';
-  if not exists (select 1 from public.push_subs) then return 0; end if;
+  if not exists (select 1 from public.push_subs) and not exists (select 1 from public.push_kakao) then return 0; end if;
   for r in select d.team_id, d.id, d.data from public.docs d where d.coll = 'events'
       and coalesce(d.data ->> 'date', '') ~ '^\d{4}-\d{2}-\d{2}$' and (d.data ->> 'date')::date between current_date - 1 and current_date + 8 loop
     select name into tn from public.teams where id = r.team_id;

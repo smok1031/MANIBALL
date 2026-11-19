@@ -10,6 +10,7 @@ export const IC = {
   chev: sv(`<path d="M9 5l7 7-7 7"></path>`, 18, 2.4, ` class="chev"`),
   arrow: sv(`<path d="M5 12h14M13 6l6 6-6 6"></path>`, 20, 2.4),
   bell: sv(`<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 20a2 2 0 0 0 4 0"></path>`, 24),
+  chat: sv(`<path d="M4 5h16v11H9l-5 4z"></path><path d="M8 9.5h8M8 12.5h5"></path>`, 24),
   target: sv(`<circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3" fill="${C.ink}"></circle>`),
   swap: sv(`<path d="M4 8h13l-3-3M20 16H7l3 3"></path>`),
   user: sv(`<circle cx="12" cy="8" r="4"></circle><path d="M4 21c1-4 4-6 8-6s7 2 8 6"></path>`),

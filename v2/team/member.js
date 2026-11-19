@@ -100,7 +100,9 @@ function pushRow(adm) {
   const st = S.push || "off"; const on = st === "on";
   const note = st === "install" ? "홈 화면에 추가하면 켤 수 있어요" : st === "denied" ? "브라우저에서 알림이 막혀 있어요" : st === "unsupported" ? "이 브라우저는 알림을 받을 수 없어요"
     : adm ? "가입 신청, 요청, 마감 뒤 변경, 내전 인원" : "라인업 공개, 투표 마감 전, 벌금";
-  return `<button type="button" class="lr" role="switch" aria-checked="${on}" data-act="pushToggle"${pushBusy() ? " disabled" : ""}><span class="ic" aria-hidden="true">${IC.bell}</span><span class="tx"><b>알림 받기</b><span>${note}</span></span>${sw(on)}</button>`;
+  const kon = S.kakao === "on";
+  return `<button type="button" class="lr" role="switch" aria-checked="${on}" data-act="pushToggle"${pushBusy() ? " disabled" : ""}><span class="ic" aria-hidden="true">${IC.bell}</span><span class="tx"><b>알림 받기</b><span>${note}</span></span>${sw(on)}</button>
+      <button type="button" class="lr" role="switch" aria-checked="${kon}" data-act="${kon ? "kakaoMsgOff" : "kakaoMsg"}"><span class="ic" aria-hidden="true">${IC.chat}</span><span class="tx"><b>카카오톡으로 받기</b><span>${kon ? "나와의 채팅으로 같은 알림이 와요" : "켜면 카카오 동의 화면이 한 번 떠요"}</span></span>${sw(kon)}</button>`;
 }
 function mHome() {
   const p = myProfile() || {}; const n = (isAdmin() && viewMode() === "admin" ? afeed() : feed()).filter(x => x.t > readAt()).length;

@@ -6,7 +6,7 @@ import { memberRoute, memberForm, MACT } from "./member.js";
 import { planLineup, canPlay, FIELD, isKeeper } from "./lineup-core.js";
 import { adminRoute, adminForm, AACT, eventFormInit, remindLeft, remindSheet, playerSheet, rosterSheet } from "./admin.js";
 import { hd as uiHd, navBar, C, IC, teamLogo, setSec } from "./ui.js";
-import { pushInit, pushToggle, pushDetach } from "./push.js";
+import { pushInit, pushToggle, pushDetach, kakaoOff } from "./push.js";
 
 const URL_ = import.meta.env.VITE_SUPABASE_URL || SUPABASE_URL;
 const KEY_ = import.meta.env.VITE_SUPABASE_KEY || SUPABASE_KEY;
@@ -1112,15 +1112,15 @@ document.addEventListener("input", ev => {
 document.addEventListener("change", ev => { const t = ev.target; if ((t.dataset.bind === "date" || t.dataset.bind === "time") && /^\/(new|edit\/.+)$/.test(route())) render(); });
 const ACT = {
   closeSheet: (t, ev) => { if (ev.target === t || t.tagName === "BUTTON") closeSheet(); },
-  kakao: async t => {
+  kakao: async (t, ev, msg) => {
     t.disabled = true;
     try {
-      const st = { state: rand(), nonce: rand() };
+      const st = { state: rand(), nonce: rand(), msg: !!msg };
       sessionStorage.setItem(KK, JSON.stringify(st));
-      const back = new URL(location.href); back.searchParams.delete("login_error"); back.hash = "";
+      const back = new URL(location.href); back.searchParams.delete("login_error"); if (!msg) back.hash = "";
       sessionStorage.setItem("mb-next", back.href);
       const redirect = KAKAO_REDIRECT;
-      location.assign("https://kauth.kakao.com/oauth/authorize?" + new URLSearchParams({ client_id: KAKAO_KEY, redirect_uri: redirect, response_type: "code", scope: "openid profile_nickname", state: st.state, nonce: await sha256hex(st.nonce) }));
+      location.assign("https://kauth.kakao.com/oauth/authorize?" + new URLSearchParams({ client_id: KAKAO_KEY, redirect_uri: redirect, response_type: "code", scope: "openid profile_nickname" + (STAGE || msg ? " talk_message" : ""), state: st.state, nonce: await sha256hex(st.nonce) }));
     } catch (e) { t.disabled = false; toast("카카오 로그인을 시작하지 못했어요"); }
   },
   pick: t => { S.form[t.dataset.k] = t.dataset.v; if (t.dataset.k === "pos1" && S.form.pos2 === t.dataset.v) S.form.pos2 = ""; render(); },
@@ -1280,6 +1280,8 @@ const ACT = {
     }, true);
   },
   pushToggle: () => pushToggle(),
+  kakaoMsg: (t, ev) => ACT.kakao(t, ev, true),
+  kakaoMsgOff: () => confirmBox("카카오톡 알림 끄기", "카카오톡 나와의 채팅으로 오던 알림을 끌까요? 카카오 메시지 동의도 함께 거둬요.", "끄기", () => kakaoOff()),
   logout: () => confirmBox("로그아웃", "이 기기에서 로그아웃할까요?", "로그아웃", async () => { await pushDetach(); try { await sb.auth.signOut(); } catch (e) { /* 그래도 처음으로 */ } ls.set("mb-team", null); picked.clear(); location.replace(APP); }),
 };
 Object.assign(ACT, ACT2, ACT3, ACT4, AACT, MACT);
@@ -1305,8 +1307,8 @@ async function enter(tid) {
   syncMyDues().catch(() => {});
 }
 async function kakaoFinish() {
-  picked.clear(); // 막 로그인했으면 팀 고르기부터
   let st = null; try { st = JSON.parse(sessionStorage.getItem(KK) || "null"); sessionStorage.removeItem(KK); } catch (e) { /* 없음 */ }
+  if (!st || !st.msg) picked.clear(); // 막 로그인했으면 팀 고르기부터 (카카오톡 알림 동의로 다녀온 것은 보던 화면으로)
   if (!st || !qs.get("state") || qs.get("state") !== st.state) throw new Error("state");
   if (qs.get("error")) throw new Error(qs.get("error"));
   const r = await fetch("https://kauth.kakao.com/oauth/token", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
@@ -1315,6 +1317,10 @@ async function kakaoFinish() {
   if (!r.ok || !tok.id_token) throw new Error(tok.error_code || tok.error || "token " + r.status);
   const { error } = await sb.auth.signInWithIdToken({ provider: "kakao", token: tok.id_token, access_token: tok.access_token, nonce: st.nonce });
   if (error) throw error;
+  // 카카오톡 메시지 전송에 동의했으면 알림용으로 서버에 맡긴다 (서버가 본인 카카오 계정인지 확인한 뒤 보관)
+  if (/(^|\s)talk_message(\s|$)/.test(tok.scope || "")) {
+    try { await sb.functions.invoke("push", { body: { action: "kakao_save", access_token: tok.access_token, refresh_token: tok.refresh_token, expires_in: tok.expires_in, refresh_token_expires_in: tok.refresh_token_expires_in } }); } catch (e) { /* 알림만 못 켠 것, 로그인은 그대로 */ }
+  }
 }
 async function boot() {
   // 테스트 사이트 표시 (운영 사이트에는 없다)
