@@ -139,7 +139,7 @@ language plpgsql security definer set search_path = public as $$
 declare c public.push_conf;
 begin
   select * into c from public.push_conf where id = 1;
-  if c.fn_url is null or to_regproc('net.http_post') is null then return; end if;
+  if c.fn_url is null or to_regnamespace('net') is null then return; end if;
   execute 'select net.http_post(url := $1, body := ''{}''::jsonb, headers := jsonb_build_object(''Content-Type'', ''application/json'', ''x-cron-key'', $2), timeout_milliseconds := 20000)'
     using c.fn_url, c.cron_key;
 exception when others then null; -- 깨우기에 실패해도 저장은 그대로 (1분마다 다시 깨움)
@@ -309,7 +309,7 @@ revoke all on function public.push_scan(), public.push_kick_pending() from publi
 
 do $$
 begin
-  if to_regproc('cron.schedule') is not null then
+  if to_regnamespace('cron') is not null then
     perform cron.schedule('mb-push-scan', '*/5 * * * *', 'select public.push_scan()');
     perform cron.schedule('mb-push-kick', '* * * * *', 'select public.push_kick_pending()');
   end if;
