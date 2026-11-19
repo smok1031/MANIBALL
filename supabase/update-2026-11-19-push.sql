@@ -51,6 +51,7 @@ alter table public.push_outbox enable row level security;
 alter table public.push_conf enable row level security;
 revoke all on public.push_subs, public.push_outbox, public.push_conf from public, anon, authenticated;
 revoke all on sequence public.push_outbox_id_seq from public, anon, authenticated;
+grant usage on schema public to service_role;
 grant select, insert, update, delete on public.push_subs, public.push_outbox, public.push_conf to service_role;
 grant usage on sequence public.push_outbox_id_seq to service_role;
 
