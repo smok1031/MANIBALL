@@ -18,7 +18,7 @@ IDENT = re.compile(r"^[a-z_][a-z0-9_]*$")
 def claims(h):
     a = h.get("Authorization", "")
     tok = a[7:] if a.startswith("Bearer ") else ""
-    if tok == "service-test-key": return {"role": "service_role"}  # 발송 함수 시험용 (로컬에서만)
+    if tok == "service-test-key" or (not tok and h.get("apikey") == "service-test-key"): return {"role": "service_role"}  # 발송 함수 시험용 (로컬에서만)
     parts = tok.split(".")
     if len(parts) != 3: return None
     try:

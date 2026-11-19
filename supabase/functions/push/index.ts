@@ -6,8 +6,12 @@
 // 외부 라이브러리 없이 WebCrypto로 웹 푸시 암호화(RFC 8291, aes128gcm)와 VAPID 서명(RFC 8292)을 한다.
 
 const SB_URL = Deno.env.get("SUPABASE_URL") ?? "";
-const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-const ANON = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+// 키는 Supabase가 함수에 넣어 준다 (예전 키 이름, 새 키 이름 둘 다 받음)
+const firstKey = (name: string) => { try { const o = JSON.parse(Deno.env.get(name) ?? "{}"); return String(Object.values(o)[0] ?? ""); } catch (_) { return ""; } };
+const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || firstKey("SUPABASE_SECRET_KEYS");
+const ANON = Deno.env.get("SUPABASE_ANON_KEY") || firstKey("SUPABASE_PUBLISHABLE_KEYS");
+// 새 키(sb_...)는 JWT가 아니라 apikey 머리글로만 보낸다
+const svcHeaders = (): Record<string, string> => SERVICE.startsWith("eyJ") ? { apikey: SERVICE, Authorization: `Bearer ${SERVICE}` } : { apikey: SERVICE };
 // 테스트 프로젝트는 maniball 스키마, 운영은 public
 const SCHEMA = SB_URL.includes("vlaiziklxvpykzsuvinn") ? "maniball" : "public";
 const SUBJECT = "https://smok1031.github.io/MANIBALL/";
@@ -21,7 +25,7 @@ const safeEq = (a: string, b: string) => { if (!a || !b || a.length !== b.length
 const json = (o: unknown, status = 200) => new Response(JSON.stringify(o), { status, headers: { ...CORS, "Content-Type": "application/json" } });
 
 async function rpc(name: string, args: Record<string, unknown> = {}) {
-  const r = await fetch(`${SB_URL}/rest/v1/rpc/${name}`, { method: "POST", headers: { apikey: SERVICE, Authorization: `Bearer ${SERVICE}`, "Content-Type": "application/json", "Content-Profile": SCHEMA, "Accept-Profile": SCHEMA }, body: JSON.stringify(args) });
+  const r = await fetch(`${SB_URL}/rest/v1/rpc/${name}`, { method: "POST", headers: { ...svcHeaders(), "Content-Type": "application/json", "Content-Profile": SCHEMA, "Accept-Profile": SCHEMA }, body: JSON.stringify(args) });
   if (!r.ok) throw new Error(`${name} ${r.status} ${await r.text()}`);
   const t = await r.text(); return t ? JSON.parse(t) : null;
 }
