@@ -103,3 +103,18 @@ console.log("public/v2/index.html", html.length, "bytes");
 // 점검 안내 화면과 문지기 (원본은 maint/). 캐시에 옛 파일이 남지 않게 주소에 버전을 붙인다
 writeFileSync(new URL("../public/v2/maint-config.js", import.meta.url), `window.MB_CFG = ${JSON.stringify(MB_CFG)};\n`);
 for (const f of ["maint.html", "maint.js", "maint-gate.js"]) writeFileSync(new URL(`../public/v2/${f}`, import.meta.url), readFileSync(new URL(`../maint/${f}`, import.meta.url), "utf8").replaceAll("__VER__", VER));
+
+// 휴대폰 알림과 홈 화면 추가 (원본은 pwa/). 앱 주소(v2/team/) 바로 아래에 둔다
+const PWA = new URL("../public/v2/team/", import.meta.url);
+mkdirSync(PWA, { recursive: true });
+for (const f of ["sw.js", "icon-192.png", "icon-512.png", "icon-maskable-512.png", "apple-touch-icon.png", "badge-96.png"]) copyFileSync(new URL(`../pwa/${f}`, import.meta.url), new URL(f, PWA));
+const appName = process.env.VITE_STAGE === "test" ? "매니볼 테스트" : "매니볼";
+writeFileSync(new URL("manifest.webmanifest", PWA), JSON.stringify({
+  name: appName, short_name: appName, id: "./", start_url: "./", scope: "./", display: "standalone", lang: "ko",
+  background_color: "#FBF7EF", theme_color: "#FBF7EF",
+  icons: [
+    { src: "icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+    { src: "icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+    { src: "icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+  ],
+}, null, 2));

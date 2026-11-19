@@ -6,6 +6,7 @@ import { memberRoute, memberForm, MACT } from "./member.js";
 import { planLineup, canPlay, FIELD, isKeeper } from "./lineup-core.js";
 import { adminRoute, adminForm, AACT, eventFormInit, remindLeft, remindSheet, playerSheet, rosterSheet } from "./admin.js";
 import { hd as uiHd, navBar, C, IC, teamLogo, setSec } from "./ui.js";
+import { pushInit, pushToggle, pushDetach } from "./push.js";
 
 const URL_ = import.meta.env.VITE_SUPABASE_URL || SUPABASE_URL;
 const KEY_ = import.meta.env.VITE_SUPABASE_KEY || SUPABASE_KEY;
@@ -1278,7 +1279,8 @@ const ACT = {
       ls.set("mb-team", null); toast("팀을 지웠어요. 평가해 주셔서 고마워요"); setTimeout(() => location.replace(APP), 900);
     }, true);
   },
-  logout: () => confirmBox("로그아웃", "이 기기에서 로그아웃할까요?", "로그아웃", async () => { try { await sb.auth.signOut(); } catch (e) { /* 그래도 처음으로 */ } ls.set("mb-team", null); picked.clear(); location.replace(APP); }),
+  pushToggle: () => pushToggle(),
+  logout: () => confirmBox("로그아웃", "이 기기에서 로그아웃할까요?", "로그아웃", async () => { await pushDetach(); try { await sb.auth.signOut(); } catch (e) { /* 그래도 처음으로 */ } ls.set("mb-team", null); picked.clear(); location.replace(APP); }),
 };
 Object.assign(ACT, ACT2, ACT3, ACT4, AACT, MACT);
 document.addEventListener("click", ev => {
@@ -1336,6 +1338,9 @@ async function boot() {
     render(); return;
   }
   S.uid = session.user.id;
+  // 알림을 눌러 들어오면 그 알림의 팀으로 연다
+  const qt = (qs.get("team") || "").toLowerCase(); if (/^[0-9a-f-]{36}$/.test(qt)) { ls.set("mb-team", qt); picked.set(); }
+  pushInit(sb);
   if (qs.get("view") === "member") setView("member"); else if (qs.get("view") === "admin") setView("admin");
   ls.set("mb-view", null);
   if (location.search) history.replaceState(null, "", APP + location.hash);

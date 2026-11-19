@@ -2,6 +2,7 @@
 import { noLate, pol, rulesTextOf, fineRulesOf, $, D, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, confirmBox, esc, evName, evStart, fail, feeMode, guestReqs, guestsOf, isAdmin, isPlay, md, momClosed, momDeadline, momOpen, momWinners, myProfile, myUv, myVote, nameOf, noticesList, past, patchDoc, people, render, ruleKind, sb, sheet, sport, started, toast, todayStr, uid36, upcoming, voteState, wd, won, ym, mLabel, closeAt, remindInfo, promotedAt, spotXY, viewMode, fineAt, fineNow, fineText, lateCancel, ls, APP, maintLocked } from "./main.js";
 import { C, IC, navBar, hd, hdTab, hdBrand, mngBtn, lrow, dlg, empty, initial, sw, teamLogo } from "./ui.js";
 import { afeed, adminHomeRows } from "./admin.js";
+import { pushBusy } from "./push.js";
 
 /* ---------- 공통 계산 ---------- */
 const MU = { season: "", lq: 1, mom: "", gpos: [], tq: {}, anim: null };
@@ -94,6 +95,13 @@ function seasonPass(p) {
       <span class="bc" style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;font-size:16px;flex:none"><span style="background:${C.ink};color:${C.bg};border:2px solid ${C.ink};border-radius:6px;padding:0 8px">1선호 ${esc(p.pos1 || "미정")}</span><span style="background:${C.bg};border:2px solid ${C.ink};border-radius:6px;padding:0 8px">2선호 ${esc(p.pos2 || "없음")}</span></span>
     </div></div>`;
 }
+// 홈 "알림 받기": 이 기기에서 휴대폰 알림을 켜고 끈다 (push.js)
+function pushRow(adm) {
+  const st = S.push || "off"; const on = st === "on";
+  const note = st === "install" ? "홈 화면에 추가하면 켤 수 있어요" : st === "denied" ? "브라우저에서 알림이 막혀 있어요" : st === "unsupported" ? "이 브라우저는 알림을 받을 수 없어요"
+    : adm ? "가입 신청, 요청, 마감 뒤 변경, 내전 인원" : "라인업 공개, 투표 마감 전, 벌금";
+  return `<button type="button" class="lr" role="switch" aria-checked="${on}" data-act="pushToggle"${pushBusy() ? " disabled" : ""}><span class="ic" aria-hidden="true">${IC.bell}</span><span class="tx"><b>알림 받기</b><span>${note}</span></span>${sw(on)}</button>`;
+}
 function mHome() {
   const p = myProfile() || {}; const n = (isAdmin() && viewMode() === "admin" ? afeed() : feed()).filter(x => x.t > readAt()).length;
   const req = (S.rsvp[S.uid] || {}).posReq; const pending = req && req.status === "req";
@@ -104,6 +112,7 @@ function mHome() {
     <section class="lst" aria-label="내 설정">
       ${lrow({ href: "#/posreq", icon: IC.target, tone: "pink", ...(adm ? { title: "내 포지션 바꾸기", sub: "운영진은 요청 없이 바로 바뀌어요" } : { title: "포지션 변경 요청", right: pending ? "확인 중" : "" }) })}
       ${lrow({ act: "switchTeam", icon: IC.swap, tone: "green", title: "팀 바꾸기", right: S.teams.length > 1 ? (S.teams.length - 1) + "팀 더" : "새 팀 만들기" })}
+      ${pushRow(adm)}
       ${adm ? adminHomeRows() : ""}
       <div class="lr" style="cursor:default"><span class="ic" aria-hidden="true">${IC.user}</span><span class="tx"><b>카카오 계정</b><span>${esc(((S.session && S.session.user.user_metadata) || {}).nickname || "")}</span></span><span class="rt" style="display:inline-flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:${C.green}"></span>연결됨</span></div>
       ${lrow({ act: "mLeave", icon: IC.leave, tone: "clay", title: `${S.team.name}에서 나가기`, danger: true })}

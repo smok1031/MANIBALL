@@ -12,12 +12,13 @@ COLS = {"join_requests": {"team_id", "user_id", "team_name", "display_name", "ka
         "members": {"team_id", "user_id", "role", "display_name", "joined_at", "admin_req"},
         "teams": {"id", "name", "invite_code", "created_by", "created_at"},
         "maint": {"id", "state", "start_at", "end_at", "note", "updated_at"}}
-FNS = {"create_team", "team_by_code", "join_team", "set_my_name", "set_member_role", "remove_member", "new_invite_code", "doc_patch", "my_name", "team_invite_code", "leave_team_as_owner", "delete_my_account", "delete_team", "submit_inquiry", "delete_team_with_review", "request_join", "answer_join", "cancel_join", "late_cancel", "maint_status"}
-IDENT = re.compile(r"^[a-z_]+$")
+FNS = {"create_team", "team_by_code", "join_team", "set_my_name", "set_member_role", "remove_member", "new_invite_code", "doc_patch", "my_name", "team_invite_code", "leave_team_as_owner", "delete_my_account", "delete_team", "submit_inquiry", "delete_team_with_review", "request_join", "answer_join", "cancel_join", "late_cancel", "maint_status", "push_subscribe", "push_unsubscribe", "push_mine", "push_conf_get", "push_conf_init", "push_take", "push_done", "push_subs_of"}
+IDENT = re.compile(r"^[a-z_][a-z0-9_]*$")
 
 def claims(h):
     a = h.get("Authorization", "")
     tok = a[7:] if a.startswith("Bearer ") else ""
+    if tok == "service-test-key": return {"role": "service_role"}  # 발송 함수 시험용 (로컬에서만)
     parts = tok.split(".")
     if len(parts) != 3: return None
     try:
@@ -53,7 +54,7 @@ class H(BaseHTTPRequestHandler):
         conn = psycopg2.connect(DSN)
         try:
             with conn, conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                cur.execute("set local role " + ("authenticated" if c else "anon"))
+                cur.execute("set local role " + ((c or {}).get("role") if (c or {}).get("role") in ("authenticated", "service_role") else "anon"))
                 cur.execute("select set_config('request.jwt.claims', %s, true), set_config('request.jwt.claim.sub', %s, true)", (json.dumps(c or {}), (c or {}).get("sub", "")))
                 return fn(cur)
         except psycopg2.Error as e:
@@ -127,7 +128,7 @@ class H(BaseHTTPRequestHandler):
             if fn not in FNS: return self.reply(404, {"message": "no fn"})
             keys = list((b or {}).keys()); assert all(IDENT.match(k) for k in keys)
             call = f"select * from {self.schema()}.{fn}(" + ", ".join(f"{k} => %s" for k in keys) + ")"
-            vals = [json.dumps(b[k]) if isinstance(b[k], (dict, list)) else b[k] for k in keys]
+            vals = [b[k] if isinstance(b[k], list) and fn == "push_done" else json.dumps(b[k]) if isinstance(b[k], (dict, list)) else b[k] for k in keys]
             def go(cur):
                 cur.execute(call, vals); rows = cur.fetchall()
                 if fn == "team_by_code": return ("ok", [dict(x) for x in rows])
