@@ -62,7 +62,7 @@ function aOps() {
       ${lrow({ href: "#/posreqs", icon: IC.target, tone: "pink", title: "포지션 변경 요청", sub: "팀원이 보낸 요청", right: posN ? `<span class="tag pink">${posN}건</span>` : "", big: true })}
       ${lrow({ href: "#/dues", icon: IC.card, tone: "clay", title: "회비 관리", sub: feeMode() === "none" ? "회비를 안 받아요" : "달마다 낸 사람 체크", right: dn.text && feeMode() !== "none" ? big(dn.text) : "", big: true })}
       ${lrow({ href: "#/fines", icon: IC.receipt, tone: "orange", title: "벌금 관리", sub: "매기고, 낸 것 체크", right: fineN ? `<b style="color:${C.ink}">안 낸 ${fineN}건</b>` : "", big: true })}
-      ${lrow({ href: "#/policy", icon: IC.shield, tone: "blue", title: "기본 운영 규칙", sub: "정원, 마감, 출석, 내전, 벌금 기준", right: `<span class="tag blue">Admin</span>`, big: true })}
+      ${lrow({ href: "#/policy", icon: IC.shield, tone: "blue", title: "기본 운영 규칙", sub: "정원, 마감, 출석, 내전 기준", right: `<span class="tag blue">Admin</span>`, big: true })}
       ${lrow({ href: "#/settings", icon: IC.gear, title: "팀 설정", sub: "초대 링크, 가입 승인제, 팀 지우기", right: `<span class="tag blue">Admin</span>`, big: true })}
     </nav>
   </div>${nav("운영")}`;
@@ -229,7 +229,7 @@ function teamOutSheet() {
 const GCODE = { 골키퍼: "GK", 수비: "DF", 미드필더: "MF", 공격: "FW" };
 function aMembers() {
   const n = S.members.length;
-  return `${hd("팀원", back("#/team"), { sub: `${n}명, 눌러서 관리해요` })}<div class="body" style="gap:16px">
+  return `${hd("팀원 관리", back("#/team"), { sub: `${n}명, 눌러서 관리해요` })}<div class="body" style="gap:16px">
     ${memberGroups().map(gr => `<section style="display:flex;flex-direction:column" aria-label="${esc(gr.g)}"><span class="spread" style="align-items:baseline;border-bottom:2px solid ${C.ink};padding-bottom:8px"><b class="bh" style="font-size:20px">${GCODE[gr.g] ? GCODE[gr.g] + " " : ""}${esc(gr.g)}</b><span style="font-size:12px">${gr.xs.length}명</span></span>
       ${gr.xs.map(x => `<button type="button" class="row" data-act="aMember" data-u="${esc(x.uid)}" style="min-height:56px;border:0;border-bottom:2px solid ${C.line};background:transparent;gap:12px;text-align:left;padding:0"><b class="bc" style="flex:none;width:34px;font-size:24px;text-align:center">${esc(x.p.num || "-")}</b><span style="flex:1;font-size:16px;font-weight:700">${esc(x.name)}${x.uid === S.uid ? ` <span style="font-weight:500;color:${C.sub};font-size:12px">나</span>` : ""} ${x.role !== "member" ? `<span class="tag ${x.role === "owner" ? "blue" : "gray"}" style="font-size:12px">${ROLE[x.role]}</span>` : ""}</span><span class="bc" style="font-size:16px">${esc(posTxt(x.p))}</span></button>`).join("")}</section>`).join("") || empty("아직 팀원이 없어요")}
   </div>${nav("팀")}`;

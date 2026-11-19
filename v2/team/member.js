@@ -102,8 +102,8 @@ function mHome() {
     ${seasonPass(p)}
     ${pending && !adm ? `<div class="box gray" style="flex-direction:row;align-items:center;gap:12px;padding:12px 12px 12px 16px;border-radius:14px"><span style="flex:1;display:flex;flex-direction:column;gap:4px"><b style="display:flex;align-items:center;gap:8px;font-size:14px"><span class="tag blue">확인 중</span>포지션 변경 요청</b><span style="font-size:12px">${esc([req.pos1, req.pos2].filter(Boolean).join(", "))}로 요청했어요. 운영진이 확인하면 카드가 바뀌어요.</span></span><button class="btn xs" data-act="mPosCancel">요청 취소</button></div>` : ""}
     <section class="lst" aria-label="내 설정">
-      ${lrow({ href: "#/posreq", icon: IC.target, tone: "pink", title: adm ? "내 포지션 바꾸기" : "포지션 변경 요청", right: esc([p.pos1, p.pos2].filter(Boolean).join(", ") || "미정") })}
-      ${lrow({ act: "switchTeam", icon: IC.swap, tone: "green", title: "팀 바꾸기", right: S.teams.length > 1 ? S.teams.length + "팀" : "새 팀 만들기" })}
+      ${lrow({ href: "#/posreq", icon: IC.target, tone: "pink", ...(adm ? { title: "내 포지션 바꾸기", sub: "운영진은 요청 없이 바로 바뀌어요" } : { title: "포지션 변경 요청", right: pending ? "확인 중" : "" }) })}
+      ${lrow({ act: "switchTeam", icon: IC.swap, tone: "green", title: "팀 바꾸기", right: S.teams.length > 1 ? (S.teams.length - 1) + "팀 더" : "새 팀 만들기" })}
       ${adm ? adminHomeRows() : ""}
       <div class="lr" style="cursor:default"><span class="ic" aria-hidden="true">${IC.user}</span><span class="tx"><b>카카오 계정</b><span>${esc(((S.session && S.session.user.user_metadata) || {}).nickname || "")}</span></span><span class="rt" style="display:inline-flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:${C.green}"></span>연결됨</span></div>
       ${lrow({ act: "mLeave", icon: IC.leave, tone: "clay", title: `${S.team.name}에서 나가기`, danger: true })}
@@ -334,7 +334,7 @@ function mRecords() {
   const y = yearOf(); const list = seasonEvents(y).filter(isPlay);
   const ys = [...new Set(past().map(e => e.date.slice(0, 4)).concat([todayStr().slice(0, 4)]))].sort().reverse();
   return `${hdTab("기록", ys.length > 1 ? `<button class="tag bc" data-act="mSeasonPick" style="font-size:16px;height:32px;background:${C.bg};margin-right:12px">${y} 시즌 ▾</button>` : `<span class="tag bc" style="font-size:16px;margin-right:12px">${y} 시즌</span>`)}<div class="body" style="gap:12px">
-    <a href="#/season" style="display:flex;align-items:center;gap:12px;min-height:64px;padding:0 16px;border:2px solid ${C.ink};border-radius:12px;background:${C.sec2};color:${C.ink};box-shadow:4px 4px 0 ${C.ink};text-decoration:none"><span style="flex:1;display:flex;flex-direction:column;gap:4px"><b class="bc" style="font-size:20px;letter-spacing:1px">${y} SEASON</b><span style="font-size:12px">팀 성적과 ${isAdmin() && viewMode() === "admin" ? "팀원 출석" : "내 출석"}</span></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${C.ink}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></a>
+    <a href="#/season" style="display:flex;align-items:center;gap:12px;min-height:64px;padding:0 16px;border:2px solid ${C.ink};border-radius:12px;background:${C.sec2};color:${C.ink};box-shadow:4px 4px 0 ${C.ink};text-decoration:none"><span style="flex:1;display:flex;flex-direction:column;gap:4px"><b class="bc" style="font-size:20px;letter-spacing:1px">${y} SEASON</b><span style="font-size:12px">팀 성적과 내 출석</span></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${C.ink}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></a>
     ${list.length ? list.map(recTicket).join("") : empty("아직 지난 경기가 없어요", "경기가 끝나면 티켓이 여기에 모여요.")}
   </div>${navBar("기록")}`;
 }
@@ -404,6 +404,13 @@ export function topsBlock() {
     <div class="box" style="gap:4px;padding:12px 16px"><span class="tag" style="align-self:flex-start">출석률 최고</span><b class="bh" style="font-size:21px;line-height:1.3">${t.rate.length ? esc(names(t.rate)) : "아직 없어요"}</b><span style="font-size:12px">${t.rateN ? `<b class="bc" style="font-size:24px">${t.pct}</b>%  ${t.rateN === t.evs.length ? t.evs.length + "경기 모두" : t.evs.length + "경기 중 " + t.rateN}` : "&nbsp;"}</span></div></div>
     <span style="font-size:12px;color:${C.sub};margin-top:-10px">${y} 시즌 지난 ${t.evs.length}경기 기준이에요.</span>`;
 }
+// 팀 탭 "수칙과 벌금" 줄 아래 글: 수칙 N개, 벌금 N가지 (번호 붙은 줄을 센다. 번호가 없으면 빈 줄 빼고 센다)
+function rulesSub(ft) {
+  const lines = rulesTextOf(S.settings).split("\n").map(x => x.trim()).filter(Boolean);
+  const numbered = lines.filter(x => /^\d+[.)]/.test(x)).length; const n = numbered || lines.length;
+  const a = [n ? `수칙 ${n}개` : "", ft.length ? `벌금 ${ft.length}가지` : ""].filter(Boolean);
+  return a.length ? a.join(", ") : "아직 정하지 않았어요";
+}
 function mTeam() {
   const ns = noticesList(); const unreadN = ns.filter(n => !(myUv().seen || {})[n.id]).length; const owe = oweNow();
   const ft = fineRulesOf(S.settings); const adm = isAdmin() && viewMode() === "admin";
@@ -411,9 +418,9 @@ function mTeam() {
     ${teamCard()}${topsBlock()}
     <nav class="lst" aria-label="팀 메뉴">
       ${lrow({ href: "#/notices", icon: IC.megaphone, tone: "blue", title: "공지", sub: ns[0] ? esc(ns[0].title) : "아직 공지가 없어요", right: unreadN ? `<span class="tag orange">새 글 ${unreadN}</span>` : "", big: true })}
-      ${lrow({ href: adm ? "#/rules-edit" : "#/rules", icon: IC.doc, tone: "pink", title: adm ? "수칙과 벌금 고치기" : "수칙과 벌금", sub: `수칙${ft.length ? ", 벌금 " + ft.length + "가지" : ""}`, big: true })}
+      ${lrow({ href: adm ? "#/rules-edit" : "#/rules", icon: IC.doc, tone: "pink", title: "수칙과 벌금", sub: rulesSub(ft), big: true })}
       ${lrow({ href: "#/money", icon: IC.card, tone: "clay", title: "내가 낼 돈", sub: "회비와 벌금", right: owe.total ? `<b class="bc" style="font-size:18px;color:${C.ink}">${won(owe.total)}</b>` : "다 냈어요", big: true })}
-      ${lrow({ href: "#/members", icon: IC.people, tone: "green", title: adm ? "팀원 관리" : "팀원", sub: "포지션별로 모아 봐요", right: S.members.length + "명", big: true })}
+      ${lrow({ href: "#/members", icon: IC.people, tone: "green", title: "팀원", sub: "포지션별로 모아 봐요", right: `<b class="bc" style="font-size:24px;color:${C.ink}">${S.members.length}</b>`, big: true })}
     </nav>
   </div>${navBar("팀")}`;
 }
