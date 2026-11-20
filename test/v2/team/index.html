@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<script src="../maint-config.js?v=e5d478e"></script>
-<script src="../maint-gate.js?v=e5d478e"></script>
+<script src="../maint-config.js?v=e0b2b5b"></script>
+<script src="../maint-gate.js?v=e0b2b5b"></script>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://vlaiziklxvpykzsuvinn.supabase.co wss://vlaiziklxvpykzsuvinn.supabase.co https://kauth.kakao.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -60,11 +60,18 @@ input,textarea,select{font:inherit;color:var(--ink)}
 .mng svg{stroke:var(--bg)}
 .body{flex:1;padding:4px 24px 32px;display:flex;flex-direction:column;gap:16px}
 .body.tight{gap:16px}
-/* 아래 탭: 칸마다 나뉜 띠, 지금 탭 칸만 그 탭 색 */
-.nav{position:sticky;bottom:0;z-index:6;flex:none;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;border-top:2px solid var(--ink);background:var(--ink);height:calc(60px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);box-shadow:inset 0 calc(-1 * env(safe-area-inset-bottom)) 0 var(--bg)}
-.nav a{background:var(--bg);text-decoration:none;color:var(--sub);font-size:12px;display:flex;align-items:center;justify-content:center}
-.nav a i{display:none}
-.nav a[aria-current]{color:var(--ink);font-weight:700;background:var(--sec)}
+/* 아래 탭 (54번 B): 떠 있는 칸 묶음. 지금 탭 칸은 그 탭 색으로 왼쪽 위로 살짝 올라온다 */
+.navw{position:sticky;bottom:0;z-index:6;flex:none;padding:8px 24px calc(20px + env(safe-area-inset-bottom));background-color:var(--bg);background-image:var(--grid);background-size:16px 16px;background-position:0 100%}
+.nav{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:2px;height:64px;background:var(--ink);border:2px solid var(--ink);border-radius:12px;box-shadow:var(--sh)}
+.nav a{position:relative;background:var(--white);text-decoration:none;color:var(--sub);font-size:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:transform .16s ease-out,box-shadow .16s ease-out}
+.nav a:first-child{border-radius:10px 0 0 10px}.nav a:last-child{border-radius:0 10px 10px 0}
+.nav a svg{stroke:var(--sub)}
+.nav a[aria-current]{background:var(--sec);color:var(--ink);font-weight:700}
+.nav a[aria-current] svg{stroke:var(--ink)}
+.nav a:active,.nav a[aria-current]{transform:translate(-3px,-3px);box-shadow:0 0 0 2px var(--ink);z-index:1}
+.nav a.lift{animation:mbnlift .36s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes mbnlift{from{transform:none;box-shadow:0 0 0 0 var(--ink)}to{transform:translate(-3px,-3px);box-shadow:0 0 0 2px var(--ink)}}
+@media (prefers-reduced-motion:reduce){.nav a{transition:none}.nav a.lift{animation:none}}
 .cta{position:sticky;bottom:0;z-index:5;background:var(--bg);border-top:2px solid var(--ink);padding:12px 24px calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px}
 .btn{height:52px;border:2px solid var(--ink);border-radius:12px;background:var(--white);font:700 16px 'IBM Plex Sans KR',sans-serif;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 16px;text-decoration:none;text-align:center;color:var(--ink)}
 .btn.o,.btn.pri{background:var(--yel);box-shadow:3px 3px 0 var(--ink)}
@@ -127,43 +134,54 @@ textarea.inp{height:auto;min-height:120px;padding:8px 12px;line-height:1.7;resiz
 .dlg{position:fixed;inset:0;background:rgba(18,17,16,.55);z-index:45;display:flex;align-items:center;justify-content:center;padding:24px}
 .dlg>div{background:var(--white);border:2px solid var(--ink);border-radius:12px;box-shadow:var(--sh);width:100%;max-width:420px;padding:24px;display:flex;flex-direction:column;gap:12px}
 .dlg h3{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:24px;line-height:1.3}
-.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--ink);color:var(--bg);border-radius:12px;padding:12px 16px;font-size:14px;z-index:60;max-width:calc(100% - 32px);box-shadow:4px 4px 0 rgba(18,17,16,.3)}
+.toast{position:fixed;left:50%;bottom:112px;transform:translateX(-50%);background:var(--ink);color:var(--bg);border-radius:12px;padding:12px 16px;font-size:14px;z-index:60;max-width:calc(100% - 32px);box-shadow:4px 4px 0 rgba(18,17,16,.3)}
 .loading{padding:120px 16px;text-align:center;color:var(--sub)}
-/* 티켓 (일정, 기록): 흰 표, 가장 가까운 일정만 그 탭 중간색 표와 노란 꼬리표 */
-.tk{display:flex;min-height:136px;position:relative;text-decoration:none}
-.tk .m{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:4px;border:2px solid var(--ink);border-radius:16px 0 0 16px;border-right:2px dashed var(--ink);padding:12px 16px;text-decoration:none;text-align:left;font-family:inherit;background:var(--white)}
-.tk.near .m{background:var(--sec2)}
-.tk.torn .m{border-right:0;padding-right:24px;clip-path:polygon(0 0,100% 0,calc(100% - 8px) 5%,100% 10%,calc(100% - 8px) 15%,100% 20%,calc(100% - 8px) 25%,100% 30%,calc(100% - 8px) 35%,100% 40%,calc(100% - 8px) 45%,100% 50%,calc(100% - 8px) 55%,100% 60%,calc(100% - 8px) 65%,100% 70%,calc(100% - 8px) 75%,100% 80%,calc(100% - 8px) 85%,100% 90%,calc(100% - 8px) 95%,100% 100%,0 100%)}
-.tk .s{position:relative;width:80px;flex:none;display:flex;border:2px solid var(--ink);border-left:0;border-radius:0 16px 16px 0;text-decoration:none;background:var(--white)}
-.tk.near .s{background:var(--yel)}
-.tk .s.wait{border-style:dashed;border-left:0;background:var(--bg)}
-.tk .s::before,.tk .s::after{content:"";position:absolute;left:-11px;width:20px;height:11px;border:2px solid var(--ink);background:var(--bg);z-index:2}
-.tk .s::before{top:-2px;border-top:0;border-radius:0 0 10px 10px}
-.tk .s::after{bottom:-2px;border-bottom:0;border-radius:10px 10px 0 0}
-.tk .go{flex:1;border:0;padding:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font:700 16px 'IBM Plex Sans KR',sans-serif;line-height:1.3;text-decoration:none;text-align:center}
-.tk .dd{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;background:var(--ink);color:var(--bg);border-radius:6px;padding:4px 8px;line-height:1}
-.tk .kd{font-size:12px;font-weight:700;border:2px solid var(--ink);border-radius:5px;padding:0 8px;background:var(--sec3);color:var(--sect)}
-.tk .st{position:absolute;top:50%;right:22px;margin-top:-31px;width:62px;height:62px;border-radius:50%;border:2.5px solid var(--ink);background:var(--bg);color:var(--ink);transform:rotate(-12deg);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;text-decoration:none}
-.tk .st.no{border-style:dashed}
-.tk .st b{font-size:14px}.tk .st span{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px}
-/* 티켓 뜯기: 처음 투표하면 오른쪽 조각이 떨어져 나가고 도장이 찍힌다. 다시 투표하면 도장만 다시 찍힌다 */
-.tk .s.fly{position:absolute;right:0;top:0;bottom:0;width:80px;z-index:3;transform-origin:0 0;background:var(--bg);animation:tkfly .6s cubic-bezier(.55,0,.8,.3) both}
-@keyframes tkfly{0%{transform:none;opacity:1}35%{opacity:1}100%{transform:translate(36px,18px) rotate(14deg);opacity:0}}
-.tk .st.pop{animation:tkpop .32s cubic-bezier(.3,1.6,.6,1) both}
-@keyframes tkpop{from{transform:rotate(-12deg) scale(1.8);opacity:0}to{transform:rotate(-12deg) scale(1);opacity:1}}
-@media (prefers-reduced-motion:reduce){.tk .s.fly{display:none}.tk .st.pop,.qc{animation:none;transition:none}}
+/* 종이 표 (58번 B): 테두리 없는 흰 종이와 부드러운 그림자, 점 구멍선, 종이색 홈 */
+.paper{box-shadow:0 1px 0 rgba(18,17,16,.08),0 6px 14px rgba(18,17,16,.14)}
+.pcut{position:relative;height:2px;flex:none}
+.pcut::before{content:"";position:absolute;left:20px;right:20px;top:0;height:2px;background-image:radial-gradient(circle,var(--ink) 1.2px,transparent 1.4px);background-size:7px 2px;background-repeat:repeat-x}
+.pcut::after{content:"";position:absolute;left:0;right:0;top:-11px;height:24px;background:radial-gradient(circle at 0 50%,var(--bg) 11.5px,transparent 12px),radial-gradient(circle at 100% 50%,var(--bg) 11.5px,transparent 12px)}
+.kdot{flex:none;width:10px;height:10px;border-radius:50%;border:2px solid var(--ink);box-sizing:border-box}
+.pt-k{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:#005459}
+.pt{flex:none}.pt.soon{opacity:.7}
+.pt-b{position:relative;display:flex;height:128px;background:var(--white);border-radius:10px;box-shadow:0 1px 0 rgba(18,17,16,.08),0 6px 14px rgba(18,17,16,.14)}
+.pt-in{display:flex;flex:1;min-width:0;border-radius:10px;overflow:hidden}
+.pt-m{flex:1;min-width:0;padding:12px 12px 12px 16px;display:flex;flex-direction:column;justify-content:space-between;text-decoration:none;color:var(--ink)}
+.pt-t{display:flex;align-items:baseline;gap:8px;white-space:nowrap}.pt-t b{font-size:44px;line-height:.9}.pt-t span{font-size:20px}
+.pt-p{display:flex;flex-direction:column;font-size:12px;line-height:1.4;min-width:0}.pt-p b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pt-pf{flex:none;width:2px;margin:12px 0;background-image:radial-gradient(circle,var(--ink) 1.2px,transparent 1.4px);background-size:2px 7px;background-repeat:repeat-y}
+.pt-s{flex:none;width:92px;display:flex;align-items:stretch}
+.pt-go{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-decoration:none;color:var(--ink);text-align:center}
+.pt-ans{display:flex;flex-direction:column;align-items:center;gap:2px}
+.pt-bc{flex:none;width:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 0;background:var(--white)}
+.pt-bc span{font-size:12px;writing-mode:vertical-rl;color:var(--sub);line-height:1}
+.pt-n{position:absolute;right:82px;width:22px;height:12px;background:var(--bg);z-index:1;pointer-events:none}
+.pt-n.t{top:0;border-radius:0 0 11px 11px}.pt-n.b{bottom:0;border-radius:11px 11px 0 0}.pt-n.r8{right:8px}
+/* 투표한 답: 도장처럼 톡 찍힘 */
+.pstamp{animation:pstamp .34s cubic-bezier(.3,1.6,.5,1) .15s both}
+@keyframes pstamp{from{transform:scale(1.5) rotate(-8deg);opacity:0}to{transform:none;opacity:1}}
+/* 쓴 표 (기록): 오른쪽이 찢겨 나간 흰 종이, 남은 조각은 기록 분홍 */
+.ru{display:block;flex:none;height:112px;text-decoration:none;color:var(--ink);filter:drop-shadow(0 1px 0 rgba(18,17,16,.08)) drop-shadow(0 6px 10px rgba(18,17,16,.14))}
+.ru-b{position:relative;display:flex;height:112px;background:var(--white);border-radius:10px 0 0 10px;clip-path:polygon(0 0,100% 0,calc(100% - 10px) 10%,100% 20%,calc(100% - 10px) 30%,100% 40%,calc(100% - 10px) 50%,100% 60%,calc(100% - 10px) 70%,100% 80%,calc(100% - 10px) 90%,100% 100%,0 100%)}
+.ru-m{flex:1;min-width:0;padding:12px 8px 12px 16px;display:flex;align-items:center;gap:8px}
+.ru-pf{flex:none;width:2px;margin:12px 0;background-image:radial-gradient(circle,var(--ink) 1.2px,transparent 1.4px);background-size:2px 7px;background-repeat:repeat-y}
+.ru-r{flex:none;width:18px;background:#E48398}
+.ru-st{width:54px;height:54px;border-radius:50%;border:2px solid var(--ink);background:var(--bg);transform:rotate(-14deg);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
+.ru-st.no{border-style:dashed}
+@media (prefers-reduced-motion:reduce){.pstamp,.qc{animation:none;transition:none}}
+/* 홈 시즌 패스 */
+.pass{position:relative;background:var(--sec2);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 1px 0 rgba(18,17,16,.08),0 6px 14px rgba(18,17,16,.14)}
 .mon{display:flex;align-items:baseline;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:8px}
 .mon b{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:32px;line-height:1}
 /* 일정 상세 큰 표 */
-.bigt{background:var(--sec2);border:2px solid var(--ink);border-radius:12px;box-shadow:var(--sh);display:flex;flex-direction:column;position:relative}
+.bigt{background:var(--sec2);border-radius:12px;box-shadow:0 1px 0 rgba(18,17,16,.08),0 6px 14px rgba(18,17,16,.14);display:flex;flex-direction:column;position:relative}
 .bigt.gray{background:var(--white)}
 .bigt .top{padding:24px 24px 16px;display:flex;flex-direction:column;gap:8px}
-.bigt .cut{position:relative;height:0;margin:0 24px;border-top:2px dashed rgba(18,17,16,.35)}
-.bigt .cut::before,.bigt .cut::after{content:"";position:absolute;top:-12px;width:24px;height:24px;box-sizing:border-box;border:2px solid var(--ink);background:var(--bg)}
-.bigt .cut::before{left:-38px;border-left:0;border-radius:0 12px 12px 0}.bigt .cut::after{right:-38px;border-right:0;border-radius:12px 0 0 12px}
+.bigt .cut{position:relative;height:2px;flex:none}
+.bigt .cut::before{content:"";position:absolute;left:20px;right:20px;top:0;height:2px;background-image:radial-gradient(circle,var(--ink) 1.2px,transparent 1.4px);background-size:7px 2px;background-repeat:repeat-x}
+.bigt .cut::after{content:"";position:absolute;left:0;right:0;top:-11px;height:24px;background:radial-gradient(circle at 0 50%,var(--bg) 11.5px,transparent 12px),radial-gradient(circle at 100% 50%,var(--bg) 11.5px,transparent 12px)}
 .bigt .bot{padding:16px 24px 24px;display:flex;flex-direction:column;gap:8px}
 .bigt .hh{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:92px;line-height:.9;letter-spacing:-1px}
-.bigt .kick{align-self:flex-start;border:2px solid var(--ink);border-radius:6px;background:var(--sec3);color:var(--sect);padding:0 8px}
 .bar{height:6px;border-radius:3px;background:rgba(18,17,16,.2);display:block;overflow:hidden}
 .bar i{display:block;height:6px;background:var(--ink)}
 /* 투표 카드: 고르면 먹색으로 뒤집히고 기울어짐 */
@@ -190,7 +208,7 @@ textarea.inp{height:auto;min-height:120px;padding:8px 12px;line-height:1.7;resiz
 .ava{flex:none;width:40px;height:40px;border-radius:50%;border:2px solid var(--ink);background:var(--white);display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:16px}
 .kkb{height:54px;border:0;border-radius:12px;background:#FEE500;color:rgba(0,0,0,.85);font:600 16px -apple-system,BlinkMacSystemFont,system-ui,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
 </style>
-  <script type="module" crossorigin src="../../assets/team-2suNAyg6.js"></script>
+  <script type="module" crossorigin src="../../assets/team-BeP9Bxw4.js"></script>
   <link rel="modulepreload" crossorigin href="../../assets/modulepreload-polyfill-B5Qt9EMX.js">
 </head>
 <body>
