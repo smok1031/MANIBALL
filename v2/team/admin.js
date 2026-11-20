@@ -2,9 +2,9 @@
 import { S, D, $, att, esc, md, wd, evName, started, evStart, isPlay, momClosed, momDeadline, momWinners, nameOf, people, guestReqs, guestsOf, scrimReady, won, pol, POS, QN, ROLE, UI,
   isAdmin, viewMode, route, backHref, render, toast, fail, sheet, closeSheet, confirmBox, setDoc, delDoc, patchDoc, sb, uid36, todayStr, ym, mLabel, monthsList, feeMode, paidOf, cameTo,
   syncMyDues, refreshMembers, remindInfo, inviteUrl, canKick, profileOf, posFix, sport, voteState, closeAt, past, rulesFormInit, rulesFromForm, rulesTextOf, fineRulesOf, ruleKind,
-  curLineup, lineupPlayers, draftOf, formOf, autoLineup, FORMS, FORM_DESC, applyFix, spotXY, FUTSAL_N, loadReqs, ls, APP } from "./main.js";
+  curLineup, lineupPlayers, draftOf, formOf, autoLineup, FORMS, FORM_DESC, applyFix, spotXY, FUTSAL_N, loadReqs, ls, APP, isCanceled } from "./main.js";
 import { C, IC, navBar, hd, hdTab, lrow, dlg, empty, sw, teamLogo } from "./ui.js";
-import { bigTicket, strip, whenText, kindOf, vsText, myStats, teamRecord, memberGroups, seasonEvents } from "./member.js";
+import { bigTicket, strip, whenText, kindOf, vsText, myStats, teamRecord, memberGroups, seasonEvents, cancelCard } from "./member.js";
 import { canPlay, isKeeper } from "./lineup-core.js";
 
 /* ---------- 작은 도구 ---------- */
@@ -31,7 +31,8 @@ export function afeed() {
   Object.values(S.events).forEach(e => {
     const nm = `${md(e.date)} ${evName(e)}`;
     if (scrimReady(e)) add(new Date(Math.min(now, new Date(e.date + "T09:00:00+09:00").getTime() - pol("scrimDays") * 864e5)).toISOString(), "운영", `${md(e.date)} 경기 신청 ${att(e).in + att(e).wait.length}명, 내전으로 바꿀 수 있어요`, "#/scrim/" + e.id);
-    if (started(e) && isPlay(e) && !e.score) add(new Date(evStart(e)).toISOString(), "기록", `${nm} 결과를 아직 안 넣었어요`, "#/result/" + e.id);
+    if (isCanceled(e)) add(e.cancel.at, "일정", `${nm} 일정을 취소했어요. 사유: ${e.cancel.reason || "운영진 결정"}`, "#/manage/" + e.id);
+    if (started(e) && isPlay(e) && !e.score && !isCanceled(e)) add(new Date(evStart(e)).toISOString(), "기록", `${nm} 결과를 아직 안 넣었어요`, "#/result/" + e.id);
     if (!started(e) && e.createdAt) add(e.createdAt, "일정", `${nm} 참석 ${att(e).in}${att(e).cap ? " / " + att(e).cap : ""}, 미응답 ${att(e).none.length}명`, "#/manage/" + e.id);
     if (e.score && momClosed(e) && momWinners(e).length) add(momDeadline(e).toISOString(), "기록", `${nm} MOM ${momWinners(e).map(nameOf).join(", ")}`, "#/game/" + e.id);
     Object.entries(e.lateCancel || {}).forEach(([u, c]) => add(c.t, "일정", `${nm} ${nameOf(u)} 불참 변경${Number(c.amount) ? ", 벌금 " + won(c.amount) : ""}${c.reason ? ", " + c.reason : ""}`, "#/manage/" + e.id));
@@ -326,22 +327,39 @@ function toolCard(href, act, icon, tone, t, s, extra = "") {
   const st = `flex-direction:row;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;text-decoration:none;text-align:left;min-height:60px`;
   return href ? `<a class="box" href="${esc(href)}" style="${st}">${inner}</a>` : `<button type="button" class="box" data-act="${act}" ${extra} style="${st}">${inner}</button>`;
 }
+const CX = { eid: "", r: "", t: "" };
+const CX_REASONS = ["인원 부족", "날씨", "구장 사정", "상대 팀 사정", "그 밖의 사유"];
+function cancelSheet() {
+  const e = S.events[CX.eid]; if (!e) return; const a = att(e);
+  sheet(`<h3>${kindOf(e)} 취소하기</h3><span style="font-size:14px">${md(e.date)} ${wd(e.date)} ${esc(e.time || "")} ${esc(evName(e))}, ${esc(e.place || "장소 미정")}</span>
+    <div class="spread" style="border:2px solid ${C.ink};border-radius:12px;background:${C.white};padding:12px 16px"><span style="font-size:14px">지금 참석</span><b class="bc" style="font-size:24px">${a.in}${a.cap ? ` <span style="font-size:16px;color:${C.sub}">/ 정원 ${a.cap}</span>` : "명"}</b></div>
+    <b style="font-size:14px">취소 사유</b>
+    <div class="chips">${CX_REASONS.map(r => `<button type="button" class="chip${CX.r === r ? " on" : ""}" data-act="aCancelPick" data-r="${esc(r)}" aria-pressed="${CX.r === r}" style="font-size:14px">${esc(r)}</button>`).join("")}</div>
+    <textarea id="cxText" class="inp" maxlength="300" placeholder="팀원에게 보일 말을 적어요" aria-label="팀원에게 보일 말" style="min-height:88px">${esc(CX.t)}</textarea>
+    <span class="note">팀원 ${people().length}명 모두에게 알림이 가요. 이 일정의 불참 벌금은 붙지 않고, 투표는 닫혀요.</span>
+    <button class="btn block" data-act="aCancelNext" style="background:${CX.r ? C.danger : "#B9AFA4"};color:${C.bg}">${kindOf(e)} 취소하고 알리기</button>
+    <button class="lnk" data-act="closeSheet" style="align-self:center">그만두기</button>`);
+}
 function aManage(id) {
   const e = S.events[id]; if (!e) return null; const a = att(e); const play = isPlay(e);
   const pend = guestReqs(e).filter(g => g.status === "req").length; const ck = Object.values(e.check || {}).filter(Boolean).length;
   const lu = (e.lineupAt || e.lineupOld) ? "알렸어요" : e.lineup && Object.keys(e.lineup).length ? "아직 안 알림" : "아직 안 짰어요";
+  const cx = isCanceled(e);
+  const cxIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${C.ink}" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>`;
   return `${hd("일정 관리", back("#/event/" + id), { sub: evLabel(e) })}<div class="body tight">
     ${bigTicket(e, a)}
+    ${cx ? cancelCard(e, a) : ""}
     ${strip(a)}
     ${scrimReady(e) ? `<a class="box orange" href="#/scrim/${esc(id)}" style="flex-direction:row;align-items:center;gap:8px;border-radius:12px;background:${C.orange};text-decoration:none"><b style="flex:1">내전으로 할지 정해 주세요</b>${IC.chev}</a>` : ""}
     <section style="display:flex;flex-direction:column;gap:8px;margin-top:4px"><span class="row" style="border-bottom:2px solid ${C.ink};padding-bottom:8px;gap:8px"><b style="font-size:16px">운영진</b><span class="note">팀원 화면에는 보이지 않아요</span></span>
       <div class="grid2">
         ${toolCard("#/roster/" + id, "", IC.list, "blue", "참석 명단", `미응답 ${a.none.length}명`)}
-        ${play ? toolCard("#/lineup/" + id, "", IC.field, "green", "라인업 짜기", lu) : ""}
-        ${toolCard("#/check/" + id, "", IC.check, "orange", "현장 출석", ck ? `${ck}명 체크함` : `경기 날 ${checkTime(e) || "-"}`)}
-        ${e.type !== "training" ? toolCard("#/merc/" + id, "", IC.merc, "pink", "용병 받기", e.guestOpen ? `받는 중${pend ? ", 신청 " + pend : ""}` : pend ? `신청 ${pend}` : "안 받음") : ""}
-        ${play && started(e) ? toolCard("#/result/" + id, "", IC.ball, "pink", "결과 넣기", e.score ? `${e.score.us}:${e.score.them}` : "아직 안 넣었어요") : ""}
+        ${play && !cx ? toolCard("#/lineup/" + id, "", IC.field, "green", "라인업 짜기", lu) : ""}
+        ${cx ? "" : toolCard("#/check/" + id, "", IC.check, "orange", "현장 출석", ck ? `${ck}명 체크함` : `경기 날 ${checkTime(e) || "-"}`)}
+        ${e.type !== "training" && !cx ? toolCard("#/merc/" + id, "", IC.merc, "pink", "용병 받기", e.guestOpen ? `받는 중${pend ? ", 신청 " + pend : ""}` : pend ? `신청 ${pend}` : "안 받음") : ""}
+        ${play && started(e) && !cx ? toolCard("#/result/" + id, "", IC.ball, "pink", "결과 넣기", e.score ? `${e.score.us}:${e.score.them}` : "아직 안 넣었어요") : ""}
         ${toolCard("#/edit/" + id, "", IC.pen, "", "일정 고치기", "시간, 장소, 정원")}
+        ${started(e) && !cx ? "" : toolCard("", cx ? "aUncancel" : "aCancelEv", cxIcon, "", cx ? "취소 되돌리기" : "경기 취소", cx ? "시작 전까지 다시 열 수 있어요" : "사유를 남기고 알려요", `data-eid="${esc(id)}"`)}
         ${toolCard("", "aDelEvent", IC.trash, "clay", "일정 지우기", "되돌릴 수 없어요", `data-eid="${esc(id)}"`)}
       </div></section>
   </div>${nav("일정")}`;
@@ -622,6 +640,21 @@ export const AACT = {
     $("#dOk").onclick = async ev => { ev.target.disabled = true;
       try { const items = (((D("team").evlog || {}).items) || []).filter(x => Date.now() - Date.parse(x.at || 0) < 30 * 864e5).concat([{ at: new Date().toISOString(), text: `${md(e.date)} ${wd(e.date)} ${evName(e)} 일정이 없어졌어요`, to: voters }]).slice(-20);
         if (voters.length) await setDoc("team", "evlog", { items }); await delDoc("events", e.id); closeSheet(); toast("지웠어요"); location.hash = "#/schedule"; } catch (err) { ev.target.disabled = false; fail(err); } }; },
+  // 경기 취소 (59번): 사유를 고르고 적고, 한 번 더 확인하면 취소하고 팀원 모두에게 알린다. 시작 전까지 되돌릴 수 있다
+  aCancelEv: t => { CX.eid = t.dataset.eid; CX.r = ""; CX.t = ""; cancelSheet(); },
+  aCancelPick: t => { const ta = $("#cxText"); if (ta) CX.t = ta.value; CX.r = t.dataset.r; cancelSheet(); },
+  aCancelNext: () => {
+    const e = S.events[CX.eid]; if (!e) return; const ta = $("#cxText"); if (ta) CX.t = ta.value.trim().slice(0, 300);
+    if (!CX.r) { toast("취소 사유를 골라 주세요"); return; }
+    const obj = kindOf(e) === "경기" ? "경기를" : kindOf(e) === "내전" ? "내전을" : "훈련을";
+    dlg(`<h3>${md(e.date)} ${obj} 취소할까요?</h3><div style="border-left:4px solid ${C.ink};padding:4px 12px;font-size:14px;line-height:1.6"><b>사유: ${esc(CX.r)}</b>${CX.t ? `<br><span style="white-space:pre-wrap">${esc(CX.t)}</span>` : ""}</div><span style="font-size:14px;line-height:1.6">팀원 ${people().length}명에게 바로 알림이 가요. 시작 전까지는 운영진이 취소를 되돌릴 수 있어요.</span><div class="grid2"><button class="btn" data-act="aCancelBack">돌아가기</button><button class="btn" id="cxOk" style="background:${C.danger};color:${C.bg}">취소하고 알리기</button></div>`);
+    $("#cxOk").onclick = async ev => { ev.target.disabled = true;
+      try { const cur = S.events[CX.eid]; await setDoc("events", cur.id, { ...cur, cancel: { at: new Date().toISOString(), by: S.uid, reason: CX.r, text: CX.t }, updatedAt: new Date().toISOString() }); closeSheet(); render(); toast(`${obj} 취소했어요. 팀원에게 알렸어요`); } catch (err) { ev.target.disabled = false; fail(err); } };
+  },
+  aCancelBack: () => cancelSheet(),
+  aUncancel: t => { const e = S.events[t.dataset.eid]; if (!e) return;
+    confirmBox("취소를 되돌릴까요?", "일정이 다시 열리고 팀원에게 알림이 가요. 취소 전에 받은 투표는 그대로 남아 있어요.", "다시 열기", async () => {
+      try { const { cancel, ...rest } = S.events[e.id]; await setDoc("events", e.id, { ...rest, reopenAt: new Date().toISOString(), updatedAt: new Date().toISOString() }); render(); toast("다시 열었어요. 팀원에게 알렸어요"); } catch (err) { fail(err); } }); },
   aMercToggle: async t => { const e = S.events[t.dataset.eid]; if (!e) return; try { await setDoc("events", e.id, { ...e, guestOpen: !e.guestOpen }); render(); toast(e.guestOpen ? "용병 신청을 닫았어요" : "용병 신청을 열었어요"); } catch (err) { fail(err); } },
   aGuestOk: async t => {
     const e = S.events[t.dataset.eid]; const g = (((D("guestreq")[t.dataset.u] || {}).items) || {})[t.dataset.k]; if (!e || !g) return; t.disabled = true;

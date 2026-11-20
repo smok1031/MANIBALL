@@ -1,5 +1,5 @@
 // 팀원 화면 (뉴버전 시안 4장 화면 구성). 운영진도 같은 화면을 쓰고, 운영진에게만 관리 버튼과 운영 탭이 더 보인다.
-import { isDemo, noLate, pol, rulesTextOf, fineRulesOf, $, D, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, confirmBox, esc, evName, evStart, fail, feeMode, guestReqs, guestsOf, isAdmin, isPlay, md, momClosed, momDeadline, momOpen, momWinners, myProfile, myUv, myVote, nameOf, noticesList, past, patchDoc, people, render, ruleKind, sb, sheet, sport, started, toast, todayStr, uid36, upcoming, voteState, wd, won, ym, mLabel, closeAt, remindInfo, promotedAt, spotXY, viewMode, fineAt, fineNow, fineText, lateCancel, ls, APP, maintLocked } from "./main.js";
+import { isCanceled, isDemo, noLate, pol, rulesTextOf, fineRulesOf, $, D, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, confirmBox, esc, evName, evStart, fail, feeMode, guestReqs, guestsOf, isAdmin, isPlay, md, momClosed, momDeadline, momOpen, momWinners, myProfile, myUv, myVote, nameOf, noticesList, past, patchDoc, people, render, ruleKind, sb, sheet, sport, started, toast, todayStr, uid36, upcoming, voteState, wd, won, ym, mLabel, closeAt, remindInfo, promotedAt, spotXY, viewMode, fineAt, fineNow, fineText, lateCancel, ls, APP, maintLocked } from "./main.js";
 import { C, IC, navBar, hd, hdTab, hdBrand, mngBtn, lrow, dlg, empty, initial, sw, teamLogo } from "./ui.js";
 import { afeed, adminHomeRows } from "./admin.js";
 import { pushBusy } from "./push.js";
@@ -43,6 +43,8 @@ export function feed() {
   Object.values(S.events).forEach(e => {
     const name = `${md(e.date)} ${evName(e)}`;
     if (!started(e) && e.createdAt) add(e.createdAt, "일정", `${name} 참석 투표가 열렸어요`, "#/event/" + e.id);
+    if (isCanceled(e)) add(e.cancel.at, "일정", `${name} 일정이 취소됐어요. 사유: ${e.cancel.reason || "운영진 결정"}`, "#/event/" + e.id);
+    else if (e.reopenAt) add(e.reopenAt, "일정", `${name} 일정이 다시 열렸어요`, "#/event/" + e.id);
     const pa = !started(e) && promotedAt(e, u); if (pa) add(pa, "일정", `${name} 대기에서 참석으로 올라왔어요`, "#/event/" + e.id);
     if (e.scrimAt) add(e.scrimAt, "일정", `${md(e.date)} 경기가 내전으로 바뀌었어요`, "#/event/" + e.id);
     if (e.lineupAt && cameOrGoing(e, u)) add(e.lineupAt, "라인업", `${name} 라인업이 나왔어요`, "#/event/" + e.id);
@@ -167,8 +169,9 @@ export function ticket(e, opts = {}) {
   const href = opts.href || "#/event/" + e.id; const count = a.cap ? `${a.in}/${a.cap}` : `${a.in}명`;
   const an = MU.anim && MU.anim.id === e.id && Date.now() - MU.anim.t0 < 1600;
   const label = md(e.date) + " " + kindOf(e);
-  let bg, inner;
-  if (vs === "soon") { bg = C.bg; const d = kst(Date.parse(e.openAt)).toISOString().slice(0, 10); inner = `<a class="pt-go" href="${href}" aria-label="${esc(label)}, 투표는 ${md(d)}부터"><span class="sub" style="font-size:12px">투표는</span><b class="bc" style="font-size:24px;line-height:1">${md(d)}</b><span class="sub" style="font-size:12px">부터</span></a>`; }
+  let bg, inner; const cx = isCanceled(e);
+  if (cx) { bg = C.bg; inner = `<a class="pt-go" href="${href}" aria-label="${esc(label)} 취소됨, 사유 보기"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${C.danger}" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg><b style="font-size:20px;color:${C.danger}">취소</b><span class="sub" style="font-size:12px">${esc(e.cancel.reason || "")}</span></a>`; }
+  else if (vs === "soon") { bg = C.bg; const d = kst(Date.parse(e.openAt)).toISOString().slice(0, 10); inner = `<a class="pt-go" href="${href}" aria-label="${esc(label)}, 투표는 ${md(d)}부터"><span class="sub" style="font-size:12px">투표는</span><b class="bc" style="font-size:24px;line-height:1">${md(d)}</b><span class="sub" style="font-size:12px">부터</span></a>`; }
   else if (v.s) {
     const no = v.s === "no" && !w; const ans = w ? "대기" : VS[v.s]; const col = no ? C.ink : T_DEEP;
     const sub = w ? w + "번째 순서" : v.s === "late" ? (v.q ? v.q + "쿼터부터" : "쿼터 고르기") : no ? "다음 경기에" : (goingRank(e, a) ? goingRank(e, a) + "번째로 참석" : "참석");
@@ -176,12 +179,12 @@ export function ticket(e, opts = {}) {
     inner = `<a class="pt-go" href="${href}" aria-label="${esc(label)} ${ans}, ${vs === "open" ? "바꾸기" : "보기"}"><span class="pt-ans${an ? " pstamp" : ""}" style="color:${col}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${w ? ICP.wait : ICP[v.s] || ICP.yes}"></path></svg><b style="font-size:20px">${ans}</b><span class="sub" style="font-size:12px">${sub}</span></span></a>`;
   } else if (vs === "open") { bg = opts.near ? T_BASE : T_SOFT; inner = `<a class="pt-go" href="${href}" aria-label="${esc(label)} 투표하기" style="font:700 16px 'IBM Plex Sans KR',sans-serif;line-height:1.25"><span>투표<br>하기</span>${IC.arrow.replace('width="20" height="20"', 'width="18" height="18"')}</a>`; }
   else { bg = C.bg; inner = `<a class="pt-go" href="${href}" aria-label="${esc(label)}, 투표 마감"><span class="sub" style="font-size:12px">투표</span><b style="font-size:16px">마감</b></a>`; }
-  return `<div class="pt${vs === "soon" ? " soon" : ""}" data-tk="${esc(e.id)}"><div class="pt-b">
+  return `<div class="pt${vs === "soon" && !cx ? " soon" : ""}${cx ? " cx" : ""}" data-tk="${esc(e.id)}"><div class="pt-b">${cx ? `<span class="cxst" aria-hidden="true" style="position:absolute;left:120px;top:40px;font-size:16px">${kindOf(e)} 취소</span>` : ""}
     <div class="pt-in">
       <a class="pt-m" href="${href}" tabindex="-1" aria-hidden="true">
         <span class="spread"><span class="pt-k">${dotC(T_BASE)}${esc(e.type === "match" && !e.opponent ? "상대 미정" : kindOf(e))}</span><b class="bc" style="font-size:20px">${md(e.date)} ${wd(e.date)}</b></span>
         <span class="pt-t"><b class="bc">${esc(e.time || "--:--")}</b>${e.end ? `<span class="bc">~ ${esc(e.end)}</span>` : ""}</span>
-        <span class="pt-p"><b>${esc(e.place || "장소 미정")}</b><span class="sub">참가 ${count}${a.wait.length ? ", 대기 " + a.wait.length : ""}${dday(e) ? "   " + dday(e) : ""}</span></span>
+        <span class="pt-p"><b>${esc(e.place || "장소 미정")}</b>${cx ? `<span style="color:${C.danger};font-weight:700">${kindOf(e)} 취소, 사유 보기</span>` : `<span class="sub">참가 ${count}${a.wait.length ? ", 대기 " + a.wait.length : ""}${dday(e) ? "   " + dday(e) : ""}</span>`}</span>
       </a>
       <span class="pt-pf" aria-hidden="true"></span>
       <div class="pt-s" style="background:${bg}">${inner}<div class="pt-bc" aria-hidden="true">${barcode(e.id)}<span class="bc">${tkNo(e)}</span></div></div>
@@ -192,9 +195,9 @@ export function ticket(e, opts = {}) {
 function monthSpan(list) { if (!list.length) return Number(todayStr().slice(5, 7)) + ""; const a = Number(list[0].date.slice(5, 7)), b = Number(list[list.length - 1].date.slice(5, 7)); return a === b ? String(a) : `${a} – ${b}`; }
 function mSchedule() {
   const list = upcoming().filter(e => !started(e) || isPlay(e) && Date.now() - evStart(e) < 3 * 3600e3);
-  const pending = list.filter(e => voteState(e) === "open" && !myVote(e).s).length;
+  const pending = list.filter(e => voteState(e) === "open" && !myVote(e).s && !isCanceled(e)).length;
   const adm = isAdmin() && viewMode() === "admin";
-  const nearId = (list.find(e => voteState(e) === "open" && !myVote(e).s) || {}).id;
+  const nearId = (list.find(e => voteState(e) === "open" && !myVote(e).s && !isCanceled(e)) || {}).id;
   return `${hdTab("일정", adm ? mngBtn("aSchedSheet") : "")}<div class="body" style="gap:16px">
     <div class="mon"><b>${monthSpan(list)}</b><span style="font-size:12px;color:${C.sub}">${list.length ? pending ? "투표할 일정 " + pending + "개" : "모두 투표했어요" : ""}</span></div>
     ${list.length ? list.map(e => ticket(e, { near: e.id === nearId })).join("") : empty("다가오는 일정이 없어요", adm ? "위쪽 관리에서 일정을 올려요." : "운영진이 일정을 올리면 여기에 보여요.")}
@@ -213,7 +216,9 @@ export function bigTicket(e, a) {
     if (fa < ca) lines.push(`<span style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700"><span class="tag ink">벌금</span>${whenText(fa)}부터 불참으로 바꾸면 벌금</span>`);
   }
   if (vs === "closed") lines.push(`<span style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700"><span class="tag ink">마감</span>${whenText(ca)}에 투표가 끝났어요</span>`);
-  return `<div class="bigt${e.type === "match" ? "" : " gray"}">
+  const cx = isCanceled(e);
+  if (cx) { lines.length = 0; lines.push(`<span style="font-size:12px;font-weight:700;color:${C.danger}">취소됨  ${whenText(Date.parse(e.cancel.at))}${e.cancel.by ? ", 운영진 " + esc(nameOf(e.cancel.by)) : ""}</span>`); }
+  return `<div class="bigt${e.type === "match" && !cx ? "" : " gray"}${cx ? " cx" : ""}">${cx ? `<span class="cxst" aria-hidden="true" style="position:absolute;top:112px;right:24px;font-size:24px">${kindOf(e)} 취소</span>` : ""}
     <div class="top">
       <div class="spread"><span class="pt-k" style="color:${T_DEEP}">${dotC(T_BASE)}${esc(label)}</span>${dday(e) ? `<span class="bc" style="font-size:20px;background:${C.ink};color:${C.bg};border-radius:8px;padding:4px 8px;line-height:1">${dday(e)}</span>` : ""}</div>
       <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap"><span class="hh">${esc(e.time || "--:--")}</span>${e.end ? `<span class="bc" style="font-size:24px;font-weight:600">~ ${esc(e.end)}</span>` : ""}</div>
@@ -280,6 +285,7 @@ function myLineup(e) {
 }
 function mEvent(id) {
   const e = S.events[id]; if (!e) return `${hd("일정", "#/schedule")}<div class="body">${empty("지워진 일정이에요")}</div>${navBar("일정")}`;
+  if (isCanceled(e)) return mCanceled(e);
   if (started(e) && isPlay(e) && Date.now() - evStart(e) > 3 * 3600e3) return mGame(id);
   const a = att(e); const v = myVote(e); const vs = voteState(e); const w = waitNo(e, S.uid);
   const seat = (v.s === "yes" || v.s === "late") && !w; const full = a.cap && a.in >= a.cap;
@@ -300,6 +306,22 @@ function mEvent(id) {
     </section>` : `<div class="box gray"><b>선수 등록을 마치면 투표할 수 있어요</b><a class="btn sm" href="#/me">선수 등록</a></div>`}
     ${mercRow(e, vs)}
     <div style="display:flex;flex-direction:column;gap:16px;padding-top:8px">${strip(a)}${isPlay(e) ? myLineup(e) : ""}</div>
+  </div>${navBar("일정")}`;
+}
+// 취소된 일정 (59번): 누가, 언제, 왜 취소했는지. 투표는 닫힌다
+export function cancelCard(e, a) {
+  const c = e.cancel || {};
+  return `<div class="box" style="gap:8px"><span class="row" style="gap:8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${C.danger}" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg><b style="font-size:16px;color:${C.danger}">운영진이 ${kindOf(e) === "경기" ? "경기를" : kindOf(e) === "내전" ? "내전을" : "훈련을"} 취소했어요</b></span>
+    <span class="row" style="gap:8px;font-size:14px"><span class="tag ink">${esc(c.reason || "운영진 결정")}</span>${a.cap ? `참석 ${a.in} / 정원 ${a.cap}` : `참석 ${a.in}명`}</span>
+    ${c.text ? `<span style="font-size:14px;line-height:1.6;white-space:pre-wrap">${esc(c.text)}</span>` : ""}
+    <span style="font-size:12px;color:${C.sub}">${c.by ? esc(nameOf(c.by)) + ", " : ""}${whenText(Date.parse(c.at))}</span></div>`;
+}
+function mCanceled(e) {
+  const a = att(e); const adm = isAdmin() && viewMode() === "admin";
+  return `${hdBrand(adm ? `<a class="mng" href="#/manage/${esc(e.id)}">${IC.sliders}관리</a>` : "", "#/schedule")}<div class="body tight">
+    ${bigTicket(e, a)}
+    ${cancelCard(e, a)}
+    <span class="note">투표는 닫혔어요. 이 일정은 불참 벌금이 붙지 않고, 기록에도 남지 않아요.</span>
   </div>${navBar("일정")}`;
 }
 // 불참 확인 창: 자리를 대기 1번에게 넘기는 경우
@@ -573,7 +595,7 @@ export const MACT = {
   readAll: async () => { try { await patchDoc("uvote", S.uid, { readAt: new Date().toISOString() }); render(); toast("모두 읽음으로 바꿨어요"); } catch (err) { fail(err); } },
   mVote: t => {
     if (maintLocked()) { fail(new Error("maintenance")); return; }
-    const e = S.events[t.dataset.eid]; if (!e) return; const v = t.dataset.v; const cur = myVote(e); const vs = voteState(e);
+    const e = S.events[t.dataset.eid]; if (!e || isCanceled(e)) return; const v = t.dataset.v; const cur = myVote(e); const vs = voteState(e);
     const a = att(e); const w = waitNo(e, S.uid); const seat = (cur.s === "yes" || cur.s === "late") && !w;
     if (v === cur.s && v !== "late") return;
     if (v === "no" && seat && (vs === "closed" || fineNow(e))) { fineDlg(e); return; }

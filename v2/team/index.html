@@ -167,6 +167,13 @@ textarea.inp{height:auto;min-height:120px;padding:8px 12px;line-height:1.7;resiz
 .ru-st{width:54px;height:54px;border-radius:50%;border:2px solid var(--ink);background:var(--bg);transform:rotate(-14deg);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
 .ru-st.no{border-style:dashed}
 @media (prefers-reduced-motion:reduce){.pstamp,.qc{animation:none;transition:none}}
+/* 취소된 일정 (59번): 빨간 도장, 흐린 표, 줄 그은 시각 */
+.cxst{position:absolute;z-index:2;display:inline-flex;padding:4px 12px;border:2.5px solid var(--danger);border-radius:8px;color:var(--danger);background:rgba(251,247,239,.9);transform:rotate(-10deg);font-weight:700;letter-spacing:2px;pointer-events:none;white-space:nowrap}
+.pt.cx .pt-m>.spread,.pt.cx .pt-t,.pt.cx .pt-p>b{opacity:.5}
+.pt.cx .pt-t b{text-decoration:line-through;text-decoration-thickness:3px}
+.bigt.cx{background:var(--white)}
+.bigt.cx .top{opacity:.55}.bigt.cx .hh{text-decoration:line-through;text-decoration-thickness:4px}
+.bigt.cx .bot>.spread,.bigt.cx .bot>.bar{opacity:.55}
 /* 홈 시즌 패스 */
 .pass{position:relative;background:var(--sec2);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 1px 0 rgba(18,17,16,.08),0 6px 14px rgba(18,17,16,.14)}
 .mon{display:flex;align-items:baseline;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:8px}
