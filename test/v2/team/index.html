@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<script src="../maint-config.js?v=43d440c"></script>
-<script src="../maint-gate.js?v=43d440c"></script>
+<script src="../maint-config.js?v=de6f502"></script>
+<script src="../maint-gate.js?v=de6f502"></script>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://vlaiziklxvpykzsuvinn.supabase.co wss://vlaiziklxvpykzsuvinn.supabase.co https://kauth.kakao.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -204,6 +204,29 @@ textarea.inp{height:auto;min-height:120px;padding:8px 12px;line-height:1.7;resiz
 .strip em{font-style:normal;font-size:12px}
 .pitch{position:relative;height:300px;border-radius:12px;border:2px solid var(--ink);box-shadow:var(--sh);background:repeating-linear-gradient(180deg,#64A823 0 30px,#5B9A1F 30px 60px);overflow:hidden}
 .pitch>.l{position:absolute;border:2px solid rgba(251,247,239,.9)}
+#print{display:none}
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#fff!important}
+  body>*:not(#print){display:none!important}
+  #print{display:block;color:#111;font-family:'IBM Plex Sans KR',sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;user-select:auto}
+  .pp-page{break-after:page}.pp-page:last-child{break-after:auto}
+  .pp-h{border-bottom:2px solid #111;padding-bottom:3mm;margin-bottom:5mm}.pp-h h1{margin:0;font-size:20pt}.pp-h p{margin:1.5mm 0 0;font-size:10pt}
+  .pp-grid{display:grid;grid-template-columns:1fr 1fr;gap:5mm}
+  .pp-q{break-inside:avoid}.pp-qn{display:block;font-size:12pt;margin-bottom:1.5mm}
+  .pp-pitch{position:relative;height:104mm;border:1.5px solid #111;border-radius:2mm;background:#E7F2DA;overflow:hidden}
+  .pp-l{position:absolute;border:1.5px solid #7FA35A}
+  .pp-s{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:.5mm;width:22%}
+  .pp-s b{background:#fff;border:1.2px solid #111;border-radius:99px;padding:.6mm 1.6mm;font-size:7.5pt;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+  .pp-s b.pp-e{border-style:dashed;color:#888;font-weight:500}
+  .pp-s small{font-size:6.5pt;font-weight:700;color:#2F4A16}
+  .pp-tbl h2{font-size:13pt;margin:0 0 3mm}
+  .pp-tbl table{width:100%;border-collapse:collapse;font-size:9pt}
+  .pp-tbl th,.pp-tbl td{border:1px solid #111;padding:1.6mm 1mm;text-align:center}
+  .pp-tbl tbody th{text-align:left;font-weight:700}.pp-tbl thead td,.pp-tbl thead th{background:#EEE;font-weight:700}
+  .pp-on{font-weight:700}.pp-off{color:#888}.pp-n{font-weight:700}.pp-g{font-size:7pt;border:1px solid #111;border-radius:99px;padding:0 1mm;font-weight:500}
+  .pp-f{font-size:8pt;color:#666;margin-top:3mm}
+}
 .spot{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:4px}
 .spot .d{width:16px;height:16px;border-radius:50%;border:2px solid var(--ink);background:var(--white)}
 .spot.me .d{width:36px;height:36px;background:var(--ink);color:var(--bg);border:3px solid var(--white);box-shadow:0 0 0 2px var(--ink);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
@@ -215,7 +238,7 @@ textarea.inp{height:auto;min-height:120px;padding:8px 12px;line-height:1.7;resiz
 .ava{flex:none;width:40px;height:40px;border-radius:50%;border:2px solid var(--ink);background:var(--white);display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:16px}
 .kkb{height:54px;border:0;border-radius:12px;background:#FEE500;color:rgba(0,0,0,.85);font:600 16px -apple-system,BlinkMacSystemFont,system-ui,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
 </style>
-  <script type="module" crossorigin src="../../assets/team-wxwSbUsZ.js"></script>
+  <script type="module" crossorigin src="../../assets/team-XFkXXiEf.js"></script>
   <link rel="modulepreload" crossorigin href="../../assets/modulepreload-polyfill-B5Qt9EMX.js">
 </head>
 <body>
