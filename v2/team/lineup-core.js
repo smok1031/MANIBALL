@@ -87,3 +87,35 @@ export function planLineup(players, slots, qn, rand = Math.random, pins = []) {
   }
   return { q, empty, filled: Object.values(q).reduce((n, r) => n + Object.keys(r).length, 0) };
 }
+
+// 쿼터 중간 교체: L.subs[쿼터][자리 번호] = 그 쿼터 후반에 들어가는 사람. 처음 선 사람은 전반만 뛴다.
+// 쿼터 수는 교체한 두 사람이 0.5씩 나눠 갖는다.
+export const subOf = (L, k, i) => ((L && L.subs && L.subs[k]) || {})[i] || null;
+export function playShare(L) {
+  const c = {};
+  for (const [k, row] of Object.entries((L && L.q) || {})) for (const [i, u] of Object.entries(row || {})) {
+    const s = subOf(L, k, i); c[u] = (c[u] || 0) + (s ? 0.5 : 1); if (s) c[s] = (c[s] || 0) + 0.5;
+  }
+  return c;
+}
+// 그 쿼터에 이 사람이 뛰는 방식: { i: 자리 번호, part: "full" | "first" | "second" } 또는 null
+export function partIn(L, k, u) {
+  const row = ((L && L.q) || {})[k] || {};
+  const i = Object.keys(row).find(j => row[j] === u);
+  if (i != null) return { i: Number(i), part: subOf(L, k, i) ? "first" : "full" };
+  const s = Object.entries(((L && L.subs) || {})[k] || {}).find(([, v]) => v === u);
+  return s ? { i: Number(s[0]), part: "second" } : null;
+}
+// 맞지 않게 된 교체를 지운다: 자리가 비었거나, 들어갈 사람이 그 쿼터에 이미 뛰거나, 한 사람이 같은 쿼터에 두 번 들어가면
+export function cleanSubs(L) {
+  if (!L || !L.subs) return L;
+  const out = {};
+  for (const [k, m] of Object.entries(L.subs)) {
+    const row = (L.q || {})[k] || {}; const on = new Set(Object.values(row)); const used = new Set(); const keep = {};
+    for (const [i, u] of Object.entries(m || {})) { if (!u || !row[i] || on.has(u) || used.has(u)) continue; used.add(u); keep[i] = u; }
+    if (Object.keys(keep).length) out[k] = keep;
+  }
+  if (Object.keys(out).length) L.subs = out; else delete L.subs;
+  return L;
+}
+export const qFmt = n => (Math.round(n * 2) / 2).toString();

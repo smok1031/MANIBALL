@@ -2,6 +2,7 @@
 import { isDemo, noLate, pol, rulesTextOf, fineRulesOf, $, D, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, confirmBox, esc, evName, evStart, fail, feeMode, guestReqs, guestsOf, isAdmin, isPlay, md, momClosed, momDeadline, momOpen, momWinners, myProfile, myUv, myVote, nameOf, noticesList, past, patchDoc, people, render, ruleKind, sb, sheet, sport, started, toast, todayStr, uid36, upcoming, voteState, wd, won, ym, mLabel, closeAt, remindInfo, promotedAt, spotXY, viewMode, fineAt, fineNow, fineText, lateCancel, ls, APP, maintLocked } from "./main.js";
 import { C, IC, navBar, hd, hdTab, hdBrand, mngBtn, lrow, dlg, empty, initial, sw, teamLogo } from "./ui.js";
 import { afeed, adminHomeRows } from "./admin.js";
+import { partIn, playShare, qFmt } from "./lineup-core.js";
 import { pushBusy } from "./push.js";
 
 /* ---------- 공통 계산 ---------- */
@@ -246,19 +247,22 @@ function myLineup(e) {
   const head = `<div class="sh"><b>라인업</b>${fk ? `<span class="bc" style="font-size:16px;border:2px solid ${C.ink};border-radius:6px;padding:4px 8px">${esc(fk)}</span>` : ""}</div>`;
   if (!L) return `<section class="sec" aria-label="라인업">${head}<div style="position:relative;height:220px;border-radius:16px;border:2px dashed ${C.ink};display:flex;align-items:center;justify-content:center"><span aria-hidden="true" style="position:absolute;left:10px;right:10px;top:50%;border-top:2px dashed ${C.line}"></span><span aria-hidden="true" style="position:absolute;left:50%;top:50%;width:60px;height:60px;margin:-30px 0 0 -30px;border:2px dashed ${C.line};border-radius:50%"></span><span class="stamp" style="position:relative">라인업 준비 중</span></div><span class="note">운영진이 라인업을 다 짜서 알리면 내 출전 쿼터와 자리가 여기에 나와요.</span></section>`;
   const qn = QN[sport()]; const lq = Math.min(MU.lq || 1, qn);
-  const mine = k => { const row = (L.q || {})[k] || {}; const i = Object.keys(row).find(j => row[j] === S.uid); return i == null ? null : Number(i); };
+  // 중간 교체가 있으면 전반만 뛰거나 후반에 들어간다 (0.5쿼터)
+  const part = k => partIn(L, k, S.uid); const mine = k => { const p = part(k); return p ? p.i : null; };
+  const half = k => { const p = part(k); return p && p.part !== "full" ? (p.part === "first" ? "전반" : "후반") : ""; };
+  const share = playShare(L)[S.uid] || 0;
   const played = Array.from({ length: qn }, (_, i) => i + 1).filter(k => mine(k) != null);
   const rest = Array.from({ length: qn }, (_, i) => i + 1).filter(k => mine(k) == null);
   const me = mine(lq); const xy = spotXY(L.formation, L.fkey);
-  const cards = Array.from({ length: qn }, (_, i) => i + 1).map(k => { const p = mine(k); const on = k === lq; return `<button type="button" data-act="mLq" data-q="${k}" aria-pressed="${on}" style="height:56px;border:2px ${p != null ? "solid" : "dashed"} ${C.ink};border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:${on ? `${C.ink};color:${C.bg}` : p != null ? C.white : C.bg};transition:transform .25s cubic-bezier(.3,1.5,.6,1);${on ? `transform:rotate(-6deg) translateY(-3px);box-shadow:4px 4px 0 ${C.ink}` : ""}"><b class="bc" style="font-size:18px;line-height:1">${k}Q</b><span style="font-size:12px;font-weight:700">${p != null ? esc(L.formation[p]) : "휴식"}</span></button>`; }).join("");
+  const cards = Array.from({ length: qn }, (_, i) => i + 1).map(k => { const p = mine(k); const on = k === lq; return `<button type="button" data-act="mLq" data-q="${k}" aria-pressed="${on}" style="height:56px;border:2px ${p != null ? "solid" : "dashed"} ${C.ink};border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:${on ? `${C.ink};color:${C.bg}` : p != null ? C.white : C.bg};transition:transform .25s cubic-bezier(.3,1.5,.6,1);${on ? `transform:rotate(-6deg) translateY(-3px);box-shadow:4px 4px 0 ${C.ink}` : ""}"><b class="bc" style="font-size:18px;line-height:1">${k}Q</b><span style="font-size:12px;font-weight:700">${p != null ? esc(L.formation[p]) + (half(k) ? " " + half(k) : "") : "휴식"}</span></button>`; }).join("");
   return `<section class="sec" aria-label="라인업">${head}
-    <div class="spread" style="align-items:baseline"><span class="cn"><span style="font-size:14px;font-weight:700">내 출전</span><b class="bc" style="font-size:34px;line-height:1">${played.length}</b><span class="bc" style="font-weight:600;font-size:18px;color:${C.sub}">/ ${qn}Q</span></span><span style="font-size:12px">${rest.length ? rest.join(", ") + "쿼터는 쉬어요" : "모든 쿼터를 뛰어요"}</span></div>
+    <div class="spread" style="align-items:baseline"><span class="cn"><span style="font-size:14px;font-weight:700">내 출전</span><b class="bc" style="font-size:34px;line-height:1">${qFmt(share)}</b><span class="bc" style="font-weight:600;font-size:18px;color:${C.sub}">/ ${qn}Q</span></span><span style="font-size:12px">${rest.length ? rest.join(", ") + "쿼터는 쉬어요" : "모든 쿼터를 뛰어요"}</span></div>
     <div style="display:grid;grid-template-columns:repeat(${qn > 4 ? 4 : qn},minmax(0,1fr));gap:8px;padding:4px 4px 4px">${cards}</div>
     <div class="pitch"><span class="l" style="left:10px;right:10px;top:10px;bottom:10px;border-radius:4px"></span><span class="l" style="left:10px;right:10px;top:50%;height:0;border-width:2px 0 0"></span><span class="l" style="left:50%;top:50%;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%"></span><span class="l" style="left:50%;top:10px;width:140px;height:46px;margin-left:-70px;border-top:0"></span><span class="l" style="left:50%;bottom:10px;width:140px;height:46px;margin-left:-70px;border-bottom:0"></span>
-      ${(L.formation || []).map((pos, i) => { const p = xy[i] || { x: 50, y: 50 }; const isMe = i === me; return `<span class="spot${isMe ? " me" : ""}" style="left:${p.x}%;top:${100 - p.y}%;opacity:${me == null ? .3 : 1};z-index:${isMe ? 2 : 1}"><span class="d">${isMe ? "나" : ""}</span><span class="p">${esc(pos)}</span></span>`; }).join("")}
+      ${(L.formation || []).map((pos, i) => { const p = xy[i] || { x: 50, y: 50 }; const isMe = i === me; return `<span class="spot${isMe ? " me" : ""}" style="left:${p.x}%;top:${100 - p.y}%;opacity:${me == null ? .3 : 1};z-index:${isMe ? 2 : 1}"><span class="d">${isMe ? (half(lq) || "나") : ""}</span><span class="p">${esc(pos)}</span></span>`; }).join("")}
       ${me == null ? `<span class="stamp" style="position:absolute;z-index:5;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-4deg);font-family:'IBM Plex Sans KR';font-size:16px;font-weight:700;white-space:nowrap;padding:8px 16px">이번 쿼터는 쉬어요</span>` : ""}
     </div>
-    <span class="note">${me != null ? lq + "쿼터에는 " + esc(L.formation[me]) + " 자리예요." : lq + "쿼터에는 벤치에서 쉬어요."} 다른 팀원의 자리와 쿼터 수는 운영진 화면에서만 보여요.</span>
+    <span class="note">${me != null ? lq + "쿼터에는 " + esc(L.formation[me]) + " 자리예요." + (half(lq) === "전반" ? " 쿼터 절반에서 교체돼요." : half(lq) === "후반" ? " 쿼터 절반에서 들어가요." : "") : lq + "쿼터에는 벤치에서 쉬어요."} 다른 팀원의 자리와 쿼터 수는 운영진 화면에서만 보여요.</span>
   </section>`;
 }
 function mEvent(id) {

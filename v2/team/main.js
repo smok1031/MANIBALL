@@ -939,11 +939,17 @@ const ACT2 = {
     try { await setDoc("team", "ledger", { items }); S.form = { type: f.type }; render(); toast("기록했어요"); } catch (e) { fail(e); }
   },
   ledgerDel: t => confirmBox("내역 지우기", "이 내역을 지울까요?", "지우기", async () => { const items = ((D("team").ledger || {}).items || []).filter(x => x.id !== t.dataset.id); try { await setDoc("team", "ledger", { items }); render(); } catch (e) { fail(e); } }, true),
-  checkSet: async t => { const e = S.events[t.dataset.eid]; if (!e) return; const ck = { ...(e.check || {}) }; const u = t.dataset.u; ck[u] = ck[u] === t.dataset.v ? "" : t.dataset.v; const at = { ...(e.checkAt || {}) }; if (ck[u] === "in" || ck[u] === "late") at[u] = at[u] || new Date(Date.now() + 9 * 3600e3).toISOString().slice(11, 16); else delete at[u]; try { await setDoc("events", e.id, { ...e, check: ck, checkAt: at, checkedAt: new Date().toISOString() }); render(); } catch (err) { fail(err); } },
+  checkSet: async t => { const e = S.events[t.dataset.eid]; if (!e) return; const ck = { ...(e.check || {}) }; const u = t.dataset.u; const a0 = att(e);
+    // 참석, 늦참한 사람과 용병은 따로 안 누르면 참석. 지각이나 안 옴을 다시 누르면 참석으로 돌아간다
+    const def = [...a0.yes, ...a0.late].some(x => x.uid === u) ? "in" : ""; const v = t.dataset.v; const cur = ck[u] || def;
+    ck[u] = cur === v ? (v === def ? (ck[u] || "") : "") : (v === def ? "" : v); const at = { ...(e.checkAt || {}) }; if (ck[u] === "in" || ck[u] === "late") at[u] = at[u] || new Date(Date.now() + 9 * 3600e3).toISOString().slice(11, 16); else delete at[u]; try { await setDoc("events", e.id, { ...e, check: ck, checkAt: at, checkedAt: new Date().toISOString() }); render(); } catch (err) { fail(err); } },
   finesApply: async t => {
-    const e = S.events[t.dataset.eid]; if (!e) return; const ck = e.check || {}; const a = att(e); const going = new Set([...a.yes, ...a.late].map(x => x.uid));
+    const e = S.events[t.dataset.eid]; if (!e) return; const a = att(e); const going = new Set([...a.yes, ...a.late].map(x => x.uid));
+    // 따로 누르지 않은 사람(참석, 늦참, 용병)은 참석으로 저장한다
+    const ck = { ...(e.check || {}) }; going.forEach(u => { if (!ck[u]) ck[u] = "in"; });
     const late = ruleAmt("late"), abs = ruleAmt("absent"); let n = 0;
     try {
+      if (JSON.stringify(ck) !== JSON.stringify(e.check || {})) await setDoc("events", e.id, { ...S.events[e.id], check: ck, checkedAt: new Date().toISOString() });
       for (const [u, v] of Object.entries(ck)) {
         if (u.startsWith("g:")) continue;
         const id = "f-" + e.id + "-" + u; const amount = v === "late" ? late : v === "absent" && going.has(u) ? abs : 0;
