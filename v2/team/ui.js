@@ -52,10 +52,20 @@ export const MB = sz => `<svg width="${sz}" height="${sz}" viewBox="0 0 64 64" r
 // 탭: 홈 파랑, 일정 청록, 기록 분홍, 팀 초록, 운영 보라 (색 한 벌은 index.html의 data-sec)
 const TABS = [["#/", "홈", "home"], ["#/schedule", "일정", "schedule"], ["#/records", "기록", "record"], ["#/team", "팀", "team"], ["#/ops", "운영", "ops"]];
 export const setSec = k => { if (document.documentElement.dataset.sec !== k) document.documentElement.dataset.sec = k; };
+// 아래 탭 (54번 B): 떠 있는 칸 묶음, 지금 탭 칸은 그 탭 색으로 왼쪽 위로 살짝 올라옴. 탭을 옮겼을 때만 올라오는 모션을 보인다
+const NAVI = {
+  홈: `<path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path>`,
+  일정: `<rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path>`,
+  기록: `<path d="M3 20h18M6 20v-8M12 20V5M18 20v-5"></path>`,
+  팀: `<circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16.5 14.6c2.4.3 4.2 2.1 4.8 5.4"></path>`,
+  운영: `<path d="M12 3l7 3v5c0 4.6-3 8.4-7 10-4-1.6-7-5.4-7-10V6z"></path><path d="M9 12l2 2 4-4"></path>`,
+};
+let lastTab = "";
 export function navBar(on) {
   const t = isAdmin() && viewMode() === "admin" ? TABS : TABS.slice(0, 4);
   const cur = TABS.find(x => x[1] === on); if (cur) setSec(cur[2]);
-  return `<nav class="nav" aria-label="하단 메뉴">${t.map(([h, l]) => `<a href="${h}"${on === l ? ' aria-current="page"' : ""}>${l}</a>`).join("")}</nav>`;
+  const lift = lastTab && lastTab !== on; lastTab = on;
+  return `<div class="navw"><nav class="nav" aria-label="하단 메뉴">${t.map(([h, l]) => `<a href="${h}"${on === l ? ` aria-current="page"${lift ? ' class="lift"' : ""}` : ""}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${NAVI[l]}</svg><span>${l}</span></a>`).join("")}</nav></div>`;
 }
 // 머리: 뒤로가 있는 화면
 export function hd(title, back, opts = {}) {
