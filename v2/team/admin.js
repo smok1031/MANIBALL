@@ -388,10 +388,11 @@ function aCheck(id) {
   const rows = [...a.yes, ...a.late].concat([...a.no, ...a.none, ...a.wait].filter(x => ck[x.uid]));
   const going = new Set([...a.yes, ...a.late].map(x => x.uid));
   const fl = Object.keys(ck).filter(u => !u.startsWith("g:") && (ck[u] === "late" || (ck[u] === "absent" && going.has(u)))).length;
-  const b = (u, v, l, c) => `<button type="button" class="btn xs" data-act="checkSet" data-eid="${esc(id)}" data-u="${esc(u)}" data-v="${v}" aria-pressed="${ck[u] === v}" style="min-width:44px;padding:0 8px${ck[u] === v ? `;background:${c}` : ""}">${l}</button>`;
+  // 고른 버튼: 왔음은 탭 색(청록), 지각은 노랑에 먹색 글자, 안 옴은 먹색에 흰 글자. 글자 대비를 지키고 그림자로 눌린 것을 보여 준다
+  const b = (u, v, l, c, tc) => `<button type="button" class="btn xs" data-act="checkSet" data-eid="${esc(id)}" data-u="${esc(u)}" data-v="${v}" aria-pressed="${ck[u] === v}" style="min-width:44px;padding:0 8px${ck[u] === v ? `;background:${c};color:${tc};box-shadow:2px 2px 0 ${C.ink}` : ""}">${l}</button>`;
   return `${hd("현장 출석", back("#/manage/" + id), { sub: checkTime(e) ? `${checkTime(e)}에 출석 불러요 (시작 ${cbOf(e)}분 전)` : evLabel(e) })}<div class="body" style="gap:8px">
     <span class="note">출석 부를 때 없으면 지각이에요. 늦참은 고른 쿼터에 맞춰 오면 지각이 아니에요.</span>
-    <div style="display:flex;flex-direction:column">${rows.map(x => `<div class="row" style="min-height:58px;border-bottom:2px solid ${C.line};gap:8px"><b class="bc" style="width:28px;font-size:18px;text-align:center">${esc(x.p && x.p.num || "")}</b><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px"><b style="font-size:16px">${esc(x.name)}</b><span style="font-size:12px;color:${C.sub}">${x.guest ? "용병" : x.s === "late" ? `늦참, ${x.q || 2}Q부터` : going.has(x.uid) ? esc(posTxt(x.p)) : "신청 안 함"}</span></span>${b(x.uid, "in", "왔음", C.green)}${b(x.uid, "late", "지각", C.orange)}${b(x.uid, "absent", "안 옴", C.clay)}</div>`).join("") || `<span class="note" style="padding:16px 0">참석한 사람이 없어요</span>`}</div>
+    <div style="display:flex;flex-direction:column">${rows.map(x => `<div class="row" style="min-height:58px;border-bottom:2px solid ${C.line};gap:8px"><b class="bc" style="width:28px;font-size:18px;text-align:center">${esc(x.p && x.p.num || "")}</b><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px"><b style="font-size:16px">${esc(x.name)}</b><span style="font-size:12px;color:${C.sub}">${x.guest ? "용병" : x.s === "late" ? `늦참, ${x.q || 2}Q부터` : going.has(x.uid) ? esc(posTxt(x.p)) : "신청 안 함"}</span></span>${b(x.uid, "in", "왔음", C.sec, C.ink)}${b(x.uid, "late", "지각", C.orange, C.ink)}${b(x.uid, "absent", "안 옴", C.ink, C.bg)}</div>`).join("") || `<span class="note" style="padding:16px 0">참석한 사람이 없어요</span>`}</div>
     ${fl ? "" : `<span class="note">벌금 매길 사람: 지각하거나 안 온 사람이 없어요.</span>`}
   </div><div class="cta"><button class="btn o block" data-act="finesApply" data-eid="${esc(id)}">${fl ? `벌금 ${fl}건 매기고 출석 마치기` : "출석 마치기"}</button></div>`;
 }
@@ -475,9 +476,37 @@ function aLineup(id) {
     ${sideTabs}${qcards}
     <div class="pitch" style="height:${fs ? 330 : 400}px">${PITCH}${fl.map((_, i) => spot(i)).join("")}${!L ? `<span class="stamp" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-4deg);font-size:16px;white-space:nowrap">자동 배치를 눌러요</span>` : ""}</div>
     ${L && fl.some((_, i) => !q[i]) ? `<div class="err">${k}Q 빈자리 ${esc(fl.filter((_, i) => !q[i]).join(", "))}: 이 포지션을 1선호나 2선호로 둔 선수가 없거나 모두 뛰고 있어요. 자리를 눌러 직접 넣어 주세요.</div>` : ""}
+    ${L ? `<button type="button" class="btn sm" data-act="aLinePdf" data-eid="${esc(id)}" style="align-self:flex-end;gap:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>PDF로 저장</button>` : ""}
     <span class="note">자리를 눌러 선수를 넣고 고정해요. 핑크는 고정한 자리, 회색은 1선호와 2선호가 아닌 자리예요. 자동 배치는 고정한 자리는 두고 나머지를 쿼터 수가 고르게 채워요.</span>
     ${L ? `<section style="display:flex;flex-direction:column;gap:8px">${head2("출전 쿼터", `<span class="note">${k}Q 쉬는 사람 ${bench.length}명</span>`)}<div style="display:grid;grid-template-columns:1fr 1fr;column-gap:14px">${ps.slice().sort((a, b) => (cnt[b.uid] || 0) - (cnt[a.uid] || 0) || a.name.localeCompare(b.name)).map(qrow).join("")}</div></section>` : ""}
   </div><div class="cta"><div class="grid2"><button class="btn" data-act="aAuto" data-eid="${esc(id)}">자동 배치</button><button class="btn o" data-act="lineShare" data-eid="${esc(id)}" ${L ? "" : "disabled"}>${shown ? "다시 알리기" : "라인업 알리기"}</button></div></div>`;
+}
+// 라인업을 PDF로: 인쇄용 화면(#print)을 만들어 브라우저 인쇄 창을 연다. 인쇄 창에서 "PDF로 저장"을 고르면 파일로 남는다
+// 쿼터마다 경기장 배치(한 장에 4쿼터), 끝에 선수별 출전과 휴식 표. 저장하지 않은 지금 화면의 라인업 그대로 뽑는다
+function linePdf(e) {
+  const side = sideOf(e); const L = curLineup(e, side); if (!L) return;
+  const qn = QN[sport()]; const fl = L.formation || []; const fkey = L.fkey || draftOf(e, side).fkey; const xy = spotXY(fl, fkey); const fs = sport() === "futsal";
+  const ps = lineupPlayers(e, side); const nm = u => { const p = ps.find(x => x.uid === u); return (p ? p.name : gname(e, u)).replace(" (용병)", ""); };
+  const guest = u => String(u).startsWith("g:");
+  const qs = Array.from({ length: qn }, (_, i) => i + 1);
+  const title = `${esc((S.team && S.team.name) || "")} 라인업${e.type === "scrim" ? ` <span style="font-size:14pt">${side}팀</span>` : ""}`;
+  const sub = [`${md(e.date)} ${wd(e.date)}${e.time ? " " + e.time : ""}`, e.type === "match" ? (e.opponent ? "vs " + e.opponent : "상대 미정") : kindOf(e), e.place || "", fs ? `${fl.length}대${fl.length}` : fkey].filter(Boolean).map(esc).join("  |  ");
+  const pitch = k => { const q = (L.q || {})[k] || {};
+    return `<div class="pp-q"><b class="pp-qn">${k}Q</b><div class="pp-pitch"><i class="pp-l" style="inset:4%"></i><i class="pp-l" style="left:4%;right:4%;top:50%;height:0;border-width:1.5px 0 0"></i><i class="pp-l" style="left:50%;top:50%;width:18%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%"></i><i class="pp-l" style="left:30%;right:30%;top:4%;height:11%;border-top:0"></i><i class="pp-l" style="left:30%;right:30%;bottom:4%;height:11%;border-bottom:0"></i>
+      ${fl.map((pos, i) => { const p = xy[i] || { x: 50, y: 50 }; const u = q[i]; return `<span class="pp-s" style="left:${p.x}%;top:${p.y}%"><b class="${u ? "" : "pp-e"}">${u ? esc(nm(u)) : "빈자리"}</b><small>${esc(pos)}</small></span>`; }).join("")}</div></div>`; };
+  const pages = []; for (let i = 0; i < qn; i += 4) pages.push(qs.slice(i, i + 4));
+  const rows = ps.slice().sort((a, b) => (guest(a.uid) - guest(b.uid)) || a.name.localeCompare(b.name)).map(p => { let n = 0;
+    const cells = qs.map(k => { const q = (L.q || {})[k] || {}; const i = Object.keys(q).find(x => q[x] === p.uid); if (i != null) n++; return i != null ? `<td class="pp-on">${esc(fl[i] || "")}</td>` : `<td class="pp-off">${p.from > k ? "늦참" : "휴식"}</td>`; }).join("");
+    return `<tr><th>${esc(p.name.replace(" (용병)", ""))}${guest(p.uid) ? ' <span class="pp-g">용병</span>' : ""}</th>${cells}<td class="pp-n">${n}</td></tr>`; }).join("");
+  const head = `<header class="pp-h"><h1>${title}</h1><p>${sub}</p></header>`;
+  const html = pages.map((pg, i) => `<section class="pp-page">${i === 0 ? head : ""}<div class="pp-grid">${pg.map(pitch).join("")}</div></section>`).join("")
+    + `<section class="pp-page pp-tbl">${pages.length > 1 || qn > 4 ? head : `<h2>출전과 휴식</h2>`}<table><thead><tr><th>선수</th>${qs.map(k => `<td>${k}Q</td>`).join("")}<td>출전</td></tr></thead><tbody>${rows}</tbody></table><p class="pp-f">매니볼에서 만든 라인업이에요. ${new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 16).replace("T", " ")} 기준</p></section>`;
+  let box = document.getElementById("print"); if (!box) { box = document.createElement("div"); box.id = "print"; document.body.appendChild(box); }
+  box.innerHTML = html;
+  const old = document.title; document.title = `${(S.team && S.team.name) || "매니볼"} 라인업 ${e.date}${e.type === "scrim" ? " " + side + "팀" : ""}`;
+  const done = () => { document.title = old; box.innerHTML = ""; window.removeEventListener("afterprint", done); };
+  window.addEventListener("afterprint", done);
+  setTimeout(() => { try { window.print(); } catch (err) { done(); toast("이 브라우저에서는 인쇄 창을 열 수 없어요"); } }, 50);
 }
 function spotSheet(eid, i) {
   const e = S.events[eid]; if (!e) return; const side = sideOf(e); const L = curLineup(e, side); const d = draftOf(e, side); const fl = L ? L.formation : formOf(d.fkey) || [];
@@ -671,6 +700,7 @@ export const AACT = {
   aForm: t => formSheet(t.dataset.eid),
   aFormPick: t => { closeSheet(); const e = S.events[t.dataset.eid]; if (!e) return; const side = sideOf(e); const d = draftOf(e, side); d.fkey = t.dataset.k; d.pins = [];
     if (!curLineup(e, side)) { render(); return; } UI.q = 1; saveL(e, side, autoLineup(e, side)); toast("다시 짰어요"); },
+  aLinePdf: t => { const e = S.events[t.dataset.eid]; if (e) linePdf(e); },
   aAuto: t => { const e = S.events[t.dataset.eid]; if (!e) return; const side = sideOf(e); if (!formOf(draftOf(e, side).fkey, curLineup(e, side))) { toast("몇 명이 뛸지 먼저 골라 주세요"); return; } const L = autoLineup(e, side); L.pins = JSON.parse(JSON.stringify(draftOf(e, side).pins || [])); saveL(e, side, L); toast(draftOf(e, side).pins.length ? "고정한 자리는 두고 다시 짰어요" : "쿼터 수를 고르게 짰어요"); },
   aSpot: t => spotSheet(t.dataset.eid, Number(t.dataset.i)),
   aPut: t => { const e = S.events[t.dataset.eid]; if (!e) return; const side = sideOf(e); closeSheet(); const L = putAt(e, side, Number(t.dataset.i), t.dataset.u); const off = L.offPin; delete L.offPin; saveL(e, side, L); if (off) toast("선호 포지션이 아니라 이 자리에 고정했어요"); },
