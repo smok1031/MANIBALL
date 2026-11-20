@@ -485,45 +485,70 @@ function aLineup(id) {
     ${sideTabs}${qcards}
     <div class="pitch" style="height:${fs ? 330 : 400}px">${PITCH}${fl.map((_, i) => spot(i)).join("")}${!L ? `<span class="stamp" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-4deg);font-size:16px;white-space:nowrap">자동 배치를 눌러요</span>` : ""}</div>
     ${L && fl.some((_, i) => !q[i]) ? `<div class="err">${k}Q 빈자리 ${esc(fl.filter((_, i) => !q[i]).join(", "))}: 이 포지션을 1선호나 2선호로 둔 선수가 없거나 모두 뛰고 있어요. 자리를 눌러 직접 넣어 주세요.</div>` : ""}
-    ${L ? `<button type="button" class="btn sm" data-act="aLinePdf" data-eid="${esc(id)}" style="align-self:flex-end;gap:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>PDF로 저장</button>` : ""}
+    ${L ? `<button type="button" class="btn sm" data-act="aLinePdf" data-eid="${esc(id)}" style="align-self:flex-end;gap:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>사진으로 저장</button>` : ""}
     <span class="note">자리를 눌러 선수를 넣고 고정해요. 핀이 꽂힌 분홍은 고정한 자리, 회색은 1선호와 2선호가 아닌 자리예요. 자동 배치는 고정한 자리는 두고 나머지를 쿼터 수가 고르게 채워요.</span>
     ${L ? `<section style="display:flex;flex-direction:column;gap:8px">${head2("출전 쿼터", `<span class="note">${k}Q 쉬는 사람 ${bench.length}명</span>`)}<div style="display:grid;grid-template-columns:1fr 1fr;column-gap:14px">${ps.slice().sort((a, b) => (cnt[b.uid] || 0) - (cnt[a.uid] || 0) || a.name.localeCompare(b.name)).map(qrow).join("")}</div></section>` : ""}
   </div><div class="cta"><div class="grid2"><button class="btn" data-act="aAuto" data-eid="${esc(id)}">자동 배치</button><button class="btn o" data-act="lineShare" data-eid="${esc(id)}" ${L ? "" : "disabled"}>${shown ? "다시 알리기" : "라인업 알리기"}</button></div></div>`;
 }
-// 라인업을 PDF로: 앱 화면과 같은 디자인(줄무늬 경기장, 먹색 테두리와 그림자, 크림 이름표, 고정은 분홍 이름표에 핀)으로 인쇄용 화면(#print)을 만들고
-// 브라우저 인쇄 창을 연다. 인쇄 창에서 "PDF로 저장"을 고르면 파일로 남는다. 한 장에 4쿼터, 끝에 선수별 출전과 휴식 표. 저장하지 않은 지금 라인업 그대로
-function linePdf(e) {
+// 라인업을 사진으로: 모든 쿼터의 경기장을 한 장의 PNG로 그려 내려받는다 (2026-11-20, PDF 대신)
+// 앱 화면과 같은 모습: 모눈 바탕, 줄무늬 경기장, 먹색 테두리와 그림자, 크림 이름표, 고정은 분홍 이름표에 핀, 선호 밖은 회색. 저장하지 않은 지금 라인업 그대로
+async function lineImg(e) {
   const side = sideOf(e); const L = curLineup(e, side); if (!L) return;
   const qn = QN[sport()]; const fl = L.formation || []; const fkey = L.fkey || draftOf(e, side).fkey; const xy = spotXY(fl, fkey); const fs = sport() === "futsal";
   const ps = lineupPlayers(e, side); const pOf = u => ps.find(x => x.uid === u);
-  const nm = u => (pOf(u) ? pOf(u).name : gname(e, u)).replace(" (용병)", ""); const guest = u => String(u).startsWith("g:");
+  const nm = u => (pOf(u) ? pOf(u).name : gname(e, u)).replace(" (용병)", "");
   const pins = L.pins || draftOf(e, side).pins || [];
-  const qs = Array.from({ length: qn }, (_, i) => i + 1);
-  const when = `${md(e.date)} ${wd(e.date)}${e.time ? " " + e.time : ""}${e.end ? " ~ " + e.end : ""}`;
-  const what = e.type === "match" ? (e.opponent ? "vs " + e.opponent : "상대 미정") : kindOf(e);
-  const spot = (k, i) => { const q = (L.q || {})[k] || {}; const p = xy[i] || { x: 50, y: 50 }; const u = q[i];
-    const pin = !!u && pins.some(x => x.u === u && x.pos === fl[i] && (x.qs || []).includes(k)); const off = u && !pin && !canPlay(pOf(u), fl[i]);
-    const bg = !u ? "rgba(251,247,239,.55)" : pin ? C.pink : off ? OFFPOS : C.bg;
-    return `<span class="spot" style="left:${p.x}%;top:${p.y}%;gap:1px">${pin ? PINSVG : ""}<span style="border:2px ${u ? "solid" : "dashed"} ${C.ink};border-radius:999px;background:${bg};padding:4px 8px;font-size:12px;font-weight:700;white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis">${u ? esc(nm(u)) : "빈자리"}</span><span class="p" style="color:${C.bg};text-shadow:0 1px 2px rgba(0,0,0,.5)">${esc(fl[i])}</span></span>`; };
-  const quarter = k => `<div class="pp-q"><div class="spread" style="align-items:center"><span class="box blue" style="flex-direction:row;padding:4px 14px;border-radius:10px;box-shadow:3px 3px 0 ${C.ink}"><b class="bc" style="font-size:20px">${k}Q</b></span><span style="font-size:12px;font-weight:700">쉬는 사람 ${ps.filter(p => !Object.values((L.q || {})[k] || {}).includes(p.uid)).length}명</span></div>
-    <div class="pitch" style="height:${fs ? 330 : 392}px">${PITCH}${fl.map((_, i) => spot(k, i)).join("")}</div></div>`;
-  const head = `<header class="pp-h"><span style="display:flex;flex-direction:column;gap:4px;min-width:0"><span style="font-size:12px;font-weight:700">${esc((S.team && S.team.name) || "")}${e.type === "scrim" ? `, ${side}팀` : ""}</span><b class="bh" style="font-size:30px;line-height:1.1">라인업</b><span style="font-size:13px">${esc(when)}  ${esc(what)}${e.place ? "  " + esc(e.place) : ""}</span></span><span class="box gray" style="flex-direction:row;align-items:center;padding:6px 12px;border-radius:12px"><b class="bc" style="font-size:22px">${esc(fs ? fl.length + "대" + fl.length : fkey)}</b></span></header>`;
-  const pages = []; for (let i = 0; i < qn; i += 4) pages.push(qs.slice(i, i + 4));
-  const rows = ps.slice().sort((a, b) => (guest(a.uid) - guest(b.uid)) || a.name.localeCompare(b.name)).map(p => { let n = 0;
-    const cells = qs.map(k => { const q = (L.q || {})[k] || {}; const i = Object.keys(q).find(x => q[x] === p.uid); if (i != null) n++;
-      const pin = i != null && pins.some(x => x.u === p.uid && x.pos === fl[i] && (x.qs || []).includes(k));
-      return i != null ? `<td><span class="pp-c" style="background:${pin ? C.pink : C.bg}">${esc(fl[i] || "")}</span></td>` : `<td><span class="pp-c pp-r">${p.from > k ? "늦참" : "휴식"}</span></td>`; }).join("");
-    return `<tr><th>${esc(p.name.replace(" (용병)", ""))}${guest(p.uid) ? ` <span class="tag pink" style="font-size:10px">용병</span>` : ""}</th>${cells}<td><b class="bc" style="font-size:18px">${n}</b></td></tr>`; }).join("");
-  const stamp = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 16).replace("T", " ");
-  const html = pages.map((pg, i) => `<section class="pp-page">${head}<div class="pp-grid">${pg.map(quarter).join("")}</div></section>`).join("")
-    + `<section class="pp-page">${head}<div class="box gray" style="padding:0;border-radius:16px;overflow:hidden"><table class="pp-t"><thead><tr><th>선수</th>${qs.map(k => `<td>${k}Q</td>`).join("")}<td>출전</td></tr></thead><tbody>${rows}</tbody></table></div>
-      <span class="note" style="margin-top:10px">분홍은 고정한 자리예요. 매니볼에서 ${stamp}에 만든 라인업이에요.</span></section>`;
-  let box = document.getElementById("print"); if (!box) { box = document.createElement("div"); box.id = "print"; document.body.appendChild(box); }
-  box.innerHTML = html;
-  const old = document.title; document.title = `${(S.team && S.team.name) || "매니볼"} 라인업 ${e.date}${e.type === "scrim" ? " " + side + "팀" : ""}`;
-  const done = () => { document.title = old; box.innerHTML = ""; window.removeEventListener("afterprint", done); };
-  window.addEventListener("afterprint", done);
-  setTimeout(() => { try { window.print(); } catch (err) { done(); toast("이 브라우저에서는 인쇄 창을 열 수 없어요"); } }, 80);
+  try { await Promise.all(["700 12px 'IBM Plex Sans KR'", "400 13px 'IBM Plex Sans KR'", "700 20px 'Barlow Condensed'", "30px 'Black Han Sans'"].map(f => document.fonts.load(f))); } catch (err) {}
+  const K = 2, PW = 342, PH = fs ? 330 : 392, GAP = 18, PAD = 24, HEAD = 92, QH = 40, COLS = 2, rowsN = Math.ceil(qn / COLS);
+  const W = PAD * 2 + PW * COLS + GAP * (COLS - 1), H = PAD + HEAD + rowsN * (QH + PH + 4) + (rowsN - 1) * GAP + PAD;
+  const cv = document.createElement("canvas"); cv.width = W * K; cv.height = H * K; const g = cv.getContext("2d"); g.scale(K, K);
+  const css = getComputedStyle(document.documentElement); const SEC2 = (css.getPropertyValue("--sec2") || "").trim() || "#B8E9EB";
+  const rr = (x, y, w, h, r) => { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); };
+  const box = (x, y, w, h, r, fill, sh) => { if (sh) { g.fillStyle = C.ink; rr(x + sh, y + sh, w, h, r); g.fill(); } g.fillStyle = fill; rr(x, y, w, h, r); g.fill(); g.lineWidth = 2; g.strokeStyle = C.ink; g.stroke(); };
+  const fit = (t, max) => { if (g.measureText(t).width <= max) return t; while (t.length > 1 && g.measureText(t + "…").width > max) t = t.slice(0, -1); return t + "…"; };
+  // 바탕: 모눈 종이
+  g.fillStyle = C.bg; g.fillRect(0, 0, W, H); g.strokeStyle = "rgba(18,17,16,.06)"; g.lineWidth = 1;
+  for (let x = 0; x <= W; x += 20) { g.beginPath(); g.moveTo(x + .5, 0); g.lineTo(x + .5, H); g.stroke(); }
+  for (let y = 0; y <= H; y += 20) { g.beginPath(); g.moveTo(0, y + .5); g.lineTo(W, y + .5); g.stroke(); }
+  // 머리말: 팀, 라인업, 날짜와 상대, 포메이션
+  g.fillStyle = C.ink; g.textBaseline = "alphabetic"; g.textAlign = "left";
+  g.font = "700 12px 'IBM Plex Sans KR', sans-serif"; g.fillText(`${(S.team && S.team.name) || ""}${e.type === "scrim" ? `, ${side}팀` : ""}`, PAD, PAD + 14);
+  g.font = "30px 'Black Han Sans', sans-serif"; g.fillText("라인업", PAD, PAD + 50);
+  const when = `${md(e.date)} ${wd(e.date)}${e.time ? " " + e.time : ""}`; const what = e.type === "match" ? (e.opponent ? "vs " + e.opponent : "상대 미정") : kindOf(e);
+  g.font = "400 13px 'IBM Plex Sans KR', sans-serif"; g.fillText(fit([when, what, e.place || ""].filter(Boolean).join("   "), W - PAD * 2 - 130), PAD, PAD + 72);
+  const fx = fs ? `${fl.length}대${fl.length}` : fkey; g.font = "700 22px 'Barlow Condensed', sans-serif"; const fw = g.measureText(fx).width + 28;
+  box(W - PAD - fw - 4, PAD + 30, fw, 38, 12, C.white, 4); g.fillStyle = C.ink; g.textAlign = "center"; g.fillText(fx, W - PAD - 4 - fw / 2, PAD + 57);
+  g.fillRect(PAD, PAD + HEAD - 8, W - PAD * 2, 2);
+  const pinAt = (cx, top) => { g.save(); g.translate(cx, top); g.rotate(-18 * Math.PI / 180); g.translate(-8.5, -21); g.scale(17 / 16, 21 / 20);
+    g.lineCap = "round"; g.lineJoin = "round"; g.strokeStyle = C.ink; g.lineWidth = 2; g.beginPath(); g.moveTo(8, 11); g.lineTo(8, 19); g.stroke();
+    g.beginPath(); g.moveTo(4, 11); g.lineTo(12, 11); g.lineTo(10.5, 7); g.lineTo(10.5, 3.5); g.lineTo(11.5, 3.5); g.lineTo(11.5, 1.5); g.lineTo(4.5, 1.5); g.lineTo(4.5, 3.5); g.lineTo(5.5, 3.5); g.lineTo(5.5, 7); g.closePath(); g.fillStyle = C.bg; g.fill(); g.lineWidth = 1.6; g.stroke(); g.restore(); };
+  for (let k = 1; k <= qn; k++) {
+    const col = (k - 1) % COLS, row = Math.floor((k - 1) / COLS); const x0 = PAD + col * (PW + GAP), y0 = PAD + HEAD + row * (QH + PH + 4 + GAP);
+    const q = (L.q || {})[k] || {}; const rest = ps.filter(p => !Object.values(q).includes(p.uid)).length;
+    // 쿼터 카드
+    g.font = "700 20px 'Barlow Condensed', sans-serif"; box(x0, y0, 56, 30, 10, SEC2, 3); g.fillStyle = C.ink; g.textAlign = "center"; g.fillText(`${k}Q`, x0 + 28, y0 + 22);
+    g.font = "700 12px 'IBM Plex Sans KR', sans-serif"; g.textAlign = "right"; g.fillText(`쉬는 사람 ${rest}명`, x0 + PW, y0 + 21);
+    // 경기장: 그림자, 줄무늬, 테두리, 선
+    const py = y0 + QH; g.fillStyle = C.ink; rr(x0 + 4, py + 4, PW, PH, 12); g.fill();
+    g.save(); rr(x0, py, PW, PH, 12); g.clip(); for (let y = 0; y < PH; y += 30) { g.fillStyle = (y / 30) % 2 ? "#5B9A1F" : "#64A823"; g.fillRect(x0, py + y, PW, 30); }
+    g.strokeStyle = "rgba(251,247,239,.9)"; g.lineWidth = 2;
+    rr(x0 + 11, py + 11, PW - 22, PH - 22, 4); g.stroke();
+    g.beginPath(); g.moveTo(x0 + 11, py + PH / 2); g.lineTo(x0 + PW - 11, py + PH / 2); g.stroke();
+    g.beginPath(); g.arc(x0 + PW / 2, py + PH / 2, 31, 0, Math.PI * 2); g.stroke();
+    g.strokeRect(x0 + PW / 2 - 74, py + 11, 148, 47); g.strokeRect(x0 + PW / 2 - 74, py + PH - 58, 148, 47); g.restore();
+    g.lineWidth = 2; g.strokeStyle = C.ink; rr(x0, py, PW, PH, 12); g.stroke();
+    // 자리마다 이름표와 포지션
+    fl.forEach((pos, i) => { const p = xy[i] || { x: 50, y: 50 }; const u = q[i]; const cx = x0 + PW * p.x / 100, cy = py + PH * p.y / 100;
+      const pin = !!u && pins.some(x => x.u === u && x.pos === pos && (x.qs || []).includes(k)); const off = u && !pin && !canPlay(pOf(u), pos);
+      g.font = `${u ? 700 : 500} 12px 'IBM Plex Sans KR', sans-serif`; const label = fit(u ? nm(u) : "빈자리", 64); const cw = Math.max(g.measureText(label).width + 20, 36), ch = 24, top = cy - 20;
+      g.fillStyle = !u ? "rgba(251,247,239,.55)" : pin ? C.pink : off ? OFFPOS : C.bg; rr(cx - cw / 2, top, cw, ch, 12); g.fill();
+      g.lineWidth = 2; g.strokeStyle = C.ink; g.setLineDash(u ? [] : [4, 3]); g.stroke(); g.setLineDash([]);
+      g.fillStyle = C.ink; g.textAlign = "center"; g.fillText(label, cx, top + 16.5);
+      if (pin) pinAt(cx, top + 5);
+      g.font = "700 12px 'Barlow Condensed', sans-serif"; g.fillStyle = "rgba(0,0,0,.35)"; g.fillText(pos, cx, top + ch + 14); g.fillStyle = C.bg; g.fillText(pos, cx, top + ch + 13); });
+  }
+  const name = `${(S.team && S.team.name) || "매니볼"} 라인업 ${e.date}${e.type === "scrim" ? " " + side + "팀" : ""}.png`.replace(/[\\/:*?"<>|]/g, "");
+  cv.toBlob(b => { if (!b) { toast("사진을 만들지 못했어요"); return; } const url = URL.createObjectURL(b); const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 30000); toast("라인업 사진을 저장했어요"); }, "image/png");
 }
 function spotSheet(eid, i) {
   const e = S.events[eid]; if (!e) return; const side = sideOf(e); const L = curLineup(e, side); const d = draftOf(e, side); const fl = L ? L.formation : formOf(d.fkey) || [];
@@ -717,7 +742,7 @@ export const AACT = {
   aForm: t => formSheet(t.dataset.eid),
   aFormPick: t => { closeSheet(); const e = S.events[t.dataset.eid]; if (!e) return; const side = sideOf(e); const d = draftOf(e, side); d.fkey = t.dataset.k; d.pins = [];
     if (!curLineup(e, side)) { render(); return; } UI.q = 1; saveL(e, side, autoLineup(e, side)); toast("다시 짰어요"); },
-  aLinePdf: t => { const e = S.events[t.dataset.eid]; if (e) linePdf(e); },
+  aLinePdf: t => { const e = S.events[t.dataset.eid]; if (e) lineImg(e).catch(err => fail(err)); },
   aAuto: t => { const e = S.events[t.dataset.eid]; if (!e) return; const side = sideOf(e); if (!formOf(draftOf(e, side).fkey, curLineup(e, side))) { toast("몇 명이 뛸지 먼저 골라 주세요"); return; } const L = autoLineup(e, side); L.pins = JSON.parse(JSON.stringify(draftOf(e, side).pins || [])); saveL(e, side, L); toast(draftOf(e, side).pins.length ? "고정한 자리는 두고 다시 짰어요" : "쿼터 수를 고르게 짰어요"); },
   aSpot: t => spotSheet(t.dataset.eid, Number(t.dataset.i)),
   aPut: t => { const e = S.events[t.dataset.eid]; if (!e) return; const side = sideOf(e); closeSheet(); const L = putAt(e, side, Number(t.dataset.i), t.dataset.u); const off = L.offPin; delete L.offPin; saveL(e, side, L); if (off) toast("선호 포지션이 아니라 이 자리에 고정했어요"); },

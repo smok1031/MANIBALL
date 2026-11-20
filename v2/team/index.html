@@ -202,26 +202,6 @@ textarea.inp{height:auto;min-height:120px;padding:8px 12px;line-height:1.7;resiz
 .strip em{font-style:normal;font-size:12px}
 .pitch{position:relative;height:300px;border-radius:12px;border:2px solid var(--ink);box-shadow:var(--sh);background:repeating-linear-gradient(180deg,#64A823 0 30px,#5B9A1F 30px 60px);overflow:hidden}
 .pitch>.l{position:absolute;border:2px solid rgba(251,247,239,.9)}
-#print{display:none}
-@media print{
-  @page{size:A4;margin:0}
-  html,body{background:var(--bg)!important}
-  body>*:not(#print){display:none!important}
-  #print{display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  #print *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .pp-page{box-sizing:border-box;width:210mm;height:296mm;overflow:hidden;padding:12mm 12mm 0;background:var(--bg);background-image:var(--grid);background-size:20px 20px;display:flex;flex-direction:column;gap:14px;break-after:page}
-  .pp-page:last-child{break-after:auto}
-  .pp-h{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:10px}
-  .pp-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 18px}
-  .pp-q{display:flex;flex-direction:column;gap:8px;break-inside:avoid}
-  .pp-t{width:100%;border-collapse:collapse;font-size:13px}
-  .pp-t th,.pp-t td{border-bottom:2px solid var(--line);padding:6px 4px;text-align:center}
-  .pp-t tbody tr:last-child th,.pp-t tbody tr:last-child td{border-bottom:0}
-  .pp-t thead th,.pp-t thead td{background:var(--sec2);border-bottom:2px solid var(--ink);font-weight:700;font-size:12px}
-  .pp-t tbody th{text-align:left;padding-left:12px;font-size:14px;white-space:nowrap}
-  .pp-c{display:inline-block;min-width:44px;border:2px solid var(--ink);border-radius:999px;padding:2px 6px;font:700 14px 'Barlow Condensed',sans-serif}
-  .pp-r{border-style:dashed;color:var(--mute);background:transparent;font:500 11px 'IBM Plex Sans KR',sans-serif}
-}
 .spot{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:4px}
 .spot .d{width:16px;height:16px;border-radius:50%;border:2px solid var(--ink);background:var(--white)}
 .spot.me .d{width:36px;height:36px;background:var(--ink);color:var(--bg);border:3px solid var(--white);box-shadow:0 0 0 2px var(--ink);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
