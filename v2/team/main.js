@@ -364,7 +364,7 @@ function vLogin(err) {
       <span aria-hidden="true" style="position:absolute;right:18px;top:-26px;width:70px;height:70px;border-radius:50%;border:2.5px solid ${C.ink};background:${C.bg};transform:rotate(12deg);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1"><b style="font-size:16px">입장</b><span class="bc" style="font-size:12px;letter-spacing:1px">HELLO</span></span>
     </div>
     <ul style="list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:12px">${li("참석 투표는 티켓 한 장으로", C.white)}${li("내 자리와 쉬는 쿼터를 바로 확인", C.white)}${li("내가 낼 돈과 계좌를 한 화면에서", C.white)}</ul>
-    <div style="margin-top:auto;display:flex;flex-direction:column;gap:12px">${err ? ERRBOX : ""}${KKB("카카오 로그인")}
+    <div style="margin-top:auto;display:flex;flex-direction:column;gap:12px">${err ? ERRBOX : ""}${KKB("카카오 로그인")}${STAGE ? `<button class="btn" data-act="demo" style="height:52px;border-radius:12px;background:${C.white};border:2px solid ${C.ink};box-shadow:4px 4px 0 ${C.ink};font-weight:700">로그인 없이 체험하기</button><span class="note" style="text-align:center;font-size:12px">테스트 사이트에서만 보여요. 나만의 체험 팀에서 Admin으로 모든 기능을 써 볼 수 있고, 하루 뒤 지워져요.</span>` : ""}
       <span class="note" style="text-align:center;font-size:12px">처음 한 번만 로그인하면 다음부터 바로 들어와요. 앱 설치는 필요 없어요.<br>로그인하면 ${PRIV}에 동의하는 것으로 봐요.</span>
       <a href="../../" style="text-align:center;font-size:14px;padding:8px">매니볼 둘러보기</a></div>
   </div>`;
@@ -1112,6 +1112,16 @@ document.addEventListener("input", ev => {
 document.addEventListener("change", ev => { const t = ev.target; if ((t.dataset.bind === "date" || t.dataset.bind === "time") && /^\/(new|edit\/.+)$/.test(route())) render(); });
 const ACT = {
   closeSheet: (t, ev) => { if (ev.target === t || t.tagName === "BUTTON") closeSheet(); },
+  // 테스트 사이트: 로그인 없이 체험하기 (익명 로그인 뒤 TEST FC를 복사한 내 체험 팀으로)
+  demo: async t => {
+    if (!STAGE) return;
+    t.disabled = true;
+    try {
+      const { error } = await sb.auth.signInAnonymously();
+      if (error) throw error;
+      await demoEnter(true);
+    } catch (e) { console.error(e); t.disabled = false; toast("체험을 시작하지 못했어요. 잠시 뒤 다시 해 주세요"); }
+  },
   kakao: async (t, ev, msg) => {
     t.disabled = true;
     try {
@@ -1306,6 +1316,14 @@ async function enter(tid) {
   S.flow = ""; S.ready = true; picked.set(); onRoute(true);
   syncMyDues().catch(() => {});
 }
+const isDemo = () => !!(STAGE && S.session && S.session.user && S.session.user.is_anonymous);
+async function demoEnter(fresh) {
+  const { data: tid, error } = await sb.rpc("demo_start");
+  if (error) throw error;
+  ls.set("mb-team", tid); picked.set();
+  if (fresh) { location.replace(location.pathname + "#/"); location.reload(); return; }
+  await loadTeams(); return enter(tid);
+}
 async function kakaoFinish() {
   let st = null; try { st = JSON.parse(sessionStorage.getItem(KK) || "null"); sessionStorage.removeItem(KK); } catch (e) { /* 없음 */ }
   if (!st || !st.msg) picked.clear(); // 막 로그인했으면 팀 고르기부터 (카카오톡 알림 동의로 다녀온 것은 보던 화면으로)
@@ -1365,6 +1383,7 @@ async function boot() {
   // 팀 고르기: 팀이 하나여도 첫 화면으로 열면 먼저 고른다 (초대 링크, 공유받은 주소는 바로)
   if (S.teams.length && !picked.get() && (route() === "/" || route() === "")) return showTeams("entry");
   if (t) return enter(t.id);
+  if (isDemo()) return demoEnter(); // 체험 팀이 지워졌으면 새로 만든다
   startCreate();
 }
 sb.auth.onAuthStateChange((ev) => { if (ev === "SIGNED_OUT") { picked.clear(); location.replace(APP); } });
@@ -1409,4 +1428,4 @@ function vRest(id) {
 }
 
 // member.js와 admin.js가 같이 쓰는 것
-export { maintLocked, scheduleRender, backHref, delDoc, FUTSAL_N, loadReqs, ls, APP, route, viewMode, fineAt, fineNow, fineText, lateCancel, spotXY, delSheet, curLineup, lineupPlayers, draftOf, formOf, autoLineup, FORMS, FORM_DESC, applyFix, qText, rowsOf, loadTeam, enter, showTeams, inviteUrl, policyFromForm as polFromForm, posFix, profileOf, refreshTally, hmK, promotedAt, ampm, closeAt, voteTimeOf, $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };
+export { isDemo, maintLocked, scheduleRender, backHref, delDoc, FUTSAL_N, loadReqs, ls, APP, route, viewMode, fineAt, fineNow, fineText, lateCancel, spotXY, delSheet, curLineup, lineupPlayers, draftOf, formOf, autoLineup, FORMS, FORM_DESC, applyFix, qText, rowsOf, loadTeam, enter, showTeams, inviteUrl, policyFromForm as polFromForm, posFix, profileOf, refreshTally, hmK, promotedAt, ampm, closeAt, voteTimeOf, $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };

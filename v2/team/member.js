@@ -1,5 +1,5 @@
 // 팀원 화면 (뉴버전 시안 4장 화면 구성). 운영진도 같은 화면을 쓰고, 운영진에게만 관리 버튼과 운영 탭이 더 보인다.
-import { noLate, pol, rulesTextOf, fineRulesOf, $, D, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, confirmBox, esc, evName, evStart, fail, feeMode, guestReqs, guestsOf, isAdmin, isPlay, md, momClosed, momDeadline, momOpen, momWinners, myProfile, myUv, myVote, nameOf, noticesList, past, patchDoc, people, render, ruleKind, sb, sheet, sport, started, toast, todayStr, uid36, upcoming, voteState, wd, won, ym, mLabel, closeAt, remindInfo, promotedAt, spotXY, viewMode, fineAt, fineNow, fineText, lateCancel, ls, APP, maintLocked } from "./main.js";
+import { isDemo, noLate, pol, rulesTextOf, fineRulesOf, $, D, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, confirmBox, esc, evName, evStart, fail, feeMode, guestReqs, guestsOf, isAdmin, isPlay, md, momClosed, momDeadline, momOpen, momWinners, myProfile, myUv, myVote, nameOf, noticesList, past, patchDoc, people, render, ruleKind, sb, sheet, sport, started, toast, todayStr, uid36, upcoming, voteState, wd, won, ym, mLabel, closeAt, remindInfo, promotedAt, spotXY, viewMode, fineAt, fineNow, fineText, lateCancel, ls, APP, maintLocked } from "./main.js";
 import { C, IC, navBar, hd, hdTab, hdBrand, mngBtn, lrow, dlg, empty, initial, sw, teamLogo } from "./ui.js";
 import { afeed, adminHomeRows } from "./admin.js";
 import { pushBusy } from "./push.js";
@@ -116,7 +116,7 @@ function mHome() {
       ${lrow({ act: "switchTeam", icon: IC.swap, tone: "green", title: "팀 바꾸기", right: S.teams.length > 1 ? (S.teams.length - 1) + "팀 더" : "새 팀 만들기" })}
       ${pushRow(adm)}
       ${adm ? adminHomeRows() : ""}
-      <div class="lr" style="cursor:default"><span class="ic" aria-hidden="true">${IC.user}</span><span class="tx"><b>카카오 계정</b><span>${esc(((S.session && S.session.user.user_metadata) || {}).nickname || "")}</span></span><span class="rt" style="display:inline-flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:${C.green}"></span>연결됨</span></div>
+      <div class="lr" style="cursor:default"><span class="ic" aria-hidden="true">${IC.user}</span><span class="tx"><b>카카오 계정</b><span>${esc(((S.session && S.session.user.user_metadata) || {}).nickname || "")}</span></span><span class="rt" style="display:inline-flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:${isDemo() ? C.yel : C.green}"></span>${isDemo() ? "체험 중" : "연결됨"}</span></div>
       ${lrow({ act: "mLeave", icon: IC.leave, tone: "clay", title: `${S.team.name}에서 나가기`, danger: true })}
       <div class="row" style="justify-content:space-between;padding:12px 0"><a class="lnk" href="../../privacy.html" style="padding-left:0">개인정보처리방침과 이용약관</a><button class="lnk" data-act="logout">로그아웃</button></div>
     </section>
