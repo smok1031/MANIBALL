@@ -322,9 +322,12 @@ function schedSheet() {
     <span class="note">한 경기의 명단, 라인업, 출석, 용병은 그 경기를 열고 관리를 눌러요.</span>
     <button class="btn block" data-act="closeSheet">닫기</button>`);
 }
-function toolCard(href, act, icon, tone, t, s, extra = "") {
-  const inner = `<span class="ic ${tone}" aria-hidden="true" style="width:34px;height:34px;border-radius:10px">${icon}</span><span style="display:flex;flex-direction:column;gap:4px;min-width:0"><b style="font-size:16px">${t}</b><span style="font-size:12px;color:${C.sub};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s}</span></span>`;
-  const st = `flex-direction:row;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;text-decoration:none;text-align:left;min-height:60px`;
+// 운영 도구 카드. danger: 되돌리기 어려운 일(경기 취소, 일정 지우기)은 흰 바탕에 위험 색 글자(.btn.danger와 같은 규칙)
+// badge: 운영진이 처리할 일(용병 신청, 결과 미입력)은 "누를 곳" 노랑 표로 오른쪽 위에 띄운다
+function toolCard(href, act, icon, tone, t, s, extra = "", o = {}) {
+  if (o.danger) icon = icon.split(`stroke="${C.ink}"`).join(`stroke="${C.danger}"`);
+  const inner = `<span class="ic ${tone}" aria-hidden="true" style="width:34px;height:34px;border-radius:10px${o.danger ? `;background:${C.white};color:${C.danger}` : ""}">${icon}</span><span style="display:flex;flex-direction:column;gap:4px;min-width:0"><b style="font-size:16px${o.danger ? `;color:${C.danger}` : ""}">${t}</b><span style="font-size:12px;color:${C.sub};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s}</span></span>${o.badge ? `<span class="tag" style="position:absolute;right:-6px;top:-10px;background:${C.orange};color:${C.ink};box-shadow:2px 2px 0 ${C.ink}">${o.badge}</span>` : ""}`;
+  const st = `position:relative;flex-direction:row;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;text-decoration:none;text-align:left;min-height:60px`;
   return href ? `<a class="box" href="${esc(href)}" style="${st}">${inner}</a>` : `<button type="button" class="box" data-act="${act}" ${extra} style="${st}">${inner}</button>`;
 }
 const CX = { eid: "", r: "", t: "" };
@@ -345,7 +348,7 @@ function aManage(id) {
   const pend = guestReqs(e).filter(g => g.status === "req").length; const ck = Object.values(e.check || {}).filter(Boolean).length;
   const lu = (e.lineupAt || e.lineupOld) ? "알렸어요" : e.lineup && Object.keys(e.lineup).length ? "아직 안 알림" : "아직 안 짰어요";
   const cx = isCanceled(e);
-  const cxIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${C.ink}" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>`;
+  const cxIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>`;
   return `${hd("일정 관리", back("#/event/" + id), { sub: evLabel(e) })}<div class="body tight">
     ${bigTicket(e, a)}
     ${cx ? cancelCard(e, a) : ""}
@@ -356,11 +359,14 @@ function aManage(id) {
         ${toolCard("#/roster/" + id, "", IC.list, "blue", "참석 명단", `미응답 ${a.none.length}명`)}
         ${play && !cx ? toolCard("#/lineup/" + id, "", IC.field, "green", "라인업 짜기", lu) : ""}
         ${cx ? "" : toolCard("#/check/" + id, "", IC.check, "orange", "현장 출석", ck ? `${ck}명 체크함` : `경기 날 ${checkTime(e) || "-"}`)}
-        ${e.type !== "training" && !cx ? toolCard("#/merc/" + id, "", IC.merc, "pink", "용병 받기", e.guestOpen ? `받는 중${pend ? ", 신청 " + pend : ""}` : pend ? `신청 ${pend}` : "안 받음") : ""}
-        ${play && started(e) && !cx ? toolCard("#/result/" + id, "", IC.ball, "pink", "결과 넣기", e.score ? `${e.score.us}:${e.score.them}` : "아직 안 넣었어요") : ""}
+        ${e.type !== "training" && !cx ? toolCard("#/merc/" + id, "", IC.merc, "pink", "용병 받기", e.guestOpen ? "받는 중" : "안 받음", "", { badge: pend ? `신청 ${pend}` : "" }) : ""}
+        ${play && started(e) && !cx ? toolCard("#/result/" + id, "", IC.ball, "pink", "결과 넣기", e.score ? `${e.score.us}:${e.score.them}` : "아직 안 넣었어요", "", { badge: e.score ? "" : "할 일" }) : ""}
         ${toolCard("#/edit/" + id, "", IC.pen, "", "일정 고치기", "시간, 장소, 정원")}
-        ${started(e) && !cx ? "" : toolCard("", cx ? "aUncancel" : "aCancelEv", cxIcon, "", cx ? "취소 되돌리기" : "경기 취소", cx ? "시작 전까지 다시 열 수 있어요" : "사유를 남기고 알려요", `data-eid="${esc(id)}"`)}
-        ${toolCard("", "aDelEvent", IC.trash, "clay", "일정 지우기", "되돌릴 수 없어요", `data-eid="${esc(id)}"`)}
+      </div></section>
+    <section style="display:flex;flex-direction:column;gap:8px;margin-top:8px"><span class="row" style="border-bottom:2px solid ${C.danger};padding-bottom:8px;gap:8px"><b style="font-size:16px;color:${C.danger}">주의</b><span class="note">팀원 모두에게 영향이 가요</span></span>
+      <div class="grid2">
+        ${started(e) && !cx ? "" : cx ? toolCard("", "aUncancel", cxIcon, "", "취소 되돌리기", "시작 전까지 돼요", `data-eid="${esc(id)}"`) : toolCard("", "aCancelEv", cxIcon, "", "경기 취소", "사유를 알려요", `data-eid="${esc(id)}"`, { danger: true })}
+        ${toolCard("", "aDelEvent", IC.trash, "clay", "일정 지우기", "되돌릴 수 없어요", `data-eid="${esc(id)}"`, { danger: true })}
       </div></section>
   </div>${nav("일정")}`;
 }
@@ -484,32 +490,40 @@ function aLineup(id) {
     ${L ? `<section style="display:flex;flex-direction:column;gap:8px">${head2("출전 쿼터", `<span class="note">${k}Q 쉬는 사람 ${bench.length}명</span>`)}<div style="display:grid;grid-template-columns:1fr 1fr;column-gap:14px">${ps.slice().sort((a, b) => (cnt[b.uid] || 0) - (cnt[a.uid] || 0) || a.name.localeCompare(b.name)).map(qrow).join("")}</div></section>` : ""}
   </div><div class="cta"><div class="grid2"><button class="btn" data-act="aAuto" data-eid="${esc(id)}">자동 배치</button><button class="btn o" data-act="lineShare" data-eid="${esc(id)}" ${L ? "" : "disabled"}>${shown ? "다시 알리기" : "라인업 알리기"}</button></div></div>`;
 }
-// 라인업을 PDF로: 인쇄용 화면(#print)을 만들어 브라우저 인쇄 창을 연다. 인쇄 창에서 "PDF로 저장"을 고르면 파일로 남는다
-// 쿼터마다 경기장 배치(한 장에 4쿼터), 끝에 선수별 출전과 휴식 표. 저장하지 않은 지금 화면의 라인업 그대로 뽑는다
+// 라인업을 PDF로: 앱 화면과 같은 디자인(줄무늬 경기장, 먹색 테두리와 그림자, 크림 이름표, 고정은 분홍 이름표에 핀)으로 인쇄용 화면(#print)을 만들고
+// 브라우저 인쇄 창을 연다. 인쇄 창에서 "PDF로 저장"을 고르면 파일로 남는다. 한 장에 4쿼터, 끝에 선수별 출전과 휴식 표. 저장하지 않은 지금 라인업 그대로
 function linePdf(e) {
   const side = sideOf(e); const L = curLineup(e, side); if (!L) return;
   const qn = QN[sport()]; const fl = L.formation || []; const fkey = L.fkey || draftOf(e, side).fkey; const xy = spotXY(fl, fkey); const fs = sport() === "futsal";
-  const ps = lineupPlayers(e, side); const nm = u => { const p = ps.find(x => x.uid === u); return (p ? p.name : gname(e, u)).replace(" (용병)", ""); };
-  const guest = u => String(u).startsWith("g:");
+  const ps = lineupPlayers(e, side); const pOf = u => ps.find(x => x.uid === u);
+  const nm = u => (pOf(u) ? pOf(u).name : gname(e, u)).replace(" (용병)", ""); const guest = u => String(u).startsWith("g:");
+  const pins = L.pins || draftOf(e, side).pins || [];
   const qs = Array.from({ length: qn }, (_, i) => i + 1);
-  const title = `${esc((S.team && S.team.name) || "")} 라인업${e.type === "scrim" ? ` <span style="font-size:14pt">${side}팀</span>` : ""}`;
-  const sub = [`${md(e.date)} ${wd(e.date)}${e.time ? " " + e.time : ""}`, e.type === "match" ? (e.opponent ? "vs " + e.opponent : "상대 미정") : kindOf(e), e.place || "", fs ? `${fl.length}대${fl.length}` : fkey].filter(Boolean).map(esc).join("  |  ");
-  const pitch = k => { const q = (L.q || {})[k] || {};
-    return `<div class="pp-q"><b class="pp-qn">${k}Q</b><div class="pp-pitch"><i class="pp-l" style="inset:4%"></i><i class="pp-l" style="left:4%;right:4%;top:50%;height:0;border-width:1.5px 0 0"></i><i class="pp-l" style="left:50%;top:50%;width:18%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%"></i><i class="pp-l" style="left:30%;right:30%;top:4%;height:11%;border-top:0"></i><i class="pp-l" style="left:30%;right:30%;bottom:4%;height:11%;border-bottom:0"></i>
-      ${fl.map((pos, i) => { const p = xy[i] || { x: 50, y: 50 }; const u = q[i]; return `<span class="pp-s" style="left:${p.x}%;top:${p.y}%"><b class="${u ? "" : "pp-e"}">${u ? esc(nm(u)) : "빈자리"}</b><small>${esc(pos)}</small></span>`; }).join("")}</div></div>`; };
+  const when = `${md(e.date)} ${wd(e.date)}${e.time ? " " + e.time : ""}${e.end ? " ~ " + e.end : ""}`;
+  const what = e.type === "match" ? (e.opponent ? "vs " + e.opponent : "상대 미정") : kindOf(e);
+  const spot = (k, i) => { const q = (L.q || {})[k] || {}; const p = xy[i] || { x: 50, y: 50 }; const u = q[i];
+    const pin = !!u && pins.some(x => x.u === u && x.pos === fl[i] && (x.qs || []).includes(k)); const off = u && !pin && !canPlay(pOf(u), fl[i]);
+    const bg = !u ? "rgba(251,247,239,.55)" : pin ? C.pink : off ? OFFPOS : C.bg;
+    return `<span class="spot" style="left:${p.x}%;top:${p.y}%;gap:1px">${pin ? PINSVG : ""}<span style="border:2px ${u ? "solid" : "dashed"} ${C.ink};border-radius:999px;background:${bg};padding:4px 8px;font-size:12px;font-weight:700;white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis">${u ? esc(nm(u)) : "빈자리"}</span><span class="p" style="color:${C.bg};text-shadow:0 1px 2px rgba(0,0,0,.5)">${esc(fl[i])}</span></span>`; };
+  const quarter = k => `<div class="pp-q"><div class="spread" style="align-items:center"><span class="box blue" style="flex-direction:row;padding:4px 14px;border-radius:10px;box-shadow:3px 3px 0 ${C.ink}"><b class="bc" style="font-size:20px">${k}Q</b></span><span style="font-size:12px;font-weight:700">쉬는 사람 ${ps.filter(p => !Object.values((L.q || {})[k] || {}).includes(p.uid)).length}명</span></div>
+    <div class="pitch" style="height:${fs ? 330 : 392}px">${PITCH}${fl.map((_, i) => spot(k, i)).join("")}</div></div>`;
+  const head = `<header class="pp-h"><span style="display:flex;flex-direction:column;gap:4px;min-width:0"><span style="font-size:12px;font-weight:700">${esc((S.team && S.team.name) || "")}${e.type === "scrim" ? `, ${side}팀` : ""}</span><b class="bh" style="font-size:30px;line-height:1.1">라인업</b><span style="font-size:13px">${esc(when)}  ${esc(what)}${e.place ? "  " + esc(e.place) : ""}</span></span><span class="box gray" style="flex-direction:row;align-items:center;padding:6px 12px;border-radius:12px"><b class="bc" style="font-size:22px">${esc(fs ? fl.length + "대" + fl.length : fkey)}</b></span></header>`;
   const pages = []; for (let i = 0; i < qn; i += 4) pages.push(qs.slice(i, i + 4));
   const rows = ps.slice().sort((a, b) => (guest(a.uid) - guest(b.uid)) || a.name.localeCompare(b.name)).map(p => { let n = 0;
-    const cells = qs.map(k => { const q = (L.q || {})[k] || {}; const i = Object.keys(q).find(x => q[x] === p.uid); if (i != null) n++; return i != null ? `<td class="pp-on">${esc(fl[i] || "")}</td>` : `<td class="pp-off">${p.from > k ? "늦참" : "휴식"}</td>`; }).join("");
-    return `<tr><th>${esc(p.name.replace(" (용병)", ""))}${guest(p.uid) ? ' <span class="pp-g">용병</span>' : ""}</th>${cells}<td class="pp-n">${n}</td></tr>`; }).join("");
-  const head = `<header class="pp-h"><h1>${title}</h1><p>${sub}</p></header>`;
-  const html = pages.map((pg, i) => `<section class="pp-page">${i === 0 ? head : ""}<div class="pp-grid">${pg.map(pitch).join("")}</div></section>`).join("")
-    + `<section class="pp-page pp-tbl">${pages.length > 1 || qn > 4 ? head : `<h2>출전과 휴식</h2>`}<table><thead><tr><th>선수</th>${qs.map(k => `<td>${k}Q</td>`).join("")}<td>출전</td></tr></thead><tbody>${rows}</tbody></table><p class="pp-f">매니볼에서 만든 라인업이에요. ${new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 16).replace("T", " ")} 기준</p></section>`;
+    const cells = qs.map(k => { const q = (L.q || {})[k] || {}; const i = Object.keys(q).find(x => q[x] === p.uid); if (i != null) n++;
+      const pin = i != null && pins.some(x => x.u === p.uid && x.pos === fl[i] && (x.qs || []).includes(k));
+      return i != null ? `<td><span class="pp-c" style="background:${pin ? C.pink : C.bg}">${esc(fl[i] || "")}</span></td>` : `<td><span class="pp-c pp-r">${p.from > k ? "늦참" : "휴식"}</span></td>`; }).join("");
+    return `<tr><th>${esc(p.name.replace(" (용병)", ""))}${guest(p.uid) ? ` <span class="tag pink" style="font-size:10px">용병</span>` : ""}</th>${cells}<td><b class="bc" style="font-size:18px">${n}</b></td></tr>`; }).join("");
+  const stamp = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 16).replace("T", " ");
+  const html = pages.map((pg, i) => `<section class="pp-page">${head}<div class="pp-grid">${pg.map(quarter).join("")}</div></section>`).join("")
+    + `<section class="pp-page">${head}<div class="box gray" style="padding:0;border-radius:16px;overflow:hidden"><table class="pp-t"><thead><tr><th>선수</th>${qs.map(k => `<td>${k}Q</td>`).join("")}<td>출전</td></tr></thead><tbody>${rows}</tbody></table></div>
+      <span class="note" style="margin-top:10px">분홍은 고정한 자리예요. 매니볼에서 ${stamp}에 만든 라인업이에요.</span></section>`;
   let box = document.getElementById("print"); if (!box) { box = document.createElement("div"); box.id = "print"; document.body.appendChild(box); }
   box.innerHTML = html;
   const old = document.title; document.title = `${(S.team && S.team.name) || "매니볼"} 라인업 ${e.date}${e.type === "scrim" ? " " + side + "팀" : ""}`;
   const done = () => { document.title = old; box.innerHTML = ""; window.removeEventListener("afterprint", done); };
   window.addEventListener("afterprint", done);
-  setTimeout(() => { try { window.print(); } catch (err) { done(); toast("이 브라우저에서는 인쇄 창을 열 수 없어요"); } }, 50);
+  setTimeout(() => { try { window.print(); } catch (err) { done(); toast("이 브라우저에서는 인쇄 창을 열 수 없어요"); } }, 80);
 }
 function spotSheet(eid, i) {
   const e = S.events[eid]; if (!e) return; const side = sideOf(e); const L = curLineup(e, side); const d = draftOf(e, side); const fl = L ? L.formation : formOf(d.fkey) || [];
