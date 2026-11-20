@@ -520,7 +520,7 @@ function mMoney() {
     ${paid.length ? `<section style="display:flex;flex-direction:column" aria-label="낸 돈"><b style="font-size:16px;border-bottom:2px solid ${C.ink};padding-bottom:8px">낸 돈</b>${paid.slice(0, 12).map(x => row(x, true)).join("")}</section>` : ""}
   </div>${navBar("팀")}`;
 }
-const POS_ORDER = { soccer: [["골키퍼", ["GK"]], ["수비", ["LB", "LWB", "CB", "RB", "RWB"]], ["미드필더", ["CDM", "CM", "LM", "RM", "CAM"]], ["공격", ["LW", "RW", "ST"]]], futsal: [["골레이로", ["골레이로"]], ["픽소", ["픽소"]], ["아라", ["아라"]], ["피보", ["피보"]]] };
+const POS_ORDER = { soccer: [["골키퍼", ["GK"]], ["수비", ["LB", "CB", "RB"]], ["미드필더", ["CDM", "CM", "CAM"]], ["공격", ["LW", "RW", "ST"]]], futsal: [["골레이로", ["골레이로"]], ["픽소", ["픽소"]], ["아라", ["아라"]], ["피보", ["피보"]]] };
 export function memberGroups() {
   const ps = people(); const groups = POS_ORDER[sport()].map(([g, list]) => ({ g, xs: ps.filter(x => list.includes(x.p.pos1 || "")) }));
   const rest = ps.filter(x => !groups.some(gr => gr.xs.includes(x))); if (rest.length) groups.push({ g: "포지션 미정", xs: rest });

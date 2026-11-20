@@ -44,7 +44,9 @@ const picked = { get: () => { try { return sessionStorage.getItem(STAGE + "mb-pi
 const ls = { get: k => { try { return localStorage.getItem(STAGE + k); } catch (e) { return null; } }, set: (k, v) => { try { v == null ? localStorage.removeItem(STAGE + k) : localStorage.setItem(STAGE + k, v); } catch (e) { /* 없어도 된다 */ } } };
 const WD = "일월화수목금토";
 // 풋살 포지션: 골레이로(골키퍼), 픽소(수비), 아라(측면), 피보(공격)
-const POS = { futsal: ["골레이로", "픽소", "아라", "피보"], soccer: ["GK", "LB", "LWB", "CB", "RB", "RWB", "CDM", "CM", "LM", "RM", "CAM", "LW", "RW", "ST"] };
+const POS = { futsal: ["골레이로", "픽소", "아라", "피보"], soccer: ["GK", "LB", "CB", "RB", "CDM", "CM", "CAM", "LW", "RW", "ST"] };
+// 2026-11-20 측면 포지션을 하나로 묶음: 윙백은 풀백으로, 측면 미드필더는 윙어로 (예전 값은 posFix가 바꿔 읽는다)
+const SOC_OLD = { LWB: "LB", RWB: "RB", LM: "LW", RM: "RW" };
 const QN = { futsal: 8, soccer: 4 };
 const ROLE = { owner: "Admin", admin: "운영진", member: "팀원" };
 const KIT = [["#164F33", "초록"], ["#111827", "검정"], ["#1E3A8A", "파랑"], ["#991B1B", "빨강"], ["#F5B841", "노랑"], ["#F3F4F6", "흰색"]];
@@ -225,8 +227,8 @@ function fail(e) { const m = errMsg(e); const k = Object.keys(GUARD).find(x => m
 /* ---------- 사람과 참석 ---------- */
 // 예전 풋살 포지션 이름(GK, DF, LW, RW, FW)으로 저장된 팀원은 풋살 이름으로 보여 준다
 const FUT_OLD = { GK: "골레이로", DF: "픽소", LW: "아라", RW: "아라", MF: "아라", FW: "피보" };
-const posFix = x => sport() === "futsal" && FUT_OLD[x] ? FUT_OLD[x] : x;
-const profileOf = u => { const p = (S.rsvp[u] && S.rsvp[u].profile) || null; if (!p || sport() !== "futsal") return p; const a = posFix(p.pos1), b = posFix(p.pos2); return { ...p, pos1: a, pos2: b === a ? "" : b }; };
+const posFix = x => sport() === "futsal" ? FUT_OLD[x] || x : SOC_OLD[x] || x;
+const profileOf = u => { const p = (S.rsvp[u] && S.rsvp[u].profile) || null; if (!p) return p; const a = posFix(p.pos1), b = posFix(p.pos2); return { ...p, pos1: a, pos2: b === a ? "" : b }; };
 const myProfile = () => profileOf(S.uid);
 const nameOf = u => (profileOf(u) && profileOf(u).name) || (S.members.find(m => m.user_id === u) || {}).display_name || "이름 없음";
 const people = () => S.members.map(m => ({ uid: m.user_id, role: m.role, name: nameOf(m.user_id), p: profileOf(m.user_id) || {} }));
@@ -244,7 +246,7 @@ function att(e) {
   // 받은 용병도 정원 안에 들어가고, 정원이 찼으면 받은 순서대로 대기 뒤에 선다 (inCap 표시가 있는 용병만)
   // 예전 버전에서 받은 용병(inCap 없음)은 예전처럼 정원 밖에 둔다: 업데이트로 팀원이 대기로 밀리는 일이 없게
   const extra = [];
-  Object.entries(e.guests || {}).forEach(([id, g]) => (g && g.inCap ? going : extra).push({ uid: "g:" + id, name: (g && g.name) || "용병", guest: true, role: "guest", s: "yes", q: 0, at: (g && g.at) || "", p: { pos1: posFix((g && g.pos) || ""), pos2: (g && g.pos2) || "" } }));
+  Object.entries(e.guests || {}).forEach(([id, g]) => (g && g.inCap ? going : extra).push({ uid: "g:" + id, name: (g && g.name) || "용병", guest: true, role: "guest", s: "yes", q: 0, at: (g && g.at) || "", p: { pos1: posFix((g && g.pos) || ""), pos2: posFix((g && g.pos2) || "") } }));
   going.sort((a, b) => (a.at || "~") < (b.at || "~") ? -1 : 1);
   going.forEach((x, i) => { if (out.cap && i >= out.cap) out.wait.push(x); else (x.s === "late" ? out.late : out.yes).push(x); });
   out.yes.push(...extra);
@@ -855,7 +857,7 @@ function parseRoster(text) {
     if (f.length < 3) f = raw.split(/\s+/);
     const name = (f[0] || "").replace(/\s+/g, "");
     const up = x => String(x || "").toUpperCase().replace(/\s/g, "");
-    const pos1 = up(f[1]), pos2 = up(f[2]); const num = String(f[3] || "").replace(/\D/g, "").slice(0, 3);
+    const pos1 = SOC_OLD[up(f[1])] || up(f[1]), pos2 = SOC_OLD[up(f[2])] || up(f[2]); const num = String(f[3] || "").replace(/\D/g, "").slice(0, 3);
     const dm = String(f.slice(4).join(" ")).match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
     const joined = dm ? `${dm[1]}-${dm[2].padStart(2, "0")}-${dm[3].padStart(2, "0")}` : "";
     if (!name || (pos1 && !POS_ALL.includes(pos1)) || (pos2 && !POS_ALL.includes(pos2))) { bad.push(i + 1); return; }
@@ -1018,7 +1020,7 @@ const ACT2 = {
   squadSet: async t => { const e = S.events[t.dataset.eid]; const T = { ...(e.teams || {}) }; T[t.dataset.u] = T[t.dataset.u] === t.dataset.v ? "" : t.dataset.v; try { await setDoc("events", e.id, { ...e, teams: T }); render(); } catch (err) { fail(err); } },
   squadAuto: async t => {
     const e = S.events[t.dataset.eid]; const a = att(e); let ids = Object.keys(e.teams || {}); if (!ids.length) ids = [...a.yes, ...a.late, ...a.wait].map(x => x.uid);
-    const order = POS[sport()]; const pos = u => u.startsWith("g:") ? (((e.guests || {})[u.slice(2)] || {}).pos || "") : ((profileOf(u) || {}).pos1 || "");
+    const order = POS[sport()]; const pos = u => u.startsWith("g:") ? posFix(((e.guests || {})[u.slice(2)] || {}).pos || "") : ((profileOf(u) || {}).pos1 || "");
     ids.sort((x, y) => (order.indexOf(pos(x)) + 99) % 99 - (order.indexOf(pos(y)) + 99) % 99); const T = {}; ids.forEach((u, i) => { T[u] = (i % 4 === 0 || i % 4 === 3) ? "A" : "B"; });
     try { await setDoc("events", e.id, { ...e, teams: T }); render(); toast("포지션별로 고르게 나눴어요"); } catch (err) { fail(err); }
   },
@@ -1395,16 +1397,16 @@ boot();
 const FORMS = {
   futsal: {},
   soccer: {
-    "4-4-2": ["GK", "LB", "CB", "CB", "RB", "LM", "CM", "CM", "RM", "ST", "ST"],
+    "4-4-2": ["GK", "LB", "CB", "CB", "RB", "LW", "CM", "CM", "RW", "ST", "ST"],
     "4-3-3": ["GK", "LB", "CB", "CB", "RB", "CDM", "CM", "CM", "LW", "ST", "RW"],
     "4-2-3-1": ["GK", "LB", "CB", "CB", "RB", "CDM", "CDM", "LW", "CAM", "RW", "ST"],
-    "4-1-4-1": ["GK", "LB", "CB", "CB", "RB", "CDM", "LM", "CM", "CM", "RM", "ST"],
-    "4-4-1-1": ["GK", "LB", "CB", "CB", "RB", "LM", "CM", "CM", "RM", "CAM", "ST"],
+    "4-1-4-1": ["GK", "LB", "CB", "CB", "RB", "CDM", "LW", "CM", "CM", "RW", "ST"],
+    "4-4-1-1": ["GK", "LB", "CB", "CB", "RB", "LW", "CM", "CM", "RW", "CAM", "ST"],
     "4-1-2-1-2": ["GK", "LB", "CB", "CB", "RB", "CDM", "CM", "CM", "CAM", "ST", "ST"],
-    "3-5-2": ["GK", "CB", "CB", "CB", "LWB", "CM", "CDM", "CM", "RWB", "ST", "ST"],
-    "3-4-3": ["GK", "CB", "CB", "CB", "LWB", "CM", "CM", "RWB", "LW", "ST", "RW"],
-    "5-3-2": ["GK", "LWB", "CB", "CB", "CB", "RWB", "CM", "CDM", "CM", "ST", "ST"],
-    "5-4-1": ["GK", "LWB", "CB", "CB", "CB", "RWB", "LM", "CDM", "CDM", "RM", "ST"]
+    "3-5-2": ["GK", "CB", "CB", "CB", "LB", "CM", "CDM", "CM", "RB", "ST", "ST"],
+    "3-4-3": ["GK", "CB", "CB", "CB", "LB", "CM", "CM", "RB", "LW", "ST", "RW"],
+    "5-3-2": ["GK", "LB", "CB", "CB", "CB", "RB", "CM", "CDM", "CM", "ST", "ST"],
+    "5-4-1": ["GK", "LB", "CB", "CB", "CB", "RB", "LW", "CDM", "CDM", "RW", "ST"]
   }
 };
 const FORM_DESC = { "4-4-2": "수비 4, 미드 4, 공격 2", "4-3-3": "수비형 미드 1, 윙어 2", "4-2-3-1": "수비형 미드 2, 공격형 미드 1", "4-1-4-1": "수비형 미드 1, 미드 4, 공격 1", "4-4-1-1": "미드 4, 공격형 미드 1, 공격 1", "4-1-2-1-2": "4-4-2 다이아몬드", "3-5-2": "센터백 3, 윙백 2, 공격 2", "3-4-3": "센터백 3, 윙백 2, 공격 3", "5-3-2": "수비 5, 미드 3, 공격 2", "5-4-1": "수비 5, 미드 4, 공격 1" };
