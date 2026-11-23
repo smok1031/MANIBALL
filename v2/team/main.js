@@ -45,6 +45,24 @@ const ls = { get: k => { try { return localStorage.getItem(STAGE + k); } catch (
 const WD = "일월화수목금토";
 // 풋살 포지션: 골레이로(골키퍼), 픽소(수비), 아라(측면), 피보(공격)
 const POS = { futsal: ["골레이로", "픽소", "아라", "피보"], soccer: ["GK", "LB", "CB", "RB", "CDM", "CM", "CAM", "LW", "RW", "ST"] };
+// 유니폼 (2026-11-23): 팀 설정의 HOME, AWAY 색. 경기마다 상대 유니폼 색과 우리가 입을 쪽을 정하고, 골키퍼는 본인이 고른 색
+// 내전은 A팀 HOME, B팀 AWAY. 색을 정하지 않은 팀은 흰색. 유니폼 위 글자는 대비가 더 높은 쪽(먹색 또는 크림)으로
+const KITS = [["흰색", "#FFFFFF"], ["검정", "#1E1E1E"], ["남색", "#23336B"], ["파랑", "#2F6BD8"], ["하늘", "#8EC8F2"], ["빨강", "#D23A33"], ["주황", "#F08A24"], ["노랑", "#F6D02F"], ["초록", "#2E9E4F"], ["보라", "#6B4AA8"], ["분홍", "#F2A7C3"], ["회색", "#9A9A9A"]];
+const isKit = n => KITS.some(k => k[0] === n);
+const kitHex = n => (KITS.find(k => k[0] === n) || KITS[0])[1];
+const onKit = hex => { const v = parseInt(String(hex).slice(1), 16); const c = [v >> 16 & 255, v >> 8 & 255, v & 255].map(x => { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }); const L = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; return (L + 0.05) / 0.0556 >= 0.98 / (L + 0.05) ? "#121110" : "#FBF7EF"; };
+const teamKit = () => { const k = (S.settings && S.settings.kit) || {}; return { home: isKit(k.home) ? k.home : "흰색", away: isKit(k.away) ? k.away : "흰색" }; };
+// 비슷해서 헷갈리는 색끼리 (같은 색이거나 이 목록에 있으면 겹친다고 본다)
+const KIT_NEAR = { 남색: ["파랑", "검정", "보라"], 파랑: ["남색", "하늘"], 하늘: ["파랑"], 검정: ["남색"], 빨강: ["주황", "분홍"], 주황: ["빨강", "노랑"], 노랑: ["주황"], 분홍: ["빨강"], 보라: ["남색"], 흰색: ["회색"], 회색: ["흰색"], 초록: [] };
+const kitClash = (a, b) => !!a && !!b && (a === b || (KIT_NEAR[a] || []).includes(b));
+const recKitFor = oppKit => { if (!isKit(oppKit)) return ""; const t = teamKit(); const h = kitClash(oppKit, t.home), w = kitClash(oppKit, t.away); return h && !w ? "away" : w && !h ? "home" : ""; };
+const kitSideOf = (e, side) => side === "A" ? "home" : side === "B" ? "away" : (e && (e.kit === "home" || e.kit === "away") ? e.kit : recKitFor(e && e.oppKit) || "home");
+const gkKitOf = u => { const p = (S.rsvp[u] && S.rsvp[u].profile) || {}; return isKit(p.gkKit) ? p.gkKit : "회색"; };
+const JPATH = "M13 3 H19 C20 6 22 7 24 7 C26 7 28 6 29 3 H35 L46 12 L40 19 L37 17 V41 H11 V17 L8 19 L2 12 Z";
+// 유니폼 아이콘: 어느 크기든 테두리가 2px로 보이게 선 굵기를 맞춘다
+const jerseyIcon = (hex, w, o = {}) => `<svg viewBox="-2 -2 52 48" aria-hidden="true" style="display:block;flex:none;width:${w}px;height:${Math.round(w * 48 / 52)}px;overflow:visible"><path d="${JPATH}" fill="${hex}" stroke="#121110" stroke-width="${((o.bw || 2) * 52 / w).toFixed(2)}" stroke-linejoin="round"${o.dash ? ' stroke-dasharray="4 3"' : ""}/></svg>`;
+// 색 고르기 칸 (12색, 6칸씩 두 줄). 누르면 data-act에 data-v(색 이름)가 간다
+const kitPicker = (act, cur, extra = "", off = false) => `<div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px">${KITS.map(([n, h]) => `<button type="button" data-act="${act}" data-v="${n}" ${extra} aria-label="${n}" aria-pressed="${cur === n}" ${off ? "disabled" : ""} style="height:44px;padding:0;border:2px solid ${cur === n ? "#121110" : "transparent"};border-radius:10px;background:transparent;display:flex;align-items:center;justify-content:center"><span style="width:28px;height:28px;box-sizing:border-box;border-radius:50%;border:2px solid #121110;background:${h};display:flex;align-items:center;justify-content:center">${cur === n ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${onKit(h)}" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>` : ""}</span></button>`).join("")}</div>`;
 // 2026-11-20 측면 포지션을 하나로 묶음: 윙백은 풀백으로, 측면 미드필더는 윙어로 (예전 값은 posFix가 바꿔 읽는다)
 const SOC_OLD = { LWB: "LB", RWB: "RB", LM: "LW", RM: "RW" };
 const QN = { futsal: 8, soccer: 4 };
@@ -1436,4 +1454,4 @@ function vRest(id) {
 }
 
 // member.js와 admin.js가 같이 쓰는 것
-export { PICK, fitOf, isCanceled, isDemo, maintLocked, scheduleRender, backHref, delDoc, FUTSAL_N, loadReqs, ls, APP, route, viewMode, fineAt, fineNow, fineText, lateCancel, spotXY, delSheet, curLineup, lineupPlayers, draftOf, formOf, autoLineup, FORMS, FORM_DESC, applyFix, qText, rowsOf, loadTeam, enter, showTeams, inviteUrl, policyFromForm as polFromForm, posFix, profileOf, refreshTally, hmK, promotedAt, ampm, closeAt, voteTimeOf, $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };
+export { KITS, isKit, kitHex, onKit, teamKit, kitClash, recKitFor, kitSideOf, gkKitOf, JPATH, jerseyIcon, kitPicker, PICK, fitOf, isCanceled, isDemo, maintLocked, scheduleRender, backHref, delDoc, FUTSAL_N, loadReqs, ls, APP, route, viewMode, fineAt, fineNow, fineText, lateCancel, spotXY, delSheet, curLineup, lineupPlayers, draftOf, formOf, autoLineup, FORMS, FORM_DESC, applyFix, qText, rowsOf, loadTeam, enter, showTeams, inviteUrl, policyFromForm as polFromForm, posFix, profileOf, refreshTally, hmK, promotedAt, ampm, closeAt, voteTimeOf, $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };

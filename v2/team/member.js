@@ -1,7 +1,8 @@
 // 팀원 화면 (뉴버전 시안 4장 화면 구성). 운영진도 같은 화면을 쓰고, 운영진에게만 관리 버튼과 운영 탭이 더 보인다.
-import { isCanceled, isDemo, noLate, pol, rulesTextOf, fineRulesOf, $, D, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, confirmBox, esc, evName, evStart, fail, feeMode, guestReqs, guestsOf, isAdmin, isPlay, md, momClosed, momDeadline, momOpen, momWinners, myProfile, myUv, myVote, nameOf, noticesList, past, patchDoc, people, render, ruleKind, sb, sheet, sport, started, toast, todayStr, uid36, upcoming, voteState, wd, won, ym, mLabel, closeAt, remindInfo, promotedAt, spotXY, viewMode, fineAt, fineNow, fineText, lateCancel, ls, APP, maintLocked } from "./main.js";
+import { isCanceled, isDemo, noLate, pol, rulesTextOf, fineRulesOf, $, D, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, confirmBox, esc, evName, evStart, fail, feeMode, guestReqs, guestsOf, isAdmin, isPlay, md, momClosed, momDeadline, momOpen, momWinners, myProfile, myUv, myVote, nameOf, noticesList, past, patchDoc, people, render, ruleKind, sb, sheet, sport, started, toast, todayStr, uid36, upcoming, voteState, wd, won, ym, mLabel, closeAt, remindInfo, promotedAt, spotXY, viewMode, fineAt, fineNow, fineText, lateCancel, ls, APP, maintLocked, KITS, isKit, kitHex, onKit, teamKit, kitSideOf, gkKitOf, jerseyIcon, kitPicker } from "./main.js";
 import { C, IC, navBar, hd, hdTab, hdBrand, mngBtn, lrow, dlg, empty, initial, sw, teamLogo } from "./ui.js";
 import { afeed, adminHomeRows } from "./admin.js";
+import { isKeeper } from "./lineup-core.js";
 import { pushBusy } from "./push.js";
 
 /* ---------- 공통 계산 ---------- */
@@ -113,6 +114,8 @@ function mHome() {
   return `${hdBrand(bell(n))}<div class="body">
     ${seasonPass(p)}
     ${pending && !adm ? `<div class="box gray" style="flex-direction:row;align-items:center;gap:12px;padding:12px 12px 12px 16px;border-radius:14px"><span style="flex:1;display:flex;flex-direction:column;gap:4px"><b style="display:flex;align-items:center;gap:8px;font-size:14px"><span class="tag blue">확인 중</span>포지션 변경 요청</b><span style="font-size:12px">${esc([req.pos1, req.pos2].filter(Boolean).join(", "))}로 요청했어요. 운영진이 확인하면 카드가 바뀌어요.</span></span><button class="btn xs" data-act="mPosCancel">요청 취소</button></div>` : ""}
+    ${[p.pos1, p.pos2].some(x => x === "GK" || x === "골레이로") ? (() => { const gk = isKit(p.gkKit) ? p.gkKit : "회색"; const tk = teamKit(); const clash = gk === tk.home || gk === tk.away;
+      return `<div class="box" style="gap:8px;border-radius:12px;padding:16px"><span class="row" style="gap:12px">${jerseyIcon(kitHex(gk), 44)}<span style="flex:1;display:flex;flex-direction:column;gap:4px"><b style="font-size:16px">골키퍼 유니폼 색</b><span class="note">${clash ? `우리 팀 HOME(${esc(tk.home)})이나 AWAY(${esc(tk.away)})와 같은 색이에요. 다른 색을 고르면 구분이 쉬워요.` : "골키퍼로 뛰는 쿼터에는 라인업에 이 색으로 보여요."}</span></span><b style="font-size:14px">${esc(gk)}</b></span>${kitPicker("mGkKit", gk)}</div>`; })() : ""}
     <section class="lst" aria-label="내 설정">
       ${lrow({ href: "#/posreq", icon: IC.target, tone: "pink", ...(adm ? { title: "내 포지션 바꾸기", sub: "운영진은 요청 없이 바로 바뀌어요" } : { title: "포지션 변경 요청", right: pending ? "확인 중" : "" }) })}
       ${lrow({ act: "switchTeam", icon: IC.swap, tone: "green", title: "팀 바꾸기", right: S.teams.length > 1 ? (S.teams.length - 1) + "팀 더" : "새 팀 만들기" })}
@@ -272,15 +275,21 @@ function myLineup(e) {
   const played = Array.from({ length: qn }, (_, i) => i + 1).filter(k => mine(k) != null);
   const rest = Array.from({ length: qn }, (_, i) => i + 1).filter(k => mine(k) == null);
   const me = mine(lq); const xy = spotXY(L.formation, L.fkey);
+  // 우리가 입을 유니폼: 경기는 운영진이 고른 쪽, 내전은 A팀 HOME, B팀 AWAY
+  const kk = e.type === "match" ? kitSideOf(e, "main") : e.type === "scrim" ? kitSideOf(e, side) : "home"; const tk = teamKit(); const hexT = kitHex(tk[kk]);
+  const kitLine = e.type === "training" ? "" : `<div class="row" style="gap:8px;border:2px solid ${C.ink};border-radius:10px;background:${C.white};padding:8px 12px">${jerseyIcon(hexT, 28)}<span style="flex:1;font-size:14px">${e.type === "scrim" ? side + "팀은 " : "오늘 우리는 "}<b>${kk.toUpperCase()} ${esc(tk[kk])}</b> 유니폼이에요</span>${e.type === "match" && isKit(e.oppKit) ? `<span class="note">상대 ${esc(e.oppKit)}</span>` : ""}</div>`;
   const cards = Array.from({ length: qn }, (_, i) => i + 1).map(k => { const p = mine(k); const on = k === lq; return `<button type="button" data-act="mLq" data-q="${k}" aria-pressed="${on}" style="height:56px;border:2px ${p != null ? "solid" : "dashed"} ${C.ink};border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:${on ? `${C.ink};color:${C.bg}` : p != null ? C.white : C.bg};transition:transform .25s cubic-bezier(.3,1.5,.6,1);${on ? `transform:rotate(-6deg) translateY(-3px);box-shadow:4px 4px 0 ${C.ink}` : ""}"><b class="bc" style="font-size:18px;line-height:1">${k}Q</b><span style="font-size:12px;font-weight:700">${p != null ? esc(L.formation[p]) : "휴식"}</span></button>`; }).join("");
   return `<section class="sec" aria-label="라인업">${head}
     <div class="spread" style="align-items:baseline"><span class="cn"><span style="font-size:14px;font-weight:700">내 출전</span><b class="bc" style="font-size:34px;line-height:1">${played.length}</b><span class="bc" style="font-weight:600;font-size:18px;color:${C.sub}">/ ${qn}Q</span></span><span style="font-size:12px">${rest.length ? rest.join(", ") + "쿼터는 쉬어요" : "모든 쿼터를 뛰어요"}</span></div>
     <div style="display:grid;grid-template-columns:repeat(${qn > 4 ? 4 : qn},minmax(0,1fr));gap:8px;padding:4px 4px 4px">${cards}</div>
-    <div class="pitch"><span class="l" style="left:10px;right:10px;top:10px;bottom:10px;border-radius:4px"></span><span class="l" style="left:10px;right:10px;top:50%;height:0;border-width:2px 0 0"></span><span class="l" style="left:50%;top:50%;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%"></span><span class="l" style="left:50%;top:10px;width:140px;height:46px;margin-left:-70px;border-top:0"></span><span class="l" style="left:50%;bottom:10px;width:140px;height:46px;margin-left:-70px;border-bottom:0"></span>
-      ${(L.formation || []).map((pos, i) => { const p = xy[i] || { x: 50, y: 50 }; const isMe = i === me; return `<span class="spot${isMe ? " me" : ""}" style="left:${p.x}%;top:${100 - p.y}%;opacity:${me == null ? .3 : 1};z-index:${isMe ? 2 : 1}"><span class="d">${isMe ? "나" : ""}</span><span class="p">${esc(pos)}</span></span>`; }).join("")}
+    ${kitLine}
+    <div class="pitch" style="height:${sport() === "futsal" ? 360 : 460}px;background:repeating-linear-gradient(180deg,#64A823 0 46px,#5B9A1F 46px 92px)"><span class="l" style="left:10px;right:10px;top:10px;bottom:10px;border-radius:4px"></span><span class="l" style="left:10px;right:10px;top:50%;height:0;border-width:2px 0 0"></span><span class="l" style="left:50%;top:50%;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%"></span><span class="l" style="left:50%;top:10px;width:140px;height:46px;margin-left:-70px;border-top:0"></span><span class="l" style="left:50%;bottom:10px;width:140px;height:46px;margin-left:-70px;border-bottom:0"></span>
+      ${(L.formation || []).map((pos, i) => { const p = xy[i] || { x: 50, y: 50 }; const isMe = i === me; const u = ((L.q || {})[lq] || {})[i]; const guest = !!u && String(u).startsWith("g:");
+        const hex = isKeeper(pos) ? kitHex(u && !guest ? gkKitOf(u) : "회색") : hexT; const nm = !u ? "빈자리" : guest ? (((e.guests || {})[u.slice(2)] || {}).name || "용병") : nameOf(u);
+        return `<span class="spot" style="left:${p.x}%;top:${100 - p.y}%;opacity:${me == null ? .3 : 1};z-index:${isMe ? 2 : 1};gap:4px"><span style="position:relative;display:block;width:56px;height:52px">${guest ? `<span class="tag" style="position:absolute;right:-12px;top:-8px;z-index:3;padding:0 4px">용병</span>` : ""}${jerseyIcon(u ? hex : "rgba(251,247,239,.45)", 56, { bw: isMe ? 3.2 : 2, dash: !u })}<span class="bc" style="position:absolute;left:0;right:0;top:25px;text-align:center;font-size:16px;font-weight:700;line-height:1;letter-spacing:-.2px;color:${u ? onKit(hex) : C.ink}">${esc(pos)}</span></span><span style="display:inline-flex;align-items:center;height:24px;box-sizing:border-box;border:2px ${u ? "solid" : "dashed"} ${C.ink};border-radius:12px;padding:0 8px;font-size:12px;font-weight:700;white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis;background:${isMe ? C.ink : u ? C.bg : "rgba(251,247,239,.55)"};color:${isMe ? C.bg : C.ink}">${esc(nm)}</span></span>`; }).join("")}
       ${me == null ? `<span class="stamp" style="position:absolute;z-index:5;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-4deg);font-family:'IBM Plex Sans KR';font-size:16px;font-weight:700;white-space:nowrap;padding:8px 16px">이번 쿼터는 쉬어요</span>` : ""}
     </div>
-    <span class="note">${me != null ? lq + "쿼터에는 " + esc(L.formation[me]) + " 자리예요." : lq + "쿼터에는 벤치에서 쉬어요."} 다른 팀원의 자리와 쿼터 수는 운영진 화면에서만 보여요.</span>
+    <span class="note">${me != null ? lq + "쿼터에는 " + esc(L.formation[me]) + " 자리예요." : lq + "쿼터에는 벤치에서 쉬어요."} 쿼터 카드를 누르면 그 쿼터 배치가 보여요.</span>
   </section>`;
 }
 function mEvent(id) {
@@ -594,6 +603,8 @@ function pressCard(btn, cls) {
   btn.classList.add("on", cls); btn.setAttribute("aria-pressed", "true");
 }
 export const MACT = {
+  // 골키퍼 유니폼 색: 1선호나 2선호가 GK인 팀원이 직접 고른다 (내 프로필에만 저장)
+  mGkKit: async t => { const n = t.dataset.v; if (!isKit(n)) return; try { await patchDoc("rsvp", S.uid, { profile: { gkKit: n } }); render(); toast(`골키퍼 유니폼을 ${n}으로 정했어요`); } catch (err) { fail(err); } },
   readAll: async () => { try { await patchDoc("uvote", S.uid, { readAt: new Date().toISOString() }); render(); toast("모두 읽음으로 바꿨어요"); } catch (err) { fail(err); } },
   mVote: t => {
     if (maintLocked()) { fail(new Error("maintenance")); return; }

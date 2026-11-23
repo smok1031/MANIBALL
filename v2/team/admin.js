@@ -2,7 +2,7 @@
 import { S, D, $, att, esc, md, wd, evName, started, evStart, isPlay, momClosed, momDeadline, momWinners, nameOf, people, guestReqs, guestsOf, scrimReady, won, pol, POS, QN, ROLE, UI,
   isAdmin, viewMode, route, backHref, render, toast, fail, sheet, closeSheet, confirmBox, setDoc, delDoc, patchDoc, sb, uid36, todayStr, ym, mLabel, monthsList, feeMode, paidOf, cameTo,
   syncMyDues, refreshMembers, remindInfo, inviteUrl, canKick, profileOf, posFix, sport, voteState, closeAt, past, rulesFormInit, rulesFromForm, rulesTextOf, fineRulesOf, ruleKind,
-  curLineup, lineupPlayers, draftOf, formOf, autoLineup, FORMS, FORM_DESC, PICK, fitOf, applyFix, spotXY, FUTSAL_N, loadReqs, ls, APP, isCanceled } from "./main.js";
+  curLineup, lineupPlayers, draftOf, formOf, autoLineup, FORMS, FORM_DESC, PICK, fitOf, KITS, isKit, kitHex, onKit, teamKit, recKitFor, kitSideOf, gkKitOf, JPATH, jerseyIcon, kitPicker, applyFix, spotXY, FUTSAL_N, loadReqs, ls, APP, isCanceled } from "./main.js";
 import { C, IC, navBar, hd, hdTab, lrow, dlg, empty, sw, teamLogo } from "./ui.js";
 import { bigTicket, strip, whenText, kindOf, vsText, myStats, teamRecord, memberGroups, seasonEvents, cancelCard } from "./member.js";
 import { canPlay, isKeeper } from "./lineup-core.js";
@@ -199,6 +199,9 @@ function aSettings() {
   return `${hd("팀 설정", back("#/ops"), { sub: "Admin만 바꿀 수 있어요" })}<div class="body">
     <div class="box blue" style="flex-direction:row;align-items:center;gap:16px;border-radius:18px">${teamLogo(52)}<label style="flex:1;display:flex;flex-direction:column;gap:4px;min-width:0"><span style="font-size:12px;font-weight:700">팀 이름</span>${own ? `<input class="inp" data-bind="tname" value="${esc(f.tname || "")}" maxlength="40" style="height:46px;font-weight:700;font-size:18px">` : `<b class="bh" style="font-size:24px">${esc(S.team.name)}</b>`}</label></div>
     <div class="spread" style="border-bottom:2px solid ${C.line};padding-bottom:16px"><b style="font-size:16px">종목</b><span style="font-size:16px">${sport() === "soccer" ? "축구팀" : "풋살팀"} <span class="note">만든 뒤에는 바꿀 수 없어요</span></span></div>
+    <div class="fld"><div class="spread" style="align-items:baseline"><b style="font-size:16px">유니폼 색</b><span class="note">경기마다 HOME, AWAY 중에서 골라요</span></div>
+      ${[["home", "HOME", f.kitHome], ["away", "AWAY", f.kitAway]].map(([k, l, n]) => `<div class="box" style="gap:8px;border-radius:12px;padding:12px;box-shadow:none"><span class="row" style="gap:12px">${jerseyIcon(kitHex(n), 44)}<span style="display:flex;flex-direction:column;line-height:1.2"><b class="bc" style="font-size:20px">${l}</b><span style="font-size:12px">${esc(n)}</span></span></span>${kitPicker("aKit", n, `data-k="${k}"`, !own)}</div>`).join("")}
+      <span class="note">라인업 화면의 유니폼이 이 색으로 보여요. 골키퍼 유니폼은 골키퍼인 팀원이 직접 골라요.</span></div>
     <div class="fld"><b style="font-size:16px">초대 링크</b><div class="box" style="flex-direction:row;align-items:center;gap:8px;padding:8px 8px 8px 16px;border-radius:12px"><span class="bc" style="flex:1;min-width:0;font-size:16px;word-break:break-all">${esc(link.replace(/^https?:\/\//, "") || "링크를 만드는 중이에요")}</span><button class="btn sm" data-act="copyLink">복사</button></div><span class="note">${ap ? "링크로 들어온 사람은 가입 신청을 남기고, 운영진이 받으면 팀원이 돼요." : "링크로 들어온 사람은 바로 팀원으로 시작해요."}</span></div>
     <button type="button" class="row" data-act="aJoinAp" aria-pressed="${ap}" ${own ? "" : "disabled"} style="width:100%;border:0;border-top:2px solid ${C.ink};background:transparent;padding:16px 0 0;text-align:left;gap:12px"><span style="flex:1;display:flex;flex-direction:column;gap:4px"><b style="font-size:16px">가입 승인제</b><span class="note">${ap ? "켜짐: 링크로 들어와도 운영진이 받아야 팀원이 돼요" : "꺼짐: 링크로 들어오면 바로 팀원이 돼요"}</span></span>${sw(ap)}</button>
     <section style="display:flex;flex-direction:column">${head2("운영진", `<a class="btn sm" href="#/members" style="font-size:12px;text-decoration:none">팀원에서 정하기</a>`)}${admins.map(m => { const p = profileOf(m.user_id) || {}; return `<div class="row" style="min-height:50px;border-bottom:2px solid ${C.line};gap:12px"><b class="bc" style="width:28px;font-size:18px">${esc(p.num || "-")}</b><span style="flex:1">${esc(nameOf(m.user_id))}${m.user_id === S.uid ? " (나)" : ""}</span><span class="tag ${m.role === "owner" ? "blue" : "gray"}">${ROLE[m.role]}</span></div>`; }).join("")}
@@ -435,8 +438,8 @@ const nextDate = () => { const last = Object.values(S.events).sort((a, b) => b.d
 export function eventFormInit(id) {
   const e = id ? S.events[id] : null;
   const v = h12(e ? (e.voteClose === "eve" && /^\d\d:\d\d$/.test(e.voteTime || "") ? e.voteTime : e.voteClose === "eve21" ? "21:00" : pol("voteTime")) : pol("voteTime"));
-  S.form = e ? { type: e.type, date: e.date, time: e.time || "", end: e.end || "", place: e.place || "", opponent: e.opponent || "", oppTbd: e.type === "match" && !e.opponent, cap: String(Number(e.cap) || ""), openDate: e.openAt ? kstDate(e.openAt) : "", voteAp: v.ap, voteH: String(v.h), cb: String(cbOf(e)) }
-    : { type: "match", date: nextDate(), time: "", end: "", place: "", opponent: "", oppTbd: false, cap: String(pol("cap")), openDate: "", voteAp: v.ap, voteH: String(v.h), cb: String(pol("checkBefore")) };
+  S.form = e ? { type: e.type, date: e.date, time: e.time || "", end: e.end || "", place: e.place || "", opponent: e.opponent || "", oppTbd: e.type === "match" && !e.opponent, oppKit: isKit(e.oppKit) ? e.oppKit : "", kit: e.kit === "home" || e.kit === "away" ? e.kit : "", cap: String(Number(e.cap) || ""), openDate: e.openAt ? kstDate(e.openAt) : "", voteAp: v.ap, voteH: String(v.h), cb: String(cbOf(e)) }
+    : { type: "match", date: nextDate(), time: "", end: "", place: "", opponent: "", oppTbd: false, oppKit: "", kit: "", cap: String(pol("cap")), openDate: "", voteAp: v.ap, voteH: String(v.h), cb: String(pol("checkBefore")) };
 }
 function aEventForm(id) {
   const e = id ? S.events[id] : null; if (id && !e) return null; const f = S.form; const scrim = f.type === "scrim";
@@ -448,6 +451,10 @@ function aEventForm(id) {
     <div class="grid2"><label class="fld"><span class="lb">시작</span><input class="inp" type="time" data-bind="time" value="${esc(f.time || "")}"></label><label class="fld"><span class="lb">끝</span><input class="inp" type="time" data-bind="end" value="${esc(f.end || "")}"></label></div>
     <label class="fld"><span class="lb">장소</span><input class="inp" data-bind="place" value="${esc(f.place || "")}" maxlength="40" placeholder="구장 이름"></label>
     ${f.type === "match" ? `<div class="fld"><span class="lb">상대팀</span><div class="row"><input class="inp" data-bind="opponent" value="${esc(f.oppTbd ? "" : f.opponent || "")}" maxlength="30" placeholder="${f.oppTbd ? "상대 미정" : "팀 이름"}" ${f.oppTbd ? "disabled" : ""} style="flex:1"><button type="button" class="btn${f.oppTbd ? " ink" : ""}" data-act="aOppTbd" aria-pressed="${!!f.oppTbd}" style="flex:none;padding:0 16px">미정</button></div><span class="note">상대팀이 정해진 일정은 내전으로 바꿀 수 없어요.</span></div>` : ""}
+    ${f.type === "match" && !f.oppTbd ? (() => { const tk = teamKit(); const rec = recKitFor(f.oppKit); const my = f.kit || rec || "home";
+      const kb = (k, l) => `<button type="button" class="box" data-act="aPick" data-k="kit" data-v="${k}" aria-pressed="${my === k}" style="flex-direction:row;align-items:center;gap:8px;min-height:52px;padding:0 12px;border-radius:10px;text-align:left;box-shadow:${my === k ? "3px 3px 0 #121110" : "none"};background:${my === k ? C.sec2 : C.white}">${jerseyIcon(kitHex(tk[k]), 28)}<span style="display:flex;flex-direction:column;line-height:1.2"><b class="bc" style="font-size:16px">${l}</b><span style="font-size:12px">${esc(tk[k])}</span></span>${rec === k ? `<span class="tag" style="margin-left:auto">추천</span>` : ""}</button>`;
+      return `<div class="fld"><span class="lb">상대 유니폼 색</span><span class="note">상대 팀이 입고 올 색을 고르면 겹치지 않는 우리 유니폼을 추천해 드려요. 고르지 않아도 돼요.</span>${kitPicker("aOppKit", f.oppKit)}<span class="note">${f.oppKit ? `상대 ${esc(f.opponent || "팀")}: ${esc(f.oppKit)}${rec ? `. 겹치지 않게 ${rec.toUpperCase()}를 추천해요` : ""}` : "아직 안 골랐어요"}</span></div>
+      <div class="fld"><span class="lb">우리 유니폼</span><div class="grid2">${kb("home", "HOME")}${kb("away", "AWAY")}</div><span class="note">HOME, AWAY 색은 팀 설정에서 정해요. 라인업 화면의 유니폼이 이 색으로 보여요.</span></div>`; })() : ""}
     <div style="border-top:2px solid ${C.ink};display:flex;flex-direction:column;gap:12px;padding-top:16px;font-size:16px">
       ${scrim ? "" : `<div class="row" style="gap:8px"><span style="width:52px">정원</span>${numInp("cap", f.cap)}<span>명, 넘으면 대기로</span></div>`}
       <div class="row" style="gap:8px"><span style="width:52px">투표는</span><input class="inp bc" type="date" data-bind="openDate" value="${esc(f.openDate || "")}" style="width:170px;flex:none;font-size:16px"><span>부터 받아요</span></div>
@@ -474,7 +481,9 @@ async function saveL(e, side, L) {
   try { await setDoc("events", e.id, { ...cur, lineup: { ...(cur.lineup || {}), [side]: L } }); S.form.lineup = null; S.form.lineupFor = ""; render(); } catch (err) { fail(err); }
 }
 // 고정한 자리: 분홍 이름표 위에 핀을 꽂는다 (2026-11-20 B안). 선호 밖 자리는 진짜 회색 이름표
-const PINSVG = `<svg width="17" height="21" viewBox="0 0 16 20" aria-hidden="true" style="position:absolute;left:50%;top:-16px;transform:translateX(-50%) rotate(-18deg);pointer-events:none"><line x1="8" y1="11" x2="8" y2="19" stroke="${C.ink}" stroke-width="2" stroke-linecap="round"/><path d="M4 11h8l-1.5-4V3.5h1V1.5h-7v2h1V7z" fill="${C.bg}" stroke="${C.ink}" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+// 고정한 자리: 유니폼 어깨에 압정이 박힌 모양 (바늘이 들어간 구멍과 그림자). 머리는 지금 탭 색. 선호 밖 자리는 회색 이름표 (2026-11-23)
+const PINSVG = `<svg width="22" height="26" viewBox="0 0 22 26" aria-hidden="true" style="position:absolute;left:8px;top:-3px;z-index:3;overflow:visible;pointer-events:none"><ellipse cx="13.5" cy="22.6" rx="6" ry="2" fill="rgba(18,17,16,.3)"/><ellipse cx="8" cy="23" rx="2.2" ry="1.2" fill="${C.ink}"/><g transform="rotate(22 8 23)"><line x1="8" y1="14" x2="8" y2="23" stroke="${C.ink}" stroke-width="2" stroke-linecap="round"/><path d="M4 14h8l-1.5-4V6.5h1V4.5h-7v2h1V10z" fill="var(--sec)" stroke="${C.ink}" stroke-width="1.6" stroke-linejoin="round"/><path d="M6.2 7v2.6" stroke="${C.bg}" stroke-width="1.2" stroke-linecap="round"/></g></svg>`;
+const GUESTTAG = `<span class="tag" style="position:absolute;right:-12px;top:-8px;z-index:3;padding:0 4px">용병</span>`;
 const OFFPOS = "#CFC8BA";
 const PITCH = `<span class="l" style="left:10px;right:10px;top:10px;bottom:10px;border-radius:4px"></span><span class="l" style="left:10px;right:10px;top:50%;height:0;border-width:2px 0 0"></span><span class="l" style="left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%"></span><span class="l" style="left:50%;top:10px;width:150px;height:48px;margin-left:-75px;border-top:0"></span><span class="l" style="left:50%;bottom:10px;width:150px;height:48px;margin-left:-75px;border-bottom:0"></span>`;
 function aLineup(id) {
@@ -489,23 +498,30 @@ function aLineup(id) {
   if (!fl.length) return `${hd("라인업 짜기", back("#/manage/" + id), { sub: evLabel(e), right: fbtn })}<div class="body">${sideTabs}<div class="box gray" style="gap:8px"><b>몇 명이 뛰나요?</b><span class="note" style="color:${C.ink}">골레이로를 포함한 한 팀 인원이에요. 참석 ${ps.length}명</span><div class="chips">${FUTSAL_N.map(n => `<button type="button" class="chip" data-act="aFormPick" data-eid="${esc(id)}" data-k="${n}대${n}">${n}대${n}</button>`).join("")}</div></div></div>${nav("일정")}`;
   const cnt = {}; if (L) Object.values(L.q || {}).forEach(r => Object.values(r).forEach(u => { cnt[u] = (cnt[u] || 0) + 1; }));
   const bench = ps.filter(p => !Object.values(q).includes(p.uid));
-  const spot = i => { const p = xy[i] || { x: 50, y: 50 }; const u = q[i]; const pin = pinned(u, i); const off = u && !pin && !canPlay(pOf(u), fl[i]);
-    const bg = !u ? "rgba(251,247,239,.55)" : pin ? C.pink : off ? OFFPOS : C.bg;
-    return `<button type="button" class="spot" data-act="aSpot" data-eid="${esc(id)}" data-i="${i}" aria-label="${esc(fl[i])} ${u ? esc(pOf(u) ? pOf(u).name : gname(e, u)) : "빈자리"}${pin ? ", 고정" : ""}" style="left:${p.x}%;top:${p.y}%;border:0;background:transparent;padding:0;gap:1px">${pin ? PINSVG : ""}<span style="border:2px ${u ? "solid" : "dashed"} ${C.ink};border-radius:999px;background:${bg};padding:4px 8px;font-size:12px;font-weight:700;white-space:nowrap;max-width:76px;overflow:hidden;text-overflow:ellipsis">${u ? esc((pOf(u) ? pOf(u).name : gname(e, u)).replace(" (용병)", "")) : "빈자리"}</span><span class="p" style="color:${C.bg};text-shadow:0 1px 2px rgba(0,0,0,.5)">${esc(fl[i])}</span></button>`; };
+  // 유니폼: 경기는 고른 쪽(없으면 상대 색과 안 겹치는 쪽, 그다음 HOME), 내전은 A팀 HOME, B팀 AWAY. GK는 그 사람이 고른 골키퍼 색
+  const kk = e.type === "match" ? kitSideOf(e, "main") : e.type === "scrim" ? kitSideOf(e, side) : "home"; const tk = teamKit(); const hexT = kitHex(tk[kk]);
+  const spot = i => { const p = xy[i] || { x: 50, y: 50 }; const u = q[i]; const pin = pinned(u, i); const off = u && !pin && !canPlay(pOf(u), fl[i]); const guest = !!u && String(u).startsWith("g:");
+    const hex = isKeeper(fl[i]) ? kitHex(u && !guest ? gkKitOf(u) : "회색") : hexT; const nm = u ? (pOf(u) ? pOf(u).name : gname(e, u)).replace(" (용병)", "") : "빈자리";
+    const tagBg = !u ? "rgba(251,247,239,.55)" : pin ? C.sec2 : off ? OFFPOS : C.bg;
+    return `<button type="button" class="spot" data-act="aSpot" data-eid="${esc(id)}" data-i="${i}" aria-label="${esc(fl[i])} ${esc(nm)}${guest ? ", 용병" : ""}${pin ? ", 고정" : ""}${off ? ", 선호 밖 자리" : ""}" style="left:${p.x}%;top:${p.y}%;border:0;background:transparent;padding:0;gap:4px"><span style="position:relative;display:block;width:56px;height:52px">${pin ? PINSVG : ""}${guest ? GUESTTAG : ""}${jerseyIcon(u ? hex : "rgba(251,247,239,.45)", 56, { dash: !u })}<span class="bc" style="position:absolute;left:0;right:0;top:25px;text-align:center;font-size:16px;font-weight:700;line-height:1;letter-spacing:-.2px;color:${u ? onKit(hex) : C.ink}">${esc(fl[i])}</span></span><span style="display:inline-flex;align-items:center;height:24px;box-sizing:border-box;border:2px ${u ? "solid" : "dashed"} ${C.ink};border-radius:12px;background:${tagBg};padding:0 8px;font-size:12px;font-weight:700;white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis">${esc(nm)}</span></button>`; };
+  const kitRow = e.type === "match" ? (() => { const rec = recKitFor(e.oppKit);
+    const kb = (k, l) => `<button type="button" class="box" data-act="aLineKit" data-eid="${esc(id)}" data-v="${k}" aria-pressed="${kk === k}" style="flex-direction:row;align-items:center;gap:8px;min-height:52px;padding:0 12px;border-radius:10px;text-align:left;box-shadow:${kk === k ? "3px 3px 0 #121110" : "none"};background:${kk === k ? C.sec2 : C.white}">${jerseyIcon(kitHex(tk[k]), 28)}<span style="display:flex;flex-direction:column;line-height:1.2"><b class="bc" style="font-size:16px">${l}</b><span style="font-size:12px">${esc(tk[k])}</span></span>${rec === k ? `<span class="tag" style="margin-left:auto">추천</span>` : ""}</button>`;
+    return `<div class="fld"><div class="spread" style="align-items:baseline"><b style="font-size:16px">우리 유니폼</b><span class="note">${isKit(e.oppKit) ? `상대 ${esc(e.opponent || "팀")}: ${esc(e.oppKit)}` : "상대 색은 일정 고치기에서 골라요"}</span></div><div class="grid2">${kb("home", "HOME")}${kb("away", "AWAY")}</div></div>`; })()
+    : e.type === "scrim" ? `<div class="row" style="gap:8px">${jerseyIcon(hexT, 28)}<span style="font-size:14px">${side}팀은 <b>${kk.toUpperCase()} ${esc(tk[kk])}</b> 유니폼이에요. 내전은 A팀 HOME, B팀 AWAY예요.</span></div>` : "";
   const qcards = `<div style="display:grid;grid-template-columns:repeat(${Math.min(qn, 4)},minmax(0,1fr));gap:8px;padding:4px">${Array.from({ length: qn }, (_, i) => i + 1).map(n => `<button type="button" class="box${n === k ? " blue" : ""}" data-act="lineQ" data-v="${n}" aria-pressed="${n === k}" style="align-items:center;padding:8px 0;border-radius:10px;${n === k ? `box-shadow:4px 4px 0 ${C.ink}` : ""}"><b class="bc" style="font-size:20px">${n}Q</b></button>`).join("")}</div>`;
   const qrow = p => `<div class="row" style="gap:8px;min-height:34px;font-size:12px"><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.name.replace(" (용병)", ""))}${p.from > 1 ? ` <span class="note">${p.from}Q~</span>` : ""}</span><span style="display:flex;gap:4px">${Array.from({ length: qn }, (_, i) => { const on = Object.values((L && L.q && L.q[i + 1]) || {}).includes(p.uid); return `<i style="width:10px;height:10px;border:2px solid ${C.ink};background:${on ? (i + 1 === k ? C.sec2 : C.ink) : "transparent"}"></i>`; }).join("")}</span><b class="bc" style="width:16px;text-align:right">${cnt[p.uid] || 0}</b></div>`;
   const shown = (e.lineupAt || e.lineupOld) && L && !(S.form.lineup && S.form.lineupFor === e.id + side);
   return `${hd("라인업 짜기", back("#/manage/" + id), { sub: evLabel(e), right: fbtn })}<div class="body" style="gap:16px">
-    ${sideTabs}${qcards}
-    <div class="pitch" style="height:${fs ? 330 : 400}px">${PITCH}${fl.map((_, i) => spot(i)).join("")}${!L ? `<span class="stamp" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-4deg);font-size:16px;white-space:nowrap">자동 배치를 눌러요</span>` : ""}</div>
+    ${sideTabs}${kitRow}${qcards}
+    <div class="pitch" style="height:${fs ? 360 : 460}px;background:repeating-linear-gradient(180deg,#64A823 0 46px,#5B9A1F 46px 92px)">${PITCH}${fl.map((_, i) => spot(i)).join("")}${!L ? `<span class="stamp" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-4deg);font-size:16px;white-space:nowrap">자동 배치를 눌러요</span>` : ""}</div>
     ${L && fl.some((_, i) => !q[i]) ? `<div class="err">${k}Q 빈자리 ${esc(fl.filter((_, i) => !q[i]).join(", "))}: 이 포지션을 1선호나 2선호로 둔 선수가 없거나 모두 뛰고 있어요. 자리를 눌러 직접 넣어 주세요.</div>` : ""}
     ${L ? `<button type="button" class="btn sm" data-act="aLinePdf" data-eid="${esc(id)}" style="align-self:flex-end;gap:8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>사진으로 저장</button>` : ""}
-    <span class="note">자리를 눌러 선수를 넣고 고정해요. 핀이 꽂힌 분홍은 고정한 자리, 회색은 1선호와 2선호가 아닌 자리예요. ${sport() === "futsal" ? "자동 배치는 고정한 자리는 두고 나머지를 쉬는 쿼터가 고르게 채워요." : "자동 배치는 고정한 자리는 두고, 쉬는 쿼터를 고르게 맞춘 안에서 1선호 자리를 최대한 맞춰요."}</span>
+    <span class="note">자리를 눌러 선수를 넣고 고정해요. 유니폼에 핀이 박히고 이름표가 연한 색이면 고정한 자리, 회색 이름표는 1선호와 2선호가 아닌 자리, 용병 표가 붙은 유니폼은 용병이에요. 골키퍼는 본인이 고른 골키퍼 유니폼 색이에요. ${sport() === "futsal" ? "자동 배치는 고정한 자리는 두고 나머지를 쉬는 쿼터가 고르게 채워요." : "자동 배치는 고정한 자리는 두고, 쉬는 쿼터를 고르게 맞춘 안에서 1선호 자리를 최대한 맞춰요."}</span>
     ${L ? `<section style="display:flex;flex-direction:column;gap:8px">${head2("출전 쿼터", `<span class="note">${k}Q 쉬는 사람 ${bench.length}명</span>`)}<div style="display:grid;grid-template-columns:1fr 1fr;column-gap:16px">${ps.slice().sort((a, b) => (cnt[b.uid] || 0) - (cnt[a.uid] || 0) || a.name.localeCompare(b.name)).map(qrow).join("")}</div></section>` : ""}
   </div><div class="cta"><div class="grid2"><button class="btn" data-act="aAuto" data-eid="${esc(id)}">자동 배치</button><button class="btn o" data-act="lineShare" data-eid="${esc(id)}" ${L ? "" : "disabled"}>${shown ? "다시 알리기" : "라인업 알리기"}</button></div></div>`;
 }
 // 라인업을 사진으로: 모든 쿼터의 경기장을 한 장의 PNG로 그려 내려받는다 (2026-11-20, PDF 대신)
-// 앱 화면과 같은 모습: 모눈 바탕, 줄무늬 경기장, 먹색 테두리와 그림자, 크림 이름표, 고정은 분홍 이름표에 핀, 선호 밖은 회색. 저장하지 않은 지금 라인업 그대로
+// 앱 화면과 같은 모습: 모눈 바탕, 줄무늬 경기장, 먹색 테두리와 그림자, 우리 유니폼 색, 고정은 박힌 핀과 탭 색 이름표, 선호 밖은 회색, 용병 표. 저장하지 않은 지금 라인업 그대로
 async function lineImg(e) {
   const side = sideOf(e); const L = curLineup(e, side); if (!L) return;
   const qn = QN[sport()]; const fl = L.formation || []; const fkey = L.fkey || draftOf(e, side).fkey; const xy = spotXY(fl, fkey); const fs = sport() === "futsal";
@@ -513,7 +529,7 @@ async function lineImg(e) {
   const nm = u => (pOf(u) ? pOf(u).name : gname(e, u)).replace(" (용병)", "");
   const pins = L.pins || draftOf(e, side).pins || [];
   try { await Promise.all(["700 12px 'IBM Plex Sans KR'", "400 13px 'IBM Plex Sans KR'", "700 20px 'Barlow Condensed'", "30px 'Black Han Sans'"].map(f => document.fonts.load(f))); } catch (err) {}
-  const K = 2, PW = 342, PH = fs ? 330 : 392, GAP = 18, PAD = 24, HEAD = 92, QH = 40, COLS = 2, rowsN = Math.ceil(qn / COLS);
+  const K = 2, PW = 342, PH = fs ? 360 : 460, GAP = 18, PAD = 24, HEAD = 92, QH = 40, COLS = 2, rowsN = Math.ceil(qn / COLS);
   const W = PAD * 2 + PW * COLS + GAP * (COLS - 1), H = PAD + HEAD + rowsN * (QH + PH + 4) + (rowsN - 1) * GAP + PAD;
   const cv = document.createElement("canvas"); cv.width = W * K; cv.height = H * K; const g = cv.getContext("2d"); g.scale(K, K);
   const css = getComputedStyle(document.documentElement); const SEC2 = (css.getPropertyValue("--sec2") || "").trim() || "#B8E9EB";
@@ -529,13 +545,23 @@ async function lineImg(e) {
   g.font = "700 12px 'IBM Plex Sans KR', sans-serif"; g.fillText(`${(S.team && S.team.name) || ""}${e.type === "scrim" ? `, ${side}팀` : ""}`, PAD, PAD + 14);
   g.font = "30px 'Black Han Sans', sans-serif"; g.fillText("라인업", PAD, PAD + 50);
   const when = `${md(e.date)} ${wd(e.date)}${e.time ? " " + e.time : ""}`; const what = e.type === "match" ? (e.opponent ? "vs " + e.opponent : "상대 미정") : kindOf(e);
-  g.font = "400 13px 'IBM Plex Sans KR', sans-serif"; g.fillText(fit([when, what, e.place || ""].filter(Boolean).join("   "), W - PAD * 2 - 130), PAD, PAD + 72);
+  g.font = "400 13px 'IBM Plex Sans KR', sans-serif"; g.fillText(fit([when, what, e.place || "", e.type === "training" ? "" : `${kitSideOf(e, side).toUpperCase()} ${teamKit()[kitSideOf(e, side)]} 유니폼`].filter(Boolean).join("   "), W - PAD * 2 - 130), PAD, PAD + 72);
   const fx = fs ? `${fl.length}대${fl.length}` : fkey; g.font = "700 22px 'Barlow Condensed', sans-serif"; const fw = g.measureText(fx).width + 28;
   box(W - PAD - fw - 4, PAD + 30, fw, 38, 12, C.white, 4); g.fillStyle = C.ink; g.textAlign = "center"; g.fillText(fx, W - PAD - 4 - fw / 2, PAD + 57);
   g.fillRect(PAD, PAD + HEAD - 8, W - PAD * 2, 2);
-  const pinAt = (cx, top) => { g.save(); g.translate(cx, top); g.rotate(-18 * Math.PI / 180); g.translate(-8.5, -21); g.scale(17 / 16, 21 / 20);
-    g.lineCap = "round"; g.lineJoin = "round"; g.strokeStyle = C.ink; g.lineWidth = 2; g.beginPath(); g.moveTo(8, 11); g.lineTo(8, 19); g.stroke();
-    g.beginPath(); g.moveTo(4, 11); g.lineTo(12, 11); g.lineTo(10.5, 7); g.lineTo(10.5, 3.5); g.lineTo(11.5, 3.5); g.lineTo(11.5, 1.5); g.lineTo(4.5, 1.5); g.lineTo(4.5, 3.5); g.lineTo(5.5, 3.5); g.lineTo(5.5, 7); g.closePath(); g.fillStyle = C.bg; g.fill(); g.lineWidth = 1.6; g.stroke(); g.restore(); };
+  const SEC = (css.getPropertyValue("--sec") || "").trim() || "#14BBC2", SEC3 = (css.getPropertyValue("--sec3") || "").trim() || "#E2F7F8", SECT = (css.getPropertyValue("--sect") || "").trim() || "#005459";
+  const kk = e.type === "match" ? kitSideOf(e, "main") : e.type === "scrim" ? kitSideOf(e, side) : "home"; const hexT = kitHex(teamKit()[kk]);
+  const JP = new Path2D(JPATH);
+  // 유니폼 (56x52, 앱 화면과 같은 모양): 왼쪽 위 x, y
+  const jersey = (x, y, fill, dash) => { g.save(); g.translate(x, y); g.scale(56 / 52, 52 / 48); g.translate(2, 2); g.fillStyle = fill; g.fill(JP); g.lineWidth = 2 / (56 / 52); g.lineJoin = "round"; g.strokeStyle = C.ink; g.setLineDash(dash ? [4, 3] : []); g.stroke(JP); g.restore(); };
+  // 압정: 유니폼 왼쪽 어깨에 박힌 모양 (구멍과 그림자)
+  const pinAt = (x, y) => { g.save(); g.translate(x + 8, y - 3);
+    g.fillStyle = "rgba(18,17,16,.3)"; g.beginPath(); g.ellipse(13.5, 22.6, 6, 2, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = C.ink; g.beginPath(); g.ellipse(8, 23, 2.2, 1.2, 0, 0, Math.PI * 2); g.fill();
+    g.translate(8, 23); g.rotate(22 * Math.PI / 180); g.translate(-8, -23);
+    g.lineCap = "round"; g.lineJoin = "round"; g.strokeStyle = C.ink; g.lineWidth = 2; g.beginPath(); g.moveTo(8, 14); g.lineTo(8, 23); g.stroke();
+    g.beginPath(); g.moveTo(4, 14); g.lineTo(12, 14); g.lineTo(10.5, 10); g.lineTo(10.5, 6.5); g.lineTo(11.5, 6.5); g.lineTo(11.5, 4.5); g.lineTo(4.5, 4.5); g.lineTo(4.5, 6.5); g.lineTo(5.5, 6.5); g.lineTo(5.5, 10); g.closePath(); g.fillStyle = SEC; g.fill(); g.lineWidth = 1.6; g.stroke();
+    g.strokeStyle = C.bg; g.lineWidth = 1.2; g.beginPath(); g.moveTo(6.2, 7); g.lineTo(6.2, 9.6); g.stroke(); g.restore(); };
   for (let k = 1; k <= qn; k++) {
     const col = (k - 1) % COLS, row = Math.floor((k - 1) / COLS); const x0 = PAD + col * (PW + GAP), y0 = PAD + HEAD + row * (QH + PH + 4 + GAP);
     const q = (L.q || {})[k] || {}; const rest = ps.filter(p => !Object.values(q).includes(p.uid)).length;
@@ -544,7 +570,7 @@ async function lineImg(e) {
     g.font = "700 12px 'IBM Plex Sans KR', sans-serif"; g.textAlign = "right"; g.fillText(`쉬는 사람 ${rest}명`, x0 + PW, y0 + 21);
     // 경기장: 그림자, 줄무늬, 테두리, 선
     const py = y0 + QH; g.fillStyle = C.ink; rr(x0 + 4, py + 4, PW, PH, 12); g.fill();
-    g.save(); rr(x0, py, PW, PH, 12); g.clip(); for (let y = 0; y < PH; y += 30) { g.fillStyle = (y / 30) % 2 ? "#5B9A1F" : "#64A823"; g.fillRect(x0, py + y, PW, 30); }
+    g.save(); rr(x0, py, PW, PH, 12); g.clip(); for (let y = 0; y < PH; y += 46) { g.fillStyle = (y / 46) % 2 ? "#5B9A1F" : "#64A823"; g.fillRect(x0, py + y, PW, 46); }
     g.strokeStyle = "rgba(251,247,239,.9)"; g.lineWidth = 2;
     rr(x0 + 11, py + 11, PW - 22, PH - 22, 4); g.stroke();
     g.beginPath(); g.moveTo(x0 + 11, py + PH / 2); g.lineTo(x0 + PW - 11, py + PH / 2); g.stroke();
@@ -553,13 +579,16 @@ async function lineImg(e) {
     g.lineWidth = 2; g.strokeStyle = C.ink; rr(x0, py, PW, PH, 12); g.stroke();
     // 자리마다 이름표와 포지션
     fl.forEach((pos, i) => { const p = xy[i] || { x: 50, y: 50 }; const u = q[i]; const cx = x0 + PW * p.x / 100, cy = py + PH * p.y / 100;
-      const pin = !!u && pins.some(x => x.u === u && x.pos === pos && (x.qs || []).includes(k)); const off = u && !pin && !canPlay(pOf(u), pos);
-      g.font = `${u ? 700 : 500} 12px 'IBM Plex Sans KR', sans-serif`; const label = fit(u ? nm(u) : "빈자리", 64); const cw = Math.max(g.measureText(label).width + 20, 36), ch = 24, top = cy - 20;
-      g.fillStyle = !u ? "rgba(251,247,239,.55)" : pin ? C.pink : off ? OFFPOS : C.bg; rr(cx - cw / 2, top, cw, ch, 12); g.fill();
+      const pin = !!u && pins.some(x => x.u === u && x.pos === pos && (x.qs || []).includes(k)); const off = u && !pin && !canPlay(pOf(u), pos); const guest = !!u && String(u).startsWith("g:");
+      const hex = isKeeper(pos) ? kitHex(u && !guest ? gkKitOf(u) : "회색") : hexT; const top = cy - 40, jx = cx - 28;
+      jersey(jx, top, u ? hex : "rgba(251,247,239,.45)", !u);
+      g.font = "700 16px 'Barlow Condensed', sans-serif"; g.textAlign = "center"; g.fillStyle = u ? onKit(hex) : C.ink; g.fillText(pos, cx, top + 39);
+      if (pin) pinAt(jx, top);
+      if (guest) { g.font = "700 12px 'IBM Plex Sans KR', sans-serif"; const gw = g.measureText("용병").width + 12; box(jx + 56 + 12 - gw, top - 8, gw, 20, 5, SEC3); g.fillStyle = SECT; g.fillText("용병", jx + 56 + 12 - gw / 2, top + 6.5); }
+      g.font = "700 12px 'IBM Plex Sans KR', sans-serif"; const label = fit(u ? nm(u) : "빈자리", 64); const cw = Math.max(g.measureText(label).width + 20, 36), ch = 24, ty = top + 56;
+      g.fillStyle = !u ? "rgba(251,247,239,.55)" : pin ? SEC2 : off ? OFFPOS : C.bg; rr(cx - cw / 2, ty, cw, ch, 12); g.fill();
       g.lineWidth = 2; g.strokeStyle = C.ink; g.setLineDash(u ? [] : [4, 3]); g.stroke(); g.setLineDash([]);
-      g.fillStyle = C.ink; g.textAlign = "center"; g.fillText(label, cx, top + 16.5);
-      if (pin) pinAt(cx, top + 5);
-      g.font = "700 12px 'Barlow Condensed', sans-serif"; g.fillStyle = "rgba(0,0,0,.35)"; g.fillText(pos, cx, top + ch + 14); g.fillStyle = C.bg; g.fillText(pos, cx, top + ch + 13); });
+      g.fillStyle = C.ink; g.fillText(label, cx, ty + 16.5); });
   }
   const name = `${(S.team && S.team.name) || "매니볼"} 라인업 ${e.date}${e.type === "scrim" ? " " + side + "팀" : ""}.png`.replace(/[\\/:*?"<>|]/g, "");
   cv.toBlob(b => { if (!b) { toast("사진을 만들지 못했어요"); return; } const url = URL.createObjectURL(b); const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 30000); toast("라인업 사진을 저장했어요"); }, "image/png");
@@ -572,7 +601,7 @@ function spotSheet(eid, i) {
   const pin = !!u && (d.pins || []).some(x => x.u === u && x.pos === pos && x.qs.includes(k));
   const list = ps.filter(p => p.uid !== u).sort((a, b) => (canPlay(b, pos) ? 1 : 0) - (canPlay(a, pos) ? 1 : 0) || (cnt[a.uid] || 0) - (cnt[b.uid] || 0));
   sheet(`<div class="spread"><h3>${k}Q ${esc(pos)} 자리</h3><span class="note">${u ? "지금 " + esc(gname(e, u).replace(" (용병)", "")) : "비어 있어요"}</span></div>
-    ${u ? `<button type="button" class="box" data-act="aPin" data-eid="${esc(eid)}" data-i="${i}" style="flex-direction:row;align-items:center;gap:8px;border-radius:12px;padding:12px 16px${pin ? `;background:${C.pink}` : ""}"><b style="flex:1;text-align:left">이 자리에 고정</b><span style="font-size:12px;font-weight:700">${pin ? "켜짐" : "꺼짐"}</span></button>` : ""}
+    ${u ? `<button type="button" class="box" data-act="aPin" data-eid="${esc(eid)}" data-i="${i}" style="flex-direction:row;align-items:center;gap:8px;border-radius:12px;padding:12px 16px${pin ? `;background:${C.sec2}` : ""}"><b style="flex:1;text-align:left">이 자리에 고정</b><span style="font-size:12px;font-weight:700">${pin ? "켜짐" : "꺼짐"}</span></button>` : ""}
     <div style="display:flex;flex-direction:column;max-height:46dvh;overflow-y:auto">${list.map((p, n) => { const late = p.from > k; const ok = canPlay(p, pos); const num = p.uid.startsWith("g:") ? "" : numOf(p.uid);
       const head = !ok && (n === 0 || canPlay(list[n - 1], pos)) ? `<span style="display:flex;flex-direction:column;gap:4px;padding:16px 4px 8px"><b style="font-size:12px">${esc(pos)}가 선호 포지션이 아닌 선수</b><span class="note">넣으면 이 쿼터 이 자리에 고정돼요</span></span>` : "";
       return `${head}<button type="button" data-act="aPut" data-eid="${esc(eid)}" data-i="${i}" data-u="${esc(p.uid)}" ${late ? "disabled" : ""} class="row" style="border:0;border-bottom:2px solid ${C.line};background:transparent;min-height:56px;gap:12px;text-align:left;padding:0 4px;${late ? "opacity:.45" : ""}"><b class="bc" style="width:26px;font-size:18px">${esc(num)}</b><span style="flex:1;display:flex;flex-direction:column;gap:1px"><b style="font-size:16px">${esc(p.name)}</b><span style="font-size:12px;color:${C.sub}">${late ? p.from + "Q부터 와요" : where(p)}, 지금까지 ${cnt[p.uid] || 0}쿼터${ok ? "" : ", " + esc([p.pos[0], p.pos[1]].filter(Boolean).join("/") || "포지션 미정")}</span></span></button>`; }).join("")}</div>
@@ -630,7 +659,7 @@ export function adminForm(r) {
   if ((m = r.match(/^\/notice-edit\/(.+)$/))) { const n = D("notices")[decodeURIComponent(m[1])] || {}; S.form = { title: n.title || "", body: n.body || "", pinned: !!n.pinned }; return true; }
   if (r === "/rules-edit") { S.form = rulesFormInit(S.settings); return true; }
   if (r === "/policy") { S.form = policyInit(); return true; }
-  if (r === "/settings") { S.form = { tname: (S.team && S.team.name) || "", joinApproval: S.settings.joinApproval !== false }; return true; }
+  if (r === "/settings") { const tk = teamKit(); S.form = { tname: (S.team && S.team.name) || "", joinApproval: S.settings.joinApproval !== false, kitHome: tk.home, kitAway: tk.away }; return true; }
   if ((m = r.match(/^\/result\/(.+)$/)) && S.events[decodeURIComponent(m[1])]) { const e = S.events[decodeURIComponent(m[1])]; S.form = { us: (e.score || {}).us || 0, them: (e.score || {}).them || 0, goals: (e.goals || []).map(g => ({ uid: g.uid || "", assist: g.assist || "", side: g.side || "" })) }; return true; }
   if (/^\/lineup\//.test(r)) { S.form = {}; UI.q = 1; UI.side = "A"; return true; }
   if (/^\/roster\//.test(r)) { AU.rf = ""; return true; }
@@ -693,11 +722,12 @@ export const AACT = {
       fineFrom: ["day", "custom"].includes(f.fineFrom) ? f.fineFrom : "close", fineDays: clamp(f.fineDays, 1, 14, 1), fineAp: f.fineAp === "am" ? "am" : "pm", fineHour: clamp(f.fineHour, 1, 12, 6) };
     try { await setDoc("team", "settings", data); toast("저장했어요. 다음에 올리는 일정부터 적용돼요"); location.hash = "#/ops"; } catch (err) { t.disabled = false; fail(err); }
   },
+  aKit: t => { if (!owner()) return; S.form[t.dataset.k === "away" ? "kitAway" : "kitHome"] = t.dataset.v; render(); },
   aJoinAp: () => { if (!owner()) return; S.form.joinApproval = S.form.joinApproval === false; render(); },
   aSettingsSave: async t => {
     if (!owner()) return; const name = String(S.form.tname || "").trim(); if (!name) { toast("팀 이름을 적어 주세요"); return; } t.disabled = true;
     try {
-      await setDoc("team", "settings", { ...S.settings, teamName: name.slice(0, 40), joinApproval: S.form.joinApproval !== false });
+      await setDoc("team", "settings", { ...S.settings, teamName: name.slice(0, 40), joinApproval: S.form.joinApproval !== false, kit: { home: isKit(S.form.kitHome) ? S.form.kitHome : "흰색", away: isKit(S.form.kitAway) ? S.form.kitAway : "흰색" } });
       if (S.team && name !== S.team.name) { const { error } = await sb.from("teams").update({ name: name.slice(0, 40) }).eq("id", S.tid); if (error) throw error; S.team.name = name.slice(0, 40); }
       toast("저장했어요"); location.hash = "#/ops";
     } catch (err) { t.disabled = false; fail(err); }
@@ -732,6 +762,7 @@ export const AACT = {
     const goals = (f.goals || []).map(g => ({ uid: g.uid || "", assist: g.assist && g.assist !== g.uid ? g.assist : "", ...(e.type === "scrim" ? { side: g.side || "" } : {}) }));
     try { await setDoc("events", e.id, { ...e, score: { us: Number(f.us) || 0, them: Number(f.them) || 0 }, scoredAt: e.scoredAt || new Date().toISOString(), goals }); await syncMyDues(); toast(e.scoredAt ? "고쳤어요" : "저장했어요. MOM 투표가 열렸어요"); location.hash = "#/game/" + e.id; } catch (err) { t.disabled = false; fail(err); }
   },
+  aOppKit: t => { S.form.oppKit = S.form.oppKit === t.dataset.v ? "" : t.dataset.v; S.form.kit = ""; render(); },
   aOppTbd: () => { S.form.oppTbd = !S.form.oppTbd; if (S.form.oppTbd) S.form.opponent = ""; render(); },
   aSaveEvent: async t => {
     const f = S.form; const eid = t.dataset.eid; const old = (eid && S.events[eid]) || {};
@@ -743,7 +774,7 @@ export const AACT = {
     if (closeAt(probe) <= Date.now() && !(eid && closeAt(old) <= Date.now())) { toast("투표 마감 시각이 이미 지났어요. 날짜나 마감 시각을 바꿔 주세요"); return; }
     const openAt = f.openDate && f.openDate > todayStr() && f.openDate <= f.date ? new Date(f.openDate + "T00:00:00+09:00").toISOString() : (eid && old.openAt && f.openDate === kstDate(old.openAt) ? old.openAt : "");
     t.disabled = true; const id = eid || uid36("e"); const type = old.type === "scrim" ? "scrim" : f.type;
-    const data = { ...old, id, type, date: f.date, time: f.time, end: f.end || "", place: String(f.place || "").trim().slice(0, 40), opponent: type === "match" && !f.oppTbd ? String(f.opponent || "").trim().slice(0, 30) : "", cap: type === "scrim" ? 0 : clamp(f.cap, 0, 60, pol("cap")), voteClose: "eve", voteTime, checkBefore: clamp(f.cb, 0, 60, pol("checkBefore")), openAt, createdAt: old.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() };
+    const data = { ...old, id, type, date: f.date, time: f.time, end: f.end || "", place: String(f.place || "").trim().slice(0, 40), opponent: type === "match" && !f.oppTbd ? String(f.opponent || "").trim().slice(0, 30) : "", oppKit: type === "match" && !f.oppTbd && isKit(f.oppKit) ? f.oppKit : "", kit: type === "match" && !f.oppTbd && (f.kit === "home" || f.kit === "away") ? f.kit : "", cap: type === "scrim" ? 0 : clamp(f.cap, 0, 60, pol("cap")), voteClose: "eve", voteTime, checkBefore: clamp(f.cb, 0, 60, pol("checkBefore")), openAt, createdAt: old.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() };
     try { await setDoc("events", id, data); toast(eid ? "저장했어요" : openAt ? "일정을 올렸어요. 고른 날부터 투표를 받아요" : "일정을 올렸어요. 팀원이 바로 투표할 수 있어요"); location.hash = eid ? "#/manage/" + id : "#/event/" + id; } catch (err) { t.disabled = false; fail(err); }
   },
   aDelEvent: t => { const e = S.events[t.dataset.eid]; if (!e) return; const voters = people().filter(x => ((((S.rsvp[x.uid] || {}).ev || {})[e.id]) || {}).s).map(x => x.uid);
@@ -782,6 +813,7 @@ export const AACT = {
   aForm: t => formSheet(t.dataset.eid),
   aFormPick: t => { closeSheet(); const e = S.events[t.dataset.eid]; if (!e) return; const side = sideOf(e); const d = draftOf(e, side); d.fkey = t.dataset.k; d.pins = [];
     if (!curLineup(e, side)) { render(); return; } UI.q = 1; saveL(e, side, autoLineup(e, side)); toast("다시 짰어요"); },
+  aLineKit: async t => { const e = S.events[t.dataset.eid]; if (!e || e.type !== "match") return; try { await patchDoc("events", e.id, { kit: t.dataset.v }); render(); toast(`${t.dataset.v.toUpperCase()} 유니폼으로 정했어요`); } catch (err) { fail(err); } },
   aLinePdf: t => { const e = S.events[t.dataset.eid]; if (e) lineImg(e).catch(err => fail(err)); },
   aAuto: t => { const e = S.events[t.dataset.eid]; if (!e) return; const side = sideOf(e); if (!formOf(draftOf(e, side).fkey, curLineup(e, side))) { toast("몇 명이 뛸지 먼저 골라 주세요"); return; } const L = autoLineup(e, side); L.pins = JSON.parse(JSON.stringify(draftOf(e, side).pins || [])); saveL(e, side, L); toast(draftOf(e, side).pins.length ? "고정한 자리는 두고 다시 짰어요" : sport() === "futsal" ? "쉬는 쿼터를 고르게 짰어요" : "휴식을 맞추고 1선호를 최대한 맞춰 짰어요"); },
   aSpot: t => spotSheet(t.dataset.eid, Number(t.dataset.i)),
