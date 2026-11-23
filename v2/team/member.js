@@ -5,6 +5,7 @@ import { afeed, adminHomeRows } from "./admin.js";
 import { isKeeper } from "./lineup-core.js";
 import { pushBusy } from "./push.js";
 import { vChat, vChatRoom, chatEnter } from "./chat.js";
+import { vMatch, vHire, vSeek, xEnter } from "./xteam.js";
 
 /* ---------- 공통 계산 ---------- */
 const MU = { season: "", lq: 1, mom: "", gpos: [], tq: {}, anim: null };
@@ -553,6 +554,9 @@ export function memberRoute(r) {
   if (r === "/posreq") return mPosReq();
   if (r === "/schedule") return mSchedule();
   if (r === "/chat") return vChat();
+  if (r === "/match") return vMatch();
+  if (r === "/hire") return vHire();
+  if (r === "/seek") return vSeek();
   if ((m = r.match(/^\/chat\/(.+)$/))) return vChatRoom(decodeURIComponent(m[1]));
   if ((m = r.match(/^\/event\/(.+)$/))) return mEvent(decodeURIComponent(m[1]));
   if (r === "/records") return mRecords();
@@ -571,6 +575,7 @@ export function memberForm(r) {
   if (/^\/game\//.test(r)) { MU.mom = ""; MU.momFor = ""; return true; }
   if (/^\/event\//.test(r)) { MU.lq = 1; return true; }
   if (/^\/chat/.test(r)) { chatEnter(); return true; }
+  if (/^\/(match|hire|seek)$/.test(r)) { xEnter(); return true; }
   return false;
 }
 let undoT = 0;

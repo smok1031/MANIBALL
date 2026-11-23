@@ -9,6 +9,7 @@ import { hd as uiHd, navBar, C, IC, teamLogo, setSec } from "./ui.js";
 import { pushInit, pushToggle, pushDetach, kakaoOff } from "./push.js";
 import { chatLoad, chatOnChange, CHACT } from "./chat.js";
 import { isPC, onPCChange, pcShell, pcSplit } from "./pc.js";
+import { XACT } from "./xteam.js";
 
 const URL_ = import.meta.env.VITE_SUPABASE_URL || SUPABASE_URL;
 const KEY_ = import.meta.env.VITE_SUPABASE_KEY || SUPABASE_KEY;
@@ -1088,7 +1089,7 @@ function render() {
   else {
     const r = route();
     // 지금 화면이 속한 탭 색 (탭 첫 화면은 navBar가 다시 맞춤)
-    setSec(/^\/(records|game|season|result)/.test(r) ? "record" : /^\/(team|notices?|rules|money|members|kick|write)/.test(r) ? "team" : /^\/(ops|requests|posreqs|dues|fines|policy|settings|ledger)/.test(r) ? "ops" : /^\/(schedule|event|lineup|manage|roster|check|merc|new|edit|scrim)/.test(r) ? "schedule" : /^\/chat/.test(r) ? "chat" : "home");
+    setSec(/^\/(records|game|season|result)/.test(r) ? "record" : /^\/(team|notices?|rules|money|members|kick|write)/.test(r) ? "team" : /^\/(ops|requests|posreqs|dues|fines|policy|settings|ledger)/.test(r) ? "ops" : /^\/(schedule|event|lineup|manage|roster|check|merc|new|edit|scrim)/.test(r) ? "schedule" : /^\/chat/.test(r) ? "chat" : /^\/(match|hire|seek)$/.test(r) ? "other" : "home");
     if (r === "/invite" && isAdmin()) html = vInviteMsg();
     else if (r === "/me") html = vProfile(true);
     else {
@@ -1333,7 +1334,7 @@ const ACT = {
   kakaoMsgOff: () => confirmBox("카카오톡 알림 끄기", "카카오톡 나와의 채팅으로 오던 알림을 끌까요? 카카오 메시지 동의도 함께 거둬요.", "끄기", () => kakaoOff()),
   logout: () => confirmBox("로그아웃", "이 기기에서 로그아웃할까요?", "로그아웃", async () => { await pushDetach(); try { await sb.auth.signOut(); } catch (e) { /* 그래도 처음으로 */ } ls.set("mb-team", null); picked.clear(); location.replace(APP); }),
 };
-Object.assign(ACT, ACT2, ACT3, ACT4, AACT, MACT, CHACT);
+Object.assign(ACT, ACT2, ACT3, ACT4, AACT, MACT, CHACT, XACT);
 document.addEventListener("click", ev => {
   const t = ev.target.closest("[data-act]"); if (!t) return;
   const f = ACT[t.dataset.act]; if (!f) return;

@@ -93,6 +93,7 @@ function listInner(cur) {
 // PC: 왼쪽 방 목록, 오른쪽 방. 방을 안 골랐으면 마지막에 본 방이나 목록의 첫 방을 연다
 function pcChat(id) {
   let room = id;
+  if (id && S.events[id] && /^\d{4}-\d{2}-\d{2}$/.test(S.events[id].date || "")) CH.tab = S.events[id].date < todayStr() ? "past" : "up";
   if (!room) { const list = (CH.tab === "past" ? roomsPast() : roomsUp()); room = (CH.last && list.some(e => e.id === CH.last)) ? CH.last : (list[0] || {}).id || ""; }
   const right = room && S.events[room] ? roomInner(room, true) : `<div class="pce">${empty("방을 골라 주세요", "왼쪽에서 일정 방을 누르면 여기에 대화가 보여요.")}</div>`;
   return `${hdTab("대화")}<div class="pcsplit"><div class="pcl">${listInner(room)}</div><section class="pcr" aria-label="대화방">${right}</section></div>`;
@@ -146,7 +147,52 @@ function roomInner(id, pc) {
     : `<div class="chclosed"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg><span>${cx ? "취소된 일정이라 읽기만 할 수 있어요." : "일정 날짜가 지나 읽기만 할 수 있어요. 이 방은 기록과 함께 남아요."}</span></div>`;
   if (CH.stick) { CH.stick = false; setTimeout(toBottom, 0); }
   const head = pc ? `<header class="pch"><span class="tag">일정 방</span><b>${esc(titleOf(e))}</b><span>팀원 ${S.members.length}명</span></header>` : hd(titleOf(e), "#/chat", { sub: `팀원 ${S.members.length}명` });
-  return `${head}${tk}<div class="chlog" aria-label="${esc(titleOf(e))} 대화" aria-live="polite">${intro}${bodyEmpty}${log}</div>${foot}`;
+  const rate = pc && adm && !open && !cx ? rateBox(id, e) : "";
+  return `${head}${tk}<div class="chlog" aria-label="${esc(titleOf(e))} 대화" aria-live="polite">${intro}${bodyEmpty}${log}</div>${rate}${foot}`;
+}
+/* ===================== 용병 평가 (끝난 경기 방, 운영진, PC) =====================
+   현장 출석으로 온 게 확인된 다른 팀 용병만 평가한다. 경기 날짜 다음 날부터 7일 안에 고칠 수 있다.
+   평가는 서버 함수(x_rate)로만 쓰고, 목록은 x_rates_of로 받는다. 안 온 용병은 별점 대신 '안 옴'이 서버 계산으로 남는다. */
+export const RV = { room: "", tid: "", list: null, busy: false, err: false, open: "", draft: {} };
+const WHY = [["ontime", "시간 약속 지킴"], ["manner", "매너 좋음"], ["fit", "포지션 잘 맞음"], ["late", "늦게 옴"], ["rude", "매너 나쁨"], ["curse", "욕설"]];
+const dayAdd = (d, n) => { const t = new Date(d + "T00:00:00Z"); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
+const hasExt = e => Object.values((e && e.guests) || {}).some(g => g && g.ext && g.ext.uid);
+async function rateLoad(id) {
+  if (RV.busy) return; RV.busy = true;
+  const { data, error } = await sb.rpc("x_rates_of", { p_team: S.tid, p_event: id });
+  RV.busy = false;
+  if (RV.room !== id || RV.tid !== S.tid) { render(); return; }
+  if (error) { RV.err = true; RV.list = []; } else { RV.list = Array.isArray(data) ? data : []; }
+  render();
+}
+const STAR = (fill) => `<svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.3L12 17.1l-5.7 3.1 1.2-6.3-4.7-4.4 6.4-.8z" fill="${fill}" stroke="#121110" stroke-width="2" stroke-linejoin="round"></path></svg>`;
+function rateBox(id, e) {
+  if (!hasExt(e)) return "";
+  const today = todayStr(); const last = dayAdd(e.date, 7);
+  if (!(e.date < today) || today > last) return "";
+  if (RV.room !== id || RV.tid !== S.tid) { RV.room = id; RV.tid = S.tid; RV.list = null; RV.err = false; RV.open = ""; RV.draft = {}; }
+  if (RV.list === null) { if (!RV.busy) setTimeout(() => rateLoad(id), 0); return `<section class="xrv" aria-label="용병 평가"><b class="h">용병 평가</b><div class="loading">불러오는 중이에요</div></section>`; }
+  if (RV.err) return `<section class="xrv" aria-label="용병 평가"><b class="h">용병 평가</b><span class="n">평가를 준비하고 있어요. 서버 준비가 끝나면 바로 쓸 수 있어요.</span></section>`;
+  if (!RV.list.length) return "";
+  const note = `현장 출석으로 온 게 확인된 용병만 평가해요. 팀을 대표해 운영진 한 명이 하고, ${md(last)}까지 고칠 수 있어요. 누가 평가했는지는 용병에게 안 보여요.`;
+  const rows = RV.list.map(u => {
+    const came = u.check === "in" || u.check === "late"; const done = u.rate;
+    const isOpen = RV.open === u.key;
+    const d = RV.draft[u.key] || { s: done ? done.stars : 0, why: done ? (done.why || []).slice() : [] };
+    const chip = came ? (done ? `평가함  별 ${done.stars}개` : "평가 전") : u.checked ? "안 옴, 자동으로 남아요" : "출석 확인 전";
+    const chipCls = came ? (done ? " on" : "") : " off";
+    const sub = [u.sub || "", u.pos || "", came ? "현장 출석으로 온 게 확인됐어요" : u.checked ? "현장 출석에 없어요" : "현장 출석을 먼저 확인해 주세요"].filter(Boolean).join(", ");
+    const form = isOpen ? `<div class="xrf"><span class="xst" role="group" aria-label="별점">${[1, 2, 3, 4, 5].map(n => `<button type="button" data-act="rvStar" data-k="${esc(u.key)}" data-n="${n}" aria-label="별 ${n}개" aria-pressed="${d.s === n}">${STAR(n <= d.s ? "#FCD01A" : "#FFFFFF")}</button>`).join("")}<b>${d.s ? "별 " + d.s + "개" : "별을 골라 주세요"}</b></span>
+      <span class="xwy"><span>이유 (여러 개 골라도 돼요)</span><span class="ws">${WHY.map(([k, l]) => `<button type="button" class="chip pill${d.why.includes(k) ? " on" : ""}" data-act="rvWhy" data-k="${esc(u.key)}" data-v="${k}" aria-pressed="${d.why.includes(k)}">${l}</button>`).join("")}</span></span>
+      <span class="xra"><button type="button" class="btn sm" data-act="rvOpen" data-k="">닫기</button><button type="button" class="btn sm o" data-act="rvSend" data-k="${esc(u.key)}" aria-disabled="${!d.s}">평가 보내기</button></span></div>` : "";
+    return `<div class="xrc${came ? (isOpen ? " open" : "") : " no"}"><span class="xrh"><span class="who"><span class="nm"><b>${esc(u.name || "용병")}</b><span class="xchip${chipCls}">${chip}</span></span><span class="sb">${esc(sub)}</span></span>${came && !isOpen ? `<button type="button" class="btn sm${done ? "" : " o"}" data-act="rvOpen" data-k="${esc(u.key)}" aria-expanded="false">${done ? "고치기" : "평가하기"}</button>` : ""}</span>${form}</div>`;
+  }).join("");
+  return `<section class="xrv" aria-label="용병 평가"><span class="hw"><b class="h">용병 평가</b><span class="n">${note}</span></span>${rows}</section>`;
+}
+function rvDraft(k) {
+  const u = (RV.list || []).find(x => x.key === k); if (!u) return null;
+  if (!RV.draft[k]) RV.draft[k] = { s: u.rate ? u.rate.stars : 0, why: u.rate ? (u.rate.why || []).slice() : [] };
+  return RV.draft[k];
 }
 function toBottom() { const lg = document.querySelector(".pcr .chlog"); if (lg) lg.scrollTop = lg.scrollHeight; else window.scrollTo(0, document.documentElement.scrollHeight); }
 // 방에 들어올 때: 쓰던 글은 비우고 맨 아래로
@@ -162,6 +208,24 @@ function chatFail(err) {
 }
 
 export const CHACT = {
+  rvOpen: t => { RV.open = t.dataset.k || ""; if (RV.open) rvDraft(RV.open); render(); },
+  rvStar: t => { const d = rvDraft(t.dataset.k); if (!d) return; d.s = Number(t.dataset.n) || 0; render(); },
+  rvWhy: t => { const d = rvDraft(t.dataset.k); if (!d) return; const v = t.dataset.v; d.why = d.why.includes(v) ? d.why.filter(z => z !== v) : d.why.concat([v]); render(); },
+  rvSend: async t => {
+    const k = t.dataset.k; const d = rvDraft(k); const u = (RV.list || []).find(x => x.key === k);
+    if (!d || !u) return;
+    if (!d.s) { toast("별을 골라 주세요"); return; }
+    if (maintLocked()) { fail(new Error("maintenance")); return; }
+    if (RV.busy) return; RV.busy = true;
+    const { error } = await sb.rpc("x_rate", { p_team: S.tid, p_event: RV.room, p_key: k, p_stars: d.s, p_why: d.why });
+    RV.busy = false;
+    if (error) {
+      const m = String(error.message || ""); const M = { not_came: "현장 출석으로 온 게 확인된 용병만 평가할 수 있어요", too_late: "평가할 수 있는 기간이 지났어요", not_yet: "경기 날짜가 지나야 평가할 수 있어요", not_admin: "운영진만 평가할 수 있어요", not_ext: "다른 팀 용병만 평가할 수 있어요" };
+      const x = Object.keys(M).find(z => m.includes(z)); if (x) { toast(M[x]); return; } fail(error); return;
+    }
+    u.rate = { stars: d.s, why: d.why.slice() }; delete RV.draft[k]; RV.open = ""; render();
+    toast(`${u.name || "용병"}님을 평가했어요. 별점은 평가가 3번 모이면 다른 팀에 보여요`);
+  },
   chatTab: t => { CH.tab = t.dataset.v === "past" ? "past" : "up"; if (isPC()) { CH.last = ""; CH.stick = true; if (location.hash !== "#/chat") { location.hash = "#/chat"; return; } } render(); },
   chatSend: async t => {
     const id = t.dataset.room; const e = S.events[id];

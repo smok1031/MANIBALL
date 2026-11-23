@@ -199,6 +199,8 @@ function aSettings() {
   return `${hd("팀 설정", back("#/ops"), { sub: "Admin만 바꿀 수 있어요" })}<div class="body">
     <div class="box blue" style="flex-direction:row;align-items:center;gap:16px;border-radius:18px">${teamLogo(52)}<label style="flex:1;display:flex;flex-direction:column;gap:4px;min-width:0"><span style="font-size:12px;font-weight:700">팀 이름</span>${own ? `<input class="inp" data-bind="tname" value="${esc(f.tname || "")}" maxlength="40" style="height:46px;font-weight:700;font-size:18px">` : `<b class="bh" style="font-size:24px">${esc(S.team.name)}</b>`}</label></div>
     <div class="spread" style="border-bottom:2px solid ${C.line};padding-bottom:16px"><b style="font-size:16px">종목</b><span style="font-size:16px">${sport() === "soccer" ? "축구팀" : "풋살팀"} <span class="note">만든 뒤에는 바꿀 수 없어요</span></span></div>
+    <div class="fld"><div class="spread" style="align-items:baseline"><b style="font-size:16px">팀 실력</b><span class="note">다른 팀과(매칭, 용병)에서 다른 팀에게 보여요</span></div><div class="chips">${[1, 2, 3, 4, 5].map(n => `<button type="button" class="chip sm${Number(f.level) === n ? " on" : ""}" data-act="aLevel" data-v="${n}" aria-pressed="${Number(f.level) === n}" ${own ? "" : "disabled"}>${n} ${["", "입문", "초급", "중급", "중상급", "상급"][n]}</button>`).join("")}</div></div>
+    <label class="fld"><span class="spread" style="align-items:baseline"><b style="font-size:16px">지역</b><span class="note">주로 뛰는 곳 (예: 마포, 고양)</span></span><input class="inp" data-bind="area" value="${esc(f.area || "")}" maxlength="20" placeholder="예: 마포" ${own ? "" : "disabled"}></label>
     <div class="fld"><div class="spread" style="align-items:baseline"><b style="font-size:16px">유니폼 색</b><span class="note">경기마다 HOME, AWAY 중에서 골라요</span></div>
       ${[["home", "HOME", f.kitHome], ["away", "AWAY", f.kitAway]].map(([k, l, n]) => `<div class="box" style="gap:8px;border-radius:12px;padding:12px;box-shadow:none"><span class="row" style="gap:12px">${jerseyIcon(kitHex(n), 44)}<span style="display:flex;flex-direction:column;line-height:1.2"><b class="bc" style="font-size:20px">${l}</b><span style="font-size:12px">${esc(n)}</span></span></span>${kitPicker("aKit", n, `data-k="${k}"`, !own)}</div>`).join("")}
       <span class="note">라인업 화면의 유니폼이 이 색으로 보여요. 골키퍼 유니폼은 골키퍼인 팀원이 직접 골라요.</span></div>
@@ -659,7 +661,7 @@ export function adminForm(r) {
   if ((m = r.match(/^\/notice-edit\/(.+)$/))) { const n = D("notices")[decodeURIComponent(m[1])] || {}; S.form = { title: n.title || "", body: n.body || "", pinned: !!n.pinned }; return true; }
   if (r === "/rules-edit") { S.form = rulesFormInit(S.settings); return true; }
   if (r === "/policy") { S.form = policyInit(); return true; }
-  if (r === "/settings") { const tk = teamKit(); S.form = { tname: (S.team && S.team.name) || "", joinApproval: S.settings.joinApproval !== false, kitHome: tk.home, kitAway: tk.away }; return true; }
+  if (r === "/settings") { const tk = teamKit(); S.form = { tname: (S.team && S.team.name) || "", joinApproval: S.settings.joinApproval !== false, kitHome: tk.home, kitAway: tk.away, level: Number(S.settings.level) || 0, area: S.settings.area || "" }; return true; }
   if ((m = r.match(/^\/result\/(.+)$/)) && S.events[decodeURIComponent(m[1])]) { const e = S.events[decodeURIComponent(m[1])]; S.form = { us: (e.score || {}).us || 0, them: (e.score || {}).them || 0, goals: (e.goals || []).map(g => ({ uid: g.uid || "", assist: g.assist || "", side: g.side || "" })) }; return true; }
   if (/^\/lineup\//.test(r)) { S.form = {}; UI.q = 1; UI.side = "A"; return true; }
   if (/^\/roster\//.test(r)) { AU.rf = ""; return true; }
@@ -727,11 +729,12 @@ export const AACT = {
   aSettingsSave: async t => {
     if (!owner()) return; const name = String(S.form.tname || "").trim(); if (!name) { toast("팀 이름을 적어 주세요"); return; } t.disabled = true;
     try {
-      await setDoc("team", "settings", { ...S.settings, teamName: name.slice(0, 40), joinApproval: S.form.joinApproval !== false, kit: { home: isKit(S.form.kitHome) ? S.form.kitHome : "흰색", away: isKit(S.form.kitAway) ? S.form.kitAway : "흰색" } });
+      await setDoc("team", "settings", { ...S.settings, teamName: name.slice(0, 40), joinApproval: S.form.joinApproval !== false, kit: { home: isKit(S.form.kitHome) ? S.form.kitHome : "흰색", away: isKit(S.form.kitAway) ? S.form.kitAway : "흰색" }, level: [1, 2, 3, 4, 5].includes(Number(S.form.level)) ? Number(S.form.level) : (S.settings.level || null), area: String(S.form.area || "").trim().slice(0, 20) });
       if (S.team && name !== S.team.name) { const { error } = await sb.from("teams").update({ name: name.slice(0, 40) }).eq("id", S.tid); if (error) throw error; S.team.name = name.slice(0, 40); }
       toast("저장했어요"); location.hash = "#/ops";
     } catch (err) { t.disabled = false; fail(err); }
   },
+  aLevel: t => { if (!owner()) return; S.form.level = Number(t.dataset.v) || 0; render(); },
   aTeamOut: () => { AU.out = "leave"; teamOutSheet(); },
   aMember: t => memberSheet(t.dataset.u),
   aKick: t => { const u = t.dataset.u; closeSheet();

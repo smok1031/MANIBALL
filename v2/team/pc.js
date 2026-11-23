@@ -24,7 +24,7 @@ const OTHER = [
   ["#/seek", "용병 구직", "seek", `<circle cx="10" cy="8" r="4"></circle><path d="M3 21c.8-4 3.5-6 7-6 1.4 0 2.6.3 3.6.9"></path><circle cx="18" cy="17" r="3"></circle><path d="M20.2 19.2 22 21"></path>`],
 ];
 // 다른 팀과 기능이 열렸는지 (3단계에서 켠다)
-export const OTHER_ON = { on: false };
+export const OTHER_ON = { on: true };
 
 const BRAND_ = () => MBRAND(32);
 
@@ -33,9 +33,10 @@ export function pcShell(html) {
   const adm = isAdmin() && viewMode() === "admin";
   const items = MENU.filter(m => adm || m[2] !== "ops");
   const cu = chatUnread();
-  const nav = items.map(([h, l, k, col, ic]) => `<a href="${h}"${k === sec ? ` aria-current="page"` : ""} style="--c:${col}">${sv(ic)}<span>${l}</span>${k === "chat" && cu ? `<i class="pcn" aria-label="안 읽은 글 ${cu}개">${cu > 99 ? "99+" : cu}</i>` : ""}</a>`).join("");
+  const nav = items.map(([h, l, k, col, ic]) => `<a href="${h}"${k === sec && sec !== "other" ? ` aria-current="page"` : ""} style="--c:${col}">${sv(ic)}<span>${l}</span>${k === "chat" && cu ? `<i class="pcn" aria-label="안 읽은 글 ${cu}개">${cu > 99 ? "99+" : cu}</i>` : ""}</a>`).join("");
+  const hash = location.hash || "#/";
   const other = OTHER.map(([h, l, k, ic]) => OTHER_ON.on
-    ? `<a href="${h}"${k === sec ? ` aria-current="page"` : ""} style="--c:#F2A65A">${sv(ic)}<span>${l}</span></a>`
+    ? `<a href="${h}"${hash === h ? ` aria-current="page"` : ""} style="--c:#F2A65A">${sv(ic)}<span>${l}</span></a>`
     : `<span class="off" aria-disabled="true">${sv(ic)}<span>${l}</span><i>준비 중</i></span>`).join("");
   const p = myProfile() || {};
   const me = p.name || nameOf(S.uid);
