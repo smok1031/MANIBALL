@@ -3,7 +3,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_KEY } from "../../src/config.js";
 import { memberRoute, memberForm, MACT } from "./member.js";
-import { planLineup, canPlay, FIELD, isKeeper } from "./lineup-core.js";
+import { planLineup, canPlay, FIELD, isKeeper, fitOf } from "./lineup-core.js";
 import { adminRoute, adminForm, AACT, eventFormInit, remindLeft, remindSheet, playerSheet, rosterSheet } from "./admin.js";
 import { hd as uiHd, navBar, C, IC, teamLogo, setSec } from "./ui.js";
 import { pushInit, pushToggle, pushDetach, kakaoOff } from "./push.js";
@@ -1006,7 +1006,7 @@ const ACT2 = {
     row[UI.sel] = pl.uid; L.pins = JSON.parse(JSON.stringify(d.pins)); S.form.lineup = L; S.form.lineupFor = e.id + side; UI.sel = null; render(); },
   lineForm: t => { const e = S.events[t.dataset.eid]; const forms = FORMS[sport()];
     if (sport() === "futsal") { sheet(`<h3>몇 명이 뛰나요?</h3><span class="hint">골레이로를 포함한 한 팀 인원이에요. 참석 ${att(e).in}명</span><div class="chips">${FUTSAL_N.map(n => `<button class="chip" data-act="lineFormPick" data-eid="${esc(e.id)}" data-k="${n}대${n}">${n}대${n}</button>`).join("")}</div><button class="btn" data-act="closeSheet">닫기</button>`); return; }
-    sheet(`<h3>포메이션 고르기</h3><span class="hint">참석 ${att(e).in}명</span><div class="list">${Object.keys(forms).map(k => `<button class="li" data-act="lineFormPick" data-eid="${esc(e.id)}" data-k="${esc(k)}" style="border:0;border-bottom:1px solid #F3F4F6;background:none;text-align:left;width:100%"><span style="flex:1"><b>${sport() === "soccer" ? "11대11" : forms[k].length + "대" + forms[k].length}, ${esc(k)}</b><br><span class="hint">${esc(FORM_DESC[k] || forms[k].join(", "))}</span></span></button>`).join("")}</div><button class="btn" data-act="closeSheet">닫기</button>`); },
+    sheet(`<h3>포메이션 고르기</h3><span class="hint">참석 ${att(e).in}명</span><div class="list">${(sport() === "soccer" ? PICK : Object.keys(forms)).map(k => `<button class="li" data-act="lineFormPick" data-eid="${esc(e.id)}" data-k="${esc(k)}" style="border:0;border-bottom:1px solid #F3F4F6;background:none;text-align:left;width:100%"><span style="flex:1"><b>${sport() === "soccer" ? "11대11" : forms[k].length + "대" + forms[k].length}, ${esc(k)}</b><br><span class="hint">${esc(FORM_DESC[k] || forms[k].join(", "))}</span></span></button>`).join("")}</div><button class="btn" data-act="closeSheet">닫기</button>`); },
   lineFormPick: t => { closeSheet(); const e = S.events[t.dataset.eid]; const side = e.type === "scrim" ? UI.side : "main"; { const d = draftOf(e, side); d.fkey = t.dataset.k; const nf = formOf(t.dataset.k) || []; const before = d.pins.length; d.pins = d.pins.filter(x => nf.includes(x.pos)); if (d.pins.length < before) setTimeout(() => toast("새 포메이션에 없는 자리의 고정은 풀었어요"), 1800); }
     const what = sport() === "futsal" ? t.dataset.k + "로 정했어요" : "포메이션을 골랐어요";
     if (!curLineup(e, side)) { render(); toast(`${what}. 지정할 선수가 있으면 먼저 정하고 자동 배치를 눌러 주세요`); return; }
@@ -1411,7 +1411,9 @@ const FORMS = {
     "5-4-1": ["GK", "LB", "CB", "CB", "CB", "RB", "LW", "CDM", "CDM", "RW", "ST"]
   }
 };
-const FORM_DESC = { "4-4-2": "수비 4, 미드 4, 공격 2", "4-3-3": "수비형 미드 1, 윙어 2", "4-2-3-1": "수비형 미드 2, 공격형 미드 1", "4-1-4-1": "수비형 미드 1, 미드 4, 공격 1", "4-4-1-1": "미드 4, 공격형 미드 1, 공격 1", "4-1-2-1-2": "4-4-2 다이아몬드", "3-5-2": "센터백 3, 윙백 2, 공격 2", "3-4-3": "센터백 3, 윙백 2, 공격 3", "5-3-2": "수비 5, 미드 3, 공격 2", "5-4-1": "수비 5, 미드 4, 공격 1" };
+// 고를 수 있는 축구 포메이션 6개 (아마추어, 동호인 리그에서 많이 쓰는 것). 예전에 저장한 다른 포메이션 라인업도 그대로 보이도록 FORMS에는 10개를 남겨 둔다
+const PICK = ["4-4-2", "4-2-3-1", "4-3-3", "4-4-1-1", "4-1-2-1-2", "3-5-2"];
+const FORM_DESC = { "4-4-2": "수비 4, 미드 4, 공격 2", "4-3-3": "수비형 미드 1, 윙어 2", "4-2-3-1": "수비형 미드 2, 공격형 미드 1", "4-1-4-1": "수비형 미드 1, 미드 4, 공격 1", "4-4-1-1": "미드 4, 공격형 미드 1, 공격 1", "4-1-2-1-2": "4-4-2 다이아몬드", "3-5-2": "센터백 3, 측면 2, 공격 2", "3-4-3": "센터백 3, 윙백 2, 공격 3", "5-3-2": "수비 5, 미드 3, 공격 2", "5-4-1": "수비 5, 미드 4, 공격 1" };
 const FUTSAL_N = [3, 4, 5, 6, 7, 8, 9, 10, 11];
 const LINE = p => isKeeper(p) ? 0 : ["DF", "LB", "CB", "RB"].includes(p) ? 1 : ["LWB", "RWB", "CDM", "MF", "CM", "LM", "RM"].includes(p) ? 2 : p === "CAM" ? 3 : 4;
 // 경기장 줄: 축구는 포메이션 숫자대로(4-2-3-1이면 4, 2, 3, 1), 풋살은 필드 선수를 3명씩. 옛 라인업은 자리 이름으로 나눈다
@@ -1434,4 +1436,4 @@ function vRest(id) {
 }
 
 // member.js와 admin.js가 같이 쓰는 것
-export { isCanceled, isDemo, maintLocked, scheduleRender, backHref, delDoc, FUTSAL_N, loadReqs, ls, APP, route, viewMode, fineAt, fineNow, fineText, lateCancel, spotXY, delSheet, curLineup, lineupPlayers, draftOf, formOf, autoLineup, FORMS, FORM_DESC, applyFix, qText, rowsOf, loadTeam, enter, showTeams, inviteUrl, policyFromForm as polFromForm, posFix, profileOf, refreshTally, hmK, promotedAt, ampm, closeAt, voteTimeOf, $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };
+export { PICK, fitOf, isCanceled, isDemo, maintLocked, scheduleRender, backHref, delDoc, FUTSAL_N, loadReqs, ls, APP, route, viewMode, fineAt, fineNow, fineText, lateCancel, spotXY, delSheet, curLineup, lineupPlayers, draftOf, formOf, autoLineup, FORMS, FORM_DESC, applyFix, qText, rowsOf, loadTeam, enter, showTeams, inviteUrl, policyFromForm as polFromForm, posFix, profileOf, refreshTally, hmK, promotedAt, ampm, closeAt, voteTimeOf, $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };

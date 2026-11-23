@@ -2,7 +2,7 @@
 import { S, D, $, att, esc, md, wd, evName, started, evStart, isPlay, momClosed, momDeadline, momWinners, nameOf, people, guestReqs, guestsOf, scrimReady, won, pol, POS, QN, ROLE, UI,
   isAdmin, viewMode, route, backHref, render, toast, fail, sheet, closeSheet, confirmBox, setDoc, delDoc, patchDoc, sb, uid36, todayStr, ym, mLabel, monthsList, feeMode, paidOf, cameTo,
   syncMyDues, refreshMembers, remindInfo, inviteUrl, canKick, profileOf, posFix, sport, voteState, closeAt, past, rulesFormInit, rulesFromForm, rulesTextOf, fineRulesOf, ruleKind,
-  curLineup, lineupPlayers, draftOf, formOf, autoLineup, FORMS, FORM_DESC, applyFix, spotXY, FUTSAL_N, loadReqs, ls, APP, isCanceled } from "./main.js";
+  curLineup, lineupPlayers, draftOf, formOf, autoLineup, FORMS, FORM_DESC, PICK, fitOf, applyFix, spotXY, FUTSAL_N, loadReqs, ls, APP, isCanceled } from "./main.js";
 import { C, IC, navBar, hd, hdTab, lrow, dlg, empty, sw, teamLogo } from "./ui.js";
 import { bigTicket, strip, whenText, kindOf, vsText, myStats, teamRecord, memberGroups, seasonEvents, cancelCard } from "./member.js";
 import { canPlay, isKeeper } from "./lineup-core.js";
@@ -500,7 +500,7 @@ function aLineup(id) {
     <div class="pitch" style="height:${fs ? 330 : 400}px">${PITCH}${fl.map((_, i) => spot(i)).join("")}${!L ? `<span class="stamp" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-4deg);font-size:16px;white-space:nowrap">자동 배치를 눌러요</span>` : ""}</div>
     ${L && fl.some((_, i) => !q[i]) ? `<div class="err">${k}Q 빈자리 ${esc(fl.filter((_, i) => !q[i]).join(", "))}: 이 포지션을 1선호나 2선호로 둔 선수가 없거나 모두 뛰고 있어요. 자리를 눌러 직접 넣어 주세요.</div>` : ""}
     ${L ? `<button type="button" class="btn sm" data-act="aLinePdf" data-eid="${esc(id)}" style="align-self:flex-end;gap:8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>사진으로 저장</button>` : ""}
-    <span class="note">자리를 눌러 선수를 넣고 고정해요. 핀이 꽂힌 분홍은 고정한 자리, 회색은 1선호와 2선호가 아닌 자리예요. 자동 배치는 고정한 자리는 두고 나머지를 쿼터 수가 고르게 채워요.</span>
+    <span class="note">자리를 눌러 선수를 넣고 고정해요. 핀이 꽂힌 분홍은 고정한 자리, 회색은 1선호와 2선호가 아닌 자리예요. ${sport() === "futsal" ? "자동 배치는 고정한 자리는 두고 나머지를 쉬는 쿼터가 고르게 채워요." : "자동 배치는 고정한 자리는 두고, 쉬는 쿼터를 고르게 맞춘 안에서 1선호 자리를 최대한 맞춰요."}</span>
     ${L ? `<section style="display:flex;flex-direction:column;gap:8px">${head2("출전 쿼터", `<span class="note">${k}Q 쉬는 사람 ${bench.length}명</span>`)}<div style="display:grid;grid-template-columns:1fr 1fr;column-gap:16px">${ps.slice().sort((a, b) => (cnt[b.uid] || 0) - (cnt[a.uid] || 0) || a.name.localeCompare(b.name)).map(qrow).join("")}</div></section>` : ""}
   </div><div class="cta"><div class="grid2"><button class="btn" data-act="aAuto" data-eid="${esc(id)}">자동 배치</button><button class="btn o" data-act="lineShare" data-eid="${esc(id)}" ${L ? "" : "disabled"}>${shown ? "다시 알리기" : "라인업 알리기"}</button></div></div>`;
 }
@@ -582,8 +582,18 @@ function spotSheet(eid, i) {
 function formSheet(eid) {
   const e = S.events[eid]; if (!e) return; const n = att(e).in;
   if (sport() === "futsal") { sheet(`<h3>몇 명이 뛰나요?</h3><span class="note">골레이로를 포함한 한 팀 인원이에요. 참석 ${n}명</span><div class="chips">${FUTSAL_N.map(x => `<button type="button" class="chip" data-act="aFormPick" data-eid="${esc(eid)}" data-k="${x}대${x}">${x}대${x}</button>`).join("")}</div><button class="btn block" data-act="closeSheet">닫기</button>`); return; }
-  const cur = draftOf(e, sideOf(e)).fkey;
-  sheet(`<h3>포메이션</h3><span class="note">바꾸면 고정한 자리는 풀리고 다시 자동으로 채워요.</span><div style="display:flex;flex-direction:column">${Object.keys(FORMS.soccer).map(x => `<button type="button" class="row" data-act="aFormPick" data-eid="${esc(eid)}" data-k="${esc(x)}" style="border:0;border-bottom:2px solid ${C.line};background:transparent;min-height:54px;gap:12px;text-align:left"><b class="bc" style="flex:none;min-width:96px;white-space:nowrap;font-size:20px">${esc(x)}</b><span style="flex:1;font-size:12px">${esc(FORM_DESC[x] || "")}</span>${x === cur ? IC.check : ""}</button>`).join("")}</div><button class="btn block" data-act="closeSheet">닫기</button>`);
+  const side = sideOf(e); const cur = draftOf(e, side).fkey; const ps = lineupPlayers(e, side); const qn = QN[sport()];
+  // 참석한 사람으로 포메이션마다 자동 배치를 해 보고, 빈자리가 적고 1선호로 들어가는 비율이 높은 순서로 보여 준다
+  const keys = PICK.concat(PICK.includes(cur) || !FORMS.soccer[cur] ? [] : [cur]);
+  const rows = keys.map(k => ({ k, f: fitOf(ps, FORMS.soccer[k], qn), old: !PICK.includes(k) })).sort((a, b) => a.old - b.old || a.f.empty - b.f.empty || b.f.first - a.f.first || b.f.second - a.f.second);
+  const top = rows[0] && !rows[0].old ? rows[0] : null;
+  const bar = f => `<span aria-hidden="true" style="display:flex;height:12px;border:2px solid ${C.ink};border-radius:4px;overflow:hidden;background:${C.bg}"><span style="width:${f.first}%;background:${C.ink}"></span><span style="width:${f.second}%;background:${C.sec2}"></span></span>`;
+  sheet(`<h3>포메이션</h3><span class="note">참석 ${ps.length}명으로 자동 배치했을 때, 전체 자리 중 1선호 자리에 들어가는 비율이에요. 바꾸면 고정한 자리는 풀리고 다시 채워요.</span>
+    <div style="display:flex;flex-direction:column">${rows.map(({ k, f, old }) => `<button type="button" class="row" data-act="aFormPick" data-eid="${esc(eid)}" data-k="${esc(k)}" aria-label="${esc(k)}, 1선호 ${f.first}%, 2선호 ${f.second}%, 빈자리 ${f.empty}%" style="border:0;border-bottom:2px solid ${C.line};background:transparent;min-height:72px;gap:12px;text-align:left;padding:8px 0">
+      <span style="flex:none;width:96px;display:flex;flex-direction:column;gap:4px"><b class="bc" style="white-space:nowrap;font-size:20px;line-height:1">${esc(k)}</b><span style="font-size:12px;color:${C.sub}">${old ? "예전 포메이션" : esc(FORM_DESC[k] || "")}</span></span>
+      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px"><span style="display:flex;align-items:baseline;gap:8px"><b style="font-size:16px">1선호 ${f.first}%</b>${top && top.f === f && f.first > 0 ? `<span class="tag" style="background:${C.sec2}">가장 잘 맞아요</span>` : ""}</span>${bar(f)}<span style="font-size:12px;color:${C.sub}">2선호 ${f.second}%, 빈자리 ${f.empty}%</span></span>
+      <span style="flex:none;width:24px;display:flex;justify-content:center">${k === cur ? IC.check : ""}</span></button>`).join("")}</div>
+    <button class="btn block" data-act="closeSheet">닫기</button>`);
 }
 
 /* ---------- 길찾기 ---------- */
@@ -773,7 +783,7 @@ export const AACT = {
   aFormPick: t => { closeSheet(); const e = S.events[t.dataset.eid]; if (!e) return; const side = sideOf(e); const d = draftOf(e, side); d.fkey = t.dataset.k; d.pins = [];
     if (!curLineup(e, side)) { render(); return; } UI.q = 1; saveL(e, side, autoLineup(e, side)); toast("다시 짰어요"); },
   aLinePdf: t => { const e = S.events[t.dataset.eid]; if (e) lineImg(e).catch(err => fail(err)); },
-  aAuto: t => { const e = S.events[t.dataset.eid]; if (!e) return; const side = sideOf(e); if (!formOf(draftOf(e, side).fkey, curLineup(e, side))) { toast("몇 명이 뛸지 먼저 골라 주세요"); return; } const L = autoLineup(e, side); L.pins = JSON.parse(JSON.stringify(draftOf(e, side).pins || [])); saveL(e, side, L); toast(draftOf(e, side).pins.length ? "고정한 자리는 두고 다시 짰어요" : "쿼터 수를 고르게 짰어요"); },
+  aAuto: t => { const e = S.events[t.dataset.eid]; if (!e) return; const side = sideOf(e); if (!formOf(draftOf(e, side).fkey, curLineup(e, side))) { toast("몇 명이 뛸지 먼저 골라 주세요"); return; } const L = autoLineup(e, side); L.pins = JSON.parse(JSON.stringify(draftOf(e, side).pins || [])); saveL(e, side, L); toast(draftOf(e, side).pins.length ? "고정한 자리는 두고 다시 짰어요" : sport() === "futsal" ? "쉬는 쿼터를 고르게 짰어요" : "휴식을 맞추고 1선호를 최대한 맞춰 짰어요"); },
   aSpot: t => spotSheet(t.dataset.eid, Number(t.dataset.i)),
   aPut: t => { const e = S.events[t.dataset.eid]; if (!e) return; const side = sideOf(e); closeSheet(); const L = putAt(e, side, Number(t.dataset.i), t.dataset.u); const off = L.offPin; delete L.offPin; saveL(e, side, L); if (off) toast("선호 포지션이 아니라 이 자리에 고정했어요"); },
   aEmpty: t => { const e = S.events[t.dataset.eid]; if (!e) return; const side = sideOf(e); closeSheet(); saveL(e, side, putAt(e, side, Number(t.dataset.i), "")); },
