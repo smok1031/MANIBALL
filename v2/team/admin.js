@@ -6,6 +6,7 @@ import { S, D, $, att, esc, md, wd, evName, started, evStart, isPlay, momClosed,
 import { C, IC, navBar, hd, hdTab, lrow, dlg, empty, sw, teamLogo } from "./ui.js";
 import { bigTicket, strip, whenText, kindOf, vsText, myStats, teamRecord, memberGroups, seasonEvents, cancelCard } from "./member.js";
 import { canPlay, isKeeper } from "./lineup-core.js";
+import { isPC } from "./pc.js";
 
 /* ---------- 작은 도구 ---------- */
 const AU = { fa: null, out: "leave", next: "", rf: "", ref: "", mset: null };
@@ -354,10 +355,12 @@ function aManage(id) {
   const lu = (e.lineupAt || e.lineupOld) ? "알렸어요" : e.lineup && Object.keys(e.lineup).length ? "아직 안 알림" : "아직 안 짰어요";
   const cx = isCanceled(e);
   const cxIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>`;
+  // PC는 왼쪽에 일정 목록이 함께 보여서 큰 티켓과 수 칸 대신 날짜 줄만 둔다 (PC 시안)
+  const pcTop = `<span class="note" style="font-size:14px">${md(e.date)} ${wd(e.date)}요일 ${esc(e.time || "")}, ${esc(e.place || "장소 미정")}  참석 ${a.in}${a.cap ? " / " + a.cap : "명"}, 미응답 ${a.none.length}명</span>`;
   return `${hd("일정 관리", back("#/event/" + id), { sub: evLabel(e) })}<div class="body tight">
-    ${bigTicket(e, a)}
+    ${isPC() ? pcTop : bigTicket(e, a)}
     ${cx ? cancelCard(e, a) : ""}
-    ${strip(a)}
+    ${isPC() ? "" : strip(a)}
     ${scrimReady(e) ? `<a class="box orange" href="#/scrim/${esc(id)}" style="flex-direction:row;align-items:center;gap:8px;border-radius:12px;background:${C.orange};text-decoration:none"><b style="flex:1">내전으로 할지 정해 주세요</b>${IC.chev}</a>` : ""}
     <section style="display:flex;flex-direction:column;gap:8px;margin-top:4px"><span class="row" style="border-bottom:2px solid ${C.ink};padding-bottom:8px;gap:8px"><b style="font-size:16px">운영진</b><span class="note">팀원 화면에는 보이지 않아요</span></span>
       <div class="grid2">
@@ -416,6 +419,9 @@ function aCheck(id) {
   // 고른 버튼: 왔음은 탭 색(청록), 지각은 노랑에 먹색 글자, 안 옴은 먹색에 흰 글자. 글자 대비를 지키고 그림자로 눌린 것을 보여 준다
   const b = (u, v, l, c, tc) => `<button type="button" class="btn xs" data-act="checkSet" data-eid="${esc(id)}" data-u="${esc(u)}" data-v="${v}" aria-pressed="${ck[u] === v}" style="min-width:44px;padding:0 8px${ck[u] === v ? `;background:${c};color:${tc};box-shadow:2px 2px 0 ${C.ink}` : ""}">${l}</button>`;
   return `${hd("현장 출석", back("#/manage/" + id), { sub: checkTime(e) ? `${checkTime(e)}에 출석 불러요 (시작 ${cbOf(e)}분 전)` : evLabel(e) })}<div class="body" style="gap:8px">
+    ${isPC() ? (() => { const n = v => rows.filter(x => ck[x.uid] === v).length; const left = rows.filter(x => !ck[x.uid]).length;
+      const c = (k, l, bg, dash) => `<span class="ckc${dash ? " dash" : ""}" style="background:${bg}"><b>${k}</b><span>${l}</span></span>`;
+      return `<div class="ckcs">${c(n("in"), "왔음", C.sec3)}${c(n("late"), "지각", C.white)}${c(n("absent"), "안 옴", C.white)}${c(left, "아직", "transparent", true)}</div>`; })() : ""}
     <span class="note">출석 부를 때 없으면 지각이에요. 늦참은 고른 쿼터에 맞춰 오면 지각이 아니에요.</span>
     <div style="display:flex;flex-direction:column">${rows.map(x => `<div class="row" style="min-height:58px;border-bottom:2px solid ${C.line};gap:8px"><b class="bc" style="width:28px;font-size:18px;text-align:center">${esc(x.p && x.p.num || "")}</b><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px"><b style="font-size:16px">${esc(x.name)}</b><span style="font-size:12px;color:${C.sub}">${x.guest ? "용병" : x.s === "late" ? `늦참, ${x.q || 2}Q부터` : going.has(x.uid) ? esc(posTxt(x.p)) : "신청 안 함"}</span></span>${b(x.uid, "in", "왔음", C.sec, C.ink)}${b(x.uid, "late", "지각", C.sec2, C.ink)}${b(x.uid, "absent", "안 옴", C.ink, C.bg)}</div>`).join("") || `<span class="note" style="padding:16px 0">참석한 사람이 없어요</span>`}</div>
     ${fl ? "" : `<span class="note">벌금 매길 사람: 지각하거나 안 온 사람이 없어요.</span>`}

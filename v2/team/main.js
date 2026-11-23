@@ -379,9 +379,25 @@ const KKB = (label, act = "kakao") => `<button class="kkb" data-act="${act}">${K
 const MBRAND = (sz = 44) => `<span style="display:inline-flex;align-items:center;gap:8px"><span role="img" aria-label="매니볼" style="width:${sz}px;height:${sz}px;border-radius:12px;background:${C.fc};border:2px solid ${C.ink};display:inline-flex;align-items:center;justify-content:center;flex:none"><svg width="${Math.round(sz * .75)}" height="${Math.round(sz * .75)}" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="22" fill="none" stroke="${C.ink}" stroke-width="5"></circle><circle cx="23" cy="26" r="3.6" fill="${C.orange}"></circle><circle cx="23" cy="38" r="3.6" fill="${C.orange}"></circle><path d="M30 26 H43 M30 38 H41" fill="none" stroke="${C.ink}" stroke-width="5" stroke-linecap="round"></path></svg></span><span style="display:flex;flex-direction:column;line-height:1"><b class="bh" style="font-size:${Math.round(sz * .55)}px">매니볼</b><span class="bc" style="font-size:12px;letter-spacing:3px;margin-top:4px">MANIBALL</span></span></span>`;
 const PRIV = `<a href="../../privacy.html" style="display:inline-block;padding:8px 0">개인정보처리방침과 이용약관</a>`;
 const ERRBOX = `<div role="alert" style="display:flex;gap:8px;align-items:flex-start;border:2px solid ${C.ink};border-radius:12px;background:${C.white};box-shadow:4px 4px 0 ${C.ink};padding:12px 16px"><b style="flex:none;width:22px;height:22px;border-radius:50%;background:${C.ink};color:${C.bg};display:flex;align-items:center;justify-content:center;font-size:14px">!</b><span style="display:flex;flex-direction:column;gap:4px"><b style="font-size:16px">로그인하지 못했어요</b><span style="font-size:12px">카카오 화면에서 취소했거나 연결이 끊겼어요. 다시 눌러 주세요.</span></span></div>`;
+// PC 로그인 (PC 시안): 위 띠에 로고와 둘러보기, 가운데 왼쪽 패스 카드, 오른쪽 카카오 카드
+function vLoginPC(err, tag, li) {
+  return `<div class="lgp"><header class="lgt">${MBRAND(36)}<a href="../../">매니볼 둘러보기</a></header>
+    <div class="lgm"><div class="lgl"><div class="paper" style="position:relative;background:${C.white};border-radius:12px">
+      <div style="padding:32px 32px 20px;display:flex;flex-direction:column;gap:12px"><b style="font-size:14px">매니볼 패스</b><h1 class="bh" style="margin:0;font-weight:400;font-size:44px;line-height:1.25">운영진이 매주 손으로 하던 일,<br>이제 매니볼이 해요</h1></div>
+      <div class="pcut" aria-hidden="true"></div>
+      <div style="padding:20px 32px 28px;display:flex;flex-wrap:wrap;gap:8px">${tag("참석 투표", C.white)}${tag("라인업", C.white)}${tag("출석과 벌금", C.white)}${tag("회비", C.white)}${tag("MOM", C.white)}</div>
+      <span aria-hidden="true" style="position:absolute;right:24px;top:-30px;width:84px;height:84px;border-radius:50%;border:2.5px solid ${C.ink};background:${C.bg};transform:rotate(12deg);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1"><b style="font-size:24px">입장</b></span>
+    </div>
+    <ul class="lgli">${li("참석 투표는 티켓 한 장으로", C.white)}${li("내 자리와 쉬는 쿼터를 바로 확인", C.white)}${li("내가 낼 돈과 계좌를 한 화면에서", C.white)}</ul></div>
+    <div class="lgr"><h2 class="bh">카카오로 들어와요</h2><span style="font-size:14px;line-height:1.6">휴대폰에서 쓰던 그 계정이에요. 같은 계정이면 팀과 기록이 그대로 보여요.</span>
+      ${err ? ERRBOX : ""}${KKB("카카오 로그인")}${STAGE ? `<button class="btn" data-act="demo" style="height:52px;border-radius:12px;background:${C.white};border:2px solid ${C.ink};box-shadow:4px 4px 0 ${C.ink};font-size:16px">로그인 없이 체험하기</button><span class="note" style="font-size:12px">테스트 사이트에서만 보여요. 나만의 체험 팀에서 Admin으로 모든 기능을 써 볼 수 있고, 하루 뒤 지워져요.</span>` : ""}
+      <span class="note" style="font-size:12px;line-height:1.6">카카오 창이 새로 열려요. 로그인하면 ${PRIV}에 동의하는 것으로 봐요.</span></div></div>
+  </div>`;
+}
 function vLogin(err) {
   const tag = (t, c) => `<span style="font-size:12px;font-weight:700;border:2px solid ${C.ink};border-radius:8px;padding:4px 8px;background:${c}">${t}</span>`;
   const li = (t, c) => `<li style="display:flex;align-items:center;gap:12px;font-size:16px"><span aria-hidden="true" style="flex:none;width:28px;height:28px;border:2px solid ${C.ink};border-radius:8px;background:${c};display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${C.ink}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg></span>${t}</li>`;
+  if (isPC()) return vLoginPC(err, tag, li);
   return `<div style="flex:1;display:flex;flex-direction:column;padding:36px 24px 32px;gap:24px">
     ${MBRAND(44)}
     <div class="paper" style="position:relative;margin-top:8px;background:${C.white};border-radius:12px">
@@ -1101,6 +1117,7 @@ function render() {
   // PC(가로 1024px 이상): 같은 화면을 왼쪽 메뉴로 감싼다 (로그인, 팀 고르기 같은 흐름은 그대로)
   const pcOn = isPC() && S.ready && !S.flow;
   document.documentElement.classList.toggle("pc", pcOn);
+  document.documentElement.classList.toggle("pcwide", !pcOn && /class="lgp"/.test(html.slice(0, 40)));
   if (pcOn) html = pcShell(html);
   // 입력 중인 칸은 그대로 두려고, 같은 화면이면 포커스와 커서를 되돌린다
   const act = document.activeElement; const d = (act && act.dataset) || {};
@@ -1382,7 +1399,7 @@ async function kakaoFinish() {
 }
 async function boot() {
   // 테스트 사이트 표시 (운영 사이트에는 없다)
-  if (STAGE) document.body.insertAdjacentHTML("beforeend", `<div aria-hidden="true" style="position:fixed;top:6px;left:50%;transform:translateX(-50%);z-index:9999;pointer-events:none;background:#B45309;color:#FFFFFF;font-size:12px;font-weight:700;padding:4px 8px;border-radius:999px;opacity:.9">테스트 사이트</div>`);
+  if (STAGE) document.body.insertAdjacentHTML("beforeend", `<div class="stg" aria-hidden="true">테스트 사이트</div>`);
   if (qs.get("state") && (qs.get("code") || qs.get("error"))) {
     let next = ""; try { next = sessionStorage.getItem("mb-next") || ""; sessionStorage.removeItem("mb-next"); } catch (e) { /* 없음 */ }
     let ok = false; try { ok = !!next && new URL(next).origin === location.origin; } catch (e) { /* 잘못된 주소 */ }

@@ -2,7 +2,7 @@
 // 다른 팀 정보는 서버 함수(x_list, x_inbox, x_my)가 공개해도 되는 것만 준다. 쓰기도 서버 함수로만 한다.
 import { S, sb, esc, render, toast, fail, isAdmin, viewMode, isCanceled, md, wd, evName, evStart, maintLocked, todayStr, att, confirmBox, POS, sport, myProfile, guestsOf } from "./main.js";
 import { hd, hdTab, empty } from "./ui.js";
-import { isPC } from "./pc.js";
+import { isPC, pcHead } from "./pc.js";
 
 export const XT = { tid: "", data: {}, at: {}, busy: {}, view: { match: "list", hire: "list", seek: "list" }, sel: {}, f: { day: "all", area: "all", lv: "all", pos: "" }, fv: {} };
 const LV = ["", "입문", "초급", "중급", "중상급", "상급"];
@@ -70,8 +70,10 @@ const fitPos = label => { const s = posSet(XT.f.pos); return !s || String(label)
 const pass = x => isWeekend(x.event, XT.f.day) && (XT.f.area === "all" || x.team.area === XT.f.area) && (XT.f.lv === "all" || String(x.team.level) === XT.f.lv);
 
 // 화면 틀 (PC: 왼쪽 목록, 오른쪽 자세히)
+// 제목줄 오른쪽: 우리 팀 실력 표와 버튼 (PC 시안)
+const lvChip = () => `<span class="xlvc">우리 팀 ${esc(lvText(Number(S.settings.level) || 0))}</span>`;
 function frame(title, sub, right, flt, list, panel) {
-  return `${hdTab(title, right)}<div class="xbody"><span class="note">${sub}</span>${flt}<div class="pcsplit2"><div class="pcl2 xl">${list}</div><section class="pcr2 xr" aria-label="자세히">${panel}</section></div></div>`;
+  return `${pcHead({ title, sub, right: lvChip() + right })}<div class="xbody">${flt}<div class="pcsplit2"><div class="pcl2 xl">${list}</div><section class="pcr2 xr" aria-label="자세히">${panel}</section></div></div>`;
 }
 const card = (x, on, chips, act) => `<button type="button" class="xc${on ? " on" : ""}" data-act="${act}" data-id="${esc(x.id)}" aria-pressed="${on}">${teamHead(x.team)}<span class="xw"><b>${esc(dayLabel(x.event))} ${esc(x.event.time)}</b><span>${esc(x.event.place || "장소 미정")}</span></span><span class="xchips">${chips}</span></button>`;
 const chip = (t, k) => `<span class="tag${k ? " " + k : " thin"}">${esc(t)}</span>`;
@@ -84,7 +86,7 @@ export function vMatch() {
   const list = need("match", "x_list", { p_kind: "match" }); const v = XT.view.match;
   const inbox = adm() ? need("inbox", "x_inbox", { p_team: S.tid }) : null;
   const pend = inbox && !inbox.err ? inbox.filter(p => p.kind === "match").reduce((n, p) => n + p.apps.filter(a => a.status === "pending").length, 0) : 0;
-  const right = adm() ? `<button type="button" class="btn sm${v === "inbox" ? " pri" : ""}" data-act="xView" data-k="match" data-v="${v === "inbox" || v === "new" ? "list" : "inbox"}">${v === "inbox" || v === "new" ? "매칭 글 보기" : "우리 매칭 글과 받은 신청" + (pend ? ` (새 신청 ${pend})` : "")}</button>` : "";
+  const right = adm() ? `<button type="button" class="pbtn" data-act="xView" data-k="match" data-v="${v === "inbox" ? "list" : "inbox"}" aria-pressed="${v === "inbox"}">받은 신청 ${pend}</button>` + `<button type="button" class="pbtn o" data-act="xView" data-k="match" data-v="${v === "new" ? "list" : "new"}" aria-pressed="${v === "new"}">매칭 글 올리기</button>` : "";
   if (list === null) return frame("매칭", "", right, "", loading, "");
   if (list.err) return frame("매칭", "", right, "", errBox(list), "");
   if ((v === "inbox" || v === "new") && adm()) return inboxView("match", inbox, right);
@@ -120,8 +122,7 @@ function inboxView(kind, inbox, right) {
   if (inbox.err) return frame(title, "", right, "", errBox(inbox), "");
   const posts = inbox.filter(p => p.kind === kind);
   const sel = posts.find(p => p.id === XT.sel["in_" + kind]) || posts[0];
-  const newBtn = `<button type="button" class="xnew" data-act="xView" data-k="${kind === "match" ? "match" : "hire"}" data-v="new">+ ${kind === "match" ? "매칭 글 올리기" : "구인 글 올리기"}</button>`;
-  const cards = newBtn + (posts.length ? posts.map(p => { const pend = p.apps.filter(a => a.status === "pending").length; return `<button type="button" class="xc${sel && p.id === sel.id ? " on" : ""}" data-act="xSelIn" data-k="${kind}" data-id="${esc(p.id)}"><span class="xw"><b>${esc(dayLabel(p.event))} ${esc(p.event.time)} ${esc(evName({ type: p.event.type, opponent: p.event.opponent }))}</b><span>${esc(p.event.place || "")}</span></span><span class="xchips">${chip(p.state === "open" ? "받는 중" : "마감", p.state === "open" ? "ink" : "thin")}${kind === "hire" ? chip(p.slots.map(slotLabel).join(", ")) : ""}${pend ? chip("새 신청 " + pend, "ink") : ""}</span></button>`; }).join("") : empty("올린 글이 없어요", "위에서 글을 올리면 여기에 보여요."));
+  const cards = (posts.length ? posts.map(p => { const pend = p.apps.filter(a => a.status === "pending").length; return `<button type="button" class="xc${sel && p.id === sel.id ? " on" : ""}" data-act="xSelIn" data-k="${kind}" data-id="${esc(p.id)}"><span class="xw"><b>${esc(dayLabel(p.event))} ${esc(p.event.time)} ${esc(evName({ type: p.event.type, opponent: p.event.opponent }))}</b><span>${esc(p.event.place || "")}</span></span><span class="xchips">${chip(p.state === "open" ? "받는 중" : "마감", p.state === "open" ? "ink" : "thin")}${kind === "hire" ? chip(p.slots.map(slotLabel).join(", ")) : ""}${pend ? chip("새 신청 " + pend, "ink") : ""}</span></button>`; }).join("") : empty("올린 글이 없어요", "위에서 글을 올리면 여기에 보여요."));
   const v = XT.view[kind === "match" ? "match" : "hire"];
   let panel;
   if (v === "new") panel = kind === "match" ? newMatchForm() : newHireForm();
@@ -151,7 +152,7 @@ function newMatchForm() {
 /* ===================== 용병 구인 ===================== */
 export function vHire() {
   if (!isPC()) return mobileOnly("용병 구인");
-  if (adm()) { const inbox = need("inbox", "x_inbox", { p_team: S.tid }); return inboxView("hire", inbox, ""); }
+  if (adm()) { const inbox = need("inbox", "x_inbox", { p_team: S.tid }); return inboxView("hire", inbox, `<button type="button" class="pbtn o" data-act="xView" data-k="hire" data-v="${XT.view.hire === "new" ? "list" : "new"}" aria-pressed="${XT.view.hire === "new"}">구인 글 올리기</button>`); }
   // 팀원: 우리 팀이 올린 구인 글을 본다 (신청은 운영진이 받고 거절해요)
   const all = need("hireAll", "x_list", { p_kind: "hire" });
   if (all === null) return frame("용병 구인", "", "", "", loading, "");
@@ -178,7 +179,7 @@ function newHireForm() {
 export function vSeek() {
   if (!isPC()) return mobileOnly("용병 구직");
   const all = need("hireAll", "x_list", { p_kind: "hire" }); const v = XT.view.seek;
-  const right = `<button type="button" class="btn sm${v === "mine" ? " pri" : ""}" data-act="xView" data-k="seek" data-v="${v === "mine" ? "list" : "mine"}">${v === "mine" ? "구인 글 보기" : "내 신청"}</button>`;
+  const right = `<button type="button" class="pbtn" data-act="xView" data-k="seek" data-v="${v === "mine" ? "list" : "mine"}"${v === "mine" ? ` aria-pressed="true"` : ""}>${v === "mine" ? "구인 글 보기" : "내 신청"}</button>`;
   if (!XT.f.pos) XT.f.pos = (myProfile() || {}).pos1 || "all";
   if (all === null) return frame("용병 구직", "", right, "", loading, "");
   if (all.err) return frame("용병 구직", "", right, "", errBox(all), "");

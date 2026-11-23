@@ -6,6 +6,7 @@ import { isKeeper } from "./lineup-core.js";
 import { pushBusy } from "./push.js";
 import { vChat, vChatRoom, chatEnter } from "./chat.js";
 import { vMatch, vHire, vSeek, xEnter } from "./xteam.js";
+import { isPC } from "./pc.js";
 
 /* ---------- 공통 계산 ---------- */
 const MU = { season: "", lq: 1, mom: "", gpos: [], tq: {}, anim: null };
@@ -304,19 +305,19 @@ function mEvent(id) {
   const adm = isAdmin() && viewMode() === "admin";
   const opts = noLate() ? [["yes", "참석"], ["no", "불참"]] : [["yes", "참석"], ["late", "늦참"], ["no", "불참"]];
   const can = id => vs === "open" || (vs === "closed" && id === "no" && seat);
-  const cards = opts.map(([k, l]) => { const on = v.s === k; const lab = k !== "no" && asWait ? (k === "yes" ? "대기" : "늦참 대기") : l; return `<button type="button" class="qc${on ? " on " + (k !== "no" && w ? "wait" : k) : ""}" data-act="mVote" data-eid="${esc(e.id)}" data-v="${k}" aria-pressed="${on}" ${can(k) ? "" : "disabled"} style="${can(k) || on ? "" : "opacity:.45"}">${lab}</button>`; }).join("");
+  const cards = opts.map(([k, l]) => { const on = v.s === k; const lab = k !== "no" && asWait ? (k === "yes" ? "대기" : "늦참 대기") : l; return `<button type="button" class="qc${on ? " on " + (k !== "no" && w ? "wait" : k) : ""}" data-act="mVote" data-eid="${esc(e.id)}" data-v="${k}" aria-pressed="${on}" ${can(k) ? "" : "disabled"} style="${can(k) || on ? "" : "opacity:.45"}">${lab}<em class="qs">${k === "no" ? "이번엔 못 가요" : asWait ? "자리가 나면 들어가요" : k === "late" ? "늦게 와요" : "처음부터 뛰어요"}</em></button>`; }).join("");
   const qn = QN[sport()];
   const quarters = v.s === "late" && vs === "open" ? `<div style="display:flex;align-items:center;gap:8px"><span style="flex:none;font-size:12px;font-weight:700">몇 쿼터부터?</span><div style="flex:1;display:grid;grid-template-columns:repeat(${qn - 1},minmax(0,1fr));gap:8px">${Array.from({ length: qn - 1 }, (_, i) => i + 2).map(q => `<button type="button" class="qq${Number(v.q) === q ? " on" : ""}" data-act="mLateQ" data-eid="${esc(e.id)}" data-q="${q}" aria-pressed="${Number(v.q) === q}">${q}Q</button>`).join("")}</div></div>` : "";
   const waitBox = w ? `<div role="status" class="box teal" style="flex-direction:row;align-items:center;gap:16px;border-radius:12px;padding:8px 16px"><span style="flex:none;display:flex;flex-direction:column;align-items:center;line-height:1;gap:4px"><span style="font-size:12px;font-weight:700">대기</span><b class="bc" style="font-size:36px;line-height:.9">${w}</b><span style="font-size:12px;font-weight:700">번</span></span><span style="display:flex;flex-direction:column;gap:4px"><b style="font-size:16px">아직 참석이 아니라 대기예요</b><span style="font-size:12px;line-height:1.5">정원 ${a.cap}명이 다 차서 대기 ${w}번으로 기다리고 있어요.</span></span></div>` : "";
   return `${hdBrand(adm ? `<a class="mng" href="#/manage/${esc(e.id)}">${IC.sliders}관리</a>` : "", "#/schedule")}<div class="body tight">
-    ${bigTicket(e, a)}
+    ${bigTicket(e, a)}${isPC() ? strip(a) : ""}
     ${myProfile() ? `<section aria-label="내 참석" style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
       <div style="display:grid;grid-template-columns:repeat(${opts.length},minmax(0,1fr));gap:12px;padding:8px 4px 4px">${cards}</div>
       ${quarters}${waitBox}
       <span class="note">${voteNote(e, a, v, vs, w, full, seat)}</span>
     </section>` : `<div class="box gray"><b>선수 등록을 마치면 투표할 수 있어요</b><a class="btn sm" href="#/me">선수 등록</a></div>`}
     ${mercRow(e, vs)}
-    <div style="display:flex;flex-direction:column;gap:16px;padding-top:8px">${strip(a)}${isPlay(e) ? myLineup(e) : ""}</div>
+    <div style="display:flex;flex-direction:column;gap:16px;padding-top:8px">${isPC() ? "" : strip(a)}${isPlay(e) ? myLineup(e) : ""}</div>
   </div>${navBar("일정")}`;
 }
 // 취소된 일정 (59번): 누가, 언제, 왜 취소했는지. 투표는 닫힌다
