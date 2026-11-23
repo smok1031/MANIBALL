@@ -295,7 +295,7 @@ function aSeason() {
 function aResult(id) {
   const e = S.events[id]; if (!e) return null; const f = S.form; const scrim = e.type === "scrim";
   const home = scrim ? "A팀" : S.team.name; const away = scrim ? "B팀" : e.opponent || "상대";
-  const came = people().filter(x => cameTo(e, x.uid)); const pool = came.length ? came : people();
+  const came = people().filter(x => attended(e, x.uid)); const pool = came.length ? came : people();
   const opts = [["", "모름"], ...pool.map(x => [x.uid, x.name]), ...guestsOf(e).map(g => ["g:" + g.id, g.name + " (용병)"])];
   const aopts = [["", "도움 없음"], ...opts.slice(1)];
   const goals = f.goals || []; const need = scrim ? (Number(f.us) || 0) + (Number(f.them) || 0) : Number(f.us) || 0;
