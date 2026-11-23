@@ -11,8 +11,9 @@ PORT, DSN = int(sys.argv[1]), sys.argv[2]
 COLS = {"join_requests": {"team_id", "user_id", "team_name", "display_name", "kakao_name", "message", "device", "status", "created_at"}, "docs": {"team_id", "coll", "id", "data", "updated_at", "updated_by"},
         "members": {"team_id", "user_id", "role", "display_name", "joined_at", "admin_req"},
         "teams": {"id", "name", "invite_code", "created_by", "created_at"},
-        "maint": {"id", "state", "start_at", "end_at", "note", "updated_at"}}
-FNS = {"create_team", "team_by_code", "join_team", "set_my_name", "set_member_role", "remove_member", "new_invite_code", "doc_patch", "my_name", "team_invite_code", "leave_team_as_owner", "delete_my_account", "delete_team", "submit_inquiry", "delete_team_with_review", "request_join", "answer_join", "cancel_join", "late_cancel", "maint_status", "push_subscribe", "push_unsubscribe", "push_mine", "push_conf_get", "push_conf_init", "push_take", "push_done", "push_subs_of", "push_kakao_put", "push_kakao_get", "push_kakao_del", "push_kakao_ok", "push_kakao_mine", "demo_start"}
+        "maint": {"id", "state", "start_at", "end_at", "note", "updated_at"},
+        "chat": {"id", "team_id", "room", "user_id", "name", "body", "masked", "hidden", "created_at"}}
+FNS = {"create_team", "team_by_code", "join_team", "set_my_name", "set_member_role", "remove_member", "new_invite_code", "doc_patch", "my_name", "team_invite_code", "leave_team_as_owner", "delete_my_account", "delete_team", "submit_inquiry", "delete_team_with_review", "request_join", "answer_join", "cancel_join", "late_cancel", "maint_status", "push_subscribe", "push_unsubscribe", "push_mine", "push_conf_get", "push_conf_init", "push_take", "push_done", "push_subs_of", "push_kakao_put", "push_kakao_get", "push_kakao_del", "push_kakao_ok", "push_kakao_mine", "demo_start", "chat_send", "chat_hide"}
 IDENT = re.compile(r"^[a-z_][a-z0-9_]*$")
 
 def claims(h):

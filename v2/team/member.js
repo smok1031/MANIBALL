@@ -4,6 +4,7 @@ import { C, IC, navBar, hd, hdTab, hdBrand, mngBtn, lrow, dlg, empty, initial, s
 import { afeed, adminHomeRows } from "./admin.js";
 import { isKeeper } from "./lineup-core.js";
 import { pushBusy } from "./push.js";
+import { vChat, vChatRoom, chatEnter } from "./chat.js";
 
 /* ---------- 공통 계산 ---------- */
 const MU = { season: "", lq: 1, mom: "", gpos: [], tq: {}, anim: null };
@@ -551,6 +552,8 @@ export function memberRoute(r) {
   if (r === "/notify") return mNotify();
   if (r === "/posreq") return mPosReq();
   if (r === "/schedule") return mSchedule();
+  if (r === "/chat") return vChat();
+  if ((m = r.match(/^\/chat\/(.+)$/))) return vChatRoom(decodeURIComponent(m[1]));
   if ((m = r.match(/^\/event\/(.+)$/))) return mEvent(decodeURIComponent(m[1]));
   if (r === "/records") return mRecords();
   if (r === "/season") return mSeason();
@@ -567,6 +570,7 @@ export function memberForm(r) {
   if (r === "/posreq") { S.form = { slot: 1 }; return true; }
   if (/^\/game\//.test(r)) { MU.mom = ""; MU.momFor = ""; return true; }
   if (/^\/event\//.test(r)) { MU.lq = 1; return true; }
+  if (/^\/chat\/./.test(r)) { chatEnter(); return true; }
   return false;
 }
 let undoT = 0;
