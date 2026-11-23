@@ -579,6 +579,8 @@ export async function saveVote(e, val, opts = {}) {
     setTimeout(() => { S.freezeUntil = 0; if (location.hash === "#/event/" + e.id) { MU.anim = { id: e.id, tear: !prev.s, t0: Date.now() }; location.hash = "#/schedule"; setTimeout(() => { const tk = document.querySelector(`[data-tk="${e.id}"]`); if (tk && tk.getBoundingClientRect().bottom > innerHeight - 80) tk.scrollIntoView({ block: "center" }); }, 60); } else render(); }, delay);
   }
   try {
+    // 운영진은 서버가 신청 시각을 적지 않으므로 직접 적는다 (안 적으면 정원이 찼을 때 늘 대기 맨 뒤로 밀린다)
+    if (isAdmin() && (val.s === "yes" || val.s === "late") && !val.at) val = { ...val, at: (prev.s === "yes" || prev.s === "late") && prev.at ? prev.at : new Date().toISOString() };
     await patchDoc("rsvp", S.uid, { ev: { [e.id]: val } });
     if (!opts.back) render();
     const w = waitNo(e, S.uid);

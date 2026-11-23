@@ -1192,6 +1192,8 @@ const ACT = {
     if (cur.s === v) return;
     const before = JSON.stringify(S.rsvp[S.uid] || null);
     const entry = { s: v, q: v === "late" ? (Number(cur.q) || 2) : 0 };
+    // 운영진은 서버가 신청 시각을 적지 않으므로 직접 적는다 (안 적으면 정원이 찼을 때 늘 대기 맨 뒤로 밀린다)
+    if (isAdmin() && (v === "yes" || v === "late")) entry.at = (cur.s === "yes" || cur.s === "late") && cur.at ? cur.at : new Date().toISOString();
     // 바로 보이게 먼저 바꾸고, 서버가 순서와 시각을 적은 값으로 다시 맞춘다
     const mine = S.rsvp[S.uid] = S.rsvp[S.uid] || {}; mine.ev = { ...(mine.ev || {}), [e.id]: { ...cur, ...entry, at: cur.at || new Date().toISOString() } }; render();
     try {

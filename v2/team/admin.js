@@ -370,6 +370,19 @@ function aManage(id) {
       </div></section>
   </div>${nav("일정")}`;
 }
+// 테스트 서버 전용: 운영진이 팀원 참석을 직접 바꾼다 (배포 전 시험용). 운영 서버 빌드에는 버튼이 없다
+const TEST_ST = import.meta.env.VITE_STAGE === "test";
+export function rsvpEditSheet(eid, u) {
+  const e = S.events[eid]; if (!e || !TEST_ST) return;
+  const v = (((S.rsvp[u] || {}).ev || {})[eid]) || {}; const cur = v.s === "late" && sport() === "futsal" ? "yes" : (v.s || "");
+  const opt = (s, q, l) => { const on = cur === s && (s !== "late" || (Number(v.q) || 2) === q); return `<button type="button" class="btn" data-act="aRsvpSet" data-eid="${esc(eid)}" data-u="${esc(u)}" data-s="${s}" data-q="${q}" aria-pressed="${on}" style="height:52px${on ? `;background:${C.ink};color:${C.bg}` : ""}">${l}</button>`; };
+  const lateQ = sport() === "futsal" ? "" : `<span style="font-size:14px;font-weight:700">늦참</span><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">${[2, 3, 4].map(q => opt("late", q, q + "Q부터")).join("")}</div>`;
+  sheet(`<h3>${esc(nameOf(u))} 참석 바꾸기</h3><span class="note">테스트 서버에서만 보여요. ${md(e.date)} ${wd(e.date)} ${esc(evName(e))}</span>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">${opt("yes", 0, "참석")}${opt("no", 0, "불참")}</div>
+    ${lateQ}
+    ${opt("", 0, "미응답")}
+    <button class="btn block" data-act="closeSheet">닫기</button>`);
+}
 const RF = [["yes", "참석"], ["late", "늦참"], ["wait", "대기"], ["no", "불참"], ["none", "미응답"]];
 const REMIND_GAP = 3600e3;
 export const remindLeft = () => { const r = remindInfo(); return r && r.at ? Math.max(0, Date.parse(r.at) + REMIND_GAP - Date.now()) : 0; };
@@ -379,8 +392,9 @@ function aRoster(id) {
   const list = a[rf] || []; const left = remindLeft(); const vs = voteState(e);
   const sub = x => { const v = (((S.rsvp[x.uid] || {}).ev || {})[e.id]) || {}; if (x.guest) return "용병"; if (rf === "late" || (rf === "wait" && x.s === "late")) return `${posTxt(x.p)}${v.q ? ", " + v.q + "Q부터" : ""}`; if (rf === "no" && v.lateCancel) return `마감 뒤 불참${v.reason ? ", " + v.reason : ""}`; return posTxt(x.p); };
   return `${hd("참석 명단", back("#/manage/" + id), { sub: `${md(e.date)} ${wd(e.date)} ${kindOf(e)}, 팀원 ${S.members.length}명` })}<div class="body" style="gap:8px">
+    ${TEST_ST ? `<span class="note">테스트 서버에서만: 바꾸기를 누르면 팀원 참석을 운영진이 직접 바꿀 수 있어요.</span>` : ""}
     <div class="row" style="gap:8px;flex-wrap:wrap">${RF.filter(([k]) => !(k === "late" && sport() === "futsal")).map(([k, l]) => `<button type="button" class="chip" data-act="aRf" data-v="${k}" aria-pressed="${k === rf}" style="border-radius:999px;padding:0 8px;font-size:14px${k === rf ? `;background:${C.gray};box-shadow:2px 2px 0 ${C.ink}` : ""}">${l} ${(a[k] || []).length}</button>`).join("")}</div>
-    <div style="display:flex;flex-direction:column">${list.map((x, i) => `<div class="row" style="min-height:56px;border-bottom:2px solid ${C.line};gap:12px"><b class="bc" style="width:30px;font-size:20px;text-align:center">${rf === "wait" ? i + 1 : esc(x.p && x.p.num || "")}</b><span style="flex:1;display:flex;flex-direction:column;gap:1px"><b style="font-size:16px">${esc(x.name)}</b><span style="font-size:12px;color:${C.sub}">${esc(sub(x))}</span></span>${x.guest ? `<span class="tag pink">용병</span>` : ""}</div>`).join("") || `<span class="note" style="padding:16px 0">없어요</span>`}</div>
+    <div style="display:flex;flex-direction:column">${list.map((x, i) => `<div class="row" style="min-height:56px;border-bottom:2px solid ${C.line};gap:12px"><b class="bc" style="width:30px;font-size:20px;text-align:center">${rf === "wait" ? i + 1 : esc(x.p && x.p.num || "")}</b><span style="flex:1;display:flex;flex-direction:column;gap:1px"><b style="font-size:16px">${esc(x.name)}</b><span style="font-size:12px;color:${C.sub}">${esc(sub(x))}</span></span>${x.guest ? `<span class="tag">용병</span>` : TEST_ST ? `<button type="button" class="btn xs" data-act="aRsvpEdit" data-eid="${esc(id)}" data-u="${esc(x.uid)}" style="min-width:56px;height:40px">바꾸기</button>` : ""}</div>`).join("") || `<span class="note" style="padding:16px 0">없어요</span>`}</div>
   </div>${rf === "none" && a.none.length && vs !== "done" ? `<div class="cta"><button class="btn o block" data-act="aRemind" data-eid="${esc(id)}" ${left ? "disabled" : ""}>${left ? `${Math.ceil(left / 60000)}분 뒤에 다시 보낼 수 있어요` : `미응답 ${a.none.length}명에게 알리기`}</button><span class="note" style="text-align:center">운영진 모두 합쳐 1시간에 한 번만 보낼 수 있어요.</span></div>` : nav("일정")}`;
 }
 export function remindSheet(eid) { const e = S.events[eid]; if (!e) return; const a = att(e);
@@ -638,6 +652,22 @@ export const AACT = {
   aPick: t => { S.form[t.dataset.k] = t.dataset.v; render(); },
   aTog: t => { S.form[t.dataset.k] = !S.form[t.dataset.k]; render(); },
   aRf: t => { AU.rf = t.dataset.v; render(); },
+  aRsvpEdit: t => rsvpEditSheet(t.dataset.eid, t.dataset.u),
+  aRsvpSet: async t => {
+    if (!TEST_ST) return;
+    const e = S.events[t.dataset.eid]; const u = t.dataset.u; if (!e || !u) return;
+    const s = t.dataset.s; const q = s === "late" ? Number(t.dataset.q) || 2 : 0;
+    const v = (((S.rsvp[u] || {}).ev || {})[e.id]) || {};
+    const going = x => x === "yes" || x === "late";
+    // 참석, 늦참끼리 바꾸면 신청 순서를 그대로 두고, 새로 참석하면 지금 시각으로 맨 뒤에 선다
+    const val = !s ? null : { s, q, at: going(s) && going(v.s) && v.at ? v.at : new Date().toISOString() };
+    closeSheet();
+    try {
+      await patchDoc("rsvp", u, { ev: { [e.id]: val } }); render();
+      const w = att(e).wait.findIndex(x => x.uid === u);
+      toast(`${nameOf(u)}, ${!s ? "미응답으로" : s === "no" ? "불참으로" : w >= 0 ? `정원이 차서 대기 ${w + 1}번으로` : s === "late" ? q + "Q부터 늦참으로" : "참석으로"} 바꿨어요`);
+    } catch (err) { fail(err); }
+  },
   aDuesRef: t => { AU.ref = t.dataset.k; render(); },
   aDuesSet: () => { const st = S.settings; const b = st.bank || {}; AU.mset = { feeMode: st.feeMode || "none", fee: st.fee ? String(st.fee) : "", dueDay: st.dueDay || "5", bank: b.bank || "", account: b.account || "", holder: b.holder || "" }; duesSetSheet(); },
   aDuesRemind: t => { const key = t.dataset.k; const ref = duesRefs().find(r => r.key === key); if (!ref) return; const ps = (ref.e ? people().filter(x => cameTo(ref.e, x.uid)) : people()).filter(x => !paidOf(key, x.uid));
