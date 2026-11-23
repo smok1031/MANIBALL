@@ -276,6 +276,64 @@ textarea.inp{height:auto;min-height:120px;padding:8px 12px;line-height:1.7;resiz
 .chs[aria-disabled="true"]{opacity:.35;box-shadow:none}
 .chc .hint{font-size:11px;line-height:1.5;color:var(--sub)}
 .chclosed{position:sticky;bottom:0;z-index:5;border-top:2px solid var(--ink);background:var(--sec3);padding:14px 16px calc(14px + env(safe-area-inset-bottom));font-size:13px;line-height:1.5;display:flex;gap:10px;align-items:center}
+/* PC (가로 1024px 이상): 왼쪽 메뉴와 넓은 본문 (PC 시안 A안). 휴대폰은 그대로 */
+html.pc body{background:var(--bg)}
+html.pc .page{max-width:none;background-image:var(--grid)}
+.pcw{display:flex;min-height:100dvh;width:100%}
+.pcs{flex:none;width:256px;box-sizing:border-box;padding:24px 20px;display:flex;flex-direction:column;gap:24px;border-right:2px solid var(--ink);background:var(--bg);position:sticky;top:0;height:100dvh;overflow-y:auto;scrollbar-width:none}
+.pcs::-webkit-scrollbar{display:none}
+.pct{display:flex;align-items:center;gap:12px;min-height:64px;padding:8px 12px;box-sizing:border-box;border:2px solid var(--ink);border-radius:12px;background:var(--white);box-shadow:4px 4px 0 var(--ink);font-family:inherit;color:var(--ink);text-align:left;cursor:pointer;width:100%}
+.pctl{flex:none;display:flex}
+.pctx{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.pctx b{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:20px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pctx span{font-size:12px;white-space:pre}
+.pnv{display:flex;flex-direction:column;gap:2px;background:var(--ink);border:2px solid var(--ink);border-radius:12px;box-shadow:4px 4px 0 var(--ink)}
+.pnv>a,.pnv>.off{position:relative;display:flex;align-items:center;gap:12px;height:56px;padding:0 16px;background:var(--white);color:var(--sub);font-size:16px;text-decoration:none}
+.pnv.sm>a,.pnv.sm>.off{height:52px;font-size:15px}
+.pnv>:first-child{border-radius:10px 10px 0 0}
+.pnv>:last-child{border-radius:0 0 10px 10px}
+.pnv svg{stroke:var(--sub);flex:none}
+.pnv>a[aria-current]{background:var(--c);color:var(--ink);font-weight:700}
+.pnv>a[aria-current] svg{stroke:var(--ink)}
+.pnv>a:hover:not([aria-current]){background:#F6F2EA}
+.pnv>.off{color:var(--mute);cursor:default}
+.pnv>.off svg{stroke:var(--mute)}
+.pnv>.off i,.pcn{margin-left:auto;font-style:normal}
+.pnv>.off i{font-size:11px;font-weight:700;border:2px dashed var(--mute);border-radius:5px;padding:0 6px;color:var(--sub)}
+.pcn{min-width:24px;height:24px;box-sizing:border-box;padding:0 6px;border-radius:12px;background:var(--ink);color:var(--bg);font:700 13px/24px 'Barlow Condensed',sans-serif;text-align:center}
+.pco{display:flex;flex-direction:column;gap:8px}
+.pcoh{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700}
+.pcoh i{width:10px;height:10px;box-sizing:border-box;border-radius:50%;border:2px solid var(--ink);background:#F2A65A}
+.pcu{margin-top:auto;display:flex;align-items:center;gap:12px;padding-top:16px;border-top:2px solid var(--line)}
+.pcun{flex:none;width:40px;height:40px;box-sizing:border-box;border-radius:50%;border:2px solid var(--ink);background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font:700 20px 'Barlow Condensed',sans-serif}
+.pcux{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.pcux b{font-size:16px}
+.pcux span{font-size:12px;color:var(--sub)}
+.pcm{flex:1;min-width:0;display:flex;justify-content:center;padding:0 32px}
+.pcc{width:100%;max-width:1040px;display:flex;flex-direction:column;align-items:center;min-height:100dvh}
+html.pc .hd{background:transparent}
+html.pc .hd h1{font-size:32px}
+html.pc .body{padding:8px 0 48px;width:100%;max-width:760px;box-sizing:border-box}
+html.pc .pcc>.hd,html.pc .pcc>.cta{width:100%;max-width:760px;box-sizing:border-box}
+html.pc .cta{margin:0 -32px;padding-left:32px;padding-right:32px}
+html.pc .scrim{align-items:center;padding:24px}
+html.pc .sheet{max-width:560px;border:2px solid var(--ink);border-radius:20px;box-shadow:6px 6px 0 var(--ink);padding-bottom:28px}
+html.pc .toast{bottom:40px}
+/* PC 대화: 왼쪽 방 목록, 오른쪽 방 */
+.pcsplit{width:100%;display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:32px;align-items:start;padding:8px 0 32px}
+.pcl{display:flex;flex-direction:column;gap:12px}
+.chr.on{background:var(--sec3);box-shadow:6px 6px 0 var(--ink);transform:translate(-2px,-2px)}
+.pcr{position:sticky;top:16px;height:calc(100dvh - 120px);min-height:520px;display:flex;flex-direction:column;background:var(--white);border:2px solid var(--ink);border-radius:16px;box-shadow:4px 4px 0 var(--ink);overflow:hidden}
+.pcr .pch{flex:none;display:flex;align-items:center;gap:12px;min-height:64px;padding:0 24px;border-bottom:2px solid var(--ink)}
+.pcr .pch .tag{background:var(--sec);color:var(--ink)}
+.pcr .pch b{flex:1;min-width:0;font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pcr .pch>span:last-child{font-size:12px;color:var(--sub)}
+.pcr .chtk{margin:16px 24px 0}
+.pcr .chlkw{margin:12px 24px 0}
+.pcr .chlog{flex:1;overflow-y:auto;padding:16px 24px 24px;background-color:var(--bg);background-image:var(--grid);background-size:16px 16px;scrollbar-width:thin}
+.pcr .ccol{max-width:72%}
+.pcr .chc,.pcr .chclosed{position:static;padding:16px 24px}
+.pce{flex:1;display:flex;align-items:center;justify-content:center;padding:24px}
 </style>
 </head>
 <body>

@@ -3,8 +3,9 @@
 // 가린 글이 있으면 운영진에게 휴대폰 알림이 간다. 끝난 방(일정 날짜가 지났거나 취소)은 읽기만 한다.
 import { S, sb, esc, render, toast, fail, ls, isAdmin, viewMode, isCanceled, md, wd, evName, evStart, isPlay, maintLocked, todayStr, att, confirmBox } from "./main.js";
 import { hd, hdTab, empty, initial, navBar } from "./ui.js";
+import { isPC } from "./pc.js";
 
-export const CH = { rows: {}, tid: "", loading: false, loaded: false, missing: false, tab: "up", sending: false, stick: false };
+export const CH = { rows: {}, tid: "", loading: false, loaded: false, missing: false, tab: "up", sending: false, stick: false, last: "" };
 const LIMIT = 2000;
 const VS = { yes: "참석", late: "늦참", no: "불참" };
 
@@ -23,9 +24,10 @@ export async function chatLoad(force) {
 // 실시간: 새 글, 가린 글
 export function chatOnChange(p) {
   const n = p && p.new; if (!n || !n.id || n.team_id !== S.tid) return;
-  const nearBottom = innerHeight + scrollY >= document.documentElement.scrollHeight - 160;
+  const lg = document.querySelector(".pcr .chlog");
+  const nearBottom = lg ? lg.scrollTop + lg.clientHeight >= lg.scrollHeight - 160 : innerHeight + scrollY >= document.documentElement.scrollHeight - 160;
   CH.rows[n.id] = n;
-  if (/^#\/chat\//.test(location.hash) && nearBottom) CH.stick = true;
+  if (/^#\/chat/.test(location.hash) && nearBottom) CH.stick = true;
   render();
 }
 
@@ -65,6 +67,11 @@ function bodyHtml(t) {
 
 /* ===================== 대화 목록 ===================== */
 export function vChat() {
+  if (isPC()) return pcChat("");
+  return `${hdTab("대화")}<div class="body" style="gap:12px">${listInner("")}</div>${navBarChat()}`;
+}
+// 방 목록 (휴대폰 목록 화면과 PC 왼쪽 칸이 같이 쓴다). cur: PC에서 지금 연 방
+function listInner(cur) {
   if (!CH.loaded && !CH.loading && !CH.missing) chatLoad().then(render).catch(() => {});
   const tab = CH.tab === "past" ? "past" : "up";
   const list = tab === "past" ? roomsPast() : roomsUp();
@@ -75,13 +82,20 @@ export function vChat() {
     const lastText = last ? `${esc(last.name)}: ${last.hidden ? "가린 글이에요" : esc(last.body)}` : open ? "아직 글이 없어요. 먼저 말을 걸어 보세요." : "글이 없어요";
     const right = `<span>${last ? (dayOf(last.created_at) === todayStr() ? hm(last.created_at) : md(dayOf(last.created_at))) : ""}</span><span class="row">${u.at ? `<span class="cha" aria-hidden="true">@</span>` : ""}${u.n ? `<span class="chn" aria-hidden="true">${u.n > 99 ? "99+" : u.n}</span>` : ""}${!open ? `<span class="chx">${isCanceled(e) ? "취소" : "끝남"}</span>` : ""}</span>`;
     const aria = `${titleOf(e)}${u.n ? ", 안 읽은 글 " + u.n + "개" : ""}${!open ? ", 읽기만 가능" : ""}`;
-    return `<a class="chr" href="#/chat/${encodeURIComponent(e.id)}" aria-label="${esc(aria)}"><span class="chd${open ? "" : " off"}" aria-hidden="true"><b>${md(e.date)}</b><span>${wd(e.date)}</span></span><span class="cht"><b>${esc(titleOf(e))}</b><span>${lastText}</span></span><span class="chm">${right}</span></a>`;
+    return `<a class="chr${e.id === cur ? " on" : ""}" href="#/chat/${encodeURIComponent(e.id)}" aria-label="${esc(aria)}"${e.id === cur ? ' aria-current="true"' : ""}><span class="chd${open ? "" : " off"}" aria-hidden="true"><b>${md(e.date)}</b><span>${wd(e.date)}</span></span><span class="cht"><b>${esc(titleOf(e))}</b><span>${lastText}</span></span><span class="chm">${right}</span></a>`;
   }).join("");
   const note = tab === "past" ? "끝난 일정 방은 읽기만 할 수 있어요." : "일정을 올리면 방이 함께 생겨요. 일정 날짜가 지나면 읽기만 할 수 있어요.";
   const body = CH.missing ? empty("대화를 준비하고 있어요", "서버 준비가 끝나면 바로 쓸 수 있어요.")
     : !CH.loaded ? `<div class="loading">불러오는 중이에요</div>`
     : list.length ? rows : empty(tab === "past" ? "지난 일정이 없어요" : "다가오는 일정이 없어요", "일정이 올라오면 방이 함께 생겨요.");
-  return `${hdTab("대화")}<div class="body" style="gap:12px"><div class="chtabs" role="group" aria-label="방 고르기">${tabs}</div><span style="font-size:12px;color:var(--sub)">${note}</span>${body}</div>${navBarChat()}`;
+  return `<div class="chtabs" role="group" aria-label="방 고르기">${tabs}</div><span style="font-size:12px;color:var(--sub)">${note}</span>${body}`;
+}
+// PC: 왼쪽 방 목록, 오른쪽 방. 방을 안 골랐으면 마지막에 본 방이나 목록의 첫 방을 연다
+function pcChat(id) {
+  let room = id;
+  if (!room) { const list = (CH.tab === "past" ? roomsPast() : roomsUp()); room = (CH.last && list.some(e => e.id === CH.last)) ? CH.last : (list[0] || {}).id || ""; }
+  const right = room && S.events[room] ? roomInner(room, true) : `<div class="pce">${empty("방을 골라 주세요", "왼쪽에서 일정 방을 누르면 여기에 대화가 보여요.")}</div>`;
+  return `${hdTab("대화")}<div class="pcsplit"><div class="pcl">${listInner(room)}</div><section class="pcr" aria-label="대화방">${right}</section></div>`;
 }
 // 하단 메뉴 (ui.js가 대화 칸에 안 읽은 글 수를 함께 그린다)
 const navBarChat = () => navBar("대화");
@@ -90,6 +104,12 @@ const navBarChat = () => navBar("대화");
 export function vChatRoom(id) {
   const e = S.events[id];
   if (!e) return `${hd("대화", "#/chat")}<div class="body">${empty("없는 일정이에요", "지워진 일정일 수 있어요.")}</div>`;
+  if (isPC()) return pcChat(id);
+  return roomInner(id, false);
+}
+// 방 내용 (휴대폰은 화면 전체, PC는 오른쪽 칸)
+function roomInner(id, pc) {
+  const e = S.events[id]; CH.last = id;
   if (!CH.loaded && !CH.loading && !CH.missing) chatLoad().then(render).catch(() => {});
   const open = isOpen(e); const cx = isCanceled(e); const adm = adminView();
   const ms = msgsOf(id);
@@ -124,9 +144,11 @@ export function vChatRoom(id) {
   const foot = open && !CH.missing
     ? `<div class="chc"><div class="row"><label for="chatIn" class="sr">메시지</label><textarea id="chatIn" data-bind="chat" rows="1" maxlength="1000" placeholder="메시지 보내기  @이름으로 부르기">${esc(draft)}</textarea><button type="button" class="chs" data-act="chatSend" data-room="${esc(id)}" aria-disabled="${!draft.trim()}">보내기</button></div><span class="hint">@이름으로 부르면 그 사람이 알아보기 쉬워요. 내가 보낸 글은 아래 '가리기'로 가릴 수 있어요.</span></div>`
     : `<div class="chclosed"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg><span>${cx ? "취소된 일정이라 읽기만 할 수 있어요." : "일정 날짜가 지나 읽기만 할 수 있어요. 이 방은 기록과 함께 남아요."}</span></div>`;
-  if (CH.stick) { CH.stick = false; setTimeout(() => window.scrollTo(0, document.documentElement.scrollHeight), 0); }
-  return `${hd(titleOf(e), "#/chat", { sub: `팀원 ${S.members.length}명` })}${tk}<div class="chlog" aria-label="${esc(titleOf(e))} 대화" aria-live="polite">${intro}${bodyEmpty}${log}</div>${foot}`;
+  if (CH.stick) { CH.stick = false; setTimeout(toBottom, 0); }
+  const head = pc ? `<header class="pch"><span class="tag">일정 방</span><b>${esc(titleOf(e))}</b><span>팀원 ${S.members.length}명</span></header>` : hd(titleOf(e), "#/chat", { sub: `팀원 ${S.members.length}명` });
+  return `${head}${tk}<div class="chlog" aria-label="${esc(titleOf(e))} 대화" aria-live="polite">${intro}${bodyEmpty}${log}</div>${foot}`;
 }
+function toBottom() { const lg = document.querySelector(".pcr .chlog"); if (lg) lg.scrollTop = lg.scrollHeight; else window.scrollTo(0, document.documentElement.scrollHeight); }
 // 방에 들어올 때: 쓰던 글은 비우고 맨 아래로
 export function chatEnter() { S.form = { chat: "" }; CH.stick = true; }
 
@@ -140,7 +162,7 @@ function chatFail(err) {
 }
 
 export const CHACT = {
-  chatTab: t => { CH.tab = t.dataset.v === "past" ? "past" : "up"; render(); },
+  chatTab: t => { CH.tab = t.dataset.v === "past" ? "past" : "up"; if (isPC()) { CH.last = ""; CH.stick = true; if (location.hash !== "#/chat") { location.hash = "#/chat"; return; } } render(); },
   chatSend: async t => {
     const id = t.dataset.room; const e = S.events[id];
     const body = String((S.form && S.form.chat) || "").trim();

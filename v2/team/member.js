@@ -570,7 +570,7 @@ export function memberForm(r) {
   if (r === "/posreq") { S.form = { slot: 1 }; return true; }
   if (/^\/game\//.test(r)) { MU.mom = ""; MU.momFor = ""; return true; }
   if (/^\/event\//.test(r)) { MU.lq = 1; return true; }
-  if (/^\/chat\/./.test(r)) { chatEnter(); return true; }
+  if (/^\/chat/.test(r)) { chatEnter(); return true; }
   return false;
 }
 let undoT = 0;

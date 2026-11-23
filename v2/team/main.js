@@ -8,6 +8,7 @@ import { adminRoute, adminForm, AACT, eventFormInit, remindLeft, remindSheet, pl
 import { hd as uiHd, navBar, C, IC, teamLogo, setSec } from "./ui.js";
 import { pushInit, pushToggle, pushDetach, kakaoOff } from "./push.js";
 import { chatLoad, chatOnChange, CHACT } from "./chat.js";
+import { isPC, onPCChange, pcShell } from "./pc.js";
 
 const URL_ = import.meta.env.VITE_SUPABASE_URL || SUPABASE_URL;
 const KEY_ = import.meta.env.VITE_SUPABASE_KEY || SUPABASE_KEY;
@@ -1093,6 +1094,10 @@ function render() {
     else if (viewMode() === "admin") html = adminRoute(r) || memberRoute(r) || memberRoute("/");
     else html = memberRoute(r) || memberRoute("/");
   }
+  // PC(가로 1024px 이상): 같은 화면을 왼쪽 메뉴로 감싼다 (로그인, 팀 고르기 같은 흐름은 그대로)
+  const pcOn = isPC() && S.ready && !S.flow;
+  document.documentElement.classList.toggle("pc", pcOn);
+  if (pcOn) html = pcShell(html);
   // 입력 중인 칸은 그대로 두려고, 같은 화면이면 포커스와 커서를 되돌린다
   const act = document.activeElement; const d = (act && act.dataset) || {};
   const sel = d.bind ? `[data-bind="${d.bind}"]` : d.rule != null ? `[data-rule="${d.rule}"][data-f="${d.f}"]` : d.opt != null ? `[data-opt="${d.opt}"]` : "";
@@ -1461,4 +1466,5 @@ function vRest(id) {
 }
 
 // member.js와 admin.js가 같이 쓰는 것
-export { held, attended, checkTaken, KITS, isKit, kitHex, onKit, teamKit, kitClash, recKitFor, kitSideOf, gkKitOf, JPATH, jerseyIcon, kitPicker, PICK, fitOf, isCanceled, isDemo, maintLocked, scheduleRender, backHref, delDoc, FUTSAL_N, loadReqs, ls, APP, route, viewMode, fineAt, fineNow, fineText, lateCancel, spotXY, delSheet, curLineup, lineupPlayers, draftOf, formOf, autoLineup, FORMS, FORM_DESC, applyFix, qText, rowsOf, loadTeam, enter, showTeams, inviteUrl, policyFromForm as polFromForm, posFix, profileOf, refreshTally, hmK, promotedAt, ampm, closeAt, voteTimeOf, $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };
+onPCChange(() => render());
+export { MBRAND, held, attended, checkTaken, KITS, isKit, kitHex, onKit, teamKit, kitClash, recKitFor, kitSideOf, gkKitOf, JPATH, jerseyIcon, kitPicker, PICK, fitOf, isCanceled, isDemo, maintLocked, scheduleRender, backHref, delDoc, FUTSAL_N, loadReqs, ls, APP, route, viewMode, fineAt, fineNow, fineText, lateCancel, spotXY, delSheet, curLineup, lineupPlayers, draftOf, formOf, autoLineup, FORMS, FORM_DESC, applyFix, qText, rowsOf, loadTeam, enter, showTeams, inviteUrl, policyFromForm as polFromForm, posFix, profileOf, refreshTally, hmK, promotedAt, ampm, closeAt, voteTimeOf, $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };

@@ -1,6 +1,7 @@
 // 뉴버전 공통 모양: 머리, 하단 탭(탭마다 줄 색), 팀 로고, 아이콘, 줄 버튼, 창
 import { S, esc, sport, isAdmin, route, viewMode } from "./main.js";
 import { chatUnread } from "./chat.js";
+import { isPC } from "./pc.js";
 
 // 17안 색: 종이 바탕, 먹색 글자와 선, 흰 카드. 예전 이름(blue, orange 등)은 같은 역할의 17안 색으로 바꿔 둠
 // blue: 가장 가까운 일정 같은 강조면(옅은 파랑), orange: 누를 곳 노랑, green: 옅은 초록, pink: MOM 분홍, clay: 옅은 분홍, teal(대기): 먹색
@@ -68,6 +69,7 @@ export function navBar(on) {
   const cu = chatUnread();
   const cur = TABS.find(x => x[1] === on); if (cur) setSec(cur[2]);
   const lift = lastTab && lastTab !== on; lastTab = on;
+  if (isPC()) return ""; // PC는 왼쪽 메뉴를 쓴다
   return `<div class="navw"><nav class="nav" aria-label="하단 메뉴">${t.map(([h, l]) => `<a href="${h}"${on === l ? ` aria-current="page"${lift ? ' class="lift"' : ""}` : ""}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${NAVI[l]}</svg><span>${l}</span>${l === "대화" && cu ? `<i class="nb" aria-label="안 읽은 글 ${cu}개">${cu > 99 ? "99+" : cu}</i>` : ""}</a>`).join("")}</nav></div>`;
 }
 // 머리: 뒤로가 있는 화면
