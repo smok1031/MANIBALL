@@ -1,0 +1,788 @@
+<style>
+body{margin:0}
+
+:where(button.lkb){background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;cursor:pointer;text-align:inherit}
+/* 글자 끌어서 선택 막기 */
+body,body *{}
+input,textarea,select,[contenteditable],[contenteditable] *{-webkit-user-select:text;user-select:text}
+img,svg,a{-webkit-user-drag:none}
+
+body{margin:0;background:#FBF7EF}
+.lp{background-color:#FBF7EF;background-image:linear-gradient(rgba(18,17,16,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(18,17,16,0.06) 1px,transparent 1px);background-size:16px 16px;color:#121110;font-family:'IBM Plex Sans KR',sans-serif;word-break:keep-all;overflow:hidden}
+.lp a{color:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 40px;box-sizing:border-box}
+.top{display:flex;align-items:center;gap:20px;height:80px}
+.links{display:flex;align-items:center;gap:28px;margin-left:auto;font-size:15px;font-weight:500}
+.links a{text-decoration:none}
+.btn-o{display:inline-flex;align-items:center;justify-content:center;height:46px;padding:0 18px;border:2px solid #121110;border-radius:12px;background:#FCD01A;color:#121110;font-weight:700;font-size:15px;text-decoration:none;box-shadow:4px 4px 0 #121110;white-space:nowrap}
+.btn-l{display:inline-flex;align-items:center;justify-content:center;height:46px;padding:0 16px;border:2px solid #121110;border-radius:12px;background:#FFFFFF;color:#121110;font-weight:700;font-size:15px;text-decoration:none;white-space:nowrap}
+.hero{display:grid;grid-template-columns:1.05fr 1fr;gap:40px;align-items:center;padding:36px 0 80px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:700;border:2px solid #121110;border-radius:8px;padding:6px 14px;background:#FFFFFF}
+.h1{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:64px;line-height:1.12;margin:22px 0 18px;letter-spacing:-1px}
+.lead{font-size:18px;line-height:1.7;margin:0 0 28px;color:#121110;max-width:520px}
+.ctas{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.ctas .kk{width:auto;padding:0 22px}
+.note{font-size:13px;color:#5B5650;margin-top:14px}
+.art{position:relative;height:500px}
+.band{background:#121110;color:#FBF7EF;overflow:hidden;white-space:nowrap;border-top:2px solid #121110;border-bottom:2px solid #121110}
+.band-in{display:flex;gap:36px;padding:16px 0;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:26px;letter-spacing:3px}
+.sec{padding:88px 0}
+.kick{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:3px}
+.h2{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:46px;line-height:1.2;margin:10px 0 12px}
+.sub{font-size:17px;color:#5B5650;margin:0 0 36px}
+.rows{display:flex;flex-direction:column;gap:18px}
+.row{display:grid;grid-template-columns:200px 1fr 1.15fr;border:2px solid #121110;border-radius:16px;overflow:hidden;background:#FFFFFF;box-shadow:4px 4px 0 #121110}
+.row-h{padding:22px 20px;display:flex;flex-direction:column;gap:6px;border-right:2px solid #121110}
+.row-b{padding:22px 24px;background:#F3EEE4;color:#5B5650;font-size:15px;line-height:1.7;border-right:2px dashed #121110;position:relative}
+.row-a{padding:22px 24px;font-size:16px;line-height:1.7;font-weight:500}
+.lab{display:inline-block;font-size:12px;font-weight:700;border:2px solid #121110;border-radius:6px;padding:0 8px;margin-bottom:8px;color:#121110}
+.phones{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}
+.phone{display:flex;flex-direction:column;gap:14px;align-items:center}
+.frame{width:258px;height:539px;box-sizing:border-box;border:2px solid #121110;border-radius:38px;background:#121110;padding:8px;box-shadow:4px 4px 0 #14BBC2}
+.screen{width:242px;height:523px;border-radius:30px;overflow:hidden;position:relative;background:#FBF7EF}
+.scale{width:390px;height:844px;transform:scale(0.6205);transform-origin:0 0;position:absolute;left:0;top:0}
+.cap{text-align:center;display:flex;flex-direction:column;gap:4px}
+.cap b{font-size:17px}
+.cap span{font-size:14px;color:#5B5650}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.step{border:2px solid #121110;border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:10px;background:#FFFFFF;box-shadow:4px 4px 0 #121110;position:relative}
+.step .step-n{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:64px;line-height:.9;color:#121110}
+.step b{font-size:20px}
+.step span{font-size:15px;line-height:1.7;color:#5B5650}
+.cta{position:relative;background:#121110;color:#FBF7EF;border-radius:16px;padding:56px 48px;display:flex;align-items:center;justify-content:space-between;gap:32px}
+.cta h2{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:40px;line-height:1.25;margin:0 0 10px}
+.cta p{margin:0;font-size:16px;color:#DDD6C8}
+.cta-cut{position:absolute;top:50%;width:44px;height:44px;margin-top:-22px;border-radius:50%;background:#FBF7EF}
+.cta-btns{display:flex;flex-direction:column;gap:10px;min-width:280px}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:40px 0 56px;font-size:13px;color:#5B5650}
+@media (min-width: 1024px) and (max-width: 1180px){
+  .art-in{transform:scale(0.86);transform-origin:0 50%}
+}
+@media (max-width: 1023px){
+  .wrap{padding:0 20px}
+  .top{height:64px}
+  .links .hide-m{display:none}
+  .links{gap:10px}
+  .btn-o,.btn-l{height:40px;padding:0 12px;font-size:14px}
+  .hero{grid-template-columns:1fr;gap:12px;padding:8px 0 48px}
+  .h1{font-size:40px;margin:16px 0 14px}
+  .lead{font-size:16px}
+  .art{height:420px;margin-top:8px}
+  .art-in{transform:scale(0.82);transform-origin:0 0}
+  .art .mom{left:262px !important;top:446px !important}
+  .art .late{left:40px !important;top:460px !important}
+  .art{height:470px}
+  .band-in{font-size:20px;gap:24px;padding:12px 0}
+  .sec{padding:56px 0}
+  .h2{font-size:31px}
+  .sub{font-size:15px;margin-bottom:24px}
+  .row{grid-template-columns:1fr;box-shadow:4px 4px 0 #121110}
+  .row-h{border-right:0;border-bottom:2px solid #121110;flex-direction:row;align-items:baseline;gap:12px;padding:14px 18px}
+  .row-b{border-right:0;border-bottom:2px dashed #121110;padding:16px 18px}
+  .row-a{padding:16px 18px}
+  .phones{display:flex;overflow-x:auto;gap:16px;padding:4px 4px 16px;scroll-snap-type:x mandatory}
+  .phone{flex:none;scroll-snap-align:start}
+  .steps{grid-template-columns:1fr;gap:14px}
+  .step .step-n{font-size:48px}
+  .cta{flex-direction:column;align-items:stretch;padding:40px 24px;border-radius:24px}
+  .cta h2{font-size:28px}
+  .cta-btns{min-width:0}
+  .foot{flex-direction:column;align-items:flex-start;padding:32px 0 40px}
+}
+@media (max-width: 430px){
+  .art{height:396px}
+  .art-in{transform:scale(0.68)}
+}
+@media (max-width: 375px){
+  .art{height:362px}
+  .art-in{transform:scale(0.62)}
+}
+
+
+
+/* 글자 끌어서 선택 막기 */
+body,body *{}
+input,textarea,select,[contenteditable],[contenteditable] *{-webkit-user-select:text;user-select:text}
+img,svg,a{-webkit-user-drag:none}
+
+body{margin:0}
+
+/* 챕터 버튼: 지금 있는 칸과 누르는 칸이 왼쪽 위로 살짝 올라옴 (54번 B) */
+.mbn{position: relative; transition: transform .16s ease-out, box-shadow .16s ease-out; -webkit-tap-highlight-color: transparent}.mbn:active, .mbn.on{transform: translate(-3px, -3px); box-shadow: 0 0 0 2px #121110; z-index: 1}.mbn.on{animation: mbnlift .36s cubic-bezier(.3, 1.6, .5, 1) .4s both}@keyframes mbnlift{from{transform: none; box-shadow: 0 0 0 0 #121110}to{transform: translate(-3px, -3px); box-shadow: 0 0 0 2px #121110}}@media (prefers-reduced-motion: reduce){.mbn{transition: none}.mbn.on{animation: none}}
+
+/* 투표한 답: 그루터기 색이 빠진 흰 칸 위에 도장처럼 톡 찍힘 (58번 B) */
+.pstamp{animation: pstamp .34s cubic-bezier(.3, 1.6, .5, 1) both}@keyframes pstamp{from{transform: scale(1.5) rotate(-8deg); opacity: 0}to{transform: none; opacity: 1}}@media (prefers-reduced-motion: reduce){.pstamp{animation: none}}
+
+
+/* 글자 끌어서 선택 막기 */
+body,body *{}
+input,textarea,select,[contenteditable],[contenteditable] *{-webkit-user-select:text;user-select:text}
+img,svg,a{-webkit-user-drag:none}
+
+body{margin:0}
+
+/* 챕터 버튼: 지금 있는 칸과 누르는 칸이 왼쪽 위로 살짝 올라옴 (54번 B) */
+.mbn{position: relative; transition: transform .16s ease-out, box-shadow .16s ease-out; -webkit-tap-highlight-color: transparent}.mbn:active, .mbn.on{transform: translate(-3px, -3px); box-shadow: 0 0 0 2px #121110; z-index: 1}.mbn.on{animation: mbnlift .36s cubic-bezier(.3, 1.6, .5, 1) .4s both}@keyframes mbnlift{from{transform: none; box-shadow: 0 0 0 0 #121110}to{transform: translate(-3px, -3px); box-shadow: 0 0 0 2px #121110}}@media (prefers-reduced-motion: reduce){.mbn{transition: none}.mbn.on{animation: none}}
+
+</style>
+<div style="display: contents;">
+
+<div class="lp" style="" id="top">
+  <div class="wrap">
+    <header class="top">
+      <a href="#top" data-h="1" aria-label="매니볼 처음으로" style="background: none; border: 0px; padding: 0px; cursor: pointer; font: inherit; color: inherit; text-decoration: none;"><span style="display: inline-flex; align-items: center; gap: 10px; color: #121110; text-decoration: none"><span role="img" aria-label="매니볼" style="width: 40px; height: 40px; border-radius: 11px; background: #5B8DEF; border: 2px solid #121110; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; flex: none"><svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="22" fill="none" stroke="#121110" stroke-width="5"></circle><circle cx="23" cy="26" r="3.6" fill="#E46A2E"></circle><circle cx="23" cy="38" r="3.6" fill="#E46A2E"></circle><path d="M30 26 H43 M30 38 H41" fill="none" stroke="#121110" stroke-width="5" stroke-linecap="round"></path></svg></span><span style="display: flex; flex-direction: column; line-height: 1"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 22px">매니볼</b><span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 3px; margin-top: 3px">MANIBALL</span></span></span></a>
+      <nav class="links" aria-label="페이지 메뉴">
+        <a href="#before" class="lkb hide-m" data-h="1" style="text-decoration: none;">달라지는 점</a>
+        <a href="#screens" class="lkb hide-m" data-h="1" style="text-decoration: none;">화면 보기</a>
+        <a href="#start" class="lkb hide-m" data-h="1" style="text-decoration: none;">시작하는 법</a>
+        <a href="#pc" class="lkb hide-m" data-h="1" style="text-decoration: none;">다른 팀과</a>
+        <a class="btn-l" href="team/">로그인</a>
+        <a class="btn-o hide-m" href="team/">우리 팀 만들기</a>
+      </nav>
+    </header>
+
+    <section class="hero" aria-label="소개">
+      <div>
+        <span class="eyebrow"><span style="width: 10px; height: 10px; border-radius: 50%; background: #69BA7C; border: 2px solid #121110"></span>축구팀과 풋살팀을 위한 팀 관리</span>
+        <h1 class="h1">운영진이 매주<br>손으로 하던 일,<br><span style="background: linear-gradient(transparent 58%, #FCD01A 58%)">이제 매니볼이 해요</span></h1>
+        <p class="lead">참석 투표, 라인업, 현장 출석과 벌금, 회비, 경기 기록과 MOM까지. 우리 팀 링크 하나에서 자동으로 정리돼요.</p>
+        <div class="ctas">
+          <a style="width: 100%; height: 54px; box-sizing: border-box; border: 0; border-radius: 12px; background: #FEE500; color: rgba(0, 0, 0, 0.85); font: 600 16px -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'IBM Plex Sans KR', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; text-decoration: none; width: auto; padding: 0 22px" href="team/"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#000000" fill-rule="evenodd" clip-rule="evenodd" d="M9.00002 0.599976C4.02917 0.599976 0 3.71296 0 7.55229C0 9.94003 1.55847 12.0452 3.93152 13.2969L2.93303 16.9446C2.84481 17.2669 3.21341 17.5238 3.49646 17.337L7.87334 14.4483C8.24268 14.4839 8.61815 14.5047 9.00002 14.5047C13.9706 14.5047 18 11.3917 18 7.55229C18 3.71296 13.9706 0.599976 9.00002 0.599976"></path></svg>카카오로 시작하기</a>
+          <a href="#screens" class="lkb btn-l" data-h="1" style="text-decoration: none;">실제 화면 보기</a>
+        </div>
+        <div class="note">팀원은 카카오로 한 번 로그인하면 끝. 앱 설치는 필요 없어요.</div>
+      </div>
+      <div class="art"><div class="art-in" style="position: absolute; inset: 0">
+  <div style="position: absolute; left: 0; top: 16px; width: 500px; height: 236px; transform: rotate(-3deg); background: #FFFFFF; border-radius: 14px; box-shadow: 0 1px 0 rgba(18, 17, 16, .08), 0 10px 22px rgba(18, 17, 16, .16); display: flex; color: #121110">
+    <div style="flex: 1; min-width: 0; padding: 20px 20px 20px 24px; display: flex; flex-direction: column; justify-content: space-between">
+      <div style="display: flex; justify-content: space-between; align-items: center"><span style="display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 700; color: #005459"><span style="width: 14px; height: 14px; border-radius: 50%; background: #14BBC2; border: 2px solid #121110; box-sizing: border-box"></span>경기</span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 28px">11.22 토</b></div>
+      <div style="display: flex; align-items: baseline; gap: 10px; white-space: nowrap"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 76px; line-height: .9">07:00</b><span style="font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 700">~ 09:00</span></div>
+      <div style="display: flex; flex-direction: column; font-size: 15px; line-height: 1.4"><b>상암 월드컵 보조구장</b><span style="color: #5B5650">참석 14 / 14  정원이 다 찼어요, 대기 2명</span></div>
+    </div>
+    <span aria-hidden="true" style="flex: none; width: 2px; background-image: radial-gradient(circle, #121110 1.2px, transparent 1.4px); background-size: 2px 7px; background-repeat: repeat-y; margin: 16px 0"></span>
+    <div style="flex: none; width: 150px; display: flex; border-radius: 0 14px 14px 0; overflow: hidden">
+      <span style="flex: 1; background: #14BBC2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-weight: 700; font-size: 22px; line-height: 1.25; text-align: center">투표<br>하기<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
+      <span style="flex: none; width: 30px; background: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="16" height="120" viewBox="0 0 14 60" preserveAspectRatio="none" fill="#121110" aria-hidden="true"><rect x="0" y="0" width="14" height="1"></rect><rect x="0" y="2" width="14" height="2"></rect><rect x="0" y="6" width="14" height="2"></rect><rect x="0" y="9" width="14" height="1"></rect><rect x="0" y="12" width="14" height="2"></rect><rect x="0" y="16" width="14" height="1"></rect><rect x="0" y="19" width="14" height="1"></rect><rect x="0" y="22" width="14" height="1"></rect><rect x="0" y="25" width="14" height="1"></rect><rect x="0" y="27" width="14" height="1"></rect><rect x="0" y="31" width="14" height="2"></rect><rect x="0" y="34" width="14" height="2"></rect><rect x="0" y="39" width="14" height="1"></rect><rect x="0" y="41" width="14" height="2"></rect><rect x="0" y="44" width="14" height="2"></rect><rect x="0" y="48" width="14" height="2"></rect><rect x="0" y="51" width="14" height="1"></rect><rect x="0" y="53" width="14" height="2"></rect></svg></span>
+    </div>
+    <span aria-hidden="true" style="position: absolute; top: 0; right: 138px; width: 26px; height: 14px; background: #FBF7EF; border-radius: 0 0 13px 13px"></span><span aria-hidden="true" style="position: absolute; bottom: 0; right: 138px; width: 26px; height: 14px; background: #FBF7EF; border-radius: 13px 13px 0 0"></span>
+  </div>
+  <div style="position: absolute; left: 36px; top: 330px; display: grid; grid-template-columns: repeat(3, 110px); gap: 14px">
+    <span style="height: 72px; border: 2px solid #121110; border-radius: 10px; background: #121110; color: #FBF7EF; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 20px; transform: rotate(-6deg) translateY(-6px); box-shadow: 4px 4px 0 #14BBC2">참석</span>
+    <span style="height: 72px; border: 2px solid #121110; border-radius: 10px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 20px; box-shadow: 4px 4px 0 #121110">늦참</span>
+    <span style="height: 72px; border: 2px solid #121110; border-radius: 10px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 20px; box-shadow: 4px 4px 0 #121110">불참</span>
+  </div>
+  <div class="mom" style="position: absolute; left: 404px; top: 300px; width: 104px; height: 104px; box-sizing: border-box; border-radius: 50%; border: 2.5px solid #121110; background: #FFECEF; transform: rotate(-12deg); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1"><span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 22px">MOM</span><b style="font-size: 16px">최성호</b><span style="font-size: 12px">9표</span></div>
+  <div class="late" style="position: absolute; left: 300px; top: 440px; white-space: nowrap; transform: rotate(-4deg); background: #FFFFFF; border: 2px solid #121110; border-radius: 8px; box-shadow: 3px 3px 0 #121110; padding: 6px 12px; font-weight: 700; font-size: 14px">늦참은 2Q부터</div>
+</div></div>
+    </section>
+  </div>
+
+  <div class="band" aria-hidden="true"><div class="band-in"><span>VOTE</span><span style="color: #69BA7C">+</span><span>LINEUP</span><span style="color: #7CA4F0">+</span><span>CHECK-IN</span><span style="color: #14BBC2">+</span><span>DUES</span><span style="color: #B093E5">+</span><span>MOM</span><span style="color: #E48398">+</span><span>RECORD</span><span style="color: #69BA7C">+</span><span>VOTE</span><span style="color: #7CA4F0">+</span><span>LINEUP</span><span style="color: #14BBC2">+</span><span>CHECK-IN</span><span style="color: #B093E5">+</span><span>DUES</span><span style="color: #E48398">+</span></div></div>
+
+  <div class="wrap">
+    <section class="sec" id="before" aria-labelledby="h-before">
+      <span class="kick">BEFORE / AFTER</span>
+      <h2 class="h2" id="h-before">이렇게 달라져요</h2>
+      <p class="sub">운영진이 매주 반복하던 다섯 가지 일이에요.</p>
+      <div class="rows">
+<div class="row"><div class="row-h" style="background: #14BBC2"><span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 44px; line-height: .9">01</span><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">참석 투표</b></div><div class="row-b"><span class="lab" style="background: #FBF7EF">전에는</span><br>단톡방에 투표를 올리고, 안 누른 사람에게 일일이 물어보고, 인원을 다시 세기</div><div class="row-a"><span class="lab" style="background: #14BBC2">이제는</span><br>티켓의 투표하기를 눌러 참석, 늦참, 불참을 골라요. 정원이 차면 대기로 들어가고, 안 누른 사람에게만 알림을 보내요.</div></div>
+<div class="row"><div class="row-h" style="background: #7CA4F0"><span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 44px; line-height: .9">02</span><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">라인업</b></div><div class="row-b"><span class="lab" style="background: #FBF7EF">전에는</span><br>엑셀에 포지션과 쿼터를 적고, 누가 몇 번 쉬는지 손으로 맞추기</div><div class="row-a"><span class="lab" style="background: #7CA4F0">이제는</span><br>포메이션 위에서 자리를 정하면 쿼터마다 출전이 고르게 채워져요. 팀원은 내 자리와 쉬는 쿼터를 바로 봐요.</div></div>
+<div class="row"><div class="row-h" style="background: #B093E5"><span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 44px; line-height: .9">03</span><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">현장 출석과 벌금</b></div><div class="row-b"><span class="lab" style="background: #FBF7EF">전에는</span><br>출석을 부르고 지각한 사람을 메모했다가, 나중에 벌금을 계산해서 공지하기</div><div class="row-a"><span class="lab" style="background: #B093E5">이제는</span><br>현장에서 왔음, 지각, 안 옴만 누르면 팀 수칙대로 벌금이 붙어요. 마감 뒤 불참도 수칙대로 정리돼요.</div></div>
+<div class="row"><div class="row-h" style="background: #69BA7C"><span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 44px; line-height: .9">04</span><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">회비와 벌금</b></div><div class="row-b"><span class="lab" style="background: #FBF7EF">전에는</span><br>통장 내역을 보면서 누가 냈는지 한 명씩 체크하기</div><div class="row-a"><span class="lab" style="background: #69BA7C">이제는</span><br>팀원은 내가 낼 돈과 계좌를 한 화면에서 봐요. 운영진은 달마다 낸 사람과 안 낸 사람을 한눈에 봐요.</div></div>
+<div class="row"><div class="row-h" style="background: #E48398"><span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 44px; line-height: .9">05</span><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">기록과 MOM</b></div><div class="row-b"><span class="lab" style="background: #FBF7EF">전에는</span><br>경기 결과와 골 기록은 대화에 묻히고, MOM은 투표를 따로 만들기</div><div class="row-a"><span class="lab" style="background: #E48398">이제는</span><br>경기마다 점수, 골, 도움이 티켓북처럼 쌓이고, MOM 투표도 그 경기 안에서 바로 열려요.</div></div>
+      </div>
+    </section>
+
+    <section class="sec" id="screens" aria-labelledby="h-screens" style="padding-top: 24px">
+      <span class="kick">SCREENS</span>
+      <h2 class="h2" id="h-screens">우리는 이렇게 관리해요</h2>
+      <p class="sub">팀원이 매주 쓰는 실제 화면이에요.</p>
+      <div class="phones">
+<div class="phone"><div class="frame"><div class="screen" inert="" role="img" aria-label="매니볼 화면: 일정은 티켓으로"><div class="scale"><div><div style="display: contents;">
+
+<div style="width: 390px; height: 844px; box-sizing: border-box; background-color: #FBF7EF; background-image: linear-gradient(rgba(18, 17, 16, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(18, 17, 16, 0.06) 1px, transparent 1px); background-size: 16px 16px; color: #121110; font-family: 'IBM Plex Sans KR', sans-serif; position: relative; overflow: hidden; display: flex; flex-direction: column; word-break: keep-all">
+
+  <header style="height: 60px; flex: none; display: flex; align-items: center; padding: 0 8px 0 24px; gap: 4px">
+    <h1 style="flex: 1; margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">일정</h1>
+    
+  </header>
+
+  <main style="flex: 1; padding: 0 24px; display: flex; flex-direction: column; gap: 16px; overflow: hidden">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; border-bottom: 2px solid #121110; padding-bottom: 8px">
+      <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 32px; line-height: 1">11 – 12</span>
+      <span style="font-size: 12px; color: #5B5650">투표할 일정 3개</span>
+    </div>
+
+    
+      <div style="flex: none">
+        <div style="position: relative; display: flex; height: 128px; background: #FFFFFF; border-radius: 10px; color: #121110; box-shadow: 0 1px 0 rgba(18, 17, 16, .08), 0 6px 14px rgba(18, 17, 16, .14)">
+          <div style="display: flex; flex: 1; min-width: 0; border-radius: 10px; overflow: hidden">
+            <div style="flex: 1; min-width: 0; padding: 12px 12px 12px 16px; display: flex; flex-direction: column; justify-content: space-between">
+              <div style="display: flex; justify-content: space-between; align-items: center"><span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #005459"><span style="width: 10px; height: 10px; border-radius: 50%; background: #14BBC2; border: 2px solid #121110; box-sizing: border-box; flex: none"></span>경기</span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px">11.22 토</b></div>
+              <div style="display: flex; align-items: baseline; gap: 8px; white-space: nowrap"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 44px; line-height: .9; ">07:00</b><span style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 700">~ 09:00</span></div>
+              <div style="display: flex; flex-direction: column; font-size: 12px; line-height: 1.4"><b style="">상암 월드컵 보조구장</b><span style="color: #5B5650">참가 14/14   D-3</span></div>
+            </div>
+            <span aria-hidden="true" style="flex: none; width: 2px; background-image: radial-gradient(circle, #121110 1.2px, transparent 1.4px); background-size: 2px 7px; background-repeat: repeat-y; margin: 12px 0"></span>
+            <div style="flex: none; width: 92px; display: flex; align-items: stretch; background: #14BBC2">
+              
+                <button type="button" data-h="1" aria-label="11.22 토 경기 투표하기" style="flex: 1; border: 0; padding: 0; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #121110; font: 700 16px 'IBM Plex Sans KR', sans-serif; line-height: 1.25; cursor: pointer">
+                  <span>투표<br>하기</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+                </button>
+              
+              
+              
+              
+              <div style="flex: none; width: 22px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px 0; box-sizing: border-box; background: #FFFFFF"><svg width="14" height="60" viewBox="0 0 14 60" fill="#121110" aria-hidden="true"><rect x="0" y="0" width="14" height="1"></rect><rect x="0" y="2" width="14" height="2"></rect><rect x="0" y="6" width="14" height="2"></rect><rect x="0" y="9" width="14" height="1"></rect><rect x="0" y="12" width="14" height="2"></rect><rect x="0" y="16" width="14" height="1"></rect><rect x="0" y="19" width="14" height="1"></rect><rect x="0" y="22" width="14" height="1"></rect><rect x="0" y="25" width="14" height="1"></rect><rect x="0" y="27" width="14" height="1"></rect><rect x="0" y="31" width="14" height="2"></rect><rect x="0" y="34" width="14" height="2"></rect><rect x="0" y="39" width="14" height="1"></rect><rect x="0" y="41" width="14" height="2"></rect><rect x="0" y="44" width="14" height="2"></rect><rect x="0" y="48" width="14" height="2"></rect><rect x="0" y="51" width="14" height="1"></rect><rect x="0" y="53" width="14" height="2"></rect></svg><span style="font-family: 'Barlow Condensed', sans-serif; font-size: 12px; writing-mode: vertical-rl; color: #5B5650; line-height: 1">0007</span></div>
+            </div>
+          </div>
+          
+          <span aria-hidden="true" style="position: absolute; top: 0; right: 82px; width: 22px; height: 12px; background: #FBF7EF; border-radius: 0 0 11px 11px; z-index: 1"></span><span aria-hidden="true" style="position: absolute; bottom: 0; right: 82px; width: 22px; height: 12px; background: #FBF7EF; border-radius: 11px 11px 0 0; z-index: 1"></span>
+        </div>
+      </div>
+    
+      <div style="flex: none">
+        <div style="position: relative; display: flex; height: 128px; background: #FFFFFF; border-radius: 10px; color: #121110; box-shadow: 0 1px 0 rgba(18, 17, 16, .08), 0 6px 14px rgba(18, 17, 16, .14)">
+          <div style="display: flex; flex: 1; min-width: 0; border-radius: 10px; overflow: hidden">
+            <div style="flex: 1; min-width: 0; padding: 12px 12px 12px 16px; display: flex; flex-direction: column; justify-content: space-between">
+              <div style="display: flex; justify-content: space-between; align-items: center"><span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #005459"><span style="width: 10px; height: 10px; border-radius: 50%; background: #14BBC2; border: 2px solid #121110; box-sizing: border-box; flex: none"></span>훈련</span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px">11.26 수</b></div>
+              <div style="display: flex; align-items: baseline; gap: 8px; white-space: nowrap"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 44px; line-height: .9; ">20:00</b><span style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 700">~ 22:00</span></div>
+              <div style="display: flex; flex-direction: column; font-size: 12px; line-height: 1.4"><b style="">난지 인조잔디 구장</b><span style="color: #5B5650">참가 10/16   D-7</span></div>
+            </div>
+            <span aria-hidden="true" style="flex: none; width: 2px; background-image: radial-gradient(circle, #121110 1.2px, transparent 1.4px); background-size: 2px 7px; background-repeat: repeat-y; margin: 12px 0"></span>
+            <div style="flex: none; width: 92px; display: flex; align-items: stretch; background: #B8E9EB">
+              
+                <button type="button" data-h="1" aria-label="11.26 수 훈련 투표하기" style="flex: 1; border: 0; padding: 0; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #121110; font: 700 16px 'IBM Plex Sans KR', sans-serif; line-height: 1.25; cursor: pointer">
+                  <span>투표<br>하기</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+                </button>
+              
+              
+              
+              
+              <div style="flex: none; width: 22px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px 0; box-sizing: border-box; background: #FFFFFF"><svg width="14" height="60" viewBox="0 0 14 60" fill="#121110" aria-hidden="true"><rect x="0" y="0" width="14" height="1"></rect><rect x="0" y="2" width="14" height="2"></rect><rect x="0" y="6" width="14" height="2"></rect><rect x="0" y="9" width="14" height="1"></rect><rect x="0" y="12" width="14" height="2"></rect><rect x="0" y="16" width="14" height="1"></rect><rect x="0" y="19" width="14" height="1"></rect><rect x="0" y="22" width="14" height="1"></rect><rect x="0" y="25" width="14" height="1"></rect><rect x="0" y="27" width="14" height="1"></rect><rect x="0" y="31" width="14" height="2"></rect><rect x="0" y="34" width="14" height="2"></rect><rect x="0" y="39" width="14" height="1"></rect><rect x="0" y="41" width="14" height="2"></rect><rect x="0" y="44" width="14" height="2"></rect><rect x="0" y="48" width="14" height="2"></rect><rect x="0" y="51" width="14" height="1"></rect><rect x="0" y="53" width="14" height="2"></rect></svg><span style="font-family: 'Barlow Condensed', sans-serif; font-size: 12px; writing-mode: vertical-rl; color: #5B5650; line-height: 1">0008</span></div>
+            </div>
+          </div>
+          
+          <span aria-hidden="true" style="position: absolute; top: 0; right: 82px; width: 22px; height: 12px; background: #FBF7EF; border-radius: 0 0 11px 11px; z-index: 1"></span><span aria-hidden="true" style="position: absolute; bottom: 0; right: 82px; width: 22px; height: 12px; background: #FBF7EF; border-radius: 11px 11px 0 0; z-index: 1"></span>
+        </div>
+      </div>
+    
+      <div style="flex: none">
+        <div style="position: relative; display: flex; height: 128px; background: #FFFFFF; border-radius: 10px; color: #121110; box-shadow: 0 1px 0 rgba(18, 17, 16, .08), 0 6px 14px rgba(18, 17, 16, .14)">
+          <div style="display: flex; flex: 1; min-width: 0; border-radius: 10px; overflow: hidden">
+            <div style="flex: 1; min-width: 0; padding: 12px 12px 12px 16px; display: flex; flex-direction: column; justify-content: space-between">
+              <div style="display: flex; justify-content: space-between; align-items: center"><span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #005459"><span style="width: 10px; height: 10px; border-radius: 50%; background: #14BBC2; border: 2px solid #121110; box-sizing: border-box; flex: none"></span>내전</span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px">11.29 토</b></div>
+              <div style="display: flex; align-items: baseline; gap: 8px; white-space: nowrap"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 44px; line-height: .9; ">07:00</b><span style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 700">~ 09:00</span></div>
+              <div style="display: flex; flex-direction: column; font-size: 12px; line-height: 1.4"><b style="">상암 월드컵 보조구장</b><span style="color: #5B5650">참가 14/20   D-10</span></div>
+            </div>
+            <span aria-hidden="true" style="flex: none; width: 2px; background-image: radial-gradient(circle, #121110 1.2px, transparent 1.4px); background-size: 2px 7px; background-repeat: repeat-y; margin: 12px 0"></span>
+            <div style="flex: none; width: 92px; display: flex; align-items: stretch; background: #B8E9EB">
+              
+                <button type="button" data-h="1" aria-label="11.29 토 내전 투표하기" style="flex: 1; border: 0; padding: 0; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #121110; font: 700 16px 'IBM Plex Sans KR', sans-serif; line-height: 1.25; cursor: pointer">
+                  <span>투표<br>하기</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+                </button>
+              
+              
+              
+              
+              <div style="flex: none; width: 22px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px 0; box-sizing: border-box; background: #FFFFFF"><svg width="14" height="60" viewBox="0 0 14 60" fill="#121110" aria-hidden="true"><rect x="0" y="0" width="14" height="1"></rect><rect x="0" y="2" width="14" height="2"></rect><rect x="0" y="6" width="14" height="2"></rect><rect x="0" y="9" width="14" height="1"></rect><rect x="0" y="12" width="14" height="2"></rect><rect x="0" y="16" width="14" height="1"></rect><rect x="0" y="19" width="14" height="1"></rect><rect x="0" y="22" width="14" height="1"></rect><rect x="0" y="25" width="14" height="1"></rect><rect x="0" y="27" width="14" height="1"></rect><rect x="0" y="31" width="14" height="2"></rect><rect x="0" y="34" width="14" height="2"></rect><rect x="0" y="39" width="14" height="1"></rect><rect x="0" y="41" width="14" height="2"></rect><rect x="0" y="44" width="14" height="2"></rect><rect x="0" y="48" width="14" height="2"></rect><rect x="0" y="51" width="14" height="1"></rect><rect x="0" y="53" width="14" height="2"></rect></svg><span style="font-family: 'Barlow Condensed', sans-serif; font-size: 12px; writing-mode: vertical-rl; color: #5B5650; line-height: 1">0009</span></div>
+            </div>
+          </div>
+          
+          <span aria-hidden="true" style="position: absolute; top: 0; right: 82px; width: 22px; height: 12px; background: #FBF7EF; border-radius: 0 0 11px 11px; z-index: 1"></span><span aria-hidden="true" style="position: absolute; bottom: 0; right: 82px; width: 22px; height: 12px; background: #FBF7EF; border-radius: 11px 11px 0 0; z-index: 1"></span>
+        </div>
+      </div>
+    
+      <div style="flex: none; opacity: 0.7">
+        <div style="position: relative; display: flex; height: 128px; background: #FFFFFF; border-radius: 10px; color: #121110; box-shadow: 0 1px 0 rgba(18, 17, 16, .08), 0 6px 14px rgba(18, 17, 16, .14)">
+          <div style="display: flex; flex: 1; min-width: 0; border-radius: 10px; overflow: hidden">
+            <div style="flex: 1; min-width: 0; padding: 12px 12px 12px 16px; display: flex; flex-direction: column; justify-content: space-between">
+              <div style="display: flex; justify-content: space-between; align-items: center"><span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #005459"><span style="width: 10px; height: 10px; border-radius: 50%; background: #14BBC2; border: 2px solid #121110; box-sizing: border-box; flex: none"></span>경기</span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px">12.06 토</b></div>
+              <div style="display: flex; align-items: baseline; gap: 8px; white-space: nowrap"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 44px; line-height: .9; ">08:00</b><span style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 700">~ 10:00</span></div>
+              <div style="display: flex; flex-direction: column; font-size: 12px; line-height: 1.4"><b style="">고양 종합운동장 보조구장</b><span style="color: #5B5650">참가 0/22   D-17</span></div>
+            </div>
+            <span aria-hidden="true" style="flex: none; width: 2px; background-image: radial-gradient(circle, #121110 1.2px, transparent 1.4px); background-size: 2px 7px; background-repeat: repeat-y; margin: 12px 0"></span>
+            <div style="flex: none; width: 92px; display: flex; align-items: stretch; background: #FBF7EF">
+              
+              
+              
+              
+                <span style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px"><span style="font-size: 12px; color: #5B5650">투표는</span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 24px; line-height: 1">12.01</b><span style="font-size: 12px; color: #5B5650">부터</span></span>
+              
+              <div style="flex: none; width: 22px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px 0; box-sizing: border-box; background: #FFFFFF"><svg width="14" height="60" viewBox="0 0 14 60" fill="#121110" aria-hidden="true"><rect x="0" y="0" width="14" height="1"></rect><rect x="0" y="2" width="14" height="2"></rect><rect x="0" y="6" width="14" height="2"></rect><rect x="0" y="9" width="14" height="1"></rect><rect x="0" y="12" width="14" height="2"></rect><rect x="0" y="16" width="14" height="1"></rect><rect x="0" y="19" width="14" height="1"></rect><rect x="0" y="22" width="14" height="1"></rect><rect x="0" y="25" width="14" height="1"></rect><rect x="0" y="27" width="14" height="1"></rect><rect x="0" y="31" width="14" height="2"></rect><rect x="0" y="34" width="14" height="2"></rect><rect x="0" y="39" width="14" height="1"></rect><rect x="0" y="41" width="14" height="2"></rect><rect x="0" y="44" width="14" height="2"></rect><rect x="0" y="48" width="14" height="2"></rect><rect x="0" y="51" width="14" height="1"></rect><rect x="0" y="53" width="14" height="2"></rect></svg><span style="font-family: 'Barlow Condensed', sans-serif; font-size: 12px; writing-mode: vertical-rl; color: #5B5650; line-height: 1">0010</span></div>
+            </div>
+          </div>
+          
+          <span aria-hidden="true" style="position: absolute; top: 0; right: 82px; width: 22px; height: 12px; background: #FBF7EF; border-radius: 0 0 11px 11px; z-index: 1"></span><span aria-hidden="true" style="position: absolute; bottom: 0; right: 82px; width: 22px; height: 12px; background: #FBF7EF; border-radius: 11px 11px 0 0; z-index: 1"></span>
+        </div>
+      </div>
+    
+  </main>
+
+  <nav aria-label="하단 메뉴" style="flex: none; margin: 0 24px 20px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; background: #121110; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; height: 64px">
+    <a class="mbn" style="border-radius: 10px 0 0 10px; background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg><span>홈</span></a>
+    <a aria-current="page" class="mbn on" style="background: #14BBC2; text-decoration: none; color: #121110; font-weight: 700; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg><span>일정</span></a>
+    <a class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M6 20v-8M12 20V5M18 20v-5"></path></svg><span>기록</span></a>
+    <a class="mbn" style="border-radius: 0 10px 10px 0; background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16.5 14.6c2.4.3 4.2 2.1 4.8 5.4"></path></svg><span>팀</span></a>
+  </nav>
+
+  
+  
+</div>
+</div></div></div></div></div><div class="cap"><b>일정은 티켓으로</b><span>투표하면 티켓이 뜯기고 도장이 찍혀요</span></div></div>
+<div class="phone"><div class="frame"><div class="screen" inert="" role="img" aria-label="매니볼 화면: 심판 카드로 투표"><div class="scale"><div><div style="display: contents;">
+
+<div style="width: 390px; height: 844px; box-sizing: border-box; background-color: #FBF7EF; background-image: linear-gradient(rgba(18, 17, 16, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(18, 17, 16, 0.06) 1px, transparent 1px); background-size: 16px 16px; color: #121110; font-family: 'IBM Plex Sans KR', sans-serif; position: relative; overflow: hidden; display: flex; flex-direction: column; word-break: keep-all">
+
+  <header style="height: 60px; flex: none; display: flex; align-items: center; padding: 0 8px 0 12px; gap: 4px">
+    
+    <span style="flex: 1; min-height: 44px; display: flex; align-items: center; gap: 8px; color: #121110; padding-left: 8px"><svg width="32" height="32" viewBox="6 6 88 88" aria-hidden="true" style="flex: none; display: block"><rect x="6" y="6" width="88" height="88" rx="22" fill="#5B8DEF"></rect><g fill="none" stroke="#121110" stroke-width="2.5" stroke-linejoin="round" opacity="0.9"><rect x="18" y="15" width="64" height="70" rx="1"></rect><line x1="18" y1="50" x2="82" y2="50"></line><rect x="33" y="15" width="34" height="13"></rect><rect x="41" y="15" width="18" height="6"></rect><rect x="33" y="72" width="34" height="13"></rect><rect x="41" y="79" width="18" height="6"></rect></g><rect x="25" y="37" width="50" height="26" rx="6" fill="#5B8DEF"></rect><text x="50" y="61" text-anchor="middle" font-family="Inter, 'Noto Sans KR', sans-serif" font-weight="800" font-size="30" fill="#121110">FC</text></svg><span style="font-family: 'Black Han Sans', sans-serif; font-size: 24px">TEST FC</span></span>
+    
+  </header>
+
+  <main ref="(el) =&gt; { this._scroller = el; }" style="flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; touch-action: pan-y; cursor: grab; "><div style="padding: 8px 24px 28px; display: flex; flex-direction: column; gap: 16px">
+
+    <a style="text-decoration: none; background: #B8E9EB; color: #121110; border-radius: 12px; box-shadow: 0 1px 0 rgba(18, 17, 16, .08), 0 6px 14px rgba(18, 17, 16, .14); display: flex; flex-direction: column; position: relative">
+      <div style="padding: 24px 24px 16px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #005459"><span style="width: 10px; height: 10px; border-radius: 50%; background: #14BBC2; border: 2px solid #121110; box-sizing: border-box; flex: none"></span>친선 경기</span>
+          <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px; background: #121110; color: #FBF7EF; border-radius: 8px; padding: 4px 8px">D-3</span>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 8px">
+          <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 92px; line-height: 0.9; letter-spacing: -1px">07:00</span>
+          <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 24px">~ 09:00</span>
+        </div>
+        <b style="font-size: 16px; margin-top: 8px">11.22 토요일</b>
+        <span style="font-size: 14px">상암 월드컵 보조구장</span>
+      </div>
+      <div aria-hidden="true" style="position: relative; height: 2px">
+        <span style="position: absolute; left: 20px; right: 20px; top: 0; height: 2px; background-image: radial-gradient(circle, #121110 1.2px, transparent 1.4px); background-size: 7px 2px; background-repeat: repeat-x"></span>
+        <span style="position: absolute; left: 0; top: -11px; width: 12px; height: 24px; background: #FBF7EF; border-radius: 0 12px 12px 0"></span>
+        <span style="position: absolute; right: 0; top: -11px; width: 12px; height: 24px; background: #FBF7EF; border-radius: 12px 0 0 12px"></span>
+      </div>
+      <div style="padding: 16px 24px 24px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; font-family: 'Barlow Condensed', sans-serif; font-size: 16px">
+          <span>참석 <b style="font-size: 24px">14</b> / 14</span>
+          <span style="font-family: 'IBM Plex Sans KR', sans-serif; font-size: 12px">정원이 다 찼어요, 대기 2명</span>
+        </div>
+        <span style="height: 6px; border-radius: 3px; background: rgba(18, 17, 16, 0.2); display: block; overflow: hidden"><span style="display: block; height: 6px; width: 100%; background: #121110"></span></span>
+        <span style="font-size: 12px">투표 마감 11.21 금 21:00</span>
+        
+        
+      </div>
+    </a>
+
+    <section aria-label="내 참석" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px">
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 8px 4px 4px">
+        
+          <button type="button" data-h="1" style="height: 58px; border: 2px solid #121110; border-radius: 6px; color: #121110; font: 700 16px 'IBM Plex Sans KR', sans-serif; cursor: pointer; transition: transform 0.25s cubic-bezier(0.3, 1.5, 0.6, 1), box-shadow 0.25s, background 0.2s; background: #FFFFFF; transform: none; box-shadow: 0 0 0 #121110">대기</button>
+        
+          <button type="button" data-h="1" style="height: 58px; border: 2px solid #121110; border-radius: 6px; color: #121110; font: 700 16px 'IBM Plex Sans KR', sans-serif; cursor: pointer; transition: transform 0.25s cubic-bezier(0.3, 1.5, 0.6, 1), box-shadow 0.25s, background 0.2s; background: #FFFFFF; transform: none; box-shadow: 0 0 0 #121110">늦참 대기</button>
+        
+          <button type="button" data-h="1" style="height: 58px; border: 2px solid #121110; border-radius: 6px; color: #121110; font: 700 16px 'IBM Plex Sans KR', sans-serif; cursor: pointer; transition: transform 0.25s cubic-bezier(0.3, 1.5, 0.6, 1), box-shadow 0.25s, background 0.2s; background: #FFFFFF; transform: none; box-shadow: 0 0 0 #121110">불참</button>
+        
+      </div>
+      
+      
+      
+      <span style="font-size: 12px; color: #5B5650">정원이 다 찼어요. 지금 참석이나 늦참을 누르면 대기 3번이 돼요.</span>
+    </section>
+
+    
+      <div aria-disabled="true" style="display: flex; align-items: center; gap: 12px; min-height: 58px; padding: 8px 16px; box-sizing: border-box; border: 2px dashed #9C9488; border-radius: 12px; color: #5B5650">
+        <span aria-hidden="true" style="flex: none; width: 34px; height: 34px; box-sizing: border-box; border: 2px dashed #9C9488; border-radius: 10px; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9C9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.8a3.2 3.2 0 1 1 0 6.4a3.2 3.2 0 1 1 0-6.4M3 20c.8-3.5 3-5.5 6-5.5s5.2 2 6 5.5M18 8v6M15 11h6"></path></svg></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px"><b style="font-size: 16px">용병 신청하기</b><span style="font-size: 12px">운영진이 이 경기 용병을 받을 때 열려요.</span></span>
+        <span style="flex: none; font-size: 12px; font-weight: 700; border: 2px solid #9C9488; border-radius: 5px; padding: 0 8px">닫힘</span>
+      </div>
+    
+    
+    
+
+    <div style="display: flex; flex-direction: column; gap: 16px; padding-top: 8px">
+      <div style="border: 2px solid #121110; border-radius: 12px; background: #FFFFFF; box-shadow: 4px 4px 0 #121110; padding: 12px 0 12px 16px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); color: #121110">
+        <span style="display: flex; flex-direction: column; gap: 4px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 34px; line-height: 1">12</b><span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px">참석</span></span>
+        <span style="display: flex; flex-direction: column; gap: 4px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 34px; line-height: 1">2</b><span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px">늦참</span></span>
+        <span style="display: flex; flex-direction: column; gap: 4px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 34px; line-height: 1">2</b><span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px">대기</span></span>
+        <span style="display: flex; flex-direction: column; gap: 4px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 34px; line-height: 1">5</b><span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px">불참</span></span>
+        <span style="display: flex; flex-direction: column; gap: 4px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 34px; line-height: 1">5</b><span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px">미응답</span></span>
+      </div>
+      <section aria-label="라인업" style="display: flex; flex-direction: column; gap: 12px; border-top: 2px solid #121110; padding-top: 12px">
+        <div style="display: flex; justify-content: space-between; align-items: center"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">라인업</b><span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 16px; border: 2px solid #121110; border-radius: 6px; padding: 4px 8px; background: #FFFFFF">4-2-3-1</span></div>
+        
+        
+          <div style="position: relative; height: 220px; border-radius: 16px; border: 2px dashed #9C9488; display: flex; align-items: center; justify-content: center">
+            <span aria-hidden="true" style="position: absolute; left: 10px; right: 10px; top: 50%; border-top: 2px dashed #DDD6C8"></span>
+            <span aria-hidden="true" style="position: absolute; left: 50%; top: 50%; width: 60px; height: 60px; margin: -32px 0 0 -32px; border: 2px dashed #DDD6C8; border-radius: 50%"></span>
+            <span style="position: relative; transform: rotate(-4deg); background: #FBF7EF; border: 2px solid #121110; border-radius: 8px; padding: 8px 16px; font-family: 'Black Han Sans', sans-serif; font-size: 20px; box-shadow: 3px 3px 0 #121110">라인업 준비 중</span>
+          </div>
+          <span style="font-size: 12px; color: #5B5650; line-height: 1.6">운영진이 라인업을 다 짜서 알리면 내 출전 쿼터와 자리가 여기에 나와요.</span>
+        
+      </section>
+    </div>
+  </div></main>
+
+  <nav aria-label="하단 메뉴" style="flex: none; margin: 0 24px 20px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; background: #121110; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; height: 64px">
+    <a class="mbn" style="border-radius: 10px 0 0 10px; background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg><span>홈</span></a>
+    <a aria-current="page" class="mbn on" style="background: #14BBC2; text-decoration: none; color: #121110; font-weight: 700; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg><span>일정</span></a>
+    <a class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M6 20v-8M12 20V5M18 20v-5"></path></svg><span>기록</span></a>
+    <a class="mbn" style="border-radius: 0 10px 10px 0; background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16.5 14.6c2.4.3 4.2 2.1 4.8 5.4"></path></svg><span>팀</span></a>
+  </nav>
+
+  
+
+  
+
+  
+</div>
+</div></div></div></div></div><div class="cap"><b>심판 카드로 투표</b><span>참석, 늦참, 불참을 카드 한 장으로</span></div></div>
+<div class="phone"><div class="frame"><div class="screen" inert="" role="img" aria-label="매니볼 화면: 내 자리와 쉬는 쿼터"><div class="scale"><div><div style="display: contents;">
+
+<div style="width: 390px; height: 844px; box-sizing: border-box; background-color: #FBF7EF; background-image: linear-gradient(rgba(18, 17, 16, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(18, 17, 16, 0.06) 1px, transparent 1px); background-size: 16px 16px; color: #121110; font-family: 'IBM Plex Sans KR', sans-serif; position: relative; overflow: hidden; display: flex; flex-direction: column; word-break: keep-all">
+
+  <header style="height: 60px; flex: none; display: flex; align-items: center; padding: 0 8px 0 12px; gap: 4px">
+    
+    <span style="flex: 1; min-height: 44px; display: flex; align-items: center; gap: 8px; color: #121110; padding-left: 8px"><svg width="32" height="32" viewBox="6 6 88 88" aria-hidden="true" style="flex: none; display: block"><rect x="6" y="6" width="88" height="88" rx="22" fill="#5B8DEF"></rect><g fill="none" stroke="#121110" stroke-width="2.5" stroke-linejoin="round" opacity="0.9"><rect x="18" y="15" width="64" height="70" rx="1"></rect><line x1="18" y1="50" x2="82" y2="50"></line><rect x="33" y="15" width="34" height="13"></rect><rect x="41" y="15" width="18" height="6"></rect><rect x="33" y="72" width="34" height="13"></rect><rect x="41" y="79" width="18" height="6"></rect></g><rect x="25" y="37" width="50" height="26" rx="6" fill="#5B8DEF"></rect><text x="50" y="61" text-anchor="middle" font-family="Inter, 'Noto Sans KR', sans-serif" font-weight="800" font-size="30" fill="#121110">FC</text></svg><span style="font-family: 'Black Han Sans', sans-serif; font-size: 24px">TEST FC</span></span>
+  </header>
+
+  <main ref="(el) =&gt; { this._scroller = el; }" style="flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; touch-action: pan-y; cursor: grab; "><div style="padding: 8px 24px 28px; display: flex; flex-direction: column; gap: 16px">
+
+    <a style="text-decoration: none; background: #B8E9EB; color: #121110; border-radius: 12px; box-shadow: 0 1px 0 rgba(18, 17, 16, .08), 0 6px 14px rgba(18, 17, 16, .14); display: flex; flex-direction: column; position: relative">
+      <div style="padding: 24px 24px 16px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #005459"><span style="width: 10px; height: 10px; border-radius: 50%; background: #14BBC2; border: 2px solid #121110; box-sizing: border-box; flex: none"></span>친선 경기</span>
+          <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px; background: #121110; color: #FBF7EF; border-radius: 8px; padding: 4px 8px">D-3</span>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 8px">
+          <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 92px; line-height: 0.9; letter-spacing: -1px">07:00</span>
+          <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 24px">~ 09:00</span>
+        </div>
+        <b style="font-size: 16px; margin-top: 8px">11.22 토요일</b>
+        <span style="font-size: 14px">상암 월드컵 보조구장</span>
+      </div>
+      <div aria-hidden="true" style="position: relative; height: 2px">
+        <span style="position: absolute; left: 20px; right: 20px; top: 0; height: 2px; background-image: radial-gradient(circle, #121110 1.2px, transparent 1.4px); background-size: 7px 2px; background-repeat: repeat-x"></span>
+        <span style="position: absolute; left: 0; top: -11px; width: 12px; height: 24px; background: #FBF7EF; border-radius: 0 12px 12px 0"></span>
+        <span style="position: absolute; right: 0; top: -11px; width: 12px; height: 24px; background: #FBF7EF; border-radius: 12px 0 0 12px"></span>
+      </div>
+      <div style="padding: 16px 24px 24px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; font-family: 'Barlow Condensed', sans-serif; font-size: 16px">
+          <span>참석 <b style="font-size: 24px">14</b> / 14</span>
+          <span style="font-family: 'IBM Plex Sans KR', sans-serif; font-size: 12px">정원이 다 찼어요, 대기 2명</span>
+        </div>
+        <span style="height: 6px; border-radius: 3px; background: rgba(18, 17, 16, 0.2); display: block; overflow: hidden"><span style="display: block; height: 6px; width: 100%; background: #121110"></span></span>
+        <span style="font-size: 12px">투표 마감 11.21 금 21:00</span>
+        
+        
+      </div>
+    </a>
+
+    <section aria-label="내 참석" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px">
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 8px 4px 4px">
+        
+          <button type="button" aria-pressed="" data-h="1" style="height: 58px; border: 2px solid #121110; border-radius: 6px; color: #121110; font: 700 16px 'IBM Plex Sans KR', sans-serif; cursor: pointer; transition: transform 0.25s cubic-bezier(0.3, 1.5, 0.6, 1), box-shadow 0.25s, background 0.2s; background: #121110; color: #FBF7EF; transform: rotate(-6deg) translateY(-4px); box-shadow: 4px 4px 0 #121110">참석</button>
+        
+          <button type="button" data-h="1" style="height: 58px; border: 2px solid #121110; border-radius: 6px; color: #121110; font: 700 16px 'IBM Plex Sans KR', sans-serif; cursor: pointer; transition: transform 0.25s cubic-bezier(0.3, 1.5, 0.6, 1), box-shadow 0.25s, background 0.2s; background: #FFFFFF; transform: none; box-shadow: 0 0 0 #121110">늦참</button>
+        
+          <button type="button" data-h="1" style="height: 58px; border: 2px solid #121110; border-radius: 6px; color: #121110; font: 700 16px 'IBM Plex Sans KR', sans-serif; cursor: pointer; transition: transform 0.25s cubic-bezier(0.3, 1.5, 0.6, 1), box-shadow 0.25s, background 0.2s; background: #FFFFFF; transform: none; box-shadow: 0 0 0 #121110">불참</button>
+        
+      </div>
+      
+      
+      
+      <span style="font-size: 12px; color: #5B5650">마감 전까지 바꿀 수 있어요.</span>
+    </section>
+
+    
+      <div aria-disabled="true" style="display: flex; align-items: center; gap: 12px; min-height: 58px; padding: 8px 16px; box-sizing: border-box; border: 2px dashed #9C9488; border-radius: 12px; color: #5B5650">
+        <span aria-hidden="true" style="flex: none; width: 34px; height: 34px; box-sizing: border-box; border: 2px dashed #9C9488; border-radius: 10px; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9C9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.8a3.2 3.2 0 1 1 0 6.4a3.2 3.2 0 1 1 0-6.4M3 20c.8-3.5 3-5.5 6-5.5s5.2 2 6 5.5M18 8v6M15 11h6"></path></svg></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px"><b style="font-size: 16px">용병 신청하기</b><span style="font-size: 12px">운영진이 이 경기 용병을 받을 때 열려요.</span></span>
+        <span style="flex: none; font-size: 12px; font-weight: 700; border: 2px solid #9C9488; border-radius: 5px; padding: 0 8px">닫힘</span>
+      </div>
+    
+    
+    
+
+    <div style="display: flex; flex-direction: column; gap: 16px; padding-top: 8px">
+      <div style="border: 2px solid #121110; border-radius: 12px; background: #FFFFFF; box-shadow: 4px 4px 0 #121110; padding: 12px 0 12px 16px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); color: #121110">
+        <span style="display: flex; flex-direction: column; gap: 4px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 34px; line-height: 1">12</b><span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px">참석</span></span>
+        <span style="display: flex; flex-direction: column; gap: 4px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 34px; line-height: 1">2</b><span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px">늦참</span></span>
+        <span style="display: flex; flex-direction: column; gap: 4px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 34px; line-height: 1">2</b><span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px">대기</span></span>
+        <span style="display: flex; flex-direction: column; gap: 4px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 34px; line-height: 1">5</b><span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px">불참</span></span>
+        <span style="display: flex; flex-direction: column; gap: 4px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 34px; line-height: 1">5</b><span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px">미응답</span></span>
+      </div>
+      <section aria-label="라인업" style="display: flex; flex-direction: column; gap: 12px; border-top: 2px solid #121110; padding-top: 12px">
+        <div style="display: flex; justify-content: space-between; align-items: center"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">라인업</b><span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 16px; border: 2px solid #121110; border-radius: 6px; padding: 4px 8px; background: #FFFFFF">4-2-3-1</span></div>
+        
+          <div style="display: flex; align-items: baseline; justify-content: space-between"><span style="display: flex; align-items: baseline; gap: 8px"><span style="font-size: 14px; font-weight: 700">내 출전</span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 34px; line-height: 1">3</b><span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 20px; color: #5B5650">/ 4Q</span></span><span style="font-size: 12px">3쿼터는 쉬어요</span></div>
+          <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 4px 4px 4px">
+            
+              <button type="button" aria-pressed="" data-h="1" style="height: 56px; border: 2px solid #121110; border-radius: 6px; color: #121110; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; font-family: 'IBM Plex Sans KR', sans-serif; transition: transform 0.25s cubic-bezier(0.3, 1.5, 0.6, 1), box-shadow 0.25s; background: #121110; color: #FBF7EF; transform: rotate(-6deg) translateY(-3px); box-shadow: 3px 3px 0 #121110"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px; line-height: 1">1Q</b><span style="font-size: 12px; font-weight: 700">LW</span></button>
+            
+              <button type="button" data-h="1" style="height: 56px; border: 2px solid #121110; border-radius: 6px; color: #121110; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; font-family: 'IBM Plex Sans KR', sans-serif; transition: transform 0.25s cubic-bezier(0.3, 1.5, 0.6, 1), box-shadow 0.25s; background: #FFFFFF; transform: none; box-shadow: 0 0 0 #121110"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px; line-height: 1">2Q</b><span style="font-size: 12px; font-weight: 700">LW</span></button>
+            
+              <button type="button" data-h="1" style="height: 56px; border: 2px dashed #121110; border-radius: 6px; color: #121110; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; font-family: 'IBM Plex Sans KR', sans-serif; transition: transform 0.25s cubic-bezier(0.3, 1.5, 0.6, 1), box-shadow 0.25s; background: #FBF7EF; transform: none; box-shadow: 0 0 0 #121110"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px; line-height: 1">3Q</b><span style="font-size: 12px; font-weight: 700">휴식</span></button>
+            
+              <button type="button" data-h="1" style="height: 56px; border: 2px solid #121110; border-radius: 6px; color: #121110; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; font-family: 'IBM Plex Sans KR', sans-serif; transition: transform 0.25s cubic-bezier(0.3, 1.5, 0.6, 1), box-shadow 0.25s; background: #FFFFFF; transform: none; box-shadow: 0 0 0 #121110"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px; line-height: 1">4Q</b><span style="font-size: 12px; font-weight: 700">CAM</span></button>
+            
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; border: 2px solid #121110; border-radius: 10px; background: #FFFFFF; padding: 8px 12px"><svg viewBox="-2 -2 52 48" aria-hidden="true" style="width: 28px; height: 26px; flex: none; display: block"><path d="M13 3 H19 C20 6 22 7 24 7 C26 7 28 6 29 3 H35 L46 12 L40 19 L37 17 V41 H11 V17 L8 19 L2 12 Z" fill="#FFFFFF" stroke="#121110" stroke-width="3.7" stroke-linejoin="round"></path></svg><span style="flex: 1; font-size: 14px">오늘 우리는 <b>AWAY 흰색</b> 유니폼이에요</span><span style="font-size: 12px; color: #5B5650">상대 남색</span></div>
+          <div style="position: relative; height: 440px; border-radius: 12px; border: 2px solid #121110; box-shadow: 4px 4px 0 #121110; background: repeating-linear-gradient(180deg, #64A823 0 44px, #5B9A1F 44px 88px); overflow: hidden">
+            <span aria-hidden="true" style="position: absolute; left: 10px; right: 10px; top: 10px; bottom: 10px; border: 2px solid rgba(251, 247, 239, 0.9); border-radius: 4px"></span>
+            <span aria-hidden="true" style="position: absolute; left: 10px; right: 10px; top: 50%; height: 0; border-top: 2px solid rgba(251, 247, 239, 0.9)"></span>
+            <span aria-hidden="true" style="position: absolute; left: 50%; top: 50%; width: 60px; height: 60px; margin: -32px 0 0 -32px; border: 2px solid rgba(251, 247, 239, 0.9); border-radius: 50%"></span>
+            <span aria-hidden="true" style="position: absolute; left: 50%; top: 10px; width: 140px; height: 46px; margin-left: -70px; border: 2px solid rgba(251, 247, 239, 0.9); border-top: 0"></span>
+            <span aria-hidden="true" style="position: absolute; left: 50%; bottom: 10px; width: 140px; height: 46px; margin-left: -70px; border: 2px solid rgba(251, 247, 239, 0.9); border-bottom: 0"></span>
+            
+              <span style="position: absolute; left: 50%; top: 90%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 4px; transition: opacity 0.25s; opacity: 0.6; z-index: 1"><span style="position: relative; display: block; width: 56px; height: 52px"><svg viewBox="-2 -2 52 48" aria-hidden="true" style="display: block; width: 100%; height: 100%; overflow: visible"><path d="M13 3 H19 C20 6 22 7 24 7 C26 7 28 6 29 3 H35 L46 12 L40 19 L37 17 V41 H11 V17 L8 19 L2 12 Z" fill="#F08A24" stroke="#121110" stroke-width="1.9" stroke-linejoin="round"></path></svg><span style="position: absolute; left: 0; right: 0; top: 25px; text-align: center; white-space: nowrap; letter-spacing: -0.2px; color: #121110; font: 700 16px 'Barlow Condensed', sans-serif; line-height: 1">GK</span></span><span style="display: inline-flex; align-items: center; gap: 4px; height: 24px; box-sizing: border-box; margin-top: -6px; padding: 0 8px; border-radius: 12px; border: 2px solid #121110; font: 700 12px 'IBM Plex Sans KR', sans-serif; white-space: nowrap; background: #FBF7EF; color: #121110">박민수</span></span>
+            
+              <span style="position: absolute; left: 14%; top: 72%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 4px; transition: opacity 0.25s; opacity: 0.6; z-index: 1"><span style="position: relative; display: block; width: 56px; height: 52px"><svg viewBox="-2 -2 52 48" aria-hidden="true" style="display: block; width: 100%; height: 100%; overflow: visible"><path d="M13 3 H19 C20 6 22 7 24 7 C26 7 28 6 29 3 H35 L46 12 L40 19 L37 17 V41 H11 V17 L8 19 L2 12 Z" fill="#FFFFFF" stroke="#121110" stroke-width="1.9" stroke-linejoin="round"></path></svg><span style="position: absolute; left: 0; right: 0; top: 25px; text-align: center; white-space: nowrap; letter-spacing: -0.2px; color: #121110; font: 700 16px 'Barlow Condensed', sans-serif; line-height: 1">LB</span></span><span style="display: inline-flex; align-items: center; gap: 4px; height: 24px; box-sizing: border-box; margin-top: -6px; padding: 0 8px; border-radius: 12px; border: 2px solid #121110; font: 700 12px 'IBM Plex Sans KR', sans-serif; white-space: nowrap; background: #FBF7EF; color: #121110">서현우</span></span>
+            
+              <span style="position: absolute; left: 38%; top: 74%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 4px; transition: opacity 0.25s; opacity: 0.6; z-index: 1"><span style="position: relative; display: block; width: 56px; height: 52px"><svg viewBox="-2 -2 52 48" aria-hidden="true" style="display: block; width: 100%; height: 100%; overflow: visible"><path d="M13 3 H19 C20 6 22 7 24 7 C26 7 28 6 29 3 H35 L46 12 L40 19 L37 17 V41 H11 V17 L8 19 L2 12 Z" fill="#FFFFFF" stroke="#121110" stroke-width="1.9" stroke-linejoin="round"></path></svg><span style="position: absolute; left: 0; right: 0; top: 25px; text-align: center; white-space: nowrap; letter-spacing: -0.2px; color: #121110; font: 700 16px 'Barlow Condensed', sans-serif; line-height: 1">CB</span></span><span style="display: inline-flex; align-items: center; gap: 4px; height: 24px; box-sizing: border-box; margin-top: -6px; padding: 0 8px; border-radius: 12px; border: 2px solid #121110; font: 700 12px 'IBM Plex Sans KR', sans-serif; white-space: nowrap; background: #FBF7EF; color: #121110">김태윤</span></span>
+            
+              <span style="position: absolute; left: 62%; top: 74%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 4px; transition: opacity 0.25s; opacity: 0.6; z-index: 1"><span style="position: relative; display: block; width: 56px; height: 52px"><svg viewBox="-2 -2 52 48" aria-hidden="true" style="display: block; width: 100%; height: 100%; overflow: visible"><path d="M13 3 H19 C20 6 22 7 24 7 C26 7 28 6 29 3 H35 L46 12 L40 19 L37 17 V41 H11 V17 L8 19 L2 12 Z" fill="#FFFFFF" stroke="#121110" stroke-width="1.9" stroke-linejoin="round"></path></svg><span style="position: absolute; left: 0; right: 0; top: 25px; text-align: center; white-space: nowrap; letter-spacing: -0.2px; color: #121110; font: 700 16px 'Barlow Condensed', sans-serif; line-height: 1">CB</span></span><span style="display: inline-flex; align-items: center; gap: 4px; height: 24px; box-sizing: border-box; margin-top: -6px; padding: 0 8px; border-radius: 12px; border: 2px solid #121110; font: 700 12px 'IBM Plex Sans KR', sans-serif; white-space: nowrap; background: #FBF7EF; color: #121110"><span aria-hidden="true" style="flex: none; width: 16px; height: 16px; border-radius: 50%; background: #121110; color: #FBF7EF; font-size: 12px; font-weight: 700; line-height: 16px; text-align: center; margin-left: -4px">용</span>최민혁</span></span>
+            
+              <span style="position: absolute; left: 86%; top: 72%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 4px; transition: opacity 0.25s; opacity: 0.6; z-index: 1"><span style="position: relative; display: block; width: 56px; height: 52px"><svg viewBox="-2 -2 52 48" aria-hidden="true" style="display: block; width: 100%; height: 100%; overflow: visible"><path d="M13 3 H19 C20 6 22 7 24 7 C26 7 28 6 29 3 H35 L46 12 L40 19 L37 17 V41 H11 V17 L8 19 L2 12 Z" fill="#FFFFFF" stroke="#121110" stroke-width="1.9" stroke-linejoin="round"></path></svg><span style="position: absolute; left: 0; right: 0; top: 25px; text-align: center; white-space: nowrap; letter-spacing: -0.2px; color: #121110; font: 700 16px 'Barlow Condensed', sans-serif; line-height: 1">RB</span></span><span style="display: inline-flex; align-items: center; gap: 4px; height: 24px; box-sizing: border-box; margin-top: -6px; padding: 0 8px; border-radius: 12px; border: 2px solid #121110; font: 700 12px 'IBM Plex Sans KR', sans-serif; white-space: nowrap; background: #FBF7EF; color: #121110">신동욱</span></span>
+            
+              <span style="position: absolute; left: 35%; top: 55%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 4px; transition: opacity 0.25s; opacity: 0.6; z-index: 1"><span style="position: relative; display: block; width: 56px; height: 52px"><svg viewBox="-2 -2 52 48" aria-hidden="true" style="display: block; width: 100%; height: 100%; overflow: visible"><path d="M13 3 H19 C20 6 22 7 24 7 C26 7 28 6 29 3 H35 L46 12 L40 19 L37 17 V41 H11 V17 L8 19 L2 12 Z" fill="#FFFFFF" stroke="#121110" stroke-width="1.9" stroke-linejoin="round"></path></svg><span style="position: absolute; left: 0; right: 0; top: 25px; text-align: center; white-space: nowrap; letter-spacing: -0.2px; color: #121110; font: 700 16px 'Barlow Condensed', sans-serif; line-height: 1">CDM</span></span><span style="display: inline-flex; align-items: center; gap: 4px; height: 24px; box-sizing: border-box; margin-top: -6px; padding: 0 8px; border-radius: 12px; border: 2px solid #121110; font: 700 12px 'IBM Plex Sans KR', sans-serif; white-space: nowrap; background: #FBF7EF; color: #121110">강태호</span></span>
+            
+              <span style="position: absolute; left: 65%; top: 55%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 4px; transition: opacity 0.25s; opacity: 0.6; z-index: 1"><span style="position: relative; display: block; width: 56px; height: 52px"><svg viewBox="-2 -2 52 48" aria-hidden="true" style="display: block; width: 100%; height: 100%; overflow: visible"><path d="M13 3 H19 C20 6 22 7 24 7 C26 7 28 6 29 3 H35 L46 12 L40 19 L37 17 V41 H11 V17 L8 19 L2 12 Z" fill="#FFFFFF" stroke="#121110" stroke-width="1.9" stroke-linejoin="round"></path></svg><span style="position: absolute; left: 0; right: 0; top: 25px; text-align: center; white-space: nowrap; letter-spacing: -0.2px; color: #121110; font: 700 16px 'Barlow Condensed', sans-serif; line-height: 1">CDM</span></span><span style="display: inline-flex; align-items: center; gap: 4px; height: 24px; box-sizing: border-box; margin-top: -6px; padding: 0 8px; border-radius: 12px; border: 2px solid #121110; font: 700 12px 'IBM Plex Sans KR', sans-serif; white-space: nowrap; background: #FBF7EF; color: #121110">윤재민</span></span>
+            
+              <span style="position: absolute; left: 16%; top: 33%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 4px; transition: opacity 0.25s; opacity: 1; z-index: 2"><span style="position: relative; display: block; width: 56px; height: 52px"><svg viewBox="-2 -2 52 48" aria-hidden="true" style="display: block; width: 100%; height: 100%; overflow: visible"><path d="M13 3 H19 C20 6 22 7 24 7 C26 7 28 6 29 3 H35 L46 12 L40 19 L37 17 V41 H11 V17 L8 19 L2 12 Z" fill="#FFFFFF" stroke="#121110" stroke-width="3" stroke-linejoin="round"></path></svg><span style="position: absolute; left: 0; right: 0; top: 25px; text-align: center; white-space: nowrap; letter-spacing: -0.2px; color: #121110; font: 700 16px 'Barlow Condensed', sans-serif; line-height: 1">LW</span></span><span style="display: inline-flex; align-items: center; gap: 4px; height: 24px; box-sizing: border-box; margin-top: -6px; padding: 0 8px; border-radius: 12px; border: 2px solid #121110; font: 700 12px 'IBM Plex Sans KR', sans-serif; white-space: nowrap; background: #121110; color: #FBF7EF">나, 이준호</span></span>
+            
+              <span style="position: absolute; left: 50%; top: 36%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 4px; transition: opacity 0.25s; opacity: 0.6; z-index: 1"><span style="position: relative; display: block; width: 56px; height: 52px"><svg viewBox="-2 -2 52 48" aria-hidden="true" style="display: block; width: 100%; height: 100%; overflow: visible"><path d="M13 3 H19 C20 6 22 7 24 7 C26 7 28 6 29 3 H35 L46 12 L40 19 L37 17 V41 H11 V17 L8 19 L2 12 Z" fill="#FFFFFF" stroke="#121110" stroke-width="1.9" stroke-linejoin="round"></path></svg><span style="position: absolute; left: 0; right: 0; top: 25px; text-align: center; white-space: nowrap; letter-spacing: -0.2px; color: #121110; font: 700 16px 'Barlow Condensed', sans-serif; line-height: 1">CAM</span></span><span style="display: inline-flex; align-items: center; gap: 4px; height: 24px; box-sizing: border-box; margin-top: -6px; padding: 0 8px; border-radius: 12px; border: 2px solid #121110; font: 700 12px 'IBM Plex Sans KR', sans-serif; white-space: nowrap; background: #FBF7EF; color: #121110">김도현</span></span>
+            
+              <span style="position: absolute; left: 84%; top: 33%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 4px; transition: opacity 0.25s; opacity: 0.6; z-index: 1"><span style="position: relative; display: block; width: 56px; height: 52px"><svg viewBox="-2 -2 52 48" aria-hidden="true" style="display: block; width: 100%; height: 100%; overflow: visible"><path d="M13 3 H19 C20 6 22 7 24 7 C26 7 28 6 29 3 H35 L46 12 L40 19 L37 17 V41 H11 V17 L8 19 L2 12 Z" fill="#FFFFFF" stroke="#121110" stroke-width="1.9" stroke-linejoin="round"></path></svg><span style="position: absolute; left: 0; right: 0; top: 25px; text-align: center; white-space: nowrap; letter-spacing: -0.2px; color: #121110; font: 700 16px 'Barlow Condensed', sans-serif; line-height: 1">RW</span></span><span style="display: inline-flex; align-items: center; gap: 4px; height: 24px; box-sizing: border-box; margin-top: -6px; padding: 0 8px; border-radius: 12px; border: 2px solid #121110; font: 700 12px 'IBM Plex Sans KR', sans-serif; white-space: nowrap; background: #FBF7EF; color: #121110">조민혁</span></span>
+            
+              <span style="position: absolute; left: 50%; top: 13%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 4px; transition: opacity 0.25s; opacity: 0.6; z-index: 1"><span style="position: relative; display: block; width: 56px; height: 52px"><svg viewBox="-2 -2 52 48" aria-hidden="true" style="display: block; width: 100%; height: 100%; overflow: visible"><path d="M13 3 H19 C20 6 22 7 24 7 C26 7 28 6 29 3 H35 L46 12 L40 19 L37 17 V41 H11 V17 L8 19 L2 12 Z" fill="#FFFFFF" stroke="#121110" stroke-width="1.9" stroke-linejoin="round"></path></svg><span style="position: absolute; left: 0; right: 0; top: 25px; text-align: center; white-space: nowrap; letter-spacing: -0.2px; color: #121110; font: 700 16px 'Barlow Condensed', sans-serif; line-height: 1">ST</span></span><span style="display: inline-flex; align-items: center; gap: 4px; height: 24px; box-sizing: border-box; margin-top: -6px; padding: 0 8px; border-radius: 12px; border: 2px solid #121110; font: 700 12px 'IBM Plex Sans KR', sans-serif; white-space: nowrap; background: #FBF7EF; color: #121110">최성호</span></span>
+            
+            
+          </div>
+          <span style="font-size: 12px; color: #5B5650">1쿼터에는 LW 자리예요.&nbsp;</span>
+        
+        
+      </section>
+    </div>
+  </div></main>
+
+  <nav aria-label="하단 메뉴" style="flex: none; margin: 0 24px 20px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; background: #121110; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; height: 64px">
+    <a class="mbn" style="border-radius: 10px 0 0 10px; background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg><span>홈</span></a>
+    <a aria-current="page" class="mbn on" style="background: #14BBC2; text-decoration: none; color: #121110; font-weight: 700; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg><span>일정</span></a>
+    <a class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M6 20v-8M12 20V5M18 20v-5"></path></svg><span>기록</span></a>
+    <a class="mbn" style="border-radius: 0 10px 10px 0; background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16.5 14.6c2.4.3 4.2 2.1 4.8 5.4"></path></svg><span>팀</span></a>
+  </nav>
+
+  
+
+  
+
+  
+</div>
+</div></div></div></div></div><div class="cap"><b>내 자리와 쉬는 쿼터</b><span>라인업이 나오면 바로 보여요</span></div></div>
+<div class="phone"><div class="frame"><div class="screen" inert="" role="img" aria-label="매니볼 화면: 기록 티켓북"><div class="scale"><div><div style="display: contents;">
+
+<div style="width: 390px; height: 844px; box-sizing: border-box; background-color: #FBF7EF; background-image: linear-gradient(rgba(18, 17, 16, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(18, 17, 16, 0.06) 1px, transparent 1px); background-size: 16px 16px; color: #121110; font-family: 'IBM Plex Sans KR', sans-serif; position: relative; overflow: hidden; display: flex; flex-direction: column; word-break: keep-all">
+
+
+  <header style="height: 60px; flex: none; display: flex; align-items: center; padding: 0 24px; gap: 8px">
+    <h1 style="flex: 1; margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">기록</h1>
+    <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 16px; border: 2px solid #121110; border-radius: 6px; padding: 4px 8px; background: #FFFFFF">2026 시즌</span>
+  </header>
+  <main ref="(el) =&gt; { this._scroller = el; }" style="flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; touch-action: pan-y; cursor: grab; "><div style="padding: 4px 24px 28px; display: flex; flex-direction: column; gap: 12px">
+    <button type="button" data-h="1" style="display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 0 16px; border: 2px solid #121110; border-radius: 12px; background: #FDD1D8; color: #121110; box-shadow: 4px 4px 0 #121110; text-align: left; font-family: inherit; cursor: pointer">
+      <span style="flex: 1; display: flex; flex-direction: column; gap: 4px"><b style="font-size: 16px">2026 시즌 성적</b><span style="font-size: 12px">팀 성적과 내 출석</span></span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>
+    </button>
+
+    
+      <button type="button" data-h="1" aria-label="11.15 토 노을 FC 3대2 기록 보기" style="display: block; flex: none; height: 112px; padding: 0; border: 0; background: transparent; text-align: left; font-family: inherit; color: #121110; cursor: pointer; filter: drop-shadow(0 1px 0 rgba(18, 17, 16, .08)) drop-shadow(0 6px 10px rgba(18, 17, 16, .14))">
+        <span style="position: relative; display: flex; height: 112px; background: #FFFFFF; border-radius: 10px 0 0 10px; clip-path: polygon(0px 0px, calc(100% - 0px) 0.0000%, calc(100% - 10px) 10.0000%, calc(100% - 0px) 20.0000%, calc(100% - 10px) 30.0000%, calc(100% - 0px) 40.0000%, calc(100% - 10px) 50.0000%, calc(100% - 0px) 60.0000%, calc(100% - 10px) 70.0000%, calc(100% - 0px) 80.0000%, calc(100% - 10px) 90.0000%, calc(100% - 0px) 100.0000%, 0px calc(100% - 0px))">
+          <span style="flex: 1; min-width: 0; padding: 12px 8px 12px 16px; display: flex; align-items: center; gap: 8px">
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+              <span style="display: flex; align-items: center; gap: 8px"><span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #6B3440"><span style="width: 10px; height: 10px; border-radius: 50%; background: #E48398; border: 2px solid #121110; box-sizing: border-box; flex: none"></span>경기</span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px">11.15 토</b></span>
+              <b style="font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">vs 노을 FC</b>
+              <span style="align-self: flex-start; font-size: 12px; font-weight: 700; border: 2px solid #121110; border-radius: 5px; padding: 0 8px; background: #FCD01A">MOM 투표하기</span>
+            </span>
+            <span style="flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 4px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 36px; line-height: .9">3:2</b><span style="font-size: 12px; font-weight: 700; background: #121110; color: #FBF7EF; border-radius: 4px; padding: 0 8px">승</span></span>
+            <span style="flex: none; width: 58px; display: flex; justify-content: center"><span style="width: 54px; height: 54px; box-sizing: border-box; border-radius: 50%; border: 2px solid #121110; background: #FBF7EF; transform: rotate(-14deg); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1"><b style="font-size: 16px">참석</b><span style="font-size: 12px"></span></span></span>
+          </span>
+          <span aria-hidden="true" style="flex: none; width: 2px; background-image: radial-gradient(circle, #121110 1.2px, transparent 1.4px); background-size: 2px 7px; background-repeat: repeat-y; margin: 12px 0"></span>
+          <span aria-hidden="true" style="flex: none; width: 18px; background: #E48398"></span>
+          <span aria-hidden="true" style="position: absolute; top: 0; right: 8px; width: 22px; height: 12px; background: #FBF7EF; border-radius: 0 0 11px 11px; z-index: 1"></span><span aria-hidden="true" style="position: absolute; bottom: 0; right: 8px; width: 22px; height: 12px; background: #FBF7EF; border-radius: 11px 11px 0 0; z-index: 1"></span>
+        </span>
+      </button>
+    
+      <button type="button" data-h="1" aria-label="11.08 토 내전 4대3 기록 보기" style="display: block; flex: none; height: 112px; padding: 0; border: 0; background: transparent; text-align: left; font-family: inherit; color: #121110; cursor: pointer; filter: drop-shadow(0 1px 0 rgba(18, 17, 16, .08)) drop-shadow(0 6px 10px rgba(18, 17, 16, .14))">
+        <span style="position: relative; display: flex; height: 112px; background: #FFFFFF; border-radius: 10px 0 0 10px; clip-path: polygon(0px 0px, calc(100% - 0px) 0.0000%, calc(100% - 10px) 10.0000%, calc(100% - 0px) 20.0000%, calc(100% - 10px) 30.0000%, calc(100% - 0px) 40.0000%, calc(100% - 10px) 50.0000%, calc(100% - 0px) 60.0000%, calc(100% - 10px) 70.0000%, calc(100% - 0px) 80.0000%, calc(100% - 10px) 90.0000%, calc(100% - 0px) 100.0000%, 0px calc(100% - 0px))">
+          <span style="flex: 1; min-width: 0; padding: 12px 8px 12px 16px; display: flex; align-items: center; gap: 8px">
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+              <span style="display: flex; align-items: center; gap: 8px"><span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #6B3440"><span style="width: 10px; height: 10px; border-radius: 50%; background: #E48398; border: 2px solid #121110; box-sizing: border-box; flex: none"></span>내전</span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px">11.08 토</b></span>
+              <b style="font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">A팀 대 B팀</b>
+              <span style="align-self: flex-start; font-size: 12px; font-weight: 700; border: 2px solid #121110; border-radius: 5px; padding: 0 8px; background: #FFECEF; color: #6B3440">MOM 정우진</span>
+            </span>
+            <span style="flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 4px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 36px; line-height: .9">4:3</b><span style="font-size: 12px; font-weight: 700; background: #121110; color: #FBF7EF; border-radius: 4px; padding: 0 8px">A팀 승</span></span>
+            <span style="flex: none; width: 58px; display: flex; justify-content: center"><span style="width: 54px; height: 54px; box-sizing: border-box; border-radius: 50%; border: 2px solid #121110; background: #FBF7EF; transform: rotate(-14deg); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1"><b style="font-size: 16px">참석</b><span style="font-size: 12px"></span></span></span>
+          </span>
+          <span aria-hidden="true" style="flex: none; width: 2px; background-image: radial-gradient(circle, #121110 1.2px, transparent 1.4px); background-size: 2px 7px; background-repeat: repeat-y; margin: 12px 0"></span>
+          <span aria-hidden="true" style="flex: none; width: 18px; background: #E48398"></span>
+          <span aria-hidden="true" style="position: absolute; top: 0; right: 8px; width: 22px; height: 12px; background: #FBF7EF; border-radius: 0 0 11px 11px; z-index: 1"></span><span aria-hidden="true" style="position: absolute; bottom: 0; right: 8px; width: 22px; height: 12px; background: #FBF7EF; border-radius: 11px 11px 0 0; z-index: 1"></span>
+        </span>
+      </button>
+    
+      <button type="button" data-h="1" aria-label="11.01 토 한강 유나이티드 1대1 기록 보기" style="display: block; flex: none; height: 112px; padding: 0; border: 0; background: transparent; text-align: left; font-family: inherit; color: #121110; cursor: pointer; filter: drop-shadow(0 1px 0 rgba(18, 17, 16, .08)) drop-shadow(0 6px 10px rgba(18, 17, 16, .14))">
+        <span style="position: relative; display: flex; height: 112px; background: #FFFFFF; border-radius: 10px 0 0 10px; clip-path: polygon(0px 0px, calc(100% - 0px) 0.0000%, calc(100% - 10px) 10.0000%, calc(100% - 0px) 20.0000%, calc(100% - 10px) 30.0000%, calc(100% - 0px) 40.0000%, calc(100% - 10px) 50.0000%, calc(100% - 0px) 60.0000%, calc(100% - 10px) 70.0000%, calc(100% - 0px) 80.0000%, calc(100% - 10px) 90.0000%, calc(100% - 0px) 100.0000%, 0px calc(100% - 0px))">
+          <span style="flex: 1; min-width: 0; padding: 12px 8px 12px 16px; display: flex; align-items: center; gap: 8px">
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+              <span style="display: flex; align-items: center; gap: 8px"><span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #6B3440"><span style="width: 10px; height: 10px; border-radius: 50%; background: #E48398; border: 2px solid #121110; box-sizing: border-box; flex: none"></span>경기</span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px">11.01 토</b></span>
+              <b style="font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">vs 한강 유나이티드</b>
+              <span style="align-self: flex-start; font-size: 12px; font-weight: 700; border: 2px solid #121110; border-radius: 5px; padding: 0 8px; background: #FFECEF; color: #6B3440">MOM 최성호</span>
+            </span>
+            <span style="flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 4px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 36px; line-height: .9">1:1</b><span style="font-size: 12px; font-weight: 700; background: #121110; color: #FBF7EF; border-radius: 4px; padding: 0 8px">무</span></span>
+            <span style="flex: none; width: 58px; display: flex; justify-content: center"><span style="width: 54px; height: 54px; box-sizing: border-box; border-radius: 50%; border: 2px solid #121110; background: #FBF7EF; transform: rotate(-14deg); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1"><b style="font-size: 14px">늦참</b><span style="font-size: 12px">2Q부터</span></span></span>
+          </span>
+          <span aria-hidden="true" style="flex: none; width: 2px; background-image: radial-gradient(circle, #121110 1.2px, transparent 1.4px); background-size: 2px 7px; background-repeat: repeat-y; margin: 12px 0"></span>
+          <span aria-hidden="true" style="flex: none; width: 18px; background: #E48398"></span>
+          <span aria-hidden="true" style="position: absolute; top: 0; right: 8px; width: 22px; height: 12px; background: #FBF7EF; border-radius: 0 0 11px 11px; z-index: 1"></span><span aria-hidden="true" style="position: absolute; bottom: 0; right: 8px; width: 22px; height: 12px; background: #FBF7EF; border-radius: 11px 11px 0 0; z-index: 1"></span>
+        </span>
+      </button>
+    
+      <button type="button" data-h="1" aria-label="10.25 토 마포 FC 0대2 기록 보기" style="display: block; flex: none; height: 112px; padding: 0; border: 0; background: transparent; text-align: left; font-family: inherit; color: #121110; cursor: pointer; filter: drop-shadow(0 1px 0 rgba(18, 17, 16, .08)) drop-shadow(0 6px 10px rgba(18, 17, 16, .14))">
+        <span style="position: relative; display: flex; height: 112px; background: #FFFFFF; border-radius: 10px 0 0 10px; clip-path: polygon(0px 0px, calc(100% - 0px) 0.0000%, calc(100% - 10px) 10.0000%, calc(100% - 0px) 20.0000%, calc(100% - 10px) 30.0000%, calc(100% - 0px) 40.0000%, calc(100% - 10px) 50.0000%, calc(100% - 0px) 60.0000%, calc(100% - 10px) 70.0000%, calc(100% - 0px) 80.0000%, calc(100% - 10px) 90.0000%, calc(100% - 0px) 100.0000%, 0px calc(100% - 0px))">
+          <span style="flex: 1; min-width: 0; padding: 12px 8px 12px 16px; display: flex; align-items: center; gap: 8px">
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+              <span style="display: flex; align-items: center; gap: 8px"><span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #6B3440"><span style="width: 10px; height: 10px; border-radius: 50%; background: #E48398; border: 2px solid #121110; box-sizing: border-box; flex: none"></span>경기</span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px">10.25 토</b></span>
+              <b style="font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">vs 마포 FC</b>
+              <span style="align-self: flex-start; font-size: 12px; font-weight: 700; border: 2px solid #121110; border-radius: 5px; padding: 0 8px; background: #FFECEF; color: #6B3440">MOM 김도현</span>
+            </span>
+            <span style="flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 4px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 36px; line-height: .9">0:2</b><span style="font-size: 12px; font-weight: 700; background: #121110; color: #FBF7EF; border-radius: 4px; padding: 0 8px">패</span></span>
+            <span style="flex: none; width: 58px; display: flex; justify-content: center"><span style="width: 54px; height: 54px; box-sizing: border-box; border-radius: 50%; border: 2px dashed #121110; background: #FBF7EF; transform: rotate(-14deg); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1"><b style="font-size: 16px">불참</b><span style="font-size: 12px"></span></span></span>
+          </span>
+          <span aria-hidden="true" style="flex: none; width: 2px; background-image: radial-gradient(circle, #121110 1.2px, transparent 1.4px); background-size: 2px 7px; background-repeat: repeat-y; margin: 12px 0"></span>
+          <span aria-hidden="true" style="flex: none; width: 18px; background: #E48398"></span>
+          <span aria-hidden="true" style="position: absolute; top: 0; right: 8px; width: 22px; height: 12px; background: #FBF7EF; border-radius: 0 0 11px 11px; z-index: 1"></span><span aria-hidden="true" style="position: absolute; bottom: 0; right: 8px; width: 22px; height: 12px; background: #FBF7EF; border-radius: 11px 11px 0 0; z-index: 1"></span>
+        </span>
+      </button>
+    
+      <button type="button" data-h="1" aria-label="10.18 토 은평 FC 2대0 기록 보기" style="display: block; flex: none; height: 112px; padding: 0; border: 0; background: transparent; text-align: left; font-family: inherit; color: #121110; cursor: pointer; filter: drop-shadow(0 1px 0 rgba(18, 17, 16, .08)) drop-shadow(0 6px 10px rgba(18, 17, 16, .14))">
+        <span style="position: relative; display: flex; height: 112px; background: #FFFFFF; border-radius: 10px 0 0 10px; clip-path: polygon(0px 0px, calc(100% - 0px) 0.0000%, calc(100% - 10px) 10.0000%, calc(100% - 0px) 20.0000%, calc(100% - 10px) 30.0000%, calc(100% - 0px) 40.0000%, calc(100% - 10px) 50.0000%, calc(100% - 0px) 60.0000%, calc(100% - 10px) 70.0000%, calc(100% - 0px) 80.0000%, calc(100% - 10px) 90.0000%, calc(100% - 0px) 100.0000%, 0px calc(100% - 0px))">
+          <span style="flex: 1; min-width: 0; padding: 12px 8px 12px 16px; display: flex; align-items: center; gap: 8px">
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+              <span style="display: flex; align-items: center; gap: 8px"><span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #6B3440"><span style="width: 10px; height: 10px; border-radius: 50%; background: #E48398; border: 2px solid #121110; box-sizing: border-box; flex: none"></span>경기</span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px">10.18 토</b></span>
+              <b style="font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">vs 은평 FC</b>
+              <span style="align-self: flex-start; font-size: 12px; font-weight: 700; border: 2px solid #121110; border-radius: 5px; padding: 0 8px; background: #FFECEF; color: #6B3440">MOM 이준호</span>
+            </span>
+            <span style="flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 4px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 36px; line-height: .9">2:0</b><span style="font-size: 12px; font-weight: 700; background: #121110; color: #FBF7EF; border-radius: 4px; padding: 0 8px">승</span></span>
+            <span style="flex: none; width: 58px; display: flex; justify-content: center"><span style="width: 54px; height: 54px; box-sizing: border-box; border-radius: 50%; border: 2px solid #121110; background: #FBF7EF; transform: rotate(-14deg); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1"><b style="font-size: 16px">지각</b><span style="font-size: 12px"></span></span></span>
+          </span>
+          <span aria-hidden="true" style="flex: none; width: 2px; background-image: radial-gradient(circle, #121110 1.2px, transparent 1.4px); background-size: 2px 7px; background-repeat: repeat-y; margin: 12px 0"></span>
+          <span aria-hidden="true" style="flex: none; width: 18px; background: #E48398"></span>
+          <span aria-hidden="true" style="position: absolute; top: 0; right: 8px; width: 22px; height: 12px; background: #FBF7EF; border-radius: 0 0 11px 11px; z-index: 1"></span><span aria-hidden="true" style="position: absolute; bottom: 0; right: 8px; width: 22px; height: 12px; background: #FBF7EF; border-radius: 11px 11px 0 0; z-index: 1"></span>
+        </span>
+      </button>
+    
+      <button type="button" data-h="1" aria-label="10.11 토 노을 FC 1대2 기록 보기" style="display: block; flex: none; height: 112px; padding: 0; border: 0; background: transparent; text-align: left; font-family: inherit; color: #121110; cursor: pointer; filter: drop-shadow(0 1px 0 rgba(18, 17, 16, .08)) drop-shadow(0 6px 10px rgba(18, 17, 16, .14))">
+        <span style="position: relative; display: flex; height: 112px; background: #FFFFFF; border-radius: 10px 0 0 10px; clip-path: polygon(0px 0px, calc(100% - 0px) 0.0000%, calc(100% - 10px) 10.0000%, calc(100% - 0px) 20.0000%, calc(100% - 10px) 30.0000%, calc(100% - 0px) 40.0000%, calc(100% - 10px) 50.0000%, calc(100% - 0px) 60.0000%, calc(100% - 10px) 70.0000%, calc(100% - 0px) 80.0000%, calc(100% - 10px) 90.0000%, calc(100% - 0px) 100.0000%, 0px calc(100% - 0px))">
+          <span style="flex: 1; min-width: 0; padding: 12px 8px 12px 16px; display: flex; align-items: center; gap: 8px">
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+              <span style="display: flex; align-items: center; gap: 8px"><span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #6B3440"><span style="width: 10px; height: 10px; border-radius: 50%; background: #E48398; border: 2px solid #121110; box-sizing: border-box; flex: none"></span>경기</span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px">10.11 토</b></span>
+              <b style="font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">vs 노을 FC</b>
+              <span style="align-self: flex-start; font-size: 12px; font-weight: 700; border: 2px solid #121110; border-radius: 5px; padding: 0 8px; background: #FFECEF; color: #6B3440">MOM 최성호</span>
+            </span>
+            <span style="flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 4px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 36px; line-height: .9">1:2</b><span style="font-size: 12px; font-weight: 700; background: #121110; color: #FBF7EF; border-radius: 4px; padding: 0 8px">패</span></span>
+            <span style="flex: none; width: 58px; display: flex; justify-content: center"><span style="width: 54px; height: 54px; box-sizing: border-box; border-radius: 50%; border: 2px solid #121110; background: #FBF7EF; transform: rotate(-14deg); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1"><b style="font-size: 16px">참석</b><span style="font-size: 12px"></span></span></span>
+          </span>
+          <span aria-hidden="true" style="flex: none; width: 2px; background-image: radial-gradient(circle, #121110 1.2px, transparent 1.4px); background-size: 2px 7px; background-repeat: repeat-y; margin: 12px 0"></span>
+          <span aria-hidden="true" style="flex: none; width: 18px; background: #E48398"></span>
+          <span aria-hidden="true" style="position: absolute; top: 0; right: 8px; width: 22px; height: 12px; background: #FBF7EF; border-radius: 0 0 11px 11px; z-index: 1"></span><span aria-hidden="true" style="position: absolute; bottom: 0; right: 8px; width: 22px; height: 12px; background: #FBF7EF; border-radius: 11px 11px 0 0; z-index: 1"></span>
+        </span>
+      </button>
+    
+      <button type="button" data-h="1" aria-label="10.04 토 성산 FC 3대1 기록 보기" style="display: block; flex: none; height: 112px; padding: 0; border: 0; background: transparent; text-align: left; font-family: inherit; color: #121110; cursor: pointer; filter: drop-shadow(0 1px 0 rgba(18, 17, 16, .08)) drop-shadow(0 6px 10px rgba(18, 17, 16, .14))">
+        <span style="position: relative; display: flex; height: 112px; background: #FFFFFF; border-radius: 10px 0 0 10px; clip-path: polygon(0px 0px, calc(100% - 0px) 0.0000%, calc(100% - 10px) 10.0000%, calc(100% - 0px) 20.0000%, calc(100% - 10px) 30.0000%, calc(100% - 0px) 40.0000%, calc(100% - 10px) 50.0000%, calc(100% - 0px) 60.0000%, calc(100% - 10px) 70.0000%, calc(100% - 0px) 80.0000%, calc(100% - 10px) 90.0000%, calc(100% - 0px) 100.0000%, 0px calc(100% - 0px))">
+          <span style="flex: 1; min-width: 0; padding: 12px 8px 12px 16px; display: flex; align-items: center; gap: 8px">
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+              <span style="display: flex; align-items: center; gap: 8px"><span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #6B3440"><span style="width: 10px; height: 10px; border-radius: 50%; background: #E48398; border: 2px solid #121110; box-sizing: border-box; flex: none"></span>경기</span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px">10.04 토</b></span>
+              <b style="font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">vs 성산 FC</b>
+              <span style="align-self: flex-start; font-size: 12px; font-weight: 700; border: 2px solid #121110; border-radius: 5px; padding: 0 8px; background: #FFECEF; color: #6B3440">MOM 박민수</span>
+            </span>
+            <span style="flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 4px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 36px; line-height: .9">3:1</b><span style="font-size: 12px; font-weight: 700; background: #121110; color: #FBF7EF; border-radius: 4px; padding: 0 8px">승</span></span>
+            <span style="flex: none; width: 58px; display: flex; justify-content: center"><span style="width: 54px; height: 54px; box-sizing: border-box; border-radius: 50%; border: 2px solid #121110; background: #FBF7EF; transform: rotate(-14deg); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1"><b style="font-size: 16px">참석</b><span style="font-size: 12px"></span></span></span>
+          </span>
+          <span aria-hidden="true" style="flex: none; width: 2px; background-image: radial-gradient(circle, #121110 1.2px, transparent 1.4px); background-size: 2px 7px; background-repeat: repeat-y; margin: 12px 0"></span>
+          <span aria-hidden="true" style="flex: none; width: 18px; background: #E48398"></span>
+          <span aria-hidden="true" style="position: absolute; top: 0; right: 8px; width: 22px; height: 12px; background: #FBF7EF; border-radius: 0 0 11px 11px; z-index: 1"></span><span aria-hidden="true" style="position: absolute; bottom: 0; right: 8px; width: 22px; height: 12px; background: #FBF7EF; border-radius: 11px 11px 0 0; z-index: 1"></span>
+        </span>
+      </button>
+    
+      <button type="button" data-h="1" aria-label="09.27 토 내전 2대2 기록 보기" style="display: block; flex: none; height: 112px; padding: 0; border: 0; background: transparent; text-align: left; font-family: inherit; color: #121110; cursor: pointer; filter: drop-shadow(0 1px 0 rgba(18, 17, 16, .08)) drop-shadow(0 6px 10px rgba(18, 17, 16, .14))">
+        <span style="position: relative; display: flex; height: 112px; background: #FFFFFF; border-radius: 10px 0 0 10px; clip-path: polygon(0px 0px, calc(100% - 0px) 0.0000%, calc(100% - 10px) 10.0000%, calc(100% - 0px) 20.0000%, calc(100% - 10px) 30.0000%, calc(100% - 0px) 40.0000%, calc(100% - 10px) 50.0000%, calc(100% - 0px) 60.0000%, calc(100% - 10px) 70.0000%, calc(100% - 0px) 80.0000%, calc(100% - 10px) 90.0000%, calc(100% - 0px) 100.0000%, 0px calc(100% - 0px))">
+          <span style="flex: 1; min-width: 0; padding: 12px 8px 12px 16px; display: flex; align-items: center; gap: 8px">
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+              <span style="display: flex; align-items: center; gap: 8px"><span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #6B3440"><span style="width: 10px; height: 10px; border-radius: 50%; background: #E48398; border: 2px solid #121110; box-sizing: border-box; flex: none"></span>내전</span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px">09.27 토</b></span>
+              <b style="font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">A팀 대 B팀</b>
+              <span style="align-self: flex-start; font-size: 12px; font-weight: 700; border: 2px solid #121110; border-radius: 5px; padding: 0 8px; background: #FFECEF; color: #6B3440">MOM 강태윤</span>
+            </span>
+            <span style="flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 4px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 36px; line-height: .9">2:2</b><span style="font-size: 12px; font-weight: 700; background: #121110; color: #FBF7EF; border-radius: 4px; padding: 0 8px">무</span></span>
+            <span style="flex: none; width: 58px; display: flex; justify-content: center"><span style="width: 54px; height: 54px; box-sizing: border-box; border-radius: 50%; border: 2px dashed #121110; background: #FBF7EF; transform: rotate(-14deg); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1"><b style="font-size: 16px">불참</b><span style="font-size: 12px"></span></span></span>
+          </span>
+          <span aria-hidden="true" style="flex: none; width: 2px; background-image: radial-gradient(circle, #121110 1.2px, transparent 1.4px); background-size: 2px 7px; background-repeat: repeat-y; margin: 12px 0"></span>
+          <span aria-hidden="true" style="flex: none; width: 18px; background: #E48398"></span>
+          <span aria-hidden="true" style="position: absolute; top: 0; right: 8px; width: 22px; height: 12px; background: #FBF7EF; border-radius: 0 0 11px 11px; z-index: 1"></span><span aria-hidden="true" style="position: absolute; bottom: 0; right: 8px; width: 22px; height: 12px; background: #FBF7EF; border-radius: 11px 11px 0 0; z-index: 1"></span>
+        </span>
+      </button>
+    
+  </div></main>
+  <nav aria-label="하단 메뉴" style="flex: none; margin: 0 24px 20px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; background: #121110; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; height: 64px">
+    <a class="mbn" style="border-radius: 10px 0 0 10px; background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg><span>홈</span></a>
+    <a class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg><span>일정</span></a>
+    <a aria-current="page" class="mbn on" style="background: #E48398; text-decoration: none; color: #121110; font-weight: 700; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M6 20v-8M12 20V5M18 20v-5"></path></svg><span>기록</span></a>
+    <a class="mbn" style="border-radius: 0 10px 10px 0; background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16.5 14.6c2.4.3 4.2 2.1 4.8 5.4"></path></svg><span>팀</span></a>
+  </nav>
+
+
+
+
+
+
+
+</div>
+</div></div></div></div></div><div class="cap"><b>기록 티켓북</b><span>점수, 골, 도움, MOM이 경기마다</span></div></div>
+      </div>
+    </section>
+
+    <section class="sec" id="start" aria-labelledby="h-start" style="padding-top: 24px">
+      <span class="kick">3 STEPS</span>
+      <h2 class="h2" id="h-start">3단계면 시작해요</h2>
+      <p class="sub">운영진 한 명이 팀을 만들면 나머지는 링크로 들어와요.</p>
+      <div class="steps">
+<div class="step"><span style="position: absolute; right: 18px; top: 18px; width: 44px; height: 44px; border-radius: 50%; border: 2.5px solid #121110; background: #7CA4F0; box-sizing: border-box"></span><span class="step-n">1</span><b>팀을 만들어요</b><span>팀 이름과 종목, 정원, 수칙과 벌금을 정해요. 종목은 축구와 풋살 중에 골라요.</span></div>
+<div class="step"><span style="position: absolute; right: 18px; top: 18px; width: 44px; height: 44px; border-radius: 50%; border: 2.5px solid #121110; background: #69BA7C; box-sizing: border-box"></span><span class="step-n">2</span><b>초대 링크를 보내요</b><span>링크로 들어온 사람이 가입 신청을 남기면, 운영진이 확인하고 승인해요.</span></div>
+<div class="step"><span style="position: absolute; right: 18px; top: 18px; width: 44px; height: 44px; border-radius: 50%; border: 2.5px solid #121110; background: #FCD01A; box-sizing: border-box"></span><span class="step-n">3</span><b>일정을 올려요</b><span>투표, 라인업, 현장 출석, 기록이 그 일정 하나에 모여요.</span></div>
+      </div>
+    </section>
+
+    <section class="sec" id="pc" aria-labelledby="h-pc" style="padding-top: 24px">
+      <span class="kick">PC  OTHER TEAMS</span>
+      <h2 class="h2" id="h-pc">PC에서는 다른 팀과도 이어져요</h2>
+      <p class="sub">매칭, 용병 구인, 용병 구직은 PC 버전에 들어가요. 지금 만들고 있어요.</p>
+      <div class="steps">
+<div class="step"><span style="width: 44px; height: 44px; border-radius: 50%; border: 2.5px solid #121110; background: #F2A65A; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 22px">A</span><span style="position: absolute; right: 18px; top: 22px; font-size: 12px; font-weight: 700; border: 2px dashed #121110; border-radius: 6px; padding: 2px 8px; background: #FBF7EF">준비 중</span><b>매칭</b><span>경기할 상대 팀을 찾고, 다른 팀과 경기를 잡아요.</span></div>
+<div class="step"><span style="width: 44px; height: 44px; border-radius: 50%; border: 2.5px solid #121110; background: #F2A65A; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 22px">B</span><span style="position: absolute; right: 18px; top: 22px; font-size: 12px; font-weight: 700; border: 2px dashed #121110; border-radius: 6px; padding: 2px 8px; background: #FBF7EF">준비 중</span><b>용병 구인</b><span>사람이 모자란 날, 우리 팀에서 뛸 용병을 구해요.</span></div>
+<div class="step"><span style="width: 44px; height: 44px; border-radius: 50%; border: 2.5px solid #121110; background: #F2A65A; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 22px">C</span><span style="position: absolute; right: 18px; top: 22px; font-size: 12px; font-weight: 700; border: 2px dashed #121110; border-radius: 6px; padding: 2px 8px; background: #FBF7EF">준비 중</span><b>용병 구직</b><span>뛸 경기를 찾는 사람이 다른 팀의 용병으로 들어가요.</span></div>
+      </div>
+    </section>
+
+    <section class="cta" aria-label="시작하기">
+      <span class="cta-cut" style="left: -22px"></span><span class="cta-cut" style="right: -22px"></span>
+      <div><h2>이번 주 경기부터<br>손을 덜어 보세요</h2><p>축구 4쿼터, 풋살 8쿼터, 내전까지 모두 돼요.</p></div>
+      <div class="cta-btns"><a style="width: 100%; height: 54px; box-sizing: border-box; border: 0; border-radius: 12px; background: #FEE500; color: rgba(0, 0, 0, 0.85); font: 600 16px -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'IBM Plex Sans KR', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; text-decoration: none" href="team/"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#000000" fill-rule="evenodd" clip-rule="evenodd" d="M9.00002 0.599976C4.02917 0.599976 0 3.71296 0 7.55229C0 9.94003 1.55847 12.0452 3.93152 13.2969L2.93303 16.9446C2.84481 17.2669 3.21341 17.5238 3.49646 17.337L7.87334 14.4483C8.24268 14.4839 8.61815 14.5047 9.00002 14.5047C13.9706 14.5047 18 11.3917 18 7.55229C18 3.71296 13.9706 0.599976 9.00002 0.599976"></path></svg>카카오로 시작하기</a><span style="font-size: 13px; color: #DDD6C8; text-align: center">로그인하고 우리 팀을 만들거나, 받은 초대 링크로 들어와요</span></div>
+    </section>
+
+    <footer class="foot">
+      <span style="display: inline-flex; align-items: center; gap: 10px; color: #121110; text-decoration: none"><span role="img" aria-label="매니볼" style="width: 30px; height: 30px; border-radius: 8px; background: #5B8DEF; border: 2px solid #121110; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; flex: none"><svg width="22" height="22" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="22" fill="none" stroke="#121110" stroke-width="5"></circle><circle cx="23" cy="26" r="3.6" fill="#E46A2E"></circle><circle cx="23" cy="38" r="3.6" fill="#E46A2E"></circle><path d="M30 26 H43 M30 38 H41" fill="none" stroke="#121110" stroke-width="5" stroke-linecap="round"></path></svg></span><span style="display: flex; flex-direction: column; line-height: 1"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 18px">매니볼</b><span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 3px; margin-top: 3px">MANIBALL</span></span></span>
+      <span><a href="../privacy.html">개인정보처리방침과 이용약관</a>  매니볼 ManiBall</span>
+    </footer>
+  </div>
+</div>
+</div>
