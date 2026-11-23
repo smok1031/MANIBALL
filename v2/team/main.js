@@ -8,7 +8,7 @@ import { adminRoute, adminForm, AACT, eventFormInit, remindLeft, remindSheet, pl
 import { hd as uiHd, navBar, C, IC, teamLogo, setSec } from "./ui.js";
 import { pushInit, pushToggle, pushDetach, kakaoOff } from "./push.js";
 import { chatLoad, chatOnChange, CHACT } from "./chat.js";
-import { isPC, onPCChange, pcShell } from "./pc.js";
+import { isPC, onPCChange, pcShell, pcSplit } from "./pc.js";
 
 const URL_ = import.meta.env.VITE_SUPABASE_URL || SUPABASE_URL;
 const KEY_ = import.meta.env.VITE_SUPABASE_KEY || SUPABASE_KEY;
@@ -1091,8 +1091,11 @@ function render() {
     setSec(/^\/(records|game|season|result)/.test(r) ? "record" : /^\/(team|notices?|rules|money|members|kick|write)/.test(r) ? "team" : /^\/(ops|requests|posreqs|dues|fines|policy|settings|ledger)/.test(r) ? "ops" : /^\/(schedule|event|lineup|manage|roster|check|merc|new|edit|scrim)/.test(r) ? "schedule" : /^\/chat/.test(r) ? "chat" : "home");
     if (r === "/invite" && isAdmin()) html = vInviteMsg();
     else if (r === "/me") html = vProfile(true);
-    else if (viewMode() === "admin") html = adminRoute(r) || memberRoute(r) || memberRoute("/");
-    else html = memberRoute(r) || memberRoute("/");
+    else {
+      const page = rr => viewMode() === "admin" ? (adminRoute(rr) || memberRoute(rr)) : memberRoute(rr);
+      // PC: 일정, 기록, 팀, 운영은 왼쪽 목록과 오른쪽 상세 두 칸
+      html = (isPC() && pcSplit(r, page)) || page(r) || memberRoute("/");
+    }
   }
   // PC(가로 1024px 이상): 같은 화면을 왼쪽 메뉴로 감싼다 (로그인, 팀 고르기 같은 흐름은 그대로)
   const pcOn = isPC() && S.ready && !S.flow;

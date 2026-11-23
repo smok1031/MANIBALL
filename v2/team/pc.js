@@ -1,6 +1,6 @@
 // PC 화면 (브라우저 가로 1024px 이상): PC 시안처럼 왼쪽 메뉴와 넓은 본문. 휴대폰 화면은 그대로 둔다.
 // 화면 내용은 휴대폰과 같은 코드로 그리고, 여기서는 왼쪽 메뉴로 감싸기만 한다 (휴대폰과 PC가 엇갈리지 않게).
-import { S, esc, isAdmin, viewMode, myProfile, nameOf, sport, MBRAND } from "./main.js";
+import { S, esc, isAdmin, viewMode, myProfile, nameOf, sport, MBRAND, upcoming, past, isPlay, isCanceled } from "./main.js";
 import { teamLogo, C } from "./ui.js";
 import { chatUnread } from "./chat.js";
 
@@ -46,4 +46,27 @@ export function pcShell(html) {
     <div class="pco"><span class="pcoh"><i aria-hidden="true"></i>다른 팀과</span><nav class="pnv sm" aria-label="다른 팀과">${other}</nav></div>
     <div class="pcu"><span class="pcun" aria-hidden="true">${esc(p.num || "")}</span><span class="pcux"><b>${esc(me)}</b><span>카카오 계정 연결됨</span></span><button type="button" class="lnk" data-act="logout">로그아웃</button></div>
   </aside><div class="pcm"><div class="pcc">${html}</div></div></div>`;
+}
+
+// 2단계: 챕터 화면을 왼쪽 목록, 오른쪽 상세 두 칸으로 (PC 시안 A안)
+// 목록 주소를 열면 첫 항목의 상세를 오른쪽에 함께 열고, 상세 주소를 열면 왼쪽에 그 챕터 목록을 함께 둔다
+const cssq = v => String(v).replace(/["\\]/g, "\\$&");
+const SPL = [
+  { list: "/schedule", det: /^\/event\/.+$/, def: () => { const e = upcoming().find(x => !isCanceled(x)) || upcoming()[0]; return e ? "/event/" + e.id : ""; },
+    mark: d => `[data-tk="${cssq(decodeURIComponent(d.slice(7)))}"]` },
+  { list: "/records", det: /^\/game\/.+$/, def: () => { const e = past().find(isPlay); return e ? "/game/" + e.id : ""; },
+    mark: d => `a[href="#/game/${cssq(decodeURIComponent(d.slice(6)))}"]` },
+  { list: "/team", det: /^\/(notices|notice\/.+|rules|money|members)$/, def: () => "/notices",
+    mark: d => `a[href="#${/^\/notice\//.test(d) ? "/notices" : d}"]` },
+  { list: "/ops", det: /^\/(requests|posreqs|dues|fines|policy|settings)$/, def: () => "/requests", admin: true,
+    mark: d => `a[href="#${d}"]` },
+];
+export function pcSplit(r, page) {
+  const sp = SPL.find(x => (r === x.list || x.det.test(r)) && (!x.admin || (isAdmin() && viewMode() === "admin")));
+  if (!sp) return null;
+  const d = r === sp.list ? sp.def() : r;
+  const left = page(sp.list); if (!left) return null;
+  const right = d ? page(d) : "";
+  const mark = d ? sp.mark(d) : "";
+  return `<div class="pcsplit2"><div class="pcl2">${left}</div><section class="pcr2" aria-label="자세히">${right || `<div class="pce"><div class="empty"><b>왼쪽에서 골라 주세요</b><span>고른 항목이 여기에 자세히 보여요.</span></div></div>`}</section></div>${mark ? `<style>.pcl2 ${mark}{outline:3px solid var(--ink);outline-offset:4px;border-radius:12px}</style>` : ""}`;
 }
