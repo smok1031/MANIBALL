@@ -1,5 +1,5 @@
 // 팀원 화면 (뉴버전 시안 4장 화면 구성). 운영진도 같은 화면을 쓰고, 운영진에게만 관리 버튼과 운영 탭이 더 보인다.
-import { isCanceled, isDemo, noLate, pol, rulesTextOf, fineRulesOf, $, D, POS, QN, ROLE, S, UI, att, cameTo, closeSheet, confirmBox, esc, evName, evStart, fail, feeMode, guestReqs, guestsOf, isAdmin, isPlay, md, momClosed, momDeadline, momOpen, momWinners, myProfile, myUv, myVote, nameOf, noticesList, past, patchDoc, people, render, ruleKind, sb, sheet, sport, started, toast, todayStr, uid36, upcoming, voteState, wd, won, ym, mLabel, closeAt, remindInfo, promotedAt, spotXY, viewMode, fineAt, fineNow, fineText, lateCancel, ls, APP, maintLocked, KITS, isKit, kitHex, onKit, teamKit, kitSideOf, gkKitOf, jerseyIcon, kitPicker } from "./main.js";
+import { isCanceled, isDemo, noLate, pol, rulesTextOf, fineRulesOf, $, D, POS, QN, ROLE, S, UI, att, cameTo, held, attended, closeSheet, confirmBox, esc, evName, evStart, fail, feeMode, guestReqs, guestsOf, isAdmin, isPlay, md, momClosed, momDeadline, momOpen, momWinners, myProfile, myUv, myVote, nameOf, noticesList, past, patchDoc, people, render, ruleKind, sb, sheet, sport, started, toast, todayStr, uid36, upcoming, voteState, wd, won, ym, mLabel, closeAt, remindInfo, promotedAt, spotXY, viewMode, fineAt, fineNow, fineText, lateCancel, ls, APP, maintLocked, KITS, isKit, kitHex, onKit, teamKit, kitSideOf, gkKitOf, jerseyIcon, kitPicker } from "./main.js";
 import { C, IC, navBar, hd, hdTab, hdBrand, mngBtn, lrow, dlg, empty, initial, sw, teamLogo } from "./ui.js";
 import { afeed, adminHomeRows } from "./admin.js";
 import { isKeeper } from "./lineup-core.js";
@@ -27,11 +27,11 @@ export function quarterList(e, u) {
 function quartersOf(e, u) { const L = e.lineup || {}; return Object.values(L).some(s => s && s.q) ? quarterList(e, u).length : null; }
 export function myStats(u, y) {
   const evs = seasonEvents(y || yearOf()).filter(isPlay);
-  const came = evs.filter(e => cameTo(e, u));
-  const late = evs.filter(e => (e.check || {})[u] === "late").length;
+  const aevs = evs.filter(held); const came = aevs.filter(e => attended(e, u));
+  const late = aevs.filter(e => (e.check || {})[u] === "late").length;
   const goals = evs.reduce((n, e) => n + (e.goals || []).filter(g => g.uid === u).length, 0);
   const mom = evs.filter(momClosed).filter(e => momWinners(e).includes(u)).length;
-  return { n: evs.length, mine: came.length, late, miss: evs.length - came.length, goals, mom, rate: evs.length ? Math.round(came.length * 100 / evs.length) : 0 };
+  return { n: aevs.length, mine: came.length, late, miss: aevs.length - came.length, goals, mom, rate: aevs.length ? Math.round(came.length * 100 / aevs.length) : 0 };
 }
 const scoreText = e => `${e.score.us}:${e.score.them}`;
 const resultWord = e => { if (!e.score) return ""; const a = +e.score.us, b = +e.score.them; return e.type === "scrim" ? (a > b ? "A팀 승" : a < b ? "B팀 승" : "무승부") : a > b ? "승" : a < b ? "패" : "무"; };
@@ -404,16 +404,16 @@ function mRecords() {
 }
 export function teamRecord(evs) { let w = 0, d = 0, l = 0, gf = 0, ga = 0; evs.filter(e => e.type === "match" && e.score).forEach(e => { const a = +e.score.us, b = +e.score.them; gf += a; ga += b; if (a > b) w++; else if (a < b) l++; else d++; }); return { w, d, l, gf, ga }; }
 function mSeason() {
-  const y = yearOf(); const evs = seasonEvents(y).filter(isPlay); const r = teamRecord(evs); const st = myStats(S.uid, y);
-  const punches = evs.slice().reverse().map(e => { const c = cameTo(e, S.uid); const late = (e.check || {})[S.uid] === "late"; return `<span style="display:flex;flex-direction:column;align-items:center;gap:4px"><span style="width:20px;height:20px;border-radius:50%;border:2px solid ${C.ink};background:${c ? (late ? C.orange : C.ink) : C.bg}"></span><span class="bc" style="font-size:12px;font-weight:600">${md(e.date)}</span></span>`; }).join("");
+  const y = yearOf(); const evs = seasonEvents(y).filter(isPlay); const r = teamRecord(evs); const st = myStats(S.uid, y); const aevs = evs.filter(held);
+  const punches = aevs.slice().reverse().map(e => { const c = attended(e, S.uid); const late = (e.check || {})[S.uid] === "late"; return `<span style="display:flex;flex-direction:column;align-items:center;gap:4px"><span style="width:20px;height:20px;border-radius:50%;border:2px solid ${C.ink};background:${c ? (late ? C.orange : C.ink) : C.bg}"></span><span class="bc" style="font-size:12px;font-weight:600">${md(e.date)}</span></span>`; }).join("");
   const cnt = (n, l, c, ex = "") => `<span style="display:flex;flex-direction:column;gap:4px"><b class="bc" style="font-size:24px;line-height:1">${n}</b><span style="display:inline-flex;align-items:center;gap:4px;font-size:12px"><span style="width:9px;height:9px;background:${c};${ex}"></span>${l}</span></span>`;
   return `${hd(y + " 시즌", "#/records", { sub: "내전은 팀 성적에서 빼고 셌어요" })}<div class="body" style="gap:16px">
     <div class="spread" style="border-top:2px solid ${C.ink};border-bottom:2px solid ${C.line};padding:12px 0"><span style="font-size:12px;font-weight:700">팀 성적</span><span class="bc" style="display:flex;align-items:baseline;gap:8px"><span style="font-size:32px">${r.w}<small style="font-size:16px">승</small> ${r.d}<small style="font-size:16px">무</small> ${r.l}<small style="font-size:16px">패</small></span><span style="font-size:16px;color:${C.sub}">득 ${r.gf}  실 ${r.ga}</span></span></div>
     <div class="box" style="border-radius:12px;gap:12px"><span class="spread" style="align-items:baseline"><b style="font-size:16px">내 출석</b><span style="font-size:12px">${st.n}번 중 <b class="bc" style="font-size:20px">${st.mine}</b>번 왔어요</span></span>
-      ${evs.length ? `<div style="display:grid;grid-template-columns:repeat(${Math.min(8, Math.max(evs.length, 1))},minmax(0,1fr));gap:4px;border-top:2px dashed rgba(18,17,16,.35);padding-top:12px">${punches}</div>` : ""}
+      ${aevs.length ? `<div style="display:grid;grid-template-columns:repeat(${Math.min(8, Math.max(aevs.length, 1))},minmax(0,1fr));gap:4px;border-top:2px dashed rgba(18,17,16,.35);padding-top:12px">${punches}</div>` : ""}
       <div class="grid4" style="border-top:2px solid ${C.line};padding-top:8px;gap:0">${cnt(st.mine - st.late, "정시", C.ink)}${cnt(st.late, "지각", C.orange)}${cnt(st.miss, "불참", C.bg, `border:2px solid ${C.ink};box-sizing:border-box`)}${cnt(st.mom, "MOM", C.pink)}</div></div>
     <section style="display:flex;flex-direction:column" aria-label="경기별 내 출석"><b style="font-size:16px;border-bottom:2px solid ${C.ink};padding-bottom:8px">경기별 내 출석</b>
-      ${evs.length ? evs.map(e => { const c = cameTo(e, S.uid); const late = (e.check || {})[S.uid] === "late"; const lab = c ? (late ? "지각" : "참석") : "불참"; return `<a href="#/game/${esc(e.id)}" style="display:flex;align-items:center;gap:12px;min-height:52px;border-bottom:2px solid ${C.line};text-decoration:none"><b class="bc" style="flex:none;width:64px;font-size:16px">${md(e.date)}</b><span style="flex:1;font-size:16px">${esc(vsText(e))}</span><span class="tag" style="background:${C.white}${c ? "" : ";border-style:dashed"}">${lab}</span></a>`; }).join("") : `<span class="note" style="padding:16px 0">아직 지난 경기가 없어요.</span>`}
+      ${evs.length ? evs.map(e => { const h = held(e); const c = attended(e, S.uid); const late = (e.check || {})[S.uid] === "late"; const lab = !h ? "출석 안 받음" : c ? (late ? "지각" : "참석") : "불참"; return `<a href="#/game/${esc(e.id)}" style="display:flex;align-items:center;gap:12px;min-height:52px;border-bottom:2px solid ${C.line};text-decoration:none"><b class="bc" style="flex:none;width:64px;font-size:16px">${md(e.date)}</b><span style="flex:1;font-size:16px">${esc(vsText(e))}</span><span class="tag" style="background:${h ? C.white : C.bg}${c ? "" : ";border-style:dashed"}${h ? "" : `;color:${C.sub}`}">${lab}</span></a>`; }).join("") : `<span class="note" style="padding:16px 0">아직 지난 경기가 없어요.</span>`}
     </section>
   </div>${navBar("기록")}`;
 }
@@ -456,8 +456,8 @@ export function teamTops(y) {
   const evs = seasonEvents(y).filter(isPlay); const ps = people();
   const momC = {}; evs.filter(momClosed).forEach(e => momWinners(e).forEach(u => { momC[u] = (momC[u] || 0) + 1; }));
   const mx = Math.max(0, ...Object.values(momC)); const momTop = mx ? Object.keys(momC).filter(k => momC[k] === mx) : [];
-  const rate = ps.map(x => ({ uid: x.uid, n: evs.filter(e => cameTo(e, x.uid)).length })); const rmx = Math.max(0, ...rate.map(x => x.n)); const rateTop = rmx ? rate.filter(x => x.n === rmx).map(x => x.uid) : [];
-  return { evs, mom: momTop, momN: mx, rate: rateTop, rateN: rmx, pct: evs.length ? Math.round(rmx * 100 / evs.length) : 0 };
+  const aevs = evs.filter(held); const rate = ps.map(x => ({ uid: x.uid, n: aevs.filter(e => attended(e, x.uid)).length })); const rmx = Math.max(0, ...rate.map(x => x.n)); const rateTop = rmx ? rate.filter(x => x.n === rmx).map(x => x.uid) : [];
+  return { evs, aevs, mom: momTop, momN: mx, rate: rateTop, rateN: rmx, pct: aevs.length ? Math.round(rmx * 100 / aevs.length) : 0 };
 }
 function teamCard() {
   return `<div class="box blue" style="flex-direction:row;align-items:center;gap:16px;border-radius:12px;padding:16px">${teamLogo(64)}<span style="display:flex;flex-direction:column;gap:4px;min-width:0"><b class="bh" style="font-size:24px;line-height:1.1">${esc(S.team.name)}</b><span style="font-size:14px">${sport() === "soccer" ? "축구팀" : "풋살팀"}  팀원 ${S.members.length}명</span></span></div>`;
@@ -465,8 +465,8 @@ function teamCard() {
 export function topsBlock() {
   const y = todayStr().slice(0, 4); const t = teamTops(y); const names = us => us.slice(0, 2).map(nameOf).join(", ") + (us.length > 2 ? " 외 " + (us.length - 2) + "명" : "");
   return `<div class="grid2" style="margin-top:-8px"><div class="box" style="gap:4px;padding:12px 16px"><span class="tag" style="align-self:flex-start">MOM 최다</span><b class="bh" style="font-size:20px;line-height:1.3">${t.mom.length ? esc(names(t.mom)) : "아직 없어요"}</b><span style="font-size:12px">${t.momN ? `<b class="bc" style="font-size:24px">${t.momN}</b>번 받았어요` : "&nbsp;"}</span></div>
-    <div class="box" style="gap:4px;padding:12px 16px"><span class="tag" style="align-self:flex-start">출석률 최고</span><b class="bh" style="font-size:20px;line-height:1.3">${t.rate.length ? esc(names(t.rate)) : "아직 없어요"}</b><span style="font-size:12px">${t.rateN ? `<b class="bc" style="font-size:24px">${t.pct}</b>%  ${t.rateN === t.evs.length ? t.evs.length + "경기 모두" : t.evs.length + "경기 중 " + t.rateN}` : "&nbsp;"}</span></div></div>
-    <span style="font-size:12px;color:${C.sub};margin-top:-8px">${y} 시즌 지난 ${t.evs.length}경기 기준이에요.</span>`;
+    <div class="box" style="gap:4px;padding:12px 16px"><span class="tag" style="align-self:flex-start">출석률 최고</span><b class="bh" style="font-size:20px;line-height:1.3">${t.rate.length ? esc(names(t.rate)) : "아직 없어요"}</b><span style="font-size:12px">${t.rateN ? `<b class="bc" style="font-size:24px">${t.pct}</b>%  ${t.rateN === t.aevs.length ? t.aevs.length + "경기 모두" : t.aevs.length + "경기 중 " + t.rateN}` : "&nbsp;"}</span></div></div>
+    <span style="font-size:12px;color:${C.sub};margin-top:-8px">${y} 시즌 출석을 받은 ${t.aevs.length}경기 기준이에요.</span>`;
 }
 // 팀 탭 "수칙과 벌금" 줄 아래 글: 수칙 N개, 벌금 N가지 (번호 붙은 줄을 센다. 번호가 없으면 빈 줄 빼고 센다)
 function rulesSub(ft) {

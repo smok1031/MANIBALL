@@ -1,6 +1,6 @@
 // 운영진 화면 (뉴버전 시안 [운영진]). 팀원 화면은 member.js가 그리고, 운영진에게만 보이는 화면과 도구를 여기에 둔다.
 import { S, D, $, att, esc, md, wd, evName, started, evStart, isPlay, momClosed, momDeadline, momWinners, nameOf, people, guestReqs, guestsOf, scrimReady, won, pol, POS, QN, ROLE, UI,
-  isAdmin, viewMode, route, backHref, render, toast, fail, sheet, closeSheet, confirmBox, setDoc, delDoc, patchDoc, sb, uid36, todayStr, ym, mLabel, monthsList, feeMode, paidOf, cameTo,
+  isAdmin, viewMode, route, backHref, render, toast, fail, sheet, closeSheet, confirmBox, setDoc, delDoc, patchDoc, sb, uid36, todayStr, ym, mLabel, monthsList, feeMode, paidOf, cameTo, held, attended,
   syncMyDues, refreshMembers, remindInfo, inviteUrl, canKick, profileOf, posFix, sport, voteState, closeAt, past, rulesFormInit, rulesFromForm, rulesTextOf, fineRulesOf, ruleKind,
   curLineup, lineupPlayers, draftOf, formOf, autoLineup, FORMS, FORM_DESC, PICK, fitOf, KITS, isKit, kitHex, onKit, teamKit, recKitFor, kitSideOf, gkKitOf, JPATH, jerseyIcon, kitPicker, applyFix, spotXY, FUTSAL_N, loadReqs, ls, APP, isCanceled } from "./main.js";
 import { C, IC, navBar, hd, hdTab, lrow, dlg, empty, sw, teamLogo } from "./ui.js";
@@ -274,17 +274,17 @@ function aRulesEdit() {
 
 /* ===================== 기록 (운영진) ===================== */
 function aSeason() {
-  const y = todayStr().slice(0, 4); const evs = seasonEvents(y).filter(isPlay); const r = teamRecord(evs); const st = myStats(S.uid, y);
-  const mine = evs.slice().reverse();
+  const y = todayStr().slice(0, 4); const evs = seasonEvents(y).filter(isPlay); const r = teamRecord(evs); const st = myStats(S.uid, y); const aevs = evs.filter(held);
+  const mine = aevs.slice().reverse();
   const lateVote = (e, u) => ((((S.rsvp[u] || {}).ev || {})[e.id]) || {}).s === "late";
-  const cnt = u => { let a = 0, l = 0, t = 0, n = 0; evs.forEach(e => { if (!cameTo(e, u)) { n++; return; } if ((e.check || {})[u] === "late") t++; else if (lateVote(e, u)) l++; else a++; }); return { a, l, t, n }; };
+  const cnt = u => { let a = 0, l = 0, t = 0, n = 0; aevs.forEach(e => { if (!attended(e, u)) { n++; return; } if ((e.check || {})[u] === "late") t++; else if (lateVote(e, u)) l++; else a++; }); return { a, l, t, n }; };
   const my = cnt(S.uid);
   const cn = (v, l, c, ex = "") => `<span style="display:flex;flex-direction:column;gap:4px"><b class="bc" style="font-size:24px;line-height:1">${v}</b><span style="display:inline-flex;align-items:center;gap:4px;font-size:12px"><span style="width:9px;height:9px;background:${c};${ex}"></span>${l}</span></span>`;
   const ps = people().sort((a, b) => (Number(a.p.num) || 999) - (Number(b.p.num) || 999));
   return `${hd(y + " 시즌", back("#/records"), { sub: "내전은 팀 성적에서 빼고 셌어요" })}<div class="body" style="gap:16px">
     <div class="spread" style="border-top:2px solid ${C.ink};border-bottom:2px solid ${C.line};padding:12px 0"><span style="font-size:12px;font-weight:700">팀 성적</span><span class="bc" style="display:flex;align-items:baseline;gap:8px"><span style="font-size:32px">${r.w}<small style="font-size:16px">승</small> ${r.d}<small style="font-size:16px">무</small> ${r.l}<small style="font-size:16px">패</small></span><span style="font-size:16px;color:${C.sub}">득 ${r.gf}  실 ${r.ga}</span></span></div>
     <div class="box gray" style="border-radius:18px;gap:12px"><span class="spread" style="align-items:baseline"><b style="font-size:16px">내 출석</b><span style="font-size:12px">${st.n}번 중 <b class="bc" style="font-size:20px">${st.mine}</b>번 왔어요</span></span>
-      ${mine.length ? `<div style="display:grid;grid-template-columns:repeat(${Math.min(8, mine.length)},minmax(0,1fr));gap:4px;border-top:2px dashed rgba(18,17,16,.35);padding-top:12px">${mine.slice(-8).map(e => { const c = cameTo(e, S.uid); const late = (e.check || {})[S.uid] === "late" || (c && lateVote(e, S.uid)); return `<span style="display:flex;flex-direction:column;align-items:center;gap:4px"><span style="width:22px;height:22px;border-radius:50%;border:2px solid ${C.ink};background:${c ? (late ? C.orange : C.ink) : C.bg}"></span><span class="bc" style="font-size:12px;font-weight:600">${md(e.date)}</span></span>`; }).join("")}</div>` : ""}
+      ${mine.length ? `<div style="display:grid;grid-template-columns:repeat(${Math.min(8, mine.length)},minmax(0,1fr));gap:4px;border-top:2px dashed rgba(18,17,16,.35);padding-top:12px">${mine.slice(-8).map(e => { const c = attended(e, S.uid); const late = (e.check || {})[S.uid] === "late" || (c && lateVote(e, S.uid)); return `<span style="display:flex;flex-direction:column;align-items:center;gap:4px"><span style="width:22px;height:22px;border-radius:50%;border:2px solid ${C.ink};background:${c ? (late ? C.orange : C.ink) : C.bg}"></span><span class="bc" style="font-size:12px;font-weight:600">${md(e.date)}</span></span>`; }).join("")}</div>` : ""}
       <div class="grid4" style="border-top:2px solid ${C.line};padding-top:8px;gap:0">${cn(my.a, "참석", C.ink)}${cn(my.l, "늦참", C.orange)}${cn(my.t, "지각", C.bg, `border:2px solid ${C.ink};box-sizing:border-box`)}${cn(my.n, "불참", C.white, `border:2px dashed ${C.ink};box-sizing:border-box`)}</div></div>
     <section style="display:flex;flex-direction:column">${head2("팀원 출석", `<span class="note">등번호 순, 운영진만 보여요</span>`)}
       <div style="display:grid;grid-template-columns:28px 1fr repeat(4,38px);gap:4px;font-size:12px;color:${C.sub};padding:8px 0;border-bottom:2px solid ${C.line}"><span></span><span>이름</span><span style="text-align:center">참석</span><span style="text-align:center">늦참</span><span style="text-align:center">지각</span><span style="text-align:center">불참</span></div>

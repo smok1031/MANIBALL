@@ -599,9 +599,9 @@ function delSheet() {
 function seasonStats(u) {
   const year = todayStr().slice(0, 4);
   const evs = past().filter(e => e.date.startsWith(year));
-  const mine = evs.filter(e => cameTo(e, u)).length;
+  const aevs = evs.filter(held); const mine = aevs.filter(e => attended(e, u)).length;
   const mom = evs.filter(momClosed).filter(e => momWinners(e).includes(u)).length;
-  return { n: evs.length, mine, mom, rate: evs.length ? Math.round(mine * 100 / evs.length) : 0 };
+  return { n: aevs.length, mine, mom, rate: aevs.length ? Math.round(mine * 100 / aevs.length) : 0 };
 }
 
 
@@ -642,6 +642,10 @@ const finesOf = u => Object.entries(D("fines")).map(([id, f]) => ({ id, ...f }))
 const momDeadline = e => new Date(new Date(e.date + "T12:00:00+09:00").getTime() + 864e5);
 const momOpen = e => isPlay(e) && started(e) && !!e.score && Date.now() < momDeadline(e).getTime();
 const momClosed = e => isPlay(e) && Date.now() >= momDeadline(e).getTime();
+// 출석률: 실제로 열린 경기(시작, 취소 아님)에 현장 출석을 받았고, 그 자리에서 왔음 또는 지각으로 체크된 경우만 센다. 투표만으로는 세지 않는다.
+const checkTaken = e => !!e.checkDone || Object.entries(e.check || {}).some(([k, v]) => !k.startsWith("g:") && (v === "in" || v === "late" || v === "absent"));
+const held = e => started(e) && !isCanceled(e) && checkTaken(e);
+const attended = (e, u) => held(e) && ["in", "late"].includes((e.check || {})[u]);
 function cameTo(e, u) { const c = (e.check || {})[u]; if (c) return c === "in" || c === "late"; const r = (((S.rsvp[u] || {}).ev || {})[e.id]) || {}; return r.s === "yes" || r.s === "late"; }
 function momWinners(e) { const t = D("tally")["mom-" + e.id]; if (!t || !t.c) return []; const max = Math.max(0, ...Object.values(t.c)); return max ? Object.keys(t.c).filter(k => t.c[k] === max) : []; }
 const myUv = () => D("uvote")[S.uid] || {};
@@ -1454,4 +1458,4 @@ function vRest(id) {
 }
 
 // member.js와 admin.js가 같이 쓰는 것
-export { KITS, isKit, kitHex, onKit, teamKit, kitClash, recKitFor, kitSideOf, gkKitOf, JPATH, jerseyIcon, kitPicker, PICK, fitOf, isCanceled, isDemo, maintLocked, scheduleRender, backHref, delDoc, FUTSAL_N, loadReqs, ls, APP, route, viewMode, fineAt, fineNow, fineText, lateCancel, spotXY, delSheet, curLineup, lineupPlayers, draftOf, formOf, autoLineup, FORMS, FORM_DESC, applyFix, qText, rowsOf, loadTeam, enter, showTeams, inviteUrl, policyFromForm as polFromForm, posFix, profileOf, refreshTally, hmK, promotedAt, ampm, closeAt, voteTimeOf, $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };
+export { held, attended, checkTaken, KITS, isKit, kitHex, onKit, teamKit, kitClash, recKitFor, kitSideOf, gkKitOf, JPATH, jerseyIcon, kitPicker, PICK, fitOf, isCanceled, isDemo, maintLocked, scheduleRender, backHref, delDoc, FUTSAL_N, loadReqs, ls, APP, route, viewMode, fineAt, fineNow, fineText, lateCancel, spotXY, delSheet, curLineup, lineupPlayers, draftOf, formOf, autoLineup, FORMS, FORM_DESC, applyFix, qText, rowsOf, loadTeam, enter, showTeams, inviteUrl, policyFromForm as polFromForm, posFix, profileOf, refreshTally, hmK, promotedAt, ampm, closeAt, voteTimeOf, $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };
