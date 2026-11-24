@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<script src="../maint-config.js?v=cb3b306"></script>
-<script src="../maint-gate.js?v=cb3b306"></script>
+<script src="../maint-config.js?v=1770f93"></script>
+<script src="../maint-gate.js?v=1770f93"></script>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://vlaiziklxvpykzsuvinn.supabase.co wss://vlaiziklxvpykzsuvinn.supabase.co https://kauth.kakao.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -197,7 +197,13 @@ textarea.inp{height:auto;min-height:120px;padding:8px 12px;line-height:1.7;resiz
 .qc{height:58px;border:2px solid var(--ink);border-radius:6px;background:var(--white);font:700 16px 'IBM Plex Sans KR',sans-serif;transition:transform .25s cubic-bezier(.3,1.5,.6,1),box-shadow .25s,background .2s}
 .qc .qs{display:none}
 .qc.on{transform:rotate(-6deg) translateY(-4px);box-shadow:var(--sh);background:var(--ink);color:var(--bg)}
-.qc.on.yes,.qc.on.late,.qc.on.no,.qc.on.wait{background:var(--ink);color:var(--bg)}
+/* 고른 카드는 답마다 색: 참석 청록, 늦참 노랑, 불참 먹색(청록 그림자), 대기 옅은 청록. 나머지는 흰 바탕 회색 글씨, 점선은 마감 뒤 못 바꾸는 칸만 */
+.qc.on.yes{background:#14BBC2;color:var(--ink)}
+.qc.on.late{background:#FCD01A;color:var(--ink)}
+.qc.on.wait{background:#B8E9EB;color:var(--ink)}
+.qc.on.no{background:var(--ink);color:var(--bg);box-shadow:4px 4px 0 #14BBC2}
+.qc.dim{color:#6B655D}
+.qc.lock{border-style:dashed;background:transparent;color:#6B655D;cursor:default}
 .qq{height:34px;border:2px solid var(--ink);border-radius:7px;background:var(--white);font:700 16px/1 'Barlow Condensed',sans-serif}
 .qq.on{background:var(--ink);color:var(--bg);transform:rotate(-4deg)}
 .strip{border:2px solid var(--ink);border-radius:12px;background:var(--white);box-shadow:var(--sh);padding:16px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
@@ -398,9 +404,10 @@ html.pc .toast{bottom:40px}
 .pcr2[data-p="season"] section[aria-label="경기별 내 출석"]{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));column-gap:24px}
 .pcr2[data-p="season"] section[aria-label="경기별 내 출석"]>b{grid-column:1 / -1}
 /* PC 기록 목록 (시안): 찢긴 티켓 대신 흰 카드 */
-.pcl2[data-p="records"] .ru{filter:none;height:auto}
-.pcl2[data-p="records"] .ru-b{clip-path:none;height:auto;min-height:96px;border:2px solid var(--ink);border-radius:12px;box-shadow:4px 4px 0 var(--ink);box-sizing:border-box}
-.pcl2[data-p="records"] .ru-pf,.pcl2[data-p="records"] .ru-r,.pcl2[data-p="records"] .pt-n{display:none}
+/* 기록 티켓: 휴대폰도 PC와 같은 모양 (시안 2026-11-24) */
+.ru{filter:none;height:auto}
+.ru-b{clip-path:none;height:auto;min-height:96px;border:2px solid var(--ink);border-radius:12px;box-shadow:4px 4px 0 var(--ink);box-sizing:border-box}
+.ru-pf,.ru-r,.ru .pt-n{display:none}
 /* PC 팀원 (시안): 포지션별 4열 카드 */
 .pcr2[data-p="members"] section{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
 .pcr2[data-p="members"] section>.spread{grid-column:1 / -1;margin-bottom:4px}
@@ -435,6 +442,32 @@ html.pcwide .page{max-width:none}
 .lgli{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:16px 32px}
 .lgr{flex:0 0 360px;display:flex;flex-direction:column;gap:16px;padding:28px;border:2px solid var(--ink);border-radius:16px;background:var(--white);box-shadow:6px 6px 0 var(--ink);box-sizing:border-box}
 .lgr h2{margin:0;font-size:26px;font-weight:400}
+/* 운영진 팀 기록 (MOM 받은 기록, 출석률 순위) */
+.tstat{position:relative;cursor:pointer}
+.tstat .tsgo{font-size:12px;font-weight:700;text-decoration:underline;margin-top:2px}
+.tsl{display:flex;flex-direction:column;border:2px solid var(--ink);border-radius:12px;background:var(--white);overflow:hidden}
+.tsr{display:grid;grid-template-columns:28px minmax(64px,1fr) 2fr auto auto;align-items:center;gap:10px;padding:10px 14px;border-top:2px solid var(--line)}
+.tsr:first-child{border-top:0}
+.tsn{font-size:18px;text-align:center}
+.tsnm{font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tsbar{height:12px;border:2px solid var(--ink);border-radius:6px;background:var(--bg);overflow:hidden}
+.tsbar i{display:block;height:100%;background:#14BBC2}
+.tsr.low .tsbar i{background:#F2A65A}
+.tsv{font-size:18px;min-width:44px;text-align:right}
+.tsc{font-size:12px;color:var(--sub);min-width:36px;text-align:right}
+/* PC 팀 고르기 (시안 6-6) */
+.tpm{flex:1;box-sizing:border-box;width:100%;max-width:1120px;margin:0 auto;padding:48px;display:flex;flex-direction:column;gap:24px}
+.tpg{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px;padding:4px}
+.tpc{min-height:196px;box-sizing:border-box;padding:24px;border:2px solid var(--ink);border-radius:16px;background:var(--white);box-shadow:4px 4px 0 var(--ink);color:var(--ink);text-align:left;display:flex;flex-direction:column;gap:16px;cursor:pointer;font:inherit}
+.tpc:hover,.tpc:focus-visible{box-shadow:6px 6px 0 var(--ink);transform:translate(-1px,-1px)}
+.tpc.on{background:#FDE7D2}
+.tpc1{display:flex;align-items:center;gap:16px}
+.tpcn{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.tpcn b{font-weight:400;font-size:26px;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tpcr{align-self:flex-start;font-size:12px;font-weight:700;border:2px solid var(--ink);border-radius:5px;padding:2px 8px;background:var(--white)}
+.tpcr.k{background:var(--ink);color:var(--bg)}
+.tpc2{display:flex;flex-direction:column;gap:4px;padding-top:12px;border-top:2px dashed var(--ink);font-size:14px}
+.tpnew{min-height:196px;border:2px dashed var(--ink);border-radius:16px;background:transparent;font:700 16px inherit;font-weight:700;font-size:16px;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
 /* PC 운영 메뉴 카드는 아이콘 없이, 알림 줄은 오른쪽 화살표 (시안) */
 .pcl2[data-p="ops"] .lr .ic{display:none}
 .pcr2[data-p="notify"]>.body>a::after{content:"";flex:none;align-self:center;width:8px;height:8px;margin:0 6px 0 auto;border-top:2.4px solid var(--ink);border-right:2.4px solid var(--ink);transform:rotate(45deg)}
@@ -478,6 +511,64 @@ html.pcwide .page{max-width:none}
 .xl{gap:12px}
 .xc{display:flex;flex-direction:column;gap:10px;width:100%;box-sizing:border-box;padding:14px 16px;border:2px solid var(--ink);border-radius:12px;background:var(--white);box-shadow:4px 4px 0 var(--ink);font-family:inherit;color:var(--ink);text-align:left;cursor:pointer}
 .xc.on{background:var(--sec3);box-shadow:6px 6px 0 var(--ink);transform:translate(-2px,-2px)}
+/* 다른 팀과 B 디자인 (시안 2026-11-24): 카드는 테두리 없이 그림자, 고른 카드는 연주황에 굵은 테두리 */
+.xl .xc{border:0;box-shadow:0 1px 0 rgba(18,17,16,.08),0 4px 10px rgba(18,17,16,.10)}
+.xl .xc.on{background:#FDE7D2;box-shadow:0 0 0 2px var(--ink),6px 6px 0 var(--ink);transform:translate(-2px,-2px)}
+.xk{flex:none;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;box-sizing:border-box;border-radius:6px;border:2px solid var(--ink);font:700 13px 'IBM Plex Sans KR',sans-serif;background:var(--white);color:var(--ink);white-space:nowrap}
+.xk.m{background:var(--ink);color:var(--bg)}
+.xc>.xk{align-self:flex-start}
+.xk.big{height:36px;font-size:15px}
+.xkr{display:flex;align-items:center;gap:8px;text-align:left;min-width:0}
+.xkv{min-width:0;display:flex;flex-direction:column}
+.xkv b{font-size:14px;line-height:1.3}
+.xkv span{font-size:12px;color:var(--sub)}
+.xfs{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.xfs>span{font-size:14px}
+.xfb{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:2px solid var(--ink);border-radius:10px;background:var(--white);font:700 14px 'IBM Plex Sans KR',sans-serif;color:var(--ink);cursor:pointer}
+.xfb[aria-expanded="true"]{background:var(--ink);color:var(--bg)}
+.xhero{display:flex;flex-wrap:wrap;border-radius:14px;background:var(--white);box-shadow:0 1px 0 rgba(18,17,16,.08),0 4px 10px rgba(18,17,16,.10);overflow:hidden}
+.xhl{flex:1 1 300px;display:flex;flex-direction:column;gap:6px;padding:18px 20px;border-right:2px dotted var(--ink)}
+.xht{display:flex;align-items:baseline;gap:8px}
+.xht b{font:700 64px/0.95 'Barlow Condensed',sans-serif}
+.xht span{font:700 22px 'Barlow Condensed',sans-serif}
+.xhd{font-size:14px}
+.xhr{flex:0 0 220px;display:flex;flex-direction:column;justify-content:center;gap:4px;padding:18px 20px;background:#FDE7D2}
+.xhr>span:first-child{font-size:12px;font-weight:700}
+.xhr b{font:700 32px 'Barlow Condensed','IBM Plex Sans KR',sans-serif;line-height:1.1}
+.xhr>span:last-child{font-size:12px;color:var(--sub)}
+.xmemo2{display:flex;flex-direction:column;gap:6px;padding:12px 16px;border-radius:12px;background:var(--bg)}
+.xmemo2>span{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--sub)}
+.xmemo2>p{margin:0;font-size:16px;line-height:1.6}
+.xposl{display:flex;flex-wrap:wrap;gap:8px}
+.xpos.big.on{background:var(--ink);color:var(--bg)}
+.xpos small{font-size:11px;font-weight:500}
+.xlvb{display:inline-flex;align-items:center;font-size:12px;font-weight:700;border:2px solid var(--ink);border-radius:5px;padding:0 6px;margin-right:6px;background:#FDE7D2}
+.xfee{display:flex;flex-direction:column;gap:4px;padding:12px 16px;border-radius:12px;background:#FDE7D2;font-size:13px;line-height:1.5}
+.xfee b{font:700 22px 'Barlow Condensed','IBM Plex Sans KR',sans-serif}
+.tag.yel{background:#FCD01A;color:var(--ink)}
+.tag.dash{border-style:dashed;background:var(--white);color:var(--ink)}
+/* 내 신청 목록 (시안 5-3-3) */
+.xml{display:flex;flex-direction:column;gap:24px;margin:-20px -24px;padding:20px 24px 24px;background:var(--bg);min-height:100%}
+.xmi{margin:0;display:flex;align-items:center;gap:8px;font-size:14px;line-height:1.5}
+.xmg{display:flex;flex-direction:column;gap:12px}
+.xmg h3{margin:0;display:flex;align-items:center;gap:8px;font-size:16px}
+.xmg h3 i{width:12px;height:12px;border-radius:50%;border:2px solid var(--ink)}
+.xmg h3 em{font-style:normal;font-size:12px;font-weight:400;color:var(--sub)}
+.xmcnt{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 6px;box-sizing:border-box;border-radius:12px;background:var(--ink);color:var(--bg);font:700 13px Inter,sans-serif}
+.xmc{display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:14px;background:var(--white);box-shadow:0 1px 0 rgba(18,17,16,.08),0 4px 10px rgba(18,17,16,.10)}
+.xmc.todo{box-shadow:0 0 0 2px var(--ink),4px 4px 0 var(--ink)}
+.xmc.past{opacity:.78}
+.xmt{display:flex;align-items:flex-start;gap:14px}
+.xmm{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.xmn{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.xmn b{font-size:17px}
+.xmn .xk{height:24px;font-size:12px}
+.xmt .tag{flex:none}
+.xpay{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:12px 16px;border-radius:10px;background:#FDE7D2}
+.xpt{flex:1 1 320px;display:flex;flex-direction:column;gap:4px;font-size:13px;line-height:1.6}
+.xpt>b:first-child{font:700 22px 'Barlow Condensed','IBM Plex Sans KR',sans-serif}
+.xpbt{display:flex;gap:8px}
+.xmx{display:flex;justify-content:flex-end}
 .xnew{height:52px;border:2px dashed var(--ink);border-radius:12px;background:var(--white);font:700 15px 'IBM Plex Sans KR',sans-serif;color:var(--ink);cursor:pointer}
 .xth{display:flex;align-items:center;gap:12px;min-width:0}
 .xj{flex:none;position:relative;display:block}
@@ -521,7 +612,7 @@ html.pcwide .page{max-width:none}
 .xmine .big{font-size:18px;font-weight:700}
 .xmine .note{font-size:12px}
 </style>
-  <script type="module" crossorigin src="../../assets/team-IXli0m8i.js"></script>
+  <script type="module" crossorigin src="../../assets/team-2s0oatPL.js"></script>
   <link rel="modulepreload" crossorigin href="../../assets/modulepreload-polyfill-B5Qt9EMX.js">
 </head>
 <body>
