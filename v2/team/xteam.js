@@ -217,7 +217,7 @@ function myView() {
 /* ===================== 동작 ===================== */
 function xFail(e) {
   const m = String((e && (e.message || e.details)) || e || "");
-  const M = { not_admin: "운영진만 할 수 있어요", not_member: "팀에 들어간 뒤에 쓸 수 있어요", post_closed: "마감된 글이에요", own_post: "우리 팀 글이에요", own_team: "우리 팀 글에는 신청할 수 없어요", not_open_match: "상대가 정해지지 않은 경기만 돼요", other_day: "같은 날 경기만 신청할 수 있어요", other_sport: "같은 종목 팀끼리만 매칭할 수 있어요", bad_pos: "글에 있는 자리만 고를 수 있어요", too_many: "빈 자리보다 많이 구할 수 없어요", bad_slots: "자리를 다시 골라 주세요", event_closed: "지났거나 취소된 일정이에요", not_pending: "이미 처리된 신청이에요", duplicate: "이미 신청했어요", unique: "이미 신청했어요" };
+  const M = { too_fast: "너무 빨리 반복하고 있어요. 잠시 뒤에 다시 해 주세요", not_admin: "운영진만 할 수 있어요", not_member: "팀에 들어간 뒤에 쓸 수 있어요", post_closed: "마감된 글이에요", own_post: "우리 팀 글이에요", own_team: "우리 팀 글에는 신청할 수 없어요", not_open_match: "상대가 정해지지 않은 경기만 돼요", other_day: "같은 날 경기만 신청할 수 있어요", other_sport: "같은 종목 팀끼리만 매칭할 수 있어요", bad_pos: "글에 있는 자리만 고를 수 있어요", too_many: "빈 자리보다 많이 구할 수 없어요", bad_slots: "자리를 다시 골라 주세요", event_closed: "지났거나 취소된 일정이에요", not_pending: "이미 처리된 신청이에요", duplicate: "이미 신청했어요", unique: "이미 신청했어요" };
   const k = Object.keys(M).find(x => m.includes(x)); if (k) { toast(M[k]); return; } fail(e);
 }
 async function call(fn, args, okMsg, after) {

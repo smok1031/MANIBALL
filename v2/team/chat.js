@@ -200,7 +200,7 @@ export function chatEnter() { S.form = { chat: "" }; CH.stick = true; }
 
 function chatFail(err) {
   const m = String((err && (err.message || err.details)) || err || "");
-  const M = { room_closed: "끝난 방이라 바꿀 수 없어요", too_fast: "너무 빨리 보내고 있어요. 잠시 뒤에 보내 주세요", bad_body: "1000자까지 보낼 수 있어요", not_allowed: "남의 글은 운영진만 가릴 수 있어요", no_room: "없는 일정이에요", not_member: "이 팀 사람만 쓸 수 있어요", no_msg: "없는 글이에요" };
+  const M = { room_closed: "끝난 방이라 바꿀 수 없어요", too_fast: "너무 빨리 보내고 있어요. 5초 뒤에 보내 주세요", bad_body: "1000자까지 보낼 수 있어요", not_allowed: "남의 글은 운영진만 가릴 수 있어요", no_room: "없는 일정이에요", not_member: "이 팀 사람만 쓸 수 있어요", no_msg: "없는 글이에요" };
   const k = Object.keys(M).find(x => m.includes(x));
   if (k) { toast(M[k]); return; }
   if (/chat_send|chat_hide|function .* does not exist|schema cache/i.test(m)) { toast("대화를 준비하고 있어요. 잠시 뒤에 다시 해 주세요"); return; }
