@@ -101,9 +101,9 @@ const SPL = [
   { list: "/records", det: /^\/(game|result)\/.+$|^\/season$/, def: () => { const e = past().find(isPlay); return e ? "/game/" + e.id : ""; }, sub: "지난 경기 티켓북",
     mark: d => { const e = evOf(d); return e ? `a[href="#/game/${cssq(e.id)}"]` : d === "/season" ? `a[href="#/season"]` : ""; },
     pane: (d, h) => { const e = evOf(d); if (/^\/game\//.test(d) && e) return { kind: KIND(e), title: `${md(e.date)} ${wd(e.date)} ${e.type === "match" ? (e.opponent ? "vs " + e.opponent : "상대 미정") : KIND(e)}` }; return { kind: d === "/season" ? "시즌" : KIND(e), title: h.title }; } },
-  { list: "/team", det: /^\/(notices|notice\/.+|rules|money|members|notice-new|notice-edit\/.+|rules-edit)$/, def: () => "/notices", sub: "공지, 수칙, 돈, 팀원",
+  { list: "/team", det: /^\/(notices|notice\/.+|rules|money|members|notice-new|notice-edit\/.+|rules-edit|stats\/(mom|att))$/, def: () => "/notices", sub: "공지, 수칙, 돈, 팀원",
     mark: d => `a[href="#${/^\/notice/.test(d) ? "/notices" : /^\/rules/.test(d) ? "/rules" : d}"]`,
-    pane: (d, h) => ({ kind: /^\/notice/.test(d) ? "공지" : /^\/rules/.test(d) ? "수칙" : d === "/money" ? "돈" : "팀원", title: h.title }) },
+    pane: (d, h) => ({ kind: /^\/notice/.test(d) ? "공지" : /^\/rules/.test(d) ? "수칙" : d === "/money" ? "돈" : /^\/stats/.test(d) ? "팀 기록" : "팀원", title: h.title }) },
   { list: "/ops", det: /^\/(requests|posreqs|dues|fines|policy|settings)$/, def: () => "/requests", admin: true,
     mark: d => `a[href="#${d}"]`, pane: (d, h) => ({ kind: "운영", title: h.title }) },
 ];

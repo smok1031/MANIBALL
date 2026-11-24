@@ -90,7 +90,7 @@ function toast(m) { const l = $("#layer"); let t = l.querySelector(".toast"); if
 /* ---------- 입력 칸 자판 ----------
    숫자 칸(inputmode="numeric")은 숫자 키패드가 뜨고 숫자만 들어간다. 금액 칸은 쉼표를 붙인다 (저장할 때는 숫자만 읽음)
    글자 칸은 자동 대문자, 자동 고침, 맞춤법 밑줄을 끈다. 웹에서는 한글 자판을 강제로 띄울 수 없다 */
-const isMoney = t => t.dataset.bind === "fee" || t.dataset.bind === "amount" || t.dataset.f === "amount";
+const isMoney = t => t.dataset.bind === "fee" || t.dataset.bind === "amount" || t.dataset.bind === "xtotal" || t.dataset.bind === "xpay" || t.dataset.f === "amount";
 const fmtMoney = v => { const d = String(v || "").replace(/\D/g, "").replace(/^0+(?=\d)/, "").slice(0, 9); return d ? Number(d).toLocaleString("ko-KR") : ""; };
 function cleanNum(t) {
   if (t.getAttribute("inputmode") !== "numeric" || t.type === "number") return;
@@ -442,6 +442,22 @@ function vTeams() {
       <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px"><span style="display:flex;align-items:center;gap:8px;min-width:0"><b style="font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.name)}</b><span class="tag ${RT[t.role] || ""}" style="${RT[t.role] ? "" : `background:${C.white};color:${C.ink}`}">${ROLE[t.role] || "팀원"}</span></span>
       <span style="font-size:12px">${x.sport ? (x.sport === "soccer" ? "축구팀" : "풋살팀") + " " : ""}${x.n ? "팀원 " + x.n + "명" : ""}</span>${S.teamsInfo ? `<b style="font-size:12px">다음 일정 ${esc(what)}</b>` : ""}</span>${IC.chev}</button>`;
   };
+  // PC: 시안 6-6 (위쪽 머리줄, 팀 카드를 가로로 여러 장)
+  if (isPC()) {
+    const pcard = t => {
+      const x = info[t.id] || {}; const on = sw ? t.id === S.tid : t.id === last; const e = x.next;
+      const what = e ? `다음 일정 ${md(e.date)} ${wd(e.date)} ${e.time ? e.time + " " : ""}${e.type === "match" ? "경기" : e.type === "scrim" ? "내전" : "훈련"}` : "다음 일정이 아직 없어요";
+      const role = ROLE[t.role] || "팀원", plain = !t.role || t.role === "member";
+      return `<button class="tpc${on ? " on" : ""}" data-act="teamGo" data-id="${esc(t.id)}">
+        <span class="tpc1">${x.sport ? teamLogo(64, x.sport) : `<span class="bh" style="flex:none;width:64px;height:64px;border-radius:16px;border:2px solid ${C.ink};background:${C.bg};display:flex;align-items:center;justify-content:center;font-size:24px">${esc(ini(t.name))}</span>`}
+          <span class="tpcn"><b class="bh">${esc(t.name)}</b><span class="tpcr${plain ? "" : " k"}">${role}</span></span></span>
+        <span class="tpc2"><span>${x.sport ? (x.sport === "soccer" ? "축구팀" : "풋살팀") + "  " : ""}${x.n ? "팀원 " + x.n + "명" : ""}</span>${S.teamsInfo ? `<b>${esc(what)}</b>` : ""}</span></button>`;
+    };
+    return `<div class="lgp"><header class="lgt">${MBRAND(36)}${sw ? `<button class="lnk" data-act="teamsBack">보던 팀으로 돌아가기</button>` : `<button class="lnk" data-act="logout">로그아웃</button>`}</header>
+      <main class="tpm"><div style="display:flex;flex-direction:column;gap:8px"><h1 class="bh" style="margin:0;font-weight:400;font-size:36px">${sw ? "어느 팀으로 바꿀까요?" : "어느 팀으로 들어갈까요?"}</h1><span style="font-size:16px;color:${C.sub}">${esc(myName ? myName + "님이" : "")} 속한 팀이에요. 들어갈 때마다 여기서 골라요.</span></div>
+        <div class="tpg">${S.teams.map(pcard).join("")}<button class="tpnew" data-act="newTeam">${IC.plus}새 팀 만들기</button></div>
+        <span style="font-size:14px;color:${C.sub};line-height:1.6">다른 팀은 그 팀의 초대 링크로 들어오면 여기에 더해져요.</span></main></div>`;
+  }
   const head = sw ? uiHd("팀 바꾸기", "#", { backAct: "teamsBack" }) : `<header class="hd" style="padding:0 12px 0 24px">${MBRAND(32).replace("font-size:18px", "font-size:18px")}<span style="flex:1"></span><button class="lnk" data-act="logout">로그아웃</button></header>`;
   return `${head}<div class="body" style="gap:16px;padding-top:${sw ? 4 : 14}px">
     ${sw ? `<span style="font-size:14px">들어갈 팀을 골라 주세요</span>` : `<div style="display:flex;flex-direction:column;gap:8px;padding-bottom:4px"><h1 class="bh" style="margin:0;font-weight:400;font-size:24px">어느 팀으로 들어갈까요?</h1><span style="font-size:14px;color:${C.sub}">${esc(myName ? myName + "님이" : "")} 속한 팀이에요. 들어갈 때마다 여기서 골라요.</span></div>`}
@@ -1164,7 +1180,8 @@ document.addEventListener("input", ev => {
   else if (t.dataset.opt != null) { const o = (S.form.opts || [])[Number(t.dataset.opt)]; if (o) o.label = t.value; }
 });
 // 일정 날짜와 시작 시간을 바꾸면 투표 마감 안내 문장도 다시 그린다
-document.addEventListener("change", ev => { const t = ev.target; if ((t.dataset.bind === "date" || t.dataset.bind === "time") && /^\/(new|edit\/.+)$/.test(route())) render(); });
+document.addEventListener("change", ev => { const t = ev.target; if ((t.dataset.bind === "date" || t.dataset.bind === "time") && /^\/(new|edit\/.+)$/.test(route())) render();
+  if (t.dataset.bind === "xtotal") render(); }); // 구인 글 구장비를 적으면 한 명당 용병비를 다시 계산
 const ACT = {
   closeSheet: (t, ev) => { if (ev.target === t || t.tagName === "BUTTON") closeSheet(); },
   // 테스트 사이트: 로그인 없이 체험하기 (익명 로그인 뒤 TEST FC를 복사한 내 체험 팀으로)
