@@ -82,7 +82,7 @@ export function hd(title, back, opts = {}) {
 export const hdTab = (title, right = "") => `<header class="hd" style="padding:0 8px 0 12px"><h1>${esc(title)}</h1>${right}</header>`;
 // 머리: 팀 이름과 로고
 export const hdBrand = (right = "", back = "") => `<header class="hd">${back ? `<a class="ib" href="${esc(back)}" aria-label="뒤로">${IC.back}</a>` : ""}<span class="brand">${teamLogo(32)}<b>${esc(S.team ? S.team.name : "")}</b></span>${right}</header>`;
-export const mngBtn = (act, extra = "") => `<button type="button" class="mng" data-act="${act}"${extra}>${IC.sliders}관리</button>`;
+export const mngBtn = (act, extra = "") => `<button type="button" class="mng" data-act="${act}" aria-label="일정 관리" title="일정 관리"${extra}>${IC.sliders}</button>`;
 // 줄 버튼 (아이콘, 제목, 설명, 오른쪽)
 export function lrow({ href, act, data = "", icon, tone, title, sub, right, big, danger, attrs = "" }) {
   const inner = `<span class="ic ${tone || ""}" aria-hidden="true">${icon || ""}</span><span class="tx"><b${danger ? ' style="color:#8C3B28"' : ""}>${esc(title)}</b>${sub ? `<span>${sub}</span>` : ""}</span>${right ? `<span class="rt">${right}</span>` : ""}${IC.chev}`;

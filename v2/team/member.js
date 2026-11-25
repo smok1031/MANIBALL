@@ -312,7 +312,7 @@ function mEvent(id) {
   const qn = QN[sport()];
   const quarters = v.s === "late" && vs === "open" ? `<div style="display:flex;align-items:center;gap:8px"><span style="flex:none;font-size:12px;font-weight:700">몇 쿼터부터?</span><div style="flex:1;display:grid;grid-template-columns:repeat(${qn - 1},minmax(0,1fr));gap:8px">${Array.from({ length: qn - 1 }, (_, i) => i + 2).map(q => `<button type="button" class="qq${Number(v.q) === q ? " on" : ""}" data-act="mLateQ" data-eid="${esc(e.id)}" data-q="${q}" aria-pressed="${Number(v.q) === q}">${q}Q</button>`).join("")}</div></div>` : "";
   const waitBox = w ? `<div role="status" class="box teal" style="flex-direction:row;align-items:center;gap:16px;border-radius:12px;padding:8px 16px"><span style="flex:none;display:flex;flex-direction:column;align-items:center;line-height:1;gap:4px"><span style="font-size:12px;font-weight:700">대기</span><b class="bc" style="font-size:36px;line-height:.9">${w}</b><span style="font-size:12px;font-weight:700">번</span></span><span style="display:flex;flex-direction:column;gap:4px"><b style="font-size:16px">아직 참석이 아니라 대기예요</b><span style="font-size:12px;line-height:1.5">정원 ${a.cap}명이 다 차서 대기 ${w}번으로 기다리고 있어요.</span></span></div>` : "";
-  return `${hdBrand(adm ? `<a class="mng" href="#/manage/${esc(e.id)}">${IC.sliders}관리</a>` : "", "#/schedule")}<div class="body tight">
+  return `${hdBrand(adm ? `<a class="mng" href="#/manage/${esc(e.id)}" aria-label="일정 관리" title="일정 관리">${IC.sliders}</a>` : "", "#/schedule")}<div class="body tight">
     ${bigTicket(e, a)}${isPC() ? strip(a) : ""}
     ${isPC() && vs === "open" ? `<div class="dlrow"><span class="tag gray">투표 마감 ${whenText(closeAt(e))}</span>${fineAt(e) < closeAt(e) ? `<span class="tag gray dsh">벌금 ${whenText(fineAt(e))}부터 불참으로 바꾸면 벌금</span>` : ""}</div>` : ""}
     ${myProfile() ? `<section aria-label="내 참석" style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
@@ -334,7 +334,7 @@ export function cancelCard(e, a) {
 }
 function mCanceled(e) {
   const a = att(e); const adm = isAdmin() && viewMode() === "admin";
-  return `${hdBrand(adm ? `<a class="mng" href="#/manage/${esc(e.id)}">${IC.sliders}관리</a>` : "", "#/schedule")}<div class="body tight">
+  return `${hdBrand(adm ? `<a class="mng" href="#/manage/${esc(e.id)}" aria-label="일정 관리" title="일정 관리">${IC.sliders}</a>` : "", "#/schedule")}<div class="body tight">
     ${bigTicket(e, a)}
     ${cancelCard(e, a)}
     <span class="note">투표는 닫혔어요. 이 일정은 불참 벌금이 붙지 않고, 기록에도 남지 않아요.</span>
