@@ -314,7 +314,8 @@ html.pc .page{max-width:none;background-image:var(--grid)}
 .pnv>a[aria-current]{background:var(--c);color:var(--ink);font-weight:700}
 .pnv>a[aria-current] svg{stroke:var(--ink)}
 .pnv>a{transition:transform .16s ease-out,box-shadow .16s ease-out,background-color .16s ease-out}
-.pnv>a:hover:not([aria-current]){background:#F6F2EA;transform:translate(-2px,-2px);box-shadow:0 0 0 2px var(--ink);z-index:1}
+.pnv>a:hover:not([aria-current]){background:#F6F2EA;background:color-mix(in srgb,var(--c) 30%,var(--white));color:var(--ink);transform:translate(-2px,-2px);box-shadow:0 0 0 2px var(--ink);z-index:1}
+.pnv>a:hover svg{stroke:var(--ink)}
 .pnv>a:active,.pnv>a[aria-current]{transform:translate(-3px,-3px);box-shadow:0 0 0 2px var(--ink);z-index:2}
 .pnv>a.lift{animation:mbnlift .36s cubic-bezier(.3,1.6,.5,1) both}
 @media (prefers-reduced-motion:reduce){.pnv>a{transition:none}.pnv>a.lift{animation:none}}
