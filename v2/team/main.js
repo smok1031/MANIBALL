@@ -608,7 +608,7 @@ function vRules() {
   const st = S.settings; const bk = st.bank || {}; const txt = rulesTextOf(st).trim(); const fines = fineRulesOf(st);
   return `${uiHd("팀 수칙 2/2", "", { sub: S.team ? S.team.name : "" })}<div class="body">
     <span style="font-size:16px;line-height:1.6">읽고 동의하면 바로 시작해요.</span>
-    <section class="box gray" style="border-radius:18px;padding:16px 16px"><b class="bh" style="font-size:20px">팀 수칙</b><p style="margin:0;font-size:16px;line-height:1.8;white-space:pre-line">${txt ? esc(txt) : "아직 정한 수칙이 없어요."}</p></section>
+    <section class="box gray" style="border-radius:18px;padding:16px 16px"><b class="bs">팀 수칙</b><p style="margin:0;font-size:16px;line-height:1.8;white-space:pre-line">${txt ? esc(txt) : "아직 정한 수칙이 없어요."}</p></section>
     ${fines.length ? `<section style="display:flex;flex-direction:column"><b style="font-size:16px;border-bottom:2px solid ${C.ink};padding-bottom:8px">벌금</b>${fines.map(r => `<div class="spread" style="min-height:52px;border-bottom:2px solid ${C.line}"><span>${esc(r.label)}</span><b class="bc" style="font-size:24px">${won(r.amount)}</b></div>`).join("")}</section>` : ""}
     ${st.feeMode && st.feeMode !== "none" ? `<div class="box clay" style="border-radius:14px;gap:4px"><span style="font-size:12px;font-weight:700">회비</span><b class="bc" style="font-size:24px">${won(st.fee)}${st.feeMode === "per_game" ? " / 경기" : " / 월"}</b><span style="font-size:12px">${st.feeMode === "monthly" ? "매달 " + (st.dueDay === "말일" ? "말일" : (st.dueDay || "5") + "일") + "까지" : "경기에 온 날마다"}${bk.account ? `, ${esc(bk.bank || "")} ${esc(bk.account)}` : ""}</span></div>` : ""}
     <label class="row" style="gap:12px;min-height:48px;cursor:pointer;border-top:2px solid ${C.ink};padding-top:12px"><input type="checkbox" data-bind="agreeChk" ${S.form.agreeChk ? "checked" : ""} style="width:24px;height:24px;accent-color:${C.ink}"><b style="font-size:16px">수칙을 읽었고 지킬게요</b></label>
@@ -1259,7 +1259,7 @@ const ACT = {
       const back = new URL(location.href); back.searchParams.delete("login_error"); if (!msg) back.hash = "";
       sessionStorage.setItem("mb-next", back.href);
       const redirect = KAKAO_REDIRECT;
-      location.assign("https://kauth.kakao.com/oauth/authorize?" + new URLSearchParams({ client_id: KAKAO_KEY, redirect_uri: redirect, response_type: "code", scope: "openid profile_nickname" + (STAGE || msg ? " talk_message" : ""), state: st.state, nonce: await sha256hex(st.nonce) }));
+      location.assign("https://kauth.kakao.com/oauth/authorize?" + new URLSearchParams({ client_id: KAKAO_KEY, redirect_uri: redirect, response_type: "code", scope: "openid profile_nickname", state: st.state, nonce: await sha256hex(st.nonce) }));
     } catch (e) { t.disabled = false; toast("카카오 로그인을 시작하지 못했어요"); }
   },
   pick: t => { S.form[t.dataset.k] = t.dataset.v; if (t.dataset.k === "pos1" && S.form.pos2 === t.dataset.v) S.form.pos2 = ""; render(); },

@@ -69,6 +69,7 @@ function matchHost(e) { const o = e.xmatch.team; return S.tid < o ? { team: S.ti
 // 방 설명: key = all | 일정 id | m-일정 id | x~팀~일정
 function rd(key) {
   if (key === "all") return { key, kind: "all", team: S.tid, room: "all", title: `${teamName()} 전체 대화방` };
+  if (key === "ops") return isAdmin() ? { key, kind: "ops", team: S.tid, room: "ops", title: `${teamName()} 운영진 대화방` } : null;
   if (key.startsWith("m-")) { const e = S.events[key.slice(2)]; if (!e || !e.xmatch || !e.xmatch.team) return null; const h = matchHost(e); return { key, kind: "match", team: h.team, room: h.room, e, title: `${e.opponent || "상대 팀"} 매칭 방` }; }
   if (key.startsWith("x~")) { const [, t, r] = key.split("~"); const m = (CH.merc || []).find(x => x.team === t && x.room === r); if (!m) return null; return { key, kind: "merc", team: t, room: r, e: m.ev, m, title: `${m.tname} ${titleOf(m.ev)}` }; }
   const e = S.events[key]; if (!e) return null; return { key, kind: "ev", team: S.tid, room: key, e, title: titleOf(e) };
@@ -84,7 +85,9 @@ function cutOf(d) {
 }
 const msgsOf = d => { const c = cutOf(d); return c < 0 ? [] : msgsAll(d).filter(r => r.id <= c); };
 const writableTime = e => isOpen(e);
-const canWrite = d => d.kind === "all" ? true : d.kind === "match" ? !isCanceled(d.e) && datedUp(d.e) : isOpen(d.e) && (d.kind === "merc" || inRoomNow(d.e));
+// 팀 방: 전체 대화방과 운영진 대화방 (일정과 상관없이 늘 열려 있음)
+const teamRoom = d => d.kind === "all" || d.kind === "ops";
+const canWrite = d => d.kind === "all" ? true : d.kind === "ops" ? isAdmin() : d.kind === "match" ? !isCanceled(d.e) && datedUp(d.e) : isOpen(d.e) && (d.kind === "merc" || inRoomNow(d.e));
 
 // 읽은 자리: 이 기기에 방마다 마지막으로 본 글 번호를 둔다
 let READ = null, READ_K = "";
@@ -97,7 +100,7 @@ function unreadOf(d) {
   msgsOf(d).forEach(r => { if (r.id > last && r.user_id !== S.uid && !r.hidden && !r.kind) { n++; if (me && r.body.indexOf("@" + me) >= 0) at = true; } });
   return { n, at };
 }
-const allKeys = () => ["all"].concat(roomsUp().concat(roomsPast()).map(e => e.id), isAdmin() ? roomsMatch().map(e => "m-" + e.id) : [], (CH.merc || []).map(m => `x~${m.team}~${m.room}`));
+const allKeys = () => (isAdmin() ? ["ops", "all"] : ["all"]).concat(roomsUp().concat(roomsPast()).map(e => e.id), isAdmin() ? roomsMatch().map(e => "m-" + e.id) : [], (CH.merc || []).map(m => `x~${m.team}~${m.room}`));
 // 하단 메뉴 '대화' 칸의 숫자 (전체 대화방은 알림을 켠 때만 센다)
 export function chatUnread() {
   if (!CH.loaded || CH.tid !== S.tid) return 0;
@@ -123,6 +126,7 @@ function alarmBtn() {
   const a = ALARM.find(x => x[0] === alarmMode());
   return `<button type="button" class="chal" data-act="chatAlarm" aria-label="${esc(a[2])}. 눌러서 바꿔요">${BELL}<span>${esc(a[1])}</span></button>`;
 }
+const SHIELD_I = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.6-3 8.4-7 10-4-1.6-7-5.4-7-10V6z"></path><path d="M9 12l2 2 4-4"></path></svg>`;
 const PEOPLE_I = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 19v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 17.5V19M10 10.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM20 19v-1.5a3.5 3.5 0 0 0-2.5-3.35M15.5 4.6a3 3 0 0 1 0 5.8"></path></svg>`;
 const lastLine = (d, ms) => { const last = ms.filter(r => !r.kind).pop(); return last ? `${esc(last.name)}: ${last.hidden ? "가린 글이에요" : esc(last.body)}` : ""; };
 const whenOf = ms => { const last = ms[ms.length - 1]; return last ? (dayOf(last.created_at) === todayStr() ? hm(last.created_at) : md(dayOf(last.created_at))) : ""; };
@@ -144,6 +148,9 @@ function listInner(cur) {
   const pc = isPC();
   // 전체 대화방 (팀원만, 맨 위)
   const A = rd("all"); const ams = msgsOf(A); const au = unreadOf(A);
+  const O = rd("ops"); let opsCard = "";
+  if (O) { const oms = msgsOf(O); const ou = unreadOf(O);
+    opsCard = `<a class="chr chops${cur === "ops" ? " on" : ""}" href="#/chat/ops" aria-label="${esc(O.title)}, 운영진만${ou.n ? ", 안 읽은 글 " + ou.n + "개" : ""}"${cur === "ops" ? ' aria-current="true"' : ""}><span class="chd ic" aria-hidden="true">${SHIELD_I}</span><span class="cht"><b>${esc(O.title)} <i class="chtag ink">운영진만</i></b><span>${lastLine(O, oms) || "운영진끼리 이야기하는 방이에요"}</span></span><span class="chm"><span>${whenOf(oms)}</span><span class="row">${ou.n ? `<span class="chn" aria-hidden="true">${ou.n > 99 ? "99+" : ou.n}</span>` : ""}</span></span></a>`; }
   const allCard = `<a class="chr chall${cur === "all" ? " on" : ""}" href="#/chat/all" aria-label="${esc(A.title)}, 팀원만${au.n ? ", 안 읽은 글 " + au.n + "개" : ""}"${cur === "all" ? ' aria-current="true"' : ""}><span class="chd ic" aria-hidden="true">${PEOPLE_I}</span><span class="cht"><b>${esc(A.title)} <i class="chtag">팀원만</i></b><span>${lastLine(A, ams) || "팀원끼리 이야기하는 방이에요"}</span></span><span class="chm"><span>${whenOf(ams)}</span><span class="row">${allOn() ? "" : MUTE}${au.n ? `<span class="chn" aria-hidden="true">${au.n > 99 ? "99+" : au.n}</span>` : ""}</span></span></a>`;
   const rows = keys.map(k => {
     const d = rd(k); if (!d) return "";
@@ -161,14 +168,14 @@ function listInner(cur) {
   const body = CH.missing ? empty("대화를 준비하고 있어요", "서버 준비가 끝나면 바로 쓸 수 있어요.")
     : !CH.loaded ? `<div class="loading">불러오는 중이에요</div>`
     : keys.length ? rows : empty(tab === "past" ? "지난 일정이 없어요" : tab === "match" ? "매칭 방이 없어요" : "다가오는 일정이 없어요", tab === "up" ? "일정이 올라오면 방이 함께 생겨요." : "");
-  return `${pc ? `<div class="chpcbar">${alarmBtn()}</div>` : ""}${CH.missing ? "" : allCard}<div class="chtabs" role="group" aria-label="방 고르기">${tabs}</div><span style="font-size:12px;line-height:1.5;color:var(--sub)">${TABN[tab]}</span>${body}`;
+  return `${pc ? `<div class="chpcbar">${alarmBtn()}</div>` : ""}${CH.missing ? "" : opsCard + allCard}<div class="chtabs" role="group" aria-label="방 고르기">${tabs}</div><span style="font-size:12px;line-height:1.5;color:var(--sub)">${TABN[tab]}</span>${body}`;
 }
 // PC: 왼쪽 방 목록, 오른쪽 방. 방을 안 골랐으면 마지막에 본 방이나 목록의 첫 방을 연다
 function pcChat(id) {
   let key = id;
   if (id && S.events[id] && /^\d{4}-\d{2}-\d{2}$/.test(S.events[id].date || "")) CH.tab = S.events[id].date < todayStr() ? "past" : "up";
   if (id && id.startsWith("m-")) CH.tab = "match"; if (id && id.startsWith("x~")) CH.tab = "merc";
-  if (!key) { const list = (CH.tab === "past" ? roomsPast() : roomsUp()).map(e => e.id); key = (CH.last && (list.includes(CH.last) || CH.last === "all")) ? CH.last : list[0] || "all"; }
+  if (!key) { const list = (CH.tab === "past" ? roomsPast() : roomsUp()).map(e => e.id); key = (CH.last && (list.includes(CH.last) || CH.last === "all" || (CH.last === "ops" && isAdmin()))) ? CH.last : list[0] || "all"; }
   const d = key ? rd(key) : null;
   const right = d ? roomInner(d, true) : `<div class="pce">${empty("방을 골라 주세요", "왼쪽에서 방을 누르면 여기에 대화가 보여요.")}</div>`;
   return `${hdTab("대화")}<div class="pcsplit"><div class="pcl">${listInner(key)}</div><section class="pcr" aria-label="대화방">${right}</section></div>`;
@@ -200,10 +207,13 @@ function roomInner(d, pc) {
   const locked = d.kind === "ev" || d.kind === "merc" ? isLocked(e) : false;
   const writable = canWrite(d) && !CH.missing;
   const cx = e && isCanceled(e);
-  const done = e && !locked && !writable && d.kind !== "all";
+  const done = e && !locked && !writable && !teamRoom(d);
   // 방 위 티켓
   let tk = "", people = "";
-  if (d.kind === "all") {
+  if (d.kind === "ops") {
+    tk = `<div class="chopsbar"><span class="ic" aria-hidden="true">${SHIELD_I}</span><span><b>운영진만 있는 방이에요.</b> 팀원에게는 이 방이 보이지 않아요. 운영진이 되면 들어오고, 팀원으로 바뀌면 나가요.</span></div>`;
+    people = `운영진 ${S.members.filter(m => m.role === "owner" || m.role === "admin").length}명, 팀원에게는 보이지 않아요`;
+  } else if (d.kind === "all") {
     const n = (noticesList() || [])[0];
     tk = n ? `<a class="chpin" href="#/notice/${encodeURIComponent(n.id)}"><i>최근 공지</i><span><b>${esc(n.title)}</b><span>${md(dayOf(n.at || new Date().toISOString()))}, 공지에서 봐요</span></span>${IC_CHEV}</a>` : "";
     people = `팀원 ${S.members.length}명, 용병과 대기자는 들어오지 않아요`;
@@ -267,7 +277,7 @@ function roomInner(d, pc) {
   }).join("");
   const outside = d.kind === "ev" && !locked && !cx && cutOf(d) < 0 && !inRoomNow(e);
   const outsideOpen = outside && writableTime(e);
-  const intro = d.kind === "all" ? `<span class="chsys">전체 대화방은 팀원만 있어요. 일정 이야기는 일정 방에서 해요.</span>`
+  const intro = d.kind === "ops" ? `<span class="chsys">운영진 대화방이에요. 운영 이야기는 여기서 해요.</span>` : d.kind === "all" ? `<span class="chsys">전체 대화방은 팀원만 있어요. 일정 이야기는 일정 방에서 해요.</span>`
     : locked ? `<span class="chsys">아직 열리기 전이에요. ${hmT(openAt(e))}에 열려요. 그 전에는 전체 대화방에서 이야기해요.</span>`
     : outsideOpen ? `<span class="chsys">참석한 사람만 있는 방이에요. 참석으로 바꾸면 들어와요.</span>` : outside ? `<span class="chsys">이 경기에 참석한 사람만 볼 수 있는 방이에요.</span>` : "";
   const bodyEmpty = CH.missing ? `<span class="chsys">대화를 준비하고 있어요. 서버 준비가 끝나면 바로 쓸 수 있어요.</span>` : !CH.loaded ? `<div class="loading">불러오는 중이에요</div>` : "";
@@ -279,7 +289,7 @@ function roomInner(d, pc) {
     : `<div class="chclosed"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg><span>${closedText}</span></div>`;
   if (CH.stick) { CH.stick = false; setTimeout(toBottom, 0); }
   const allBtn = d.kind === "all" ? `<button type="button" class="chal${allOn() ? " on" : ""}" data-act="chatAllAlarm" aria-pressed="${allOn()}">${allOn() ? "알림 켜짐" : "알림 꺼짐"}</button>` : "";
-  const tagL = d.kind === "all" ? "전체" : d.kind === "match" ? "매칭 방" : d.kind === "merc" ? "용병" : "일정 방";
+  const tagL = d.kind === "ops" ? "운영진" : d.kind === "all" ? "전체" : d.kind === "match" ? "매칭 방" : d.kind === "merc" ? "용병" : "일정 방";
   const head = pc ? `<header class="pch"><span class="tag">${tagL}</span><b>${esc(d.title)}</b><span>${esc(people)}</span>${allBtn}</header>` : hd(d.title, "#/chat", { sub: people, right: allBtn });
   const rate = d.kind === "ev" && adm && done && !cx ? rateBox(e.id, e) : "";
   return `${head}${tk}<div class="chlog" aria-label="${esc(d.title)} 대화" aria-live="polite">${intro}${bodyEmpty}${log}</div>${rate}${foot}`;
@@ -378,11 +388,13 @@ export const CHACT = {
   },
   chatAlarm: async () => {
     const i = ALARM.findIndex(a => a[0] === alarmMode()); const nx = ALARM[(i + 1) % ALARM.length];
-    try { await patchDoc("uvote", S.uid, { chat: nx[0] }); toast(nx[2]); } catch (e) { fail(e); }
+    toast(nx[2]); // 화면은 바로 바뀌고 저장은 뒤에서 (실패하면 되돌리고 알림)
+    try { await patchDoc("uvote", S.uid, { chat: nx[0] }); } catch (e) { fail(e); }
   },
   chatAllAlarm: async () => {
     const on = !allOn();
-    try { await patchDoc("uvote", S.uid, { chatAll: on ? "on" : "off" }); toast(on ? "전체 대화방 알림을 켰어요" : "전체 대화방 알림을 껐어요"); } catch (e) { fail(e); }
+    toast(on ? "전체 대화방 알림을 켰어요" : "전체 대화방 알림을 껐어요");
+    try { await patchDoc("uvote", S.uid, { chatAll: on ? "on" : "off" }); } catch (e) { fail(e); }
   },
   chatHide: t => {
     const r = CH.rows[t.dataset.id]; if (!r || r.hidden) return;

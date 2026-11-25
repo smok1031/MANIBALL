@@ -260,7 +260,7 @@ const GCODE = { 골키퍼: "GK", 수비: "DF", 미드필더: "MF", 공격: "FW" 
 function aMembers() {
   const n = S.members.length;
   return `${hd("팀원 관리", back("#/team"), { sub: `${n}명, 눌러서 관리해요` })}<div class="body" style="gap:16px">
-    ${memberGroups().map(gr => `<section class="bcard" aria-label="${esc(gr.g)}"><span class="bch spread"><b class="bh" style="font-size:20px">${GCODE[gr.g] ? GCODE[gr.g] + " " : ""}${esc(gr.g)}</b><span style="font-size:12px;font-weight:400">${gr.xs.length}명</span></span>
+    ${memberGroups().map(gr => `<section class="bcard" aria-label="${esc(gr.g)}"><span class="bch spread"><b class="bs">${GCODE[gr.g] ? GCODE[gr.g] + " " : ""}${esc(gr.g)}</b><span style="font-size:12px;font-weight:400">${gr.xs.length}명</span></span>
       ${gr.xs.map(x => `<button type="button" class="bcr mrow" data-act="aMember" data-u="${esc(x.uid)}"><b class="bc" style="flex:none;width:34px;font-size:24px;text-align:center">${esc(x.p.num || "-")}</b><span style="flex:1;font-size:16px;font-weight:700">${esc(x.name)}${x.uid === S.uid ? ` <span style="font-weight:500;color:${C.sub};font-size:12px">나</span>` : ""} ${x.role !== "member" ? `<span class="tag gray" style="font-size:11px">운영진</span>` : ""}</span><span class="bc" style="font-size:15px;font-weight:700">${esc(posTxt(x.p).replace(/, /g, " / "))}</span></button>`).join("")}</section>`).join("") || empty("아직 팀원이 없어요")}
   </div>${nav("팀")}`;
 }
