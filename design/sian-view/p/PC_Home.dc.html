@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>PC 홈 내 사물함</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&amp;family=Black+Han+Sans&amp;family=IBM+Plex+Sans+KR:wght@400;500;700&amp;display=swap">
+<style>
+body,body *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,select,[contenteditable],[contenteditable] *{-webkit-user-select:text;user-select:text}
+img,svg,a{-webkit-user-drag:none}
+body{margin:0}
+*{scrollbar-width:none}
+*::-webkit-scrollbar{display:none}
+.snv{position:relative;transition:transform .16s ease-out,box-shadow .16s ease-out}
+.snv:hover,.snv.on{transform:translate(-3px,-3px);box-shadow:0 0 0 2px #121110;z-index:1}
+.prow{transition:transform .16s ease-out,box-shadow .16s ease-out}
+.prow:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 #121110}
+@media (prefers-reduced-motion: reduce){.snv,.prow{transition:none}}
+</style>
+</helmet>
+<div style="-webkit-user-select: none; user-select: none; -webkit-touch-callout: none; width: 100%; min-height: 900px; box-sizing: border-box; background-color: #FBF7EF; background-image: linear-gradient(rgba(18, 17, 16, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(18, 17, 16, 0.06) 1px, transparent 1px); background-size: 16px 16px; color: #121110; font-family: 'IBM Plex Sans KR', sans-serif; position: relative; display: flex; flex-wrap: wrap; align-items: stretch; word-break: keep-all">
+
+  <aside aria-label="팀과 메뉴" style="flex: 1 1 232px; box-sizing: border-box; padding: 24px 20px; display: flex; flex-direction: column; gap: 24px; border-right: 2px solid #121110; background: #FBF7EF">
+    <span style="display: inline-flex; align-items: center; gap: 8px"><span role="img" aria-label="매니볼" style="width: 32px; height: 32px; border-radius: 9px; background: #5B8DEF; border: 2px solid #121110; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; flex: none"><svg width="24" height="24" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="22" fill="none" stroke="#121110" stroke-width="5"></circle><circle cx="23" cy="26" r="3.6" fill="#E46A2E"></circle><circle cx="23" cy="38" r="3.6" fill="#E46A2E"></circle><path d="M30 26 H43 M30 38 H41" fill="none" stroke="#121110" stroke-width="5" stroke-linecap="round"></path></svg></span><span style="display: flex; flex-direction: column; line-height: 1"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 20px">매니볼</b><span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 3px; margin-top: 4px">MANIBALL</span></span></span>
+
+    <button type="button" onClick="{{ openTeams }}" aria-label="{{ teamBtnLabel }}" style="display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 8px 12px; box-sizing: border-box; border: 2px solid #121110; border-radius: 12px; background: #FFFFFF; box-shadow: 4px 4px 0 #121110; font-family: inherit; color: #121110; text-align: left; cursor: pointer">
+      <span style="position: relative; flex: none; width: 40px; height: 40px; display: block"><span style="{{ team.logoFill }}"></span><svg width="40" height="40" viewBox="6 6 88 88" aria-hidden="true" style="position: absolute; inset: 0; display: block"><g fill="none" stroke="#121110" stroke-width="2.5" stroke-linejoin="round" opacity="0.9"><rect x="18" y="15" width="64" height="70" rx="1"></rect><line x1="18" y1="50" x2="82" y2="50"></line><rect x="33" y="15" width="34" height="13"></rect><rect x="41" y="15" width="18" height="6"></rect><rect x="33" y="72" width="34" height="13"></rect><rect x="41" y="79" width="18" height="6"></rect></g></svg><span aria-hidden="true" style="{{ team.logoCut40 }}">{{ team.tag }}</span></span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 20px; line-height: 1.1">{{ team.name }}</b><span style="font-size: 12px">{{ team.sport }}팀  {{ team.role }}</span></span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M4 8h13l-3-3M20 16H7l3 3"></path></svg>
+    </button>
+
+    <sc-if value="{{ isMember }}" hint-placeholder-val="{{ true }}">
+    <nav aria-label="메뉴" style="display: flex; flex-direction: column; gap: 2px; background: #121110; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110">
+      <a href="{{ lk.PC_Home }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Home }}" onMouseDown="{{ lk.go_PC_Home }}" onFocus="{{ lk.go_PC_Home }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" aria-current="page" class="snv on" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 10px 10px 0 0; background: #7CA4F0; color: #121110; font-weight: 700; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg>홈</a>
+      <a href="{{ lk.PC_Sch }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Sch }}" onMouseDown="{{ lk.go_PC_Sch }}" onFocus="{{ lk.go_PC_Sch }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>일정</a>
+      <a href="{{ lk.PC_Chat }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Chat }}" onMouseDown="{{ lk.go_PC_Chat }}" onFocus="{{ lk.go_PC_Chat }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5h16v11.5H10.5L6 19.5V16H4z"></path><path d="M8 8.8h8M8 11.8h5"></path></svg>대화<span aria-label="안 읽은 대화 3" style="margin-left: auto; min-width: 24px; height: 24px; box-sizing: border-box; padding: 0 6px; border-radius: 12px; background: #121110; color: #FBF7EF; font: 700 13px 'Barlow Condensed', sans-serif; display: inline-flex; align-items: center; justify-content: center">3</span></a>
+      <a href="{{ lk.PC_Rec }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Rec }}" onMouseDown="{{ lk.go_PC_Rec }}" onFocus="{{ lk.go_PC_Rec }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M6 20v-8M12 20V5M18 20v-5"></path></svg>기록</a>
+      <a href="{{ lk.PC_Team }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Team }}" onMouseDown="{{ lk.go_PC_Team }}" onFocus="{{ lk.go_PC_Team }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0 0 10px 10px; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16.5 14.6c2.4.3 4.2 2.1 4.8 5.4"></path></svg>팀</a>
+    </nav>
+    </sc-if>
+    <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
+    <nav aria-label="메뉴" style="display: flex; flex-direction: column; gap: 2px; background: #121110; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110">
+      <a href="{{ lk.PC_Home_A }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Home_A }}" onMouseDown="{{ lk.go_PC_Home_A }}" onFocus="{{ lk.go_PC_Home_A }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" aria-current="page" class="snv on" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 10px 10px 0 0; background: #7CA4F0; color: #121110; font-weight: 700; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg>홈</a>
+      <a href="{{ lk.PC_Sch_A }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Sch_A }}" onMouseDown="{{ lk.go_PC_Sch_A }}" onFocus="{{ lk.go_PC_Sch_A }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>일정</a>
+      <a href="{{ lk.PC_Chat_A }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Chat_A }}" onMouseDown="{{ lk.go_PC_Chat_A }}" onFocus="{{ lk.go_PC_Chat_A }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5h16v11.5H10.5L6 19.5V16H4z"></path><path d="M8 8.8h8M8 11.8h5"></path></svg>대화<span aria-label="안 읽은 대화 3" style="margin-left: auto; min-width: 24px; height: 24px; box-sizing: border-box; padding: 0 6px; border-radius: 12px; background: #121110; color: #FBF7EF; font: 700 13px 'Barlow Condensed', sans-serif; display: inline-flex; align-items: center; justify-content: center">3</span></a>
+      <a href="{{ lk.PC_Rec_A }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Rec_A }}" onMouseDown="{{ lk.go_PC_Rec_A }}" onFocus="{{ lk.go_PC_Rec_A }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M6 20v-8M12 20V5M18 20v-5"></path></svg>기록</a>
+      <a href="{{ lk.PC_Team_A }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Team_A }}" onMouseDown="{{ lk.go_PC_Team_A }}" onFocus="{{ lk.go_PC_Team_A }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16.5 14.6c2.4.3 4.2 2.1 4.8 5.4"></path></svg>팀</a>
+      <a href="{{ lk.PC_Ops }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Ops }}" onMouseDown="{{ lk.go_PC_Ops }}" onFocus="{{ lk.go_PC_Ops }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0 0 10px 10px; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"></path></svg>운영</a>
+    </nav>
+    </sc-if>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700"><span aria-hidden="true" style="width: 10px; height: 10px; box-sizing: border-box; border-radius: 50%; border: 2px solid #121110; background: #F2A65A"></span>다른 팀과</span>
+      <sc-if value="{{ isMember }}" hint-placeholder-val="{{ true }}">
+      <nav aria-label="다른 팀과" style="display: flex; flex-direction: column; gap: 2px; background: #121110; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110">
+        <a href="{{ lk.PC_Match }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Match }}" onMouseDown="{{ lk.go_PC_Match }}" onFocus="{{ lk.go_PC_Match }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 12px 0 16px; border-radius: 10px 10px 0 0; background: #FFFFFF; color: #5B5650; font-size: 15px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h11l-3-3M20 17H9l3 3"></path></svg><span style="flex: 1">매칭</span></a>
+        <a href="{{ lk.PC_Hire }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Hire }}" onMouseDown="{{ lk.go_PC_Hire }}" onFocus="{{ lk.go_PC_Hire }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 12px 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 15px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v4h3l7 4V6L7 10z"></path><path d="M18 9a4 4 0 0 1 0 6"></path></svg><span style="flex: 1">용병 구인</span></a>
+        <a href="{{ lk.PC_Seek }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Seek }}" onMouseDown="{{ lk.go_PC_Seek }}" onFocus="{{ lk.go_PC_Seek }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 12px 0 16px; border-radius: 0 0 10px 10px; background: #FFFFFF; color: #5B5650; font-size: 15px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="8" r="4"></circle><path d="M3 21c.8-4 3.5-6 7-6 1.4 0 2.6.3 3.6.9"></path><circle cx="18" cy="17" r="3"></circle><path d="M20.2 19.2 22 21"></path></svg><span style="flex: 1">용병 구직</span></a>
+      </nav>
+      </sc-if>
+      <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
+      <nav aria-label="다른 팀과" style="display: flex; flex-direction: column; gap: 2px; background: #121110; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110">
+        <a href="{{ lk.PC_Match_A }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Match_A }}" onMouseDown="{{ lk.go_PC_Match_A }}" onFocus="{{ lk.go_PC_Match_A }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 12px 0 16px; border-radius: 10px 10px 0 0; background: #FFFFFF; color: #5B5650; font-size: 15px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h11l-3-3M20 17H9l3 3"></path></svg><span style="flex: 1">매칭</span></a>
+        <a href="{{ lk.PC_Hire_A }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Hire_A }}" onMouseDown="{{ lk.go_PC_Hire_A }}" onFocus="{{ lk.go_PC_Hire_A }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 12px 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 15px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v4h3l7 4V6L7 10z"></path><path d="M18 9a4 4 0 0 1 0 6"></path></svg><span style="flex: 1">용병 구인</span></a>
+        <a href="{{ lk.PC_Seek_A }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Seek_A }}" onMouseDown="{{ lk.go_PC_Seek_A }}" onFocus="{{ lk.go_PC_Seek_A }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 12px 0 16px; border-radius: 0 0 10px 10px; background: #FFFFFF; color: #5B5650; font-size: 15px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="8" r="4"></circle><path d="M3 21c.8-4 3.5-6 7-6 1.4 0 2.6.3 3.6.9"></path><circle cx="18" cy="17" r="3"></circle><path d="M20.2 19.2 22 21"></path></svg><span style="flex: 1">용병 구직</span></a>
+      </nav>
+      </sc-if>
+    </div>
+
+    <div style="margin-top: auto; display: flex; align-items: center; gap: 12px; padding-top: 16px; border-top: 2px solid #DDD6C8">
+      <span aria-hidden="true" style="flex: none; width: 40px; height: 40px; box-sizing: border-box; border-radius: 50%; border: 2px solid #121110; background: #121110; color: #FBF7EF; display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px">{{ team.num }}</span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px"><b style="font-size: 16px">{{ me }}</b><span style="font-size: 12px; color: #5B5650">카카오 계정 연결됨</span></span>
+      <button type="button" style="min-height: 44px; padding: 0 4px; border: 0; background: transparent; font: 500 14px 'IBM Plex Sans KR', sans-serif; color: #5B5650; text-decoration: underline; cursor: pointer">로그아웃</button>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 720px; min-width: 0; box-sizing: border-box; padding: 24px 32px 40px; display: flex; flex-direction: column; gap: 24px">
+    <header style="display: flex; align-items: center; gap: 16px; min-height: 64px">
+      <span style="flex: 1; display: flex; align-items: baseline; gap: 12px"><h1 style="margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 32px">홈</h1><span style="font-size: 14px; color: #5B5650">내 사물함</span></span>
+      <button type="button" aria-label="{{ bellLabel }}" aria-pressed="{{ alarmOn }}" onClick="{{ openAlarm }}" style="{{ bellStyle }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 20a2 2 0 0 0 4 0"></path></svg>알림<sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ true }}"><span aria-hidden="true" style="width: 10px; height: 10px; box-sizing: border-box; border-radius: 50%; background: #121110"></span></sc-if></button>
+    </header>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+
+      <section aria-label="내 패스와 설정" style="flex: 1 1 340px; max-width: 420px; display: flex; flex-direction: column; gap: 16px">
+        <div style="position: relative; background: #CDDFFF; border-radius: 12px; box-shadow: 0 1px 0 rgba(18, 17, 16, .08), 0 6px 14px rgba(18, 17, 16, .14); overflow: hidden; display: flex; flex-direction: column">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 16px 0; font-weight: 700; font-size: 14px"><span>2026 시즌 패스</span><span style="font-size: 12px">{{ team.sport }}</span></div>
+          <div style="position: relative; height: 204px; display: flex; align-items: center; justify-content: center">
+            <span aria-hidden="true" style="position: absolute; left: 18px; top: 14px; z-index: 1; width: 62px; height: 62px; box-sizing: border-box; border-radius: 50%; border: 2.5px solid #121110; background: #FBF7EF; transform: rotate(-14deg); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; font-weight: 700"><span style="font-size: 12px">내</span><span style="font-size: 20px">패스</span></span>
+            <span aria-hidden="true" style="position: absolute; right: 12px; bottom: -22px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 200px; line-height: 1; color: rgba(18, 17, 16, 0.08)">{{ team.num }}</span>
+            <span style="position: relative; width: 176px; height: 176px; display: block"><svg width="176" height="176" viewBox="0 0 100 100" aria-hidden="true" style="display: block"><path d="M31 9 L43 5 Q50 13 57 5 L69 9 L93 27 L82 43 L72 37 L72 95 L28 95 L28 37 L18 43 L7 27 Z" fill="#121110" stroke="#121110" stroke-width="2.5" stroke-linejoin="round"></path><path d="M43 5 Q50 13 57 5" fill="none" stroke="#FBF7EF" stroke-width="2.5"></path></svg><span aria-hidden="true" style="{{ numStyle }}">{{ team.num }}</span></span>
+          </div>
+          <div aria-hidden="true" style="position: relative; height: 2px">
+            <span style="position: absolute; left: 20px; right: 20px; top: 0; height: 2px; background-image: radial-gradient(circle, #121110 1.2px, transparent 1.4px); background-size: 7px 2px; background-repeat: repeat-x"></span>
+            <span style="position: absolute; left: 0; top: -11px; width: 12px; height: 24px; background: #FBF7EF; border-radius: 0 12px 12px 0"></span>
+            <span style="position: absolute; right: 0; top: -11px; width: 12px; height: 24px; background: #FBF7EF; border-radius: 12px 0 0 12px"></span>
+          </div>
+          <div style="padding: 16px; display: flex; align-items: flex-end; justify-content: space-between; gap: 8px">
+            <span style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 700">등번호 {{ team.num }}  {{ team.role }}</span><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 32px; line-height: 1.1">{{ me }}</b></span>
+            <span style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end; font-family: 'Barlow Condensed', 'IBM Plex Sans KR', sans-serif; font-weight: 700; font-size: 16px"><span style="background: #121110; color: #FBF7EF; border: 2px solid #121110; border-radius: 6px; padding: 0 8px">1선호 {{ team.p1 }}</span><span style="background: #FBF7EF; border: 2px solid #121110; border-radius: 6px; padding: 0 8px">2선호 {{ team.p2 }}</span></span>
+          </div>
+        </div>
+
+        <sc-if value="{{ hasPending }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; align-items: center; gap: 12px; background: #FFFFFF; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; padding: 12px 12px 12px 16px">
+            <span style="flex: 1; display: flex; flex-direction: column; gap: 4px"><b style="display: flex; align-items: center; gap: 8px; font-size: 14px"><span style="background: #FBF7EF; border: 2px dashed #121110; border-radius: 5px; padding: 0 8px; font-size: 12px">확인 중</span>포지션 변경 요청</b><span style="font-size: 12px">{{ pending.p1 }} / {{ pending.p2 }}로 바꿔 달라고 했어요. 운영진이 확인하면 카드가 바뀌어요.</span></span>
+            <button type="button" onClick="{{ cancelPending }}" style="flex: none; height: 36px; border: 2px solid #121110; border-radius: 8px; background: #FBF7EF; padding: 0 8px; font: 700 12px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer">요청 취소</button>
+          </div>
+        </sc-if>
+
+        <button type="button" class="prow" onClick="{{ openPos }}" aria-pressed="{{ posOn }}" style="{{ posRowStyle }}"><span aria-hidden="true" style="flex: none; width: 38px; height: 38px; box-sizing: border-box; border-radius: 11px; border: 2px solid #121110; background: #EAF2FF; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3" fill="#121110"></circle></svg></span><span style="flex: 1; display: flex; flex-direction: column; gap: 4px"><span>{{ posTitle }}</span><span style="font-size: 12px; color: #5B5650">{{ posSub }}</span></span><span style="font-size: 12px; color: #5B5650">{{ posRight }}</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M9 5l7 7-7 7"></path></svg></button>
+
+        <sc-if value="{{ isKeeper }}" hint-placeholder-val="{{ false }}">
+          <div style="border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; background: #FFFFFF; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+            <span style="display: flex; align-items: center; gap: 12px"><svg viewBox="-2 -2 52 48" aria-hidden="true" style="width: 44px; height: 41px; flex: none; display: block"><path d="M13 3 H19 C20 6 22 7 24 7 C26 7 28 6 29 3 H35 L46 12 L40 19 L37 17 V41 H11 V17 L8 19 L2 12 Z" fill="{{ gkHex }}" stroke="#121110" stroke-width="2.4" stroke-linejoin="round"></path></svg><span style="flex: 1; display: flex; flex-direction: column; gap: 4px"><b style="font-size: 16px">골키퍼 유니폼 색</b><span style="font-size: 12px; color: #5B5650">{{ gkNote }}</span></span><span style="font-size: 14px; font-weight: 700">{{ gkKit }}</span></span>
+            <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px"><sc-for list="{{ gkSwatches }}" as="c" hint-placeholder-count="12"><button type="button" aria-label="{{ c.aria }}" aria-pressed="{{ c.on }}" onClick="{{ c.pick }}" style="{{ c.btn }}"><span style="{{ c.dot }}"><sc-if value="{{ c.on }}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{ c.mark }}" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg></sc-if></span></button></sc-for></div>
+          </div>
+        </sc-if>
+
+        <button type="button" class="prow" onClick="{{ openTeams }}" aria-pressed="{{ teamsOn }}" style="{{ teamsRowStyle }}"><span aria-hidden="true" style="flex: none; width: 38px; height: 38px; box-sizing: border-box; border-radius: 11px; border: 2px solid #121110; background: #EAF2FF; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3M20 16H7l3 3"></path></svg></span><span style="flex: 1">팀 바꾸기</span><span style="font-size: 12px; color: #5B5650">{{ teamsRight }}</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M9 5l7 7-7 7"></path></svg></button>
+
+        <div style="border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; background: #FFFFFF; padding: 12px 16px 14px; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; font-size: 16px; color: #121110"><span style="display: flex; align-items: center; gap: 12px"><span aria-hidden="true" style="flex: none; width: 38px; height: 38px; box-sizing: border-box; border-radius: 11px; border: 2px solid #121110; background: #EAF2FF; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 20a2 2 0 0 0 4 0"></path></svg></span><span style="flex: 1; display: flex; flex-direction: column; gap: 4px"><span>알림</span><span style="font-size: 12px; color: #5B5650">{{ pushSub }}</span></span><span style="flex: none; display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; border: 2px solid #121110; border-radius: 6px; padding: 2px 8px; background: #FBF7EF"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.6 4.7A6 6 0 0 1 18 11v5M6 11v5l-2 2h14M10 20a2 2 0 0 0 4 0M3 3l18 18"></path></svg>무음으로 와요</span></span><span style="font-size: 12px; line-height: 1.5; color: #5B5650">{{ pmodeNote }}</span></div>
+
+        <button type="button" onClick="{{ openLeave }}" style="border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; background: #FFFFFF; width: 100%; min-height: 64px; padding: 0 16px; box-sizing: border-box; display: flex; align-items: center; gap: 12px; text-align: left; font-family: inherit; font-size: 16px; color: #8C3B28; cursor: pointer"><span aria-hidden="true" style="flex: none; width: 38px; height: 38px; box-sizing: border-box; border-radius: 11px; border: 2px solid #121110; background: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4H6v16h8M11 12h9M17 9l3 3-3 3"></path></svg></span><span style="flex: 1">{{ team.name }}에서 나가기</span></button>
+      </section>
+
+      <section aria-label="{{ panelTitle }}" style="flex: 999 1 420px; min-width: 0; min-height: 640px; box-sizing: border-box; background: #FFFFFF; border: 2px solid #121110; border-radius: 16px; box-shadow: 4px 4px 0 #121110; display: flex; flex-direction: column">
+        <div style="display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 0 24px; border-bottom: 2px solid #121110">
+          <span aria-hidden="true" style="{{ panelChip }}">{{ panelKind }}</span>
+          <h2 style="flex: 1; margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">{{ panelTitle }}</h2>
+        </div>
+
+        <sc-if value="{{ isAlarm }}" hint-placeholder-val="{{ true }}">
+          <div style="flex: 1; padding: 0 24px 24px; display: flex; flex-direction: column">
+            <sc-for list="{{ alarms }}" as="a" hint-placeholder-count="6">
+              <a href="{{ a.href }}" tabIndex="0" onPointerDown="{{ a.go }}" onMouseDown="{{ a.go }}" onFocus="{{ a.go }}" onBlur="{{ a.off }}" onPointerLeave="{{ a.off }}" onMouseLeave="{{ a.off }}" style="text-decoration: none; color: #121110; display: flex; gap: 12px; padding: 16px 0; border-bottom: 2px solid #DDD6C8">
+                <span style="{{ a.dot }}"></span>
+                <span style="flex: 1; display: flex; flex-direction: column; gap: 4px"><span style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #5B5650"><span style="color: #121110; font-weight: 700; background: #FFFFFF; border: 2px solid #121110; border-radius: 4px; padding: 0 8px">{{ a.where }}</span>{{ a.when }}</span><b style="{{ a.textStyle }}">{{ a.text }}</b></span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; align-self: center"><path d="M9 5l7 7-7 7"></path></svg>
+              </a>
+            </sc-for>
+            <span style="font-size: 12px; color: #5B5650; padding-top: 16px">{{ alarmFoot }}</span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isPos }}" hint-placeholder-val="{{ false }}">
+          <div style="flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 24px">
+            <span style="font-size: 14px; line-height: 1.6">지금은 1선호 <b>{{ team.p1 }}</b>, 2선호 <b>{{ team.p2 }}</b>예요.<br>{{ posGuide }}</span>
+            <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+              <div style="flex: 1 1 200px; max-width: 280px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 4px">
+                <sc-for list="{{ slots }}" as="s" hint-placeholder-count="2">
+                  <button type="button" aria-pressed="{{ s.on }}" onClick="{{ s.pick }}" style="{{ s.style }}"><span style="font-size: 12px; font-weight: 700">{{ s.label }}</span><b style="font-family: 'Barlow Condensed', 'IBM Plex Sans KR', sans-serif; font-size: 32px; line-height: 1.1">{{ s.value }}</b></button>
+                </sc-for>
+              </div>
+              <div style="{{ gridStyle }}">
+                <sc-for list="{{ chips }}" as="c" hint-placeholder-count="10">
+                  <button type="button" aria-pressed="{{ c.on }}" onClick="{{ c.pick }}" style="{{ c.style }}">{{ c.label }}<sc-if value="{{ c.hasMark }}" hint-placeholder-val="{{ false }}"><span style="{{ c.markStyle }}">{{ c.mark }}</span></sc-if></button>
+                </sc-for>
+              </div>
+            </div>
+            <div style="margin-top: auto; display: flex; justify-content: flex-end; gap: 12px; padding-top: 16px; border-top: 2px solid #DDD6C8">
+              <button type="button" onClick="{{ openAlarm }}" style="height: 52px; padding: 0 24px; border: 2px solid #121110; border-radius: 12px; background: #FBF7EF; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer">닫기</button>
+              <button type="button" onClick="{{ submitPos }}" aria-disabled="{{ cantSubmit }}" style="{{ submitStyle }}">{{ submitLabel }}</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isTeams }}" hint-placeholder-val="{{ false }}">
+          <div style="flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 12px">
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; padding: 4px">
+              <sc-for list="{{ teamRows }}" as="t" hint-placeholder-count="3">
+                <button type="button" onClick="{{ t.pick }}" aria-current="{{ t.current }}" style="{{ t.style }}">
+                  <span style="position: relative; flex: none; width: 48px; height: 48px; display: block"><span style="{{ t.logoFill }}"></span><svg width="48" height="48" viewBox="6 6 88 88" aria-hidden="true" style="position: absolute; inset: 0; display: block"><g fill="none" stroke="#121110" stroke-width="2.5" stroke-linejoin="round" opacity="0.9"><rect x="18" y="15" width="64" height="70" rx="1"></rect><line x1="18" y1="50" x2="82" y2="50"></line><rect x="33" y="15" width="34" height="13"></rect><rect x="41" y="15" width="18" height="6"></rect><rect x="33" y="72" width="34" height="13"></rect><rect x="41" y="79" width="18" height="6"></rect></g></svg><span aria-hidden="true" style="{{ t.logoCut48 }}">{{ t.tag }}</span></span>
+                  <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; text-align: left"><b style="font-size: 18px">{{ t.name }}</b><span style="font-size: 12px">{{ t.sub }}</span></span>
+                  <sc-if value="{{ t.current }}" hint-placeholder-val="{{ false }}"><span style="flex: none; font-size: 12px; font-weight: 700; background: #121110; color: #FBF7EF; border-radius: 6px; padding: 4px 8px">지금 팀</span></sc-if>
+                </button>
+              </sc-for>
+            </div>
+            <span style="font-size: 12px; color: #5B5650; padding-top: 8px">다른 팀 초대 링크로 들어가면 여기에 더해져요. 팀마다 권한이 달라요. 운영 메뉴는 운영진인 팀에서만 보여요.</span>
+          </div>
+        </sc-if>
+      </section>
+    </div>
+  </main>
+
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+    <div role="status" style="position: absolute; left: 50%; bottom: 32px; transform: translateX(-50%); z-index: 20; background: #121110; color: #FBF7EF; border-radius: 12px; padding: 16px 24px; font-size: 14px; white-space: nowrap">{{ toastText }}</div>
+  </sc-if>
+
+  <sc-if value="{{ isLeave }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 10; background: rgba(18, 17, 16, 0.55); display: flex; align-items: center; justify-content: center; padding: 24px">
+      <div role="dialog" aria-label="팀 나가기" style="width: 100%; max-width: 440px; box-sizing: border-box; background: #FFFFFF; border: 2px solid #121110; border-radius: 16px; box-shadow: 6px 6px 0 #121110; padding: 24px; display: flex; flex-direction: column; gap: 16px; text-align: center">
+        <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
+          <span aria-hidden="true" style="align-self: center; font-size: 12px; font-weight: 700; background: #121110; color: #FBF7EF; border: 2px solid #121110; border-radius: 5px; padding: 4px 8px">운영진</span>
+          <h2 style="margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">마지막 운영진은 바로 나갈 수 없어요</h2>
+          <span style="font-size: 14px; line-height: 1.6">팀원 중에서 다음 운영진을 정해야 나갈 수 있어요.<br>운영 메뉴의 팀 설정에서 정해 주세요.</span>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 8px">
+            <button type="button" onClick="{{ closeLeave }}" style="height: 52px; border: 2px solid #121110; border-radius: 12px; background: #FBF7EF; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer">닫기</button>
+            <a href="{{ lk.PC_Ops_Settings }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Ops_Settings }}" onMouseDown="{{ lk.go_PC_Ops_Settings }}" onFocus="{{ lk.go_PC_Ops_Settings }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" style="height: 52px; box-sizing: border-box; border: 2px solid #121110; border-radius: 12px; background: #121110; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #FBF7EF; text-decoration: none; display: flex; align-items: center; justify-content: center">팀 설정으로</a>
+          </div>
+        </sc-if>
+        <sc-if value="{{ isMember }}" hint-placeholder-val="{{ true }}">
+          <h2 style="margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">{{ team.name }}에서 나갈까요?</h2>
+          <span style="font-size: 14px; line-height: 1.6">나가면 이 팀의 일정과 기록을 볼 수 없어요.<br>다시 들어오려면 초대 링크를 받아야 해요.</span>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 8px">
+            <button type="button" onClick="{{ closeLeave }}" style="height: 52px; border: 2px solid #121110; border-radius: 12px; background: #121110; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #FBF7EF; cursor: pointer">남아 있기</button>
+            <button type="button" onClick="{{ closeLeave }}" style="height: 52px; border: 2px solid #121110; border-radius: 12px; background: #FFFFFF; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #8C3B28; cursor: pointer">나가기</button>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"startView":{"editor":"enum","options":["alarm","pos","teams","leave","sent"],"default":"alarm"},"role":{"editor":"enum","options":["member","admin"],"default":"member"},"keeper":{"editor":"boolean","default":true},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return Object.assign(this.__rv(), { lk: this.__lk() }); }
+  __lk() {
+    const g = (this.state || {}).go || '';
+    const o = { off: () => { if ((this.state || {}).go) this.setState({ go: '' }); } };
+    ['PC_Chat', 'PC_Chat_A', 'PC_Chat_A_Past', 'PC_Hire', 'PC_Hire_A', 'PC_Home', 'PC_Home_A', 'PC_Home_A_Pos', 'PC_Home_Pos', 'PC_Match', 'PC_Match_A', 'PC_Ops', 'PC_Ops_Settings', 'PC_Ops_Pos', 'PC_Ops_Dues', 'PC_Sch_A_Roster', 'PC_Sch_A_Scrim', 'PC_Sch_A_MercOn', 'PC_Rec', 'PC_Rec_A', 'PC_Sch', 'PC_Sch_A', 'PC_Sch_Cancel', 'PC_Sch_Lineup', 'PC_Sch_Vote', 'PC_Seek', 'PC_Seek_A', 'PC_Team', 'PC_Team_A', 'PC_Team_Money'].forEach((p) => { o[p] = g === p ? p + '.dc.html' : undefined; o['go_' + p] = () => { if ((this.state || {}).go !== p) this.setState({ go: p }); }; });
+    return o;
+  }
+  __rv() {
+    const LK = this.__lk();
+    const st = this.state || {};
+    const ink = '#121110';
+    const sv = this.props.startView || 'alarm';
+    const isAdmin = (this.props.role || 'member') === 'admin';
+    const SOCCER = ['GK', 'LB', 'CB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST'];
+    const FUTSAL = ['골레이로', '픽소', '아라', '피보'];
+    // 팀원 시안은 이준호, 운영진 시안은 김도현 (휴대폰 시안과 같은 사람, 같은 팀)
+    const TEAMS = isAdmin ? {
+      fc: { id: 'fc', name: 'TEST FC', tag: 'FC', sport: '축구', role: '운영진', num: '10', p1: 'CAM', p2: 'ST', color: '#5B8DEF', pos: SOCCER },
+      fs: { id: 'fs', name: 'TEST FS', tag: 'FS', sport: '풋살', role: '팀원', num: '8', p1: '피보', p2: '아라', color: '#7FA36A', pos: FUTSAL },
+      fc2: { id: 'fc2', name: 'TEST FC 2', tag: 'FC', sport: '축구', role: '운영진', num: '6', p1: 'CM', p2: 'CDM', color: '#5B8DEF', pos: SOCCER }
+    } : {
+      fc: { id: 'fc', name: 'TEST FC', tag: 'FC', sport: '축구', role: '팀원', num: '7', p1: 'LW', p2: 'CAM', color: '#5B8DEF', pos: SOCCER },
+      fs: { id: 'fs', name: 'TEST FS', tag: 'FS', sport: '풋살', role: '팀원', num: '10', p1: '아라', p2: '피보', color: '#7FA36A', pos: FUTSAL },
+      fc2: { id: 'fc2', name: 'TEST FC 2', tag: 'FC', sport: '축구', role: '팀원', num: '21', p1: 'CB', p2: 'CDM', color: '#5B8DEF', pos: SOCCER }
+    };
+    if (this.props.keeper === true || (this.props.keeper == null && true)) TEAMS.fc.p2 = 'GK';
+    const mine = st.mine || {};
+    const cut = (c, px) => 'position: absolute; left: 21%; top: 35%; width: 58%; height: 30%; border-radius: 3px; background: ' + c + '; display: flex; align-items: center; justify-content: center; color: #121110; font-family: Inter, \'Noto Sans KR\', sans-serif; font-weight: 800; font-size: ' + px + 'px; line-height: 1';
+    Object.keys(TEAMS).forEach((k) => {
+      const t = Object.assign({}, TEAMS[k], mine[k] || {});
+      t.logoFill = 'position: absolute; inset: 0; border-radius: 25%; background: ' + t.color;
+      t.logoCut40 = cut(t.color, 14);
+      t.logoCut48 = cut(t.color, 16);
+      TEAMS[k] = t;
+    });
+    const team = TEAMS[st.team || 'fc'];
+    const me = isAdmin ? '김도현' : '이준호';
+
+    const view = st.view !== undefined ? st.view : (sv === 'sent' ? 'alarm' : sv);
+    const panel = view === 'leave' ? (st.under || 'alarm') : view;
+    const read = !!st.read;
+
+    const KITS = [['흰색', '#FFFFFF'], ['검정', '#1E1E1E'], ['남색', '#23336B'], ['파랑', '#2F6BD8'], ['하늘', '#8EC8F2'], ['빨강', '#D23A33'], ['주황', '#F08A24'], ['노랑', '#F6D02F'], ['초록', '#2E9E4F'], ['보라', '#6B4AA8'], ['분홍', '#F2A7C3'], ['회색', '#9A9A9A']];
+    const onKit = (hex) => { const v = parseInt(hex.slice(1), 16); const c = [v >> 16 & 255, v >> 8 & 255, v & 255].map((x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }); const L = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; return (L + 0.05) / 0.0556 >= 0.98 / (L + 0.05) ? ink : '#FBF7EF'; };
+    const gkKit = st.gkKit || '주황';
+    const gkHex = (KITS.find((x) => x[0] === gkKit) || KITS[0])[1];
+    const isKeeper = team.p1 === 'GK' || team.p2 === 'GK' || team.p1 === '골레이로' || team.p2 === '골레이로';
+    const gkSwatches = KITS.map(([n, h]) => ({ aria: '골키퍼 유니폼 ' + n, on: gkKit === n, mark: onKit(h), pick: () => this.setState({ gkKit: n }),
+      btn: 'height: 44px; padding: 0; border: 2px solid ' + (gkKit === n ? ink : 'transparent') + '; border-radius: 10px; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer',
+      dot: 'width: 28px; height: 28px; box-sizing: border-box; border-radius: 50%; border: 2px solid ' + ink + '; background: ' + h + '; display: flex; align-items: center; justify-content: center' }));
+    const gkClash = gkKit === '남색' || gkKit === '흰색';
+
+    const pendings = st.pendings !== undefined ? st.pendings : (sv === 'sent' && !isAdmin ? { fc: { p1: 'ST', p2: 'LW' } } : {});
+    const pending = isAdmin ? null : (pendings[team.id] || null);
+    const base = pending || { p1: team.p1, p2: team.p2 };
+    const draft = st.draft || { p1: base.p1, p2: base.p2 };
+    const slot = st.slot || 1;
+    const setDraft = (name) => {
+      const d = { p1: draft.p1, p2: draft.p2 };
+      const key = slot === 1 ? 'p1' : 'p2';
+      const other = slot === 1 ? 'p2' : 'p1';
+      if (d[other] === name) d[other] = d[key];
+      d[key] = name;
+      this.setState({ draft: d, slot: 2 });
+    };
+    const changed = draft.p1 !== base.p1 || draft.p2 !== base.p2;
+    const sameAsNow = draft.p1 === team.p1 && draft.p2 === team.p2;
+    const cant = !changed || sameAsNow;
+    const slots = [1, 2].map((n) => {
+      const on = n === slot;
+      return { label: n + '선호', value: n === 1 ? draft.p1 : draft.p2, on: on, pick: () => this.setState({ slot: n }),
+        style: 'height: 84px; border: 2px solid ' + ink + '; border-radius: 8px; color: ' + ink + '; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; font-family: inherit; transition: transform 0.25s cubic-bezier(0.3, 1.5, 0.6, 1), box-shadow 0.25s; background: ' + (n === 1 ? ink + '; color: #FBF7EF' : '#FFFFFF') + '; ' + (on ? 'transform: rotate(-4deg) translateY(-3px); box-shadow: 4px 4px 0 ' + ink : 'transform: none; box-shadow: 0 0 0 ' + ink) };
+    });
+    const futsal = team.pos.length < 6;
+    const chips = team.pos.map((name) => {
+      const is1 = draft.p1 === name;
+      const is2 = draft.p2 === name;
+      return { label: name, on: is1 || is2, hasMark: is1 || is2, mark: is1 ? '1' : '2', pick: () => setDraft(name),
+        markStyle: 'position: absolute; top: -9px; right: -9px; width: 22px; height: 22px; border-radius: 50%; box-sizing: border-box; border: 2px solid #FBF7EF; background: ' + ink + '; color: #FBF7EF; font: 700 12px \'Barlow Condensed\', sans-serif; display: flex; align-items: center; justify-content: center',
+        style: 'position: relative; height: ' + (futsal ? 64 : 52) + 'px; border: 2px solid ' + ink + '; border-radius: 8px; color: ' + ink + '; cursor: pointer; font: 700 17px \'Barlow Condensed\', \'IBM Plex Sans KR\', sans-serif; background: ' + (is1 ? ink + '; color: #FBF7EF' : (is2 ? '#FFFFFF; box-shadow: 3px 3px 0 ' + ink : '#FBF7EF')) };
+    });
+
+    const ALARMS = [
+      { where: '가입', when: '방금', text: '가입 신청 2건이 왔어요', unread: true, admin: true, to: ['PC_Ops', 'PC_Ops'] },
+      { where: '요청', when: '10분 전', text: '이준호가 포지션 변경을 요청했어요 (LW, CAM → ST, LW)', unread: true, admin: true, to: ['PC_Ops_Pos', 'PC_Ops_Pos'] },
+      { where: '일정', when: '1시간 전', text: '정우진이 11.22 경기를 참석에서 불참으로 바꿨어요. 대기 1번 윤재민이 참석으로 올라갔어요', unread: true, admin: true, to: ['PC_Sch_A_Roster', 'PC_Sch_A_Roster'] },
+      { where: '일정', when: '11.18', text: '11.29 상대 미정 일정에 20명이 모였어요. 11.26까지 유지되면 내전을 정할 수 있어요', unread: false, admin: true, to: ['PC_Sch_A_Scrim', 'PC_Sch_A_Scrim'] },
+      { where: '용병', when: '11.18', text: '이준호가 용병 1명을 신청했어요', unread: false, admin: true, to: ['PC_Sch_A_MercOn', 'PC_Sch_A_MercOn'] },
+      { where: '회비', when: '11.17', text: '11월 회비를 안 낸 사람이 8명이에요', unread: false, admin: true, to: ['PC_Ops_Dues', 'PC_Ops_Dues'] },
+      { where: '대화', when: '11.15', text: '11.15 vs 노을 FC 방에서 용병 오지훈님 글의 욕설을 가렸어요', unread: true, admin: true, to: ['PC_Chat', 'PC_Chat_A_Past'] },
+      { where: '대화', when: '11.15', text: '11.15 경기에 온 용병 1명을 평가해 주세요. 11.22까지예요', unread: true, admin: true, to: ['PC_Chat', 'PC_Chat_A_Past'] },
+      { where: '일정', when: '방금', text: '11.26 수 훈련이 취소됐어요. 사유: 인원 부족', unread: true, to: ['PC_Sch_Cancel', 'PC_Sch_A'] },
+      { where: '일정', when: '1시간 전', text: '11.22 경기 라인업이 나왔어요', unread: true, to: ['PC_Sch', 'PC_Sch_A'] },
+      { where: '팀', when: '11.18', text: '12월 경기 장소 공지가 올라왔어요', unread: true, to: ['PC_Team', 'PC_Team_A'] },
+      { where: '일정', when: '11.14', text: '11.29 내전을 하기로 했어요', unread: false, to: ['PC_Sch_Vote', 'PC_Sch_A'] },
+      { where: '내 정보', when: '11.02', text: '포지션 변경 요청이 받아들여졌어요', unread: false, to: ['PC_Home_Pos', 'PC_Home_A_Pos'] },
+      { where: '팀', when: '10.18', text: '10.18 경기 지각 벌금 3,000원이 매겨졌어요', unread: false, to: ['PC_Team_Money', 'PC_Team_A'] }
+    ];
+    const alarms = ALARMS.filter((a) => !a.admin || isAdmin).map((a) => {
+      const un = a.unread && !read;
+      const tg = a.to[isAdmin ? 1 : 0];
+      return { where: a.where, when: a.when, text: a.text, href: LK[tg], go: LK['go_' + tg], off: LK.off,
+        dot: 'flex: none; margin-top: 8px; width: 8px; height: 8px; border-radius: 50%; background: ' + (un ? ink : 'transparent'),
+        textStyle: 'font-size: 16px; line-height: 1.45; font-weight: ' + (un ? 700 : 500) };
+    });
+
+    const say = (msg, extra) => { this.setState(Object.assign({ toast: msg }, extra || {})); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ toast: '' }), 2200); };
+    const teamRows = Object.keys(TEAMS).map((k) => {
+      const t = TEAMS[k];
+      const cur = k === team.id;
+      return { name: t.name, tag: t.tag, logoFill: t.logoFill, logoCut48: t.logoCut48, sub: t.sport + '팀  ' + t.role, current: cur,
+        pick: () => say(t.name + '(으)로 바꿨어요', { team: k, view: 'alarm', draft: null, slot: 1 }),
+        style: 'display: flex; align-items: center; gap: 12px; min-height: 80px; padding: 12px 16px; border: 2px solid ' + ink + '; border-radius: 12px; background: ' + (cur ? '#FFFFFF' : '#FBF7EF') + '; box-shadow: ' + (cur ? '4px 4px 0 ' + ink : 'none') + '; color: ' + ink + '; font-family: inherit; cursor: pointer' };
+    });
+
+    const rowStyle = (on) => 'border: 2px solid ' + ink + '; border-radius: 12px; box-shadow: ' + (on ? '6px 6px 0 ' + ink : '4px 4px 0 ' + ink) + '; background: ' + (on ? '#EAF2FF' : '#FFFFFF') + '; width: 100%; min-height: 64px; padding: 0 16px; box-sizing: border-box; display: flex; align-items: center; gap: 12px; text-align: left; font-family: inherit; font-size: 16px; color: #121110; cursor: pointer' + (on ? '; transform: translate(-2px, -2px)' : '');
+    const KIND = { alarm: '알림', pos: '내 정보', teams: '팀' };
+    const TITLE = { alarm: '알림', pos: isAdmin ? '내 포지션 바꾸기' : '포지션 변경 요청', teams: '팀 바꾸기' };
+    const go = (v) => { if (v === 'alarm') this.setState({ view: 'alarm', read: true }); else this.setState({ view: v, draft: null, slot: 1 }); };
+
+    return {
+      isAdmin: isAdmin, isMember: !isAdmin, me: me, team: team,
+      teamBtnLabel: team.name + ', 팀 바꾸기',
+      teamNavStyle: 'display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none' + (isAdmin ? '' : '; border-radius: 0 0 10px 10px'),
+      numStyle: 'position: absolute; left: 0; right: 0; top: ' + (team.num.length > 1 ? 88 : 80) + 'px; text-align: center; color: #FBF7EF; font-family: \'Barlow Condensed\', sans-serif; font-weight: 700; font-size: ' + (team.num.length > 1 ? 58 : 72) + 'px; line-height: 1; letter-spacing: -2px',
+      hasUnread: !read, bellLabel: read ? '알림' : '알림, 새 알림 있음', alarmOn: panel === 'alarm',
+      bellStyle: 'height: 44px; padding: 0 16px; border: 2px solid ' + ink + '; border-radius: 10px; background: ' + (panel === 'alarm' ? '#EAF2FF' : '#FFFFFF') + '; box-shadow: 3px 3px 0 ' + ink + '; display: inline-flex; align-items: center; gap: 8px; font: 700 14px \'IBM Plex Sans KR\', sans-serif; color: ' + ink + '; cursor: pointer',
+      pending: pending || { p1: '', p2: '' }, hasPending: !!pending,
+      posTitle: TITLE.pos, posSub: isAdmin ? '운영진은 요청 없이 바로 바뀌어요' : '운영진이 확인하면 바뀌어요', posRight: pending ? '확인 중' : '',
+      posOn: panel === 'pos', posRowStyle: rowStyle(panel === 'pos'),
+      teamsOn: panel === 'teams', teamsRowStyle: rowStyle(panel === 'teams'), teamsRight: (Object.keys(TEAMS).length - 1) + '팀 더',
+      isKeeper: isKeeper, gkKit: gkKit, gkHex: gkHex, gkSwatches: gkSwatches,
+      gkNote: gkClash ? '우리 팀 HOME(남색)이나 AWAY(흰색)와 같은 색이에요. 다른 색을 고르면 구분이 쉬워요.' : '골키퍼로 뛰는 쿼터에는 라인업에 이 색으로 보여요.',
+      push: st.push !== undefined ? st.push : true,
+      sw: {
+        track: 'flex: none; position: relative; width: 50px; height: 30px; box-sizing: border-box; border-radius: 15px; border: 2px solid ' + ink + '; background: ' + ((st.push !== undefined ? st.push : true) ? ink : '#FFFFFF') + '; transition: background 0.2s',
+        knob: 'position: absolute; top: 3px; left: ' + ((st.push !== undefined ? st.push : true) ? 23 : 3) + 'px; width: 20px; height: 20px; box-sizing: border-box; border-radius: 50%; background: ' + ((st.push !== undefined ? st.push : true) ? '#FBF7EF' : ink) + '; transition: left 0.2s, background 0.2s'
+      },
+      panelTitle: TITLE[panel], panelKind: KIND[panel],
+      panelChip: 'font-size: 12px; font-weight: 700; background: #7CA4F0; border: 2px solid ' + ink + '; border-radius: 5px; padding: 2px 8px',
+      isAlarm: panel === 'alarm', isPos: panel === 'pos', isTeams: panel === 'teams', isLeave: view === 'leave',
+      pmodeNote: '알림은 늘 켜져 있고, 소리와 진동 없이 화면에만 떠요. 끌 수 없어요.',
+      alarms: alarms, pushSub: isAdmin ? '가입 신청, 요청, 마감 뒤 변경, 내전 인원, 라인업, 벌금' : '라인업 공개, 투표 마감 전, 대기 자리, 벌금', alarmFoot: isAdmin ? '운영진에게 오는 알림도 함께 와요. 알림은 30일 동안 남아요.' : '알림은 30일 동안 남아요.', teamRows: teamRows, slots: slots, chips: chips,
+      posGuide: isAdmin ? '바꿀 칸을 고르고 포지션을 눌러요. 운영진은 요청 없이 바로 바뀌어요.' : '바꿀 칸을 고르고 포지션을 눌러요. 운영진이 확인하면 바뀌어요.',
+      gridStyle: 'flex: 999 1 320px; display: grid; grid-template-columns: repeat(' + (futsal ? 2 : 5) + ', minmax(0, 1fr)); gap: 8px; padding-top: 4px',
+      cantSubmit: cant,
+      submitLabel: isAdmin ? '바로 바꾸기' : (pending ? '요청 다시 보내기' : '변경 요청 보내기'),
+      submitStyle: 'height: 52px; padding: 0 24px; border: 2px solid ' + ink + '; border-radius: 12px; background: #FCD01A; color: #121110; font: 700 16px \'IBM Plex Sans KR\', sans-serif; cursor: pointer; ' + (cant ? 'opacity: 0.35; pointer-events: none' : 'opacity: 1'),
+      hasToast: !!st.toast, toastText: st.toast || '',
+      openAlarm: () => go('alarm'),
+      openPos: () => go('pos'),
+      openTeams: () => go('teams'),
+      openLeave: () => this.setState({ view: 'leave', under: panel }),
+      closeLeave: () => this.setState({ view: panel }),
+      togglePush: () => this.setState({ push: !(st.push !== undefined ? st.push : true) }),
+      cancelPending: () => { const p = Object.assign({}, pendings); delete p[team.id]; this.setState({ pendings: p }); },
+      submitPos: () => {
+        if (cant) return;
+        if (isAdmin) say('포지션을 바꿨어요', { mine: Object.assign({}, mine, { [team.id]: { p1: draft.p1, p2: draft.p2 } }), view: 'alarm', draft: null, slot: 1 });
+        else say('변경 요청을 보냈어요', { pendings: Object.assign({}, pendings, { [team.id]: { p1: draft.p1, p2: draft.p2 } }), view: 'alarm', draft: null, slot: 1 });
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>휴대폰 대화</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&amp;family=Black+Han+Sans&amp;family=IBM+Plex+Sans+KR:wght@400;500;700&amp;display=swap">
+<style>
+/* 글자 끌어서 선택 막기 */
+body,body *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,select,[contenteditable],[contenteditable] *{-webkit-user-select:text;user-select:text}
+img,svg,a{-webkit-user-drag:none}
+
+body{margin:0}
+*{scrollbar-width:none}
+*::-webkit-scrollbar{display:none}
+
+/* 챕터 버튼: 지금 있는 칸과 누르는 칸이 왼쪽 위로 살짝 올라옴 (54번 B) */
+.mbn{position: relative; transition: transform .16s ease-out, box-shadow .16s ease-out; -webkit-tap-highlight-color: transparent}.mbn:active, .mbn.on{transform: translate(-3px, -3px); box-shadow: 0 0 0 2px #121110; z-index: 1}.mbn.on{animation: mbnlift .36s cubic-bezier(.3, 1.6, .5, 1) .4s both}@keyframes mbnlift{from{transform: none; box-shadow: 0 0 0 0 #121110}to{transform: translate(-3px, -3px); box-shadow: 0 0 0 2px #121110}}@media (prefers-reduced-motion: reduce){.mbn{transition: none}.mbn.on{animation: none}}
+
+/* 투표한 답: 그루터기 색이 빠진 흰 칸 위에 도장처럼 톡 찍힘 (58번 B) */
+.pstamp{animation: pstamp .34s cubic-bezier(.3, 1.6, .5, 1) both}@keyframes pstamp{from{transform: scale(1.5) rotate(-8deg); opacity: 0}to{transform: none; opacity: 1}}@media (prefers-reduced-motion: reduce){.pstamp{animation: none}}
+</style>
+</helmet>
+<div style="-webkit-user-select: none; user-select: none; -webkit-touch-callout: none; width: 390px; height: 844px; box-sizing: border-box; background-color: #FBF7EF; background-image: linear-gradient(rgba(18, 17, 16, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(18, 17, 16, 0.06) 1px, transparent 1px); background-size: 16px 16px; color: #121110; font-family: 'IBM Plex Sans KR', sans-serif; position: relative; display: flex; flex-direction: column; overflow: hidden; word-break: keep-all">
+
+  <sc-if value="{{ isList }}" hint-placeholder-val="{{ true }}">
+  <header style="height: 60px; flex: none; display: flex; align-items: center; padding: 0 16px 0 24px; gap: 8px">
+    <h1 style="flex: 1; margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">대화</h1>
+    <button type="button" onClick="{{ cycleAlarm }}" aria-label="{{ alarmAria }}" style="height: 40px; padding: 0 12px; border: 2px solid #121110; border-radius: 10px; background: #FFFFFF; font: 700 12px 'IBM Plex Sans KR', sans-serif; color: #121110; display: inline-flex; align-items: center; gap: 6px; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 20a2 2 0 0 0 4 0"></path></svg>{{ alarmShort }}</button>
+  </header>
+  <main style="flex: 1; min-height: 0; overflow-y: auto; padding: 4px 24px 24px; display: flex; flex-direction: column; gap: 12px">
+    <div role="tablist" aria-label="방 종류" style="display: flex; gap: 8px; flex-wrap: wrap">
+      <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="2"><button type="button" role="tab" aria-selected="{{ tb.on }}" onClick="{{ tb.pick }}" style="{{ tb.style }}">{{ tb.label }}</button></sc-for>
+    </div>
+    <sc-for list="{{ rooms }}" as="r" hint-placeholder-count="4">
+      <button type="button" onClick="{{ r.pick }}" aria-label="{{ r.aria }}" style="{{ r.style }}">
+        <span style="{{ r.dateStyle }}"><b style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px; line-height: 1">{{ r.md }}</b><span style="font-size: 11px; font-weight: 700">{{ r.dow }}</span></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; text-align: left">
+          <b style="font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ r.title }}</b>
+          <span style="font-size: 12px; color: #5B5650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ r.last }}</span>
+        </span>
+        <span style="flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 6px">
+          <span style="font-size: 11px; color: #5B5650">{{ r.lastTime }}</span>
+          <span style="display: flex; gap: 4px">
+            <sc-if value="{{ r.hasMention }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="width: 22px; height: 22px; box-sizing: border-box; border: 2px solid #121110; border-radius: 11px; background: #FFFFFF; font: 800 12px 'IBM Plex Sans KR', sans-serif; display: inline-flex; align-items: center; justify-content: center">@</span></sc-if>
+            <sc-if value="{{ r.hasUnread }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="min-width: 22px; height: 22px; box-sizing: border-box; padding: 0 6px; border-radius: 11px; background: #121110; color: #FBF7EF; font: 700 12px 'Barlow Condensed', sans-serif; display: inline-flex; align-items: center; justify-content: center">{{ r.unread }}</span></sc-if>
+            <sc-if value="{{ r.isClosed }}" hint-placeholder-val="{{ false }}"><span style="font-size: 11px; font-weight: 700; border: 2px solid #121110; border-radius: 5px; padding: 0 5px; background: #FFFFFF">{{ r.closedLabel }}</span></sc-if>
+          </span>
+        </span>
+      </button>
+    </sc-for>
+  </main>
+
+  <nav aria-label="하단 메뉴" style="{{ navStyle }}">
+    <sc-for list="{{ nav }}" as="n" hint-placeholder-count="6">
+      <a aria-current="{{ n.current }}" class="{{ n.cls }}" style="{{ n.style }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{ n.stroke }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ n.icon }}"></path></svg><span>{{ n.label }}</span><sc-if value="{{ n.hasBadge }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="position: absolute; top: 6px; right: 8px; min-width: 18px; height: 18px; box-sizing: border-box; padding: 0 4px; border-radius: 9px; background: #121110; color: #FBF7EF; font: 700 11px 'Barlow Condensed', sans-serif; display: inline-flex; align-items: center; justify-content: center">{{ n.badge }}</span></sc-if></a>
+    </sc-for>
+  </nav>
+  </sc-if>
+
+  <sc-if value="{{ isRoom }}" hint-placeholder-val="{{ false }}">
+  <header style="flex: none; display: flex; align-items: center; gap: 8px; min-height: 60px; padding: 0 16px 0 8px; border-bottom: 2px solid #121110; background: #FBF7EF">
+    <button type="button" onClick="{{ back }}" aria-label="대화 목록으로" style="flex: none; width: 44px; height: 44px; border: 0; background: transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
+    <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><h1 style="margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ roomTitle }}</h1><span style="font-size: 11px; color: #5B5650">{{ roomPeople }}</span></span>
+  </header>
+  <div style="flex: none; padding: 12px 16px; border-bottom: 2px solid #121110; background: #F6EEDD">
+    <div style="{{ tk.wrap }}">
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding: 8px 12px"><b style="font-size: 13px">{{ tk.line1 }}</b><span style="font-size: 12px; color: #5B5650">{{ tk.line2 }}</span><span style="font-size: 12px; font-weight: 700">{{ tk.line3 }}</span></span>
+      <sc-if value="{{ tk.perf }}" hint-placeholder-val="{{ true }}"><span aria-hidden="true" style="flex: none; width: 2px; margin: 8px 0; background-image: radial-gradient(circle, #121110 1.2px, transparent 1.4px); background-size: 2px 7px; background-repeat: repeat-y"></span></sc-if>
+      <sc-if value="{{ tk.hasStub }}" hint-placeholder-val="{{ true }}"><span style="{{ tk.stub }}"><b style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 22px; line-height: 1">{{ tk.md }}</b><span style="font-size: 11px; font-weight: 700">{{ tk.stubText }}</span></span></sc-if>
+      <sc-if value="{{ tk.hasStamp }}" hint-placeholder-val="{{ false }}"><span style="flex: none; align-self: center; margin: 0 12px; width: 52px; height: 52px; box-sizing: border-box; border-radius: 50%; border: 2.5px solid #121110; background: #FFFFFF; transform: rotate(-10deg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 15px; line-height: 1">{{ tk.md }}</b><b style="font-size: 10px">사용함</b></span></sc-if>
+    </div>
+  </div>
+  <div role="log" aria-label="대화 내용" style="flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column-reverse"><div style="padding: 16px; display: flex; flex-direction: column; gap: 12px">
+    <sc-for list="{{ msgs }}" as="m" hint-placeholder-count="6">
+      <sc-if value="{{ m.isDay }}" hint-placeholder-val="{{ false }}"><span style="align-self: center; font-size: 11px; font-weight: 700; color: #5B5650; padding: 2px 10px; border: 2px solid #DDD6C8; border-radius: 12px; background: #FFFFFF">{{ m.text }}</span></sc-if>
+      <sc-if value="{{ m.isSys }}" hint-placeholder-val="{{ false }}"><span style="align-self: center; max-width: 88%; text-align: center; font-size: 12px; line-height: 1.5; padding: 4px 12px; border: 2px solid #DDD6C8; border-radius: 12px; background: #F6EEDD">{{ m.text }}</span></sc-if>
+      <sc-if value="{{ m.isMsg }}" hint-placeholder-val="{{ true }}">
+        <div style="{{ m.rowStyle }}">
+          <sc-if value="{{ m.showAvatar }}" hint-placeholder-val="{{ true }}"><span aria-hidden="true" style="flex: none; width: 32px; height: 32px; box-sizing: border-box; border: 2px solid #121110; border-radius: 50%; background: {{ m.avBg }}; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px">{{ m.av }}</span></sc-if>
+          <div style="{{ m.colStyle }}">
+            <sc-if value="{{ m.showName }}" hint-placeholder-val="{{ true }}"><span style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap"><b style="font-size: 12px">{{ m.who }}</b><sc-if value="{{ m.hasTag }}" hint-placeholder-val="{{ false }}"><span style="{{ m.tagStyle }}">{{ m.tag }}</span></sc-if></span></sc-if>
+            <sc-if value="{{ m.callsMe }}" hint-placeholder-val="{{ false }}"><span style="align-self: flex-start; font-size: 11px; font-weight: 700; padding: 0 6px; border: 2px solid #121110; border-radius: 5px; background: #121110; color: #FBF7EF">나를 불렀어요</span></sc-if>
+            <div style="{{ m.bubbleRow }}">
+              <span style="{{ m.bubbleStyle }}"><sc-for list="{{ m.parts }}" as="pt" hint-placeholder-count="1"><span style="{{ pt.style }}">{{ pt.t }}</span></sc-for></span>
+              <span style="flex: none; font-size: 10px; color: #5B5650; white-space: nowrap">{{ m.time }}</span>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+    </sc-for>
+  </div></div>
+  <sc-if value="{{ canWrite }}" hint-placeholder-val="{{ true }}">
+    <div role="group" style="flex: none; border-top: 2px solid #121110; padding: 12px 16px 20px; display: flex; gap: 8px; align-items: flex-end; background: #FFFFFF">
+      <label for="m-chat-input" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap">메시지</label>
+      <textarea id="m-chat-input" rows="1" value="{{ draft }}" onChange="{{ onDraft }}" placeholder="메시지 보내기  @이름으로 부르기" style="flex: 1; min-width: 0; min-height: 48px; box-sizing: border-box; resize: none; border: 2px solid #121110; border-radius: 12px; padding: 12px; font: 400 16px 'IBM Plex Sans KR', sans-serif; color: #121110; background: #FBF7EF"></textarea>
+      <button type="button" onClick="{{ send }}" aria-disabled="{{ sendOff }}" style="{{ sendStyle }}">보내기</button>
+    </div>
+  </sc-if>
+  <sc-if value="{{ closed }}" hint-placeholder-val="{{ false }}"><div style="flex: none; border-top: 2px solid #121110; padding: 16px; background: #F6EEDD; font-size: 13px">{{ closedText }}</div></sc-if>
+  </sc-if>
+
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+    <div role="status" style="position: absolute; left: 50%; bottom: 100px; transform: translateX(-50%); z-index: 20; background: #121110; color: #FBF7EF; border-radius: 12px; padding: 12px 20px; font-size: 13px; white-space: nowrap">{{ toastText }}</div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"role":{"editor":"enum","options":["member","admin"],"default":"member"},"startView":{"editor":"enum","options":["list","room"],"default":"list"},"startTab":{"editor":"enum","options":["up","past","match"],"default":"up"},"startRoom":{"editor":"enum","options":["s1","s2","s3","s4","p1","p2","m1"],"default":"s3"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const ink = '#121110';
+    const SEC = '#D9BF8C', SEC2 = '#EBDCBE', SEC3 = '#F6EEDD';
+    const role = this.props.role === 'admin' ? 'admin' : 'member';
+    const isAdmin = role === 'admin';
+    const isMerc = false;
+    const me = isAdmin ? '김도현' : '이준호';
+    const say = (msg, extra) => { this.setState(Object.assign({ toast: msg }, extra || {})); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ toast: '' }), 2200); };
+    // ===== 방 =====
+    // sec: up 다가오는 일정, past 지난 일정, match 매칭 방(운영진만), home 용병 본인 팀 방, merc 용병으로 간 방
+    const ROOMS = [
+      { id: 's1', sec: 'up', md: '11.22', dow: '토', title: '11.22 토 vs 노을 FC', kind: '경기', time: '07:00 ~ 09:00', place: '상암 월드컵 보조구장', count: '참석 13 / 14, 대기 1', due: '투표 마감 11.21 금 21:00', state: 'live', unread: 2, sch: ['PC_Sch', 'PC_Sch_A'] },
+      { id: 's2', sec: 'up', md: '11.26', dow: '수', title: '11.26 수 훈련', kind: '훈련', time: '20:00 ~ 22:00', place: '난지 인조잔디 구장', count: '정원 16', due: '취소됨', state: 'cancel', unread: 0, sch: ['PC_Sch_Cancel', 'PC_Sch_A'] },
+      { id: 's3', sec: 'up', md: '11.29', dow: '토', title: '11.29 토 내전', kind: '내전', time: '08:00 ~ 10:00', place: '고양 종합운동장 보조구장', count: '참석 8 / 22, 용병 1', due: '투표 마감 11.28 금 21:00', state: 'live', unread: 3, mention: true, sch: ['PC_Sch', 'PC_Sch_A'] },
+      { id: 's4', sec: 'up', md: '12.06', dow: '토', title: '12.06 토 경기', kind: '경기', time: '07:00 ~ 09:00', place: '상암 월드컵 보조구장', count: '상대 정하는 중', due: '참석 투표는 11.30부터', state: 'live', unread: 0, sch: ['PC_Sch', 'PC_Sch_A'] },
+      { id: 'p1', sec: 'past', md: '11.15', dow: '토', title: '11.15 토 vs 노을 FC', kind: '경기', time: '07:00 ~ 09:00', place: '상암 월드컵 보조구장', count: '온 사람 14명', due: '3 : 2 승', state: 'done', unread: 0, sch: ['PC_Rec', 'PC_Rec_A'] },
+      { id: 'p2', sec: 'past', md: '11.08', dow: '토', title: '11.08 토 내전', kind: '내전', time: '07:00 ~ 09:00', place: '상암 월드컵 보조구장', count: '온 사람 14명', due: 'A팀 4 : 3 B팀', state: 'done', unread: 0, sch: ['PC_Rec', 'PC_Rec_A'] },
+      { id: 'm1', sec: 'match', md: '11.22', dow: '토', title: '노을 FC 매칭 방', kind: '매칭', time: '07:00 ~ 09:00', place: '상암 월드컵 보조구장', count: '우리 팀원 13 + 용병 0, 노을 FC 팀원 12 + 용병 1', due: '양 팀 운영진만', state: 'live', unread: 2, sch: ['PC_Sch', 'PC_Sch_A'] },
+      { id: 'h1', sec: 'home', md: '11.23', dow: '일', title: '11.23 일 vs 마포 FC', kind: '경기', time: '08:00 ~ 10:00', place: '난지 인조잔디 구장', count: '참석 12 / 14', due: '한강 유나이티드 일정', state: 'live', unread: 0, sch: null },
+      { id: 's3m', sec: 'merc', same: 's3', md: '11.29', dow: '토', title: 'TEST FC 11.29 토 내전', kind: '용병', time: '08:00 ~ 10:00', place: '고양 종합운동장 보조구장', count: 'B팀 CB로 참가', due: '용병으로 간 경기', state: 'live', unread: 1, sch: null }
+    ];
+    const PEOPLE = { s1: '팀원 26명', s2: '팀원 26명', s3: '팀원 26명, 용병 1명', s4: '팀원 26명', p1: '팀원 26명', p2: '팀원 26명', m1: '우리 운영진 2명, 노을 FC 운영진 2명', h1: '한강 유나이티드 팀원 18명', s3m: 'TEST FC 팀원 26명, 용병 1명' };
+
+    // ===== 대화 내용 =====
+    // [종류, 누구, 표시, 투표, 시간, 글] 종류: day 날짜, sys 알림, msg 글, hid 가린 글
+    const OP = '운영진', MC = '용병';
+    const LOG = {
+      s1: [['day', '', '', '', '', '11.19 수'], ['sys', '', '', '', '', '라인업이 올라왔어요. 일정에서 볼 수 있어요.'],
+        ['msg', '정다온', OP, '참석', '08:30', '라인업 올렸어요. 1Q는 4-2-3-1로 시작해요.'],
+        ['msg', '최성호', '', '늦참 2Q', '08:41', '저는 2Q부터 가능해서 늦참으로 바꿔 뒀어요.'],
+        ['msg', '이준호', '', '참석', '08:50', '구장 앞 편의점에서 물 사 갈게요.']],
+      s2: [['day', '', '', '', '', '11.18 화'], ['sys', '', '', '', '', '김도현님이 일정을 취소했어요. 사유: 인원 부족'],
+        ['msg', '김도현', OP, '', '18:02', '이번 주 훈련은 인원이 모자라서 쉬어요. 다음 주에 봬요.']],
+      s3: [['day', '', '', '', '', '11.18 화'], ['sys', '', '', '', '', '11.29 토 내전 방이 열렸어요. 일정이 올라오면 방이 함께 생겨요.'],
+        ['msg', '김도현', OP, '참석', '21:10', 'A팀, B팀 11명씩이라 아직 14자리가 비어요. 비는 자리는 용병 구인으로 채울게요.'],
+        ['msg', '박민수', '', '참석', '21:14', '고양 보조구장은 주차 어디에 하나요?'],
+        ['msg', '김도현', OP, '참석', '21:16', '보조구장 뒤편 주차장 쓰면 돼요. 2시간까지 무료예요.'],
+        ['day', '', '', '', '', '11.19 수'], ['sys', '', '', '', '', '박재현님이 용병으로 들어왔어요 (CB). 들어온 뒤의 대화만 보여요.'],
+        ['msg', '박재현', MC, 'B팀 CB', '09:02', '안녕하세요, 11.29에 CB로 가는 박재현입니다. 유니폼은 어떤 색 챙기면 될까요?'],
+        ['msg', '김도현', OP, '참석', '09:05', '@박재현 B팀이라 AWAY 흰색으로 챙겨 주세요.'],
+        ['hid', '강태호', '', '참석', '09:20', ''],
+        ['msg', '김도현', OP, '참석', '09:31', '@이준호 이번엔 GK 한 번 봐 줄 수 있어요? 장갑은 팀 걸로 챙길게요.'],
+        ['msg', '이준호', '', '참석', '09:40', '네, GK 볼게요. 장갑은 제 거 가져갈게요.']],
+      s4: [['day', '', '', '', '', '11.19 수'], ['sys', '', '', '', '', '12.06 토 경기 방이 열렸어요. 참석 투표는 11.30부터 열려요.']],
+      p1: [['day', '', '', '', '', '11.15 토'], ['sys', '', '', '', '', '경기가 끝났어요. 결과 3 : 2 승. MOM 투표는 11.20 목 자정까지예요.'],
+        ['msg', '박민수', '', '왔음', '09:12', '다들 수고했어요. 마지막 골 진짜 좋았어요.'],
+        ['msg', '이준호', '', '왔음', '09:20', 'MOM 투표 잊지 마세요. 기록에서 할 수 있어요.']],
+      p2: [['day', '', '', '', '', '11.08 토'], ['sys', '', '', '', '', '내전이 끝났어요. A팀 4 : 3 B팀, MOM 정우진']],
+      m1: [['day', '', '', '', '', '11.17 월'], ['sys', '', '', '', '', '노을 FC와 11.22 토 매칭이 잡혀 매칭 방이 열렸어요. 양 팀 운영진만 있어요.'],
+        ['msg', '윤상훈', '노을 FC', '', '19:02', '안녕하세요, 노을 FC 운영진 윤상훈입니다. 저희는 빨강 입고 가요.'],
+        ['msg', '김도현', OP, '', '19:10', '반가워요. 저희는 HOME 남색 입을게요. 구장은 저희가 잡았어요, 상암 월드컵 보조구장 B면이에요.'],
+        ['msg', '오태민', '노을 FC', '', '19:15', '인원은 지금 팀원 12명에 용병 1명이에요. 투표가 바뀌면 바로 보이죠?'],
+        ['msg', '정다온', OP, '', '19:20', '네, 서로 인원은 투표 수로 자동으로 보여요. 4쿼터 25분으로 할게요.']],
+      h1: [['day', '', '', '', '', '11.19 수'], ['msg', '한강 운영진', OP, '참석', '07:40', '일요일 08시 난지예요. 늦지 말고 와요.']]
+    };
+
+
+    const TABS = [['up', '다가오는 일정'], ['past', '지난 일정']].concat(isAdmin ? [['match', '매칭 방']] : []);
+    const tabKeys = TABS.map((t) => t[0]);
+    const tab0 = st.tab || this.props.startTab || 'up';
+    const tab = tabKeys.indexOf(tab0) >= 0 ? tab0 : 'up';
+    const pill = (on) => 'height: 36px; padding: 0 14px; border: 2px solid ' + ink + '; border-radius: 18px; font: 700 13px \'IBM Plex Sans KR\', sans-serif; cursor: pointer; background: ' + (on ? ink + '; color: #FBF7EF' : '#FFFFFF; color: ' + ink);
+    const tabs = TABS.map(([k, label]) => ({ label: label, on: k === tab, style: pill(k === tab), pick: () => this.setState({ tab: k }) }));
+    const sent = st.sent || {}, read = st.read || {};
+    const view = st.view || (this.props.startView === 'room' ? 'room' : 'list');
+    const list = ROOMS.filter((r) => r.sec === tab);
+    const room = ROOMS.filter((r) => r.id === (st.room || this.props.startRoom || 's3'))[0] || list[0];
+    const logOf = (r) => (LOG[r.same || r.id] || []).concat((sent[r.id] || []));
+    const lastOf = (r) => { const l = logOf(r).filter((x) => x[0] === 'msg' || x[0] === 'sys'); const x = l[l.length - 1]; return x ? { text: (x[0] === 'msg' ? x[1] + ': ' : '') + x[5], time: x[4] || '' } : { text: '', time: '' }; };
+    const rooms = list.map((r) => {
+      const unread = read[r.id] ? 0 : r.unread; const l = lastOf(r); const closed = r.state !== 'live';
+      return { md: r.md, dow: r.dow, title: r.title, last: l.text, lastTime: l.time || r.md, unread: unread, hasUnread: unread > 0, hasMention: !!r.mention && unread > 0, isClosed: closed, closedLabel: r.state === 'cancel' ? '취소' : '끝남',
+        aria: r.title + (unread ? ', 안 읽은 글 ' + unread + '개' : ''),
+        pick: () => this.setState({ view: 'room', room: r.id, read: Object.assign({}, read, { [r.id]: true }) }),
+        dateStyle: 'flex: none; width: 48px; height: 48px; box-sizing: border-box; border: 2px solid ' + ink + '; border-radius: 10px; background: ' + (closed ? '#F3EEE4' : SEC2) + '; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px',
+        style: 'display: flex; align-items: center; gap: 12px; min-height: 72px; box-sizing: border-box; padding: 10px 12px; border: 2px solid ' + ink + '; border-radius: 12px; background: #FFFFFF; box-shadow: 4px 4px 0 ' + ink + '; font-family: inherit; color: ' + ink + '; cursor: pointer; text-align: left' };
+    });
+    const totalUnread = ROOMS.filter((r) => (r.sec === 'up' || r.sec === 'past' || (isAdmin && r.sec === 'match')) && !read[r.id]).reduce((s, r) => s + r.unread, 0);
+    // 하단 메뉴: 팀원 5칸, 운영진 6칸 (대화가 일정 다음에 들어가요)
+    const NAV = [['홈', '#7CA4F0', 'M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z'], ['일정', '#14BBC2', 'M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM3 10h18M8 3v4M16 3v4'], ['대화', SEC, 'M4 4.5h16v11.5H10.5L6 19.5V16H4zM8 8.8h8M8 11.8h5'], ['기록', '#E48398', 'M3 20h18M6 20v-8M12 20V5M18 20v-5'], ['팀', '#69BA7C', 'M12.5 8a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0zM2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5M19.5 9a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM16.5 14.6c2.4.3 4.2 2.1 4.8 5.4']].concat(isAdmin ? [['운영', '#B093E5', 'M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1']] : []);
+    const nav = NAV.map(([label, c, icon], i) => {
+      const on = label === '대화', first = i === 0, last = i === NAV.length - 1;
+      return { label: label, icon: icon, current: on ? 'page' : undefined, cls: on ? 'mbn on' : 'mbn', stroke: on ? ink : '#5B5650', hasBadge: on && totalUnread > 0, badge: totalUnread,
+        style: 'position: relative; border-radius: ' + (first ? '10px 0 0 10px' : last ? '0 10px 10px 0' : '0') + '; background: ' + (on ? c : '#FFFFFF') + '; text-decoration: none; color: ' + (on ? ink : '#5B5650') + '; ' + (on ? 'font-weight: 700; ' : '') + 'font-size: 11px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px' };
+    });
+    const closed = room.state !== 'live';
+    const partsOf = (text) => text.split(/(@\S+)/).filter((s) => s).map((s) => ({ t: s, style: s.charAt(0) === '@' ? 'font-weight: 700; text-decoration: underline; text-underline-offset: 3px' : '' }));
+    const raw = logOf(room);
+    const msgs = raw.map((x, i) => {
+      const [type, who, tag, vote, time, text] = x;
+      const isHidden = type === 'hid';
+      const mine = (type === 'msg' || type === 'hid') && who === me;
+      const prev = raw[i - 1];
+      const cont = prev && (prev[0] === 'msg' || prev[0] === 'hid') && prev[1] === who;
+      const callsMe = type === 'msg' && text.indexOf('@' + me) >= 0;
+      return { isDay: type === 'day', isSys: type === 'sys', isMsg: type === 'msg' || type === 'hid', text: text, who: who, tag: tag, hasTag: !!tag, time: time,
+        showAvatar: !mine && !cont, showName: !mine && !cont, av: who.charAt(0), avBg: tag === MC ? SEC2 : '#FFFFFF', callsMe: callsMe,
+        tagStyle: 'font-size: 10px; font-weight: 700; border: 2px solid ' + ink + '; border-radius: 5px; padding: 0 4px; background: ' + (tag === OP ? ink + '; color: #FBF7EF' : tag === MC ? SEC : '#FFFFFF'),
+        parts: isHidden ? [{ t: '가린 글이에요. 운영진 김도현이 가렸어요.', style: 'color: #5B5650' }] : partsOf(text),
+        rowStyle: 'display: flex; gap: 8px; align-items: flex-start; ' + (mine ? 'justify-content: flex-end' : '') + (cont && !mine ? '; padding-left: 40px; margin-top: -6px' : '') + (cont && mine ? '; margin-top: -6px' : ''),
+        colStyle: 'display: flex; flex-direction: column; gap: 4px; max-width: 78%; ' + (mine ? 'align-items: flex-end' : 'align-items: flex-start'),
+        bubbleRow: 'display: flex; align-items: flex-end; gap: 6px; ' + (mine ? 'flex-direction: row-reverse' : ''),
+        bubbleStyle: 'display: inline-block; padding: 8px 12px; border: 2px ' + (isHidden ? 'dashed' : 'solid') + ' ' + ink + '; border-radius: ' + (mine ? '12px 4px 12px 12px' : '4px 12px 12px 12px') + '; font-size: 14px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; box-shadow: ' + (isHidden ? 'none' : callsMe ? '4px 4px 0 ' + ink : '3px 3px 0 ' + ink) + '; background: ' + (isHidden ? '#FBF7EF' : mine ? SEC2 : '#FFFFFF') };
+    });
+    const tk = { md: room.md, line1: room.time + '  ' + room.place, line2: room.count, line3: room.due,
+      perf: room.state !== 'done', hasStub: room.state !== 'done', hasStamp: room.state === 'done', stubText: room.state === 'cancel' ? '취소' : room.dow,
+      wrap: 'display: flex; align-items: stretch; border-radius: 10px; background: #FFFFFF; overflow: hidden; box-shadow: 0 1px 0 rgba(18, 17, 16, .08), 0 6px 14px rgba(18, 17, 16, .14)',
+      stub: 'flex: none; width: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: ' + (room.state === 'cancel' ? '#F3EEE4' : SEC) };
+    const draft = st.draft || '', sendOff = !draft.trim();
+    const send = (e) => { if (e && e.preventDefault) e.preventDefault(); if (!draft.trim()) { say('보낼 말을 적어 주세요'); return; } this.setState({ draft: '', sent: Object.assign({}, sent, { [room.id]: (sent[room.id] || []).concat([['msg', me, isAdmin ? OP : '', '', '10:00', draft.trim()]]) }) }); };
+    const ALARM = [['some', '@와 운영진 글만', '지금은 나를 부른 글과 운영진 글만 알림이 와요'], ['all', '모든 글', '지금은 모든 글에 알림이 와요'], ['off', '알림 끔', '지금은 대화 알림이 꺼져 있어요']];
+    const ai = Math.max(0, ALARM.map((a) => a[0]).indexOf(st.alarm || 'some'));
+    return {
+      isList: view === 'list', isRoom: view === 'room', tabs: tabs, rooms: rooms, nav: nav,
+      navStyle: 'flex: none; margin: 0 16px 20px; display: grid; grid-template-columns: repeat(' + NAV.length + ', minmax(0, 1fr)); gap: 2px; background: #121110; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; height: 64px',
+      alarmShort: ALARM[ai][1], alarmAria: ALARM[ai][2] + '. 눌러서 바꿔요', cycleAlarm: () => this.setState({ alarm: ALARM[(ai + 1) % 3][0] }),
+      back: () => this.setState({ view: 'list' }), roomTitle: room.title, roomPeople: PEOPLE[room.id] || '', tk: tk, msgs: msgs,
+      canWrite: !closed, closed: closed, closedText: room.state === 'cancel' ? '취소된 일정이라 읽기만 할 수 있어요.' : '경기가 끝나 읽기만 할 수 있어요.',
+      draft: draft, onDraft: (e) => this.setState({ draft: e && e.target ? e.target.value : '' }), send: send, sendOff: sendOff,
+      sendStyle: 'flex: none; height: 48px; padding: 0 14px; border: 2px solid ' + ink + '; border-radius: 12px; background: #FCD01A; font: 700 15px \'IBM Plex Sans KR\', sans-serif; color: ' + ink + '; cursor: pointer; ' + (sendOff ? 'opacity: 0.35; box-shadow: none' : 'box-shadow: 3px 3px 0 ' + ink),
+      hasToast: !!st.toast, toastText: st.toast || ''
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>PC 운영</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&amp;family=Black+Han+Sans&amp;family=IBM+Plex+Sans+KR:wght@400;500;700&amp;display=swap">
+<style>
+body,body *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,select,[contenteditable],[contenteditable] *{-webkit-user-select:text;user-select:text}
+img,svg,a{-webkit-user-drag:none}
+body{margin:0}
+*{scrollbar-width:none}
+*::-webkit-scrollbar{display:none}
+.snv{position:relative;transition:transform .16s ease-out,box-shadow .16s ease-out}
+.snv:hover,.snv.on{transform:translate(-3px,-3px);box-shadow:0 0 0 2px #121110;z-index:1}
+.tkb{transition:transform .16s ease-out}
+.tkb:hover{transform:translate(-2px,-2px)}
+.pstamp{animation:pstamp .34s cubic-bezier(.3,1.6,.5,1) both}@keyframes pstamp{from{transform:scale(1.5) rotate(-8deg);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion: reduce){.snv,.tkb{transition:none}.pstamp{animation:none}}
+</style>
+</helmet>
+<div style="-webkit-user-select: none; user-select: none; -webkit-touch-callout: none; width: 100%; min-height: 900px; box-sizing: border-box; background-color: #FBF7EF; background-image: linear-gradient(rgba(18, 17, 16, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(18, 17, 16, 0.06) 1px, transparent 1px); background-size: 16px 16px; color: #121110; font-family: 'IBM Plex Sans KR', sans-serif; position: relative; display: flex; flex-wrap: wrap; align-items: stretch; word-break: keep-all">
+
+  <aside aria-label="팀과 메뉴" style="flex: 1 1 232px; box-sizing: border-box; padding: 24px 20px; display: flex; flex-direction: column; gap: 24px; border-right: 2px solid #121110; background: #FBF7EF">
+    <span style="display: inline-flex; align-items: center; gap: 8px"><span role="img" aria-label="매니볼" style="width: 32px; height: 32px; border-radius: 9px; background: #5B8DEF; border: 2px solid #121110; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; flex: none"><svg width="24" height="24" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="22" fill="none" stroke="#121110" stroke-width="5"></circle><circle cx="23" cy="26" r="3.6" fill="#E46A2E"></circle><circle cx="23" cy="38" r="3.6" fill="#E46A2E"></circle><path d="M30 26 H43 M30 38 H41" fill="none" stroke="#121110" stroke-width="5" stroke-linecap="round"></path></svg></span><span style="display: flex; flex-direction: column; line-height: 1"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 20px">매니볼</b><span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 3px; margin-top: 4px">MANIBALL</span></span></span>
+
+    <button type="button" onClick="{{ openTeams }}" aria-label="{{ teamBtnLabel }}" style="display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 8px 12px; box-sizing: border-box; border: 2px solid #121110; border-radius: 12px; background: #FFFFFF; box-shadow: 4px 4px 0 #121110; font-family: inherit; color: #121110; text-align: left; cursor: pointer">
+      <span style="position: relative; flex: none; width: 40px; height: 40px; display: block"><span style="{{ team.logoFill }}"></span><svg width="40" height="40" viewBox="6 6 88 88" aria-hidden="true" style="position: absolute; inset: 0; display: block"><g fill="none" stroke="#121110" stroke-width="2.5" stroke-linejoin="round" opacity="0.9"><rect x="18" y="15" width="64" height="70" rx="1"></rect><line x1="18" y1="50" x2="82" y2="50"></line><rect x="33" y="15" width="34" height="13"></rect><rect x="41" y="15" width="18" height="6"></rect><rect x="33" y="72" width="34" height="13"></rect><rect x="41" y="79" width="18" height="6"></rect></g></svg><span aria-hidden="true" style="{{ team.logoCut40 }}">{{ team.tag }}</span></span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 20px; line-height: 1.1">{{ team.name }}</b><span style="font-size: 12px">{{ team.sport }}팀  {{ team.role }}</span></span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M4 8h13l-3-3M20 16H7l3 3"></path></svg>
+    </button>
+
+    <sc-if value="{{ isMember }}" hint-placeholder-val="{{ true }}">
+    <nav aria-label="메뉴" style="display: flex; flex-direction: column; gap: 2px; background: #121110; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110">
+      <a href="{{ lk.PC_Home }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Home }}" onMouseDown="{{ lk.go_PC_Home }}" onFocus="{{ lk.go_PC_Home }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 10px 10px 0 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg>홈</a>
+      <a href="{{ lk.PC_Sch }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Sch }}" onMouseDown="{{ lk.go_PC_Sch }}" onFocus="{{ lk.go_PC_Sch }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>일정</a>
+      <a href="{{ lk.PC_Chat }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Chat }}" onMouseDown="{{ lk.go_PC_Chat }}" onFocus="{{ lk.go_PC_Chat }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5h16v11.5H10.5L6 19.5V16H4z"></path><path d="M8 8.8h8M8 11.8h5"></path></svg>대화<span aria-label="안 읽은 대화 3" style="margin-left: auto; min-width: 24px; height: 24px; box-sizing: border-box; padding: 0 6px; border-radius: 12px; background: #121110; color: #FBF7EF; font: 700 13px 'Barlow Condensed', sans-serif; display: inline-flex; align-items: center; justify-content: center">3</span></a>
+      <a href="{{ lk.PC_Rec }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Rec }}" onMouseDown="{{ lk.go_PC_Rec }}" onFocus="{{ lk.go_PC_Rec }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M6 20v-8M12 20V5M18 20v-5"></path></svg>기록</a>
+      <a href="{{ lk.PC_Team }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Team }}" onMouseDown="{{ lk.go_PC_Team }}" onFocus="{{ lk.go_PC_Team }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0 0 10px 10px; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16.5 14.6c2.4.3 4.2 2.1 4.8 5.4"></path></svg>팀</a>
+    </nav>
+    </sc-if>
+    <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
+    <nav aria-label="메뉴" style="display: flex; flex-direction: column; gap: 2px; background: #121110; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110">
+      <a href="{{ lk.PC_Home_A }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Home_A }}" onMouseDown="{{ lk.go_PC_Home_A }}" onFocus="{{ lk.go_PC_Home_A }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 10px 10px 0 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg>홈</a>
+      <a href="{{ lk.PC_Sch_A }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Sch_A }}" onMouseDown="{{ lk.go_PC_Sch_A }}" onFocus="{{ lk.go_PC_Sch_A }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>일정</a>
+      <a href="{{ lk.PC_Chat_A }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Chat_A }}" onMouseDown="{{ lk.go_PC_Chat_A }}" onFocus="{{ lk.go_PC_Chat_A }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5h16v11.5H10.5L6 19.5V16H4z"></path><path d="M8 8.8h8M8 11.8h5"></path></svg>대화<span aria-label="안 읽은 대화 3" style="margin-left: auto; min-width: 24px; height: 24px; box-sizing: border-box; padding: 0 6px; border-radius: 12px; background: #121110; color: #FBF7EF; font: 700 13px 'Barlow Condensed', sans-serif; display: inline-flex; align-items: center; justify-content: center">3</span></a>
+      <a href="{{ lk.PC_Rec_A }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Rec_A }}" onMouseDown="{{ lk.go_PC_Rec_A }}" onFocus="{{ lk.go_PC_Rec_A }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M6 20v-8M12 20V5M18 20v-5"></path></svg>기록</a>
+      <a href="{{ lk.PC_Team_A }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Team_A }}" onMouseDown="{{ lk.go_PC_Team_A }}" onFocus="{{ lk.go_PC_Team_A }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16.5 14.6c2.4.3 4.2 2.1 4.8 5.4"></path></svg>팀</a>
+      <a href="{{ lk.PC_Ops }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Ops }}" onMouseDown="{{ lk.go_PC_Ops }}" onFocus="{{ lk.go_PC_Ops }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" aria-current="page" class="snv on" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0 0 10px 10px; background: #B093E5; color: #121110; font-weight: 700; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"></path></svg>운영</a>
+    </nav>
+    </sc-if>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700"><span aria-hidden="true" style="width: 10px; height: 10px; box-sizing: border-box; border-radius: 50%; border: 2px solid #121110; background: #F2A65A"></span>다른 팀과</span>
+      <sc-if value="{{ isMember }}" hint-placeholder-val="{{ true }}">
+      <nav aria-label="다른 팀과" style="display: flex; flex-direction: column; gap: 2px; background: #121110; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110">
+        <a href="{{ lk.PC_Match }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Match }}" onMouseDown="{{ lk.go_PC_Match }}" onFocus="{{ lk.go_PC_Match }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 12px 0 16px; border-radius: 10px 10px 0 0; background: #FFFFFF; color: #5B5650; font-size: 15px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h11l-3-3M20 17H9l3 3"></path></svg><span style="flex: 1">매칭</span></a>
+        <a href="{{ lk.PC_Hire }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Hire }}" onMouseDown="{{ lk.go_PC_Hire }}" onFocus="{{ lk.go_PC_Hire }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 12px 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 15px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v4h3l7 4V6L7 10z"></path><path d="M18 9a4 4 0 0 1 0 6"></path></svg><span style="flex: 1">용병 구인</span></a>
+        <a href="{{ lk.PC_Seek }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Seek }}" onMouseDown="{{ lk.go_PC_Seek }}" onFocus="{{ lk.go_PC_Seek }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 12px 0 16px; border-radius: 0 0 10px 10px; background: #FFFFFF; color: #5B5650; font-size: 15px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="8" r="4"></circle><path d="M3 21c.8-4 3.5-6 7-6 1.4 0 2.6.3 3.6.9"></path><circle cx="18" cy="17" r="3"></circle><path d="M20.2 19.2 22 21"></path></svg><span style="flex: 1">용병 구직</span></a>
+      </nav>
+      </sc-if>
+      <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
+      <nav aria-label="다른 팀과" style="display: flex; flex-direction: column; gap: 2px; background: #121110; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110">
+        <a href="{{ lk.PC_Match_A }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Match_A }}" onMouseDown="{{ lk.go_PC_Match_A }}" onFocus="{{ lk.go_PC_Match_A }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 12px 0 16px; border-radius: 10px 10px 0 0; background: #FFFFFF; color: #5B5650; font-size: 15px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h11l-3-3M20 17H9l3 3"></path></svg><span style="flex: 1">매칭</span></a>
+        <a href="{{ lk.PC_Hire_A }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Hire_A }}" onMouseDown="{{ lk.go_PC_Hire_A }}" onFocus="{{ lk.go_PC_Hire_A }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 12px 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 15px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v4h3l7 4V6L7 10z"></path><path d="M18 9a4 4 0 0 1 0 6"></path></svg><span style="flex: 1">용병 구인</span></a>
+        <a href="{{ lk.PC_Seek_A }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Seek_A }}" onMouseDown="{{ lk.go_PC_Seek_A }}" onFocus="{{ lk.go_PC_Seek_A }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 12px 0 16px; border-radius: 0 0 10px 10px; background: #FFFFFF; color: #5B5650; font-size: 15px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="8" r="4"></circle><path d="M3 21c.8-4 3.5-6 7-6 1.4 0 2.6.3 3.6.9"></path><circle cx="18" cy="17" r="3"></circle><path d="M20.2 19.2 22 21"></path></svg><span style="flex: 1">용병 구직</span></a>
+      </nav>
+      </sc-if>
+    </div>
+
+    <div style="margin-top: auto; display: flex; align-items: center; gap: 12px; padding-top: 16px; border-top: 2px solid #DDD6C8">
+      <span aria-hidden="true" style="flex: none; width: 40px; height: 40px; box-sizing: border-box; border-radius: 50%; border: 2px solid #121110; background: #121110; color: #FBF7EF; display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px">{{ team.num }}</span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px"><b style="font-size: 16px">{{ me }}</b><span style="font-size: 12px; color: #5B5650">카카오 계정 연결됨</span></span>
+      <button type="button" style="min-height: 44px; padding: 0 4px; border: 0; background: transparent; font: 500 14px 'IBM Plex Sans KR', sans-serif; color: #5B5650; text-decoration: underline; cursor: pointer">로그아웃</button>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 720px; min-width: 0; box-sizing: border-box; padding: 24px 32px 40px; display: flex; flex-direction: column; gap: 24px">
+    <sc-if value="{{ denied }}" hint-placeholder-val="{{ false }}">
+    <section aria-label="운영 메뉴 막힘" style="max-width: 560px; box-sizing: border-box; padding: 32px; border: 2px solid #121110; border-radius: 16px; background: #FFFFFF; box-shadow: 4px 4px 0 #121110; display: flex; flex-direction: column; gap: 16px">
+      <h1 style="margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 28px">운영진만 볼 수 있어요</h1>
+      <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #5B5650">운영 메뉴는 그 팀 운영진만 열 수 있어요. 주소를 바꿔 들어와도 열리지 않아요.</p>
+      <a href="{{ lk.PC_Home }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Home }}" onMouseDown="{{ lk.go_PC_Home }}" onFocus="{{ lk.go_PC_Home }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" style="align-self: flex-start; height: 52px; padding: 0 24px; box-sizing: border-box; border: 2px solid #121110; border-radius: 12px; background: #FCD01A; box-shadow: 3px 3px 0 #121110; color: #121110; font: 700 16px 'IBM Plex Sans KR', sans-serif; text-decoration: none; display: inline-flex; align-items: center">홈으로</a>
+    </section>
+    </sc-if>
+    <sc-if value="{{ allowed }}" hint-placeholder-val="{{ true }}">
+    <header style="display: flex; align-items: center; gap: 16px; min-height: 64px">
+      <span style="flex: 1; display: flex; align-items: baseline; gap: 12px"><h1 style="margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 32px">운영</h1><span style="font-size: 14px; color: #5B5650">운영진만 보는 메뉴예요. 팀원 화면에는 없어요.</span></span>
+      <span style="font-size: 12px; font-weight: 700; border: 2px solid #121110; border-radius: 5px; padding: 2px 8px; background: #121110; color: #FBF7EF">운영진 김도현</span>
+    </header>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+      <section aria-label="운영 메뉴" style="flex: 1 1 300px; max-width: 380px; display: flex; flex-direction: column; gap: 12px">
+        <sc-for list="{{ menu }}" as="m" hint-placeholder-count="6">
+          <button type="button" onClick="{{ m.go }}" aria-pressed="{{ m.on }}" style="{{ m.style }}"><span style="flex: 1; display: flex; flex-direction: column; gap: 4px; text-align: left"><b style="font-size: 16px">{{ m.title }}</b><span style="font-size: 12px; color: #5B5650">{{ m.sub }}</span></span><sc-if value="{{ m.right }}" hint-placeholder-val="{{ true }}"><span style="{{ m.rightStyle }}">{{ m.right }}</span></sc-if><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M9 5l7 7-7 7"></path></svg></button>
+        </sc-for>
+      </section>
+
+      <section aria-label="{{ panelTitle }}" style="flex: 999 1 480px; min-width: 0; min-height: 720px; box-sizing: border-box; background: #FFFFFF; border: 2px solid #121110; border-radius: 16px; box-shadow: 4px 4px 0 #121110; display: flex; flex-direction: column">
+        <div style="display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 0 16px 0 24px; border-bottom: 2px solid #121110">
+          <span aria-hidden="true" style="font-size: 12px; font-weight: 700; background: #B093E5; border: 2px solid #121110; border-radius: 5px; padding: 2px 8px">운영</span>
+          <h2 style="flex: 1; min-width: 0; margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">{{ panelTitle }}</h2>
+          <span style="font-size: 12px; color: #5B5650">{{ panelSub }}</span>
+        </div>
+
+        <sc-if value="{{ isJoin }}" hint-placeholder-val="{{ true }}">
+          <div style="flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+            <sc-for list="{{ joins }}" as="j" hint-placeholder-count="2">
+              <div style="border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; padding: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
+                <span style="flex: 1 1 240px; display: flex; flex-direction: column; gap: 4px"><span style="display: flex; align-items: center; gap: 8px"><b style="font-size: 18px">{{ j.name }}</b><span style="{{ j.stateStyle }}">{{ j.state }}</span></span><span style="font-size: 12px; color: #5B5650">카카오 이름 {{ j.kakao }}  {{ j.pos }}  {{ j.date }} 신청</span><sc-if value="{{ j.dup }}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; line-height: 1.5; border: 2px dashed #121110; border-radius: 8px; padding: 4px 8px; background: #FBF7EF">팀에 같은 이름이 있어요 (7 이준호). 같은 사람이 다른 카카오 계정으로 들어온 건 아닌지 확인해 주세요.</span></sc-if></span>
+                <sc-if value="{{ j.pending }}" hint-placeholder-val="{{ true }}"><span style="display: flex; gap: 8px"><button type="button" onClick="{{ j.no }}" style="height: 44px; padding: 0 16px; border: 2px solid #121110; border-radius: 10px; background: #FBF7EF; font: 700 14px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer">거절</button><button type="button" onClick="{{ j.yes }}" style="height: 44px; padding: 0 20px; border: 2px solid #121110; border-radius: 10px; background: #121110; font: 700 14px 'IBM Plex Sans KR', sans-serif; color: #FBF7EF; cursor: pointer">받기</button></span></sc-if>
+              </div>
+            </sc-for>
+            <span style="font-size: 12px; line-height: 1.6; color: #5B5650">받으면 팀원이 되고 선수 등록을 마친 뒤 팀원 홈으로 들어가요. 가입 승인제는 팀 설정에서 끌 수 있어요.</span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isPos }}" hint-placeholder-val="{{ false }}">
+          <div style="flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+            <div style="border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; padding: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 24px">
+              <span style="display: flex; align-items: center; gap: 12px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 32px">7</b><span style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 18px">이준호</b><span style="font-size: 12px; color: #5B5650">11.19 요청</span></span><span style="{{ pr.stateStyle }}">{{ pr.state }}</span></span>
+              <span style="display: flex; align-items: center; gap: 12px; font-family: 'Barlow Condensed', 'IBM Plex Sans KR', sans-serif"><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px">지금</span><b style="font-size: 22px">LW / CAM</b></span><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px">바꿔 달라는 것</span><b style="font-size: 22px">ST / LW</b></span></span>
+              <span style="flex: 1"></span>
+              <sc-if value="{{ pr.pending }}" hint-placeholder-val="{{ true }}"><span style="display: flex; gap: 8px"><button type="button" onClick="{{ pr.no }}" style="height: 44px; padding: 0 16px; border: 2px solid #121110; border-radius: 10px; background: #FBF7EF; font: 700 14px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer">거절</button><button type="button" onClick="{{ pr.yes }}" style="height: 44px; padding: 0 20px; border: 2px solid #121110; border-radius: 10px; background: #121110; font: 700 14px 'IBM Plex Sans KR', sans-serif; color: #FBF7EF; cursor: pointer">받기</button></span></sc-if>
+            </div>
+            <section style="display: flex; flex-direction: column"><b style="font-size: 16px; border-bottom: 2px solid #121110; padding-bottom: 8px">지난 요청</b>
+              <div style="display: flex; align-items: center; gap: 12px; min-height: 48px; border-bottom: 2px solid #DDD6C8; font-size: 14px"><span style="flex: 1">11.02  이준호  CAM / LW → LW / CAM</span><span style="font-size: 12px; font-weight: 700; border: 2px solid #121110; border-radius: 5px; padding: 0 8px; background: #121110; color: #FBF7EF">받음</span></div>
+              <div style="display: flex; align-items: center; gap: 12px; min-height: 48px; border-bottom: 2px solid #DDD6C8; font-size: 14px"><span style="flex: 1">10.21  백승민  LW / ST → ST / LW</span><span style="font-size: 12px; font-weight: 700; border: 2px solid #121110; border-radius: 5px; padding: 0 8px; background: #121110; color: #FBF7EF">받음</span></div>
+            </section>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isDues }}" hint-placeholder-val="{{ false }}">
+          <div style="flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px"><sc-for list="{{ months }}" as="o" hint-placeholder-count="3"><button type="button" aria-pressed="{{ o.on }}" onClick="{{ o.pick }}" style="{{ o.style }}">{{ o.label }}</button></sc-for><span style="flex: 1"></span><span style="font-size: 14px">한 달 30,000원</span></div>
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+              <span style="border: 2px solid #121110; border-radius: 12px; background: #F4EFFF; padding: 12px 16px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 700">모인 돈</span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 32px; line-height: 1">{{ duesSum }}</b></span>
+              <span style="border: 2px solid #121110; border-radius: 12px; padding: 12px 16px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 700">낸 사람</span><span style="display: flex; align-items: baseline; gap: 4px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 32px; line-height: 1">{{ duesPaid }}</b><span style="font-size: 14px">/ 26</span></span></span>
+              <span style="border: 2px dashed #121110; border-radius: 12px; padding: 12px 16px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 700">안 낸 사람</span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 32px; line-height: 1">{{ duesLeft }}명</b></span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px">
+              <sc-for list="{{ duesRows }}" as="d" hint-placeholder-count="12"><div style="{{ d.row }}"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 18px; width: 28px">{{ d.num }}</b><span style="flex: 1; font-size: 15px; font-weight: 700">{{ d.name }}</span><button type="button" aria-pressed="{{ d.paid }}" onClick="{{ d.toggle }}" style="{{ d.style }}">{{ d.label }}</button></div></sc-for>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; border: 2px dashed #121110; border-radius: 12px; padding: 12px 16px"><span style="font-size: 14px">안 낸 사람에게만 알림이 가요.</span><button type="button" onClick="{{ nudge }}" style="height: 44px; padding: 0 16px; border: 2px solid #121110; border-radius: 10px; background: #FCD01A; box-shadow: 3px 3px 0 #121110; font: 700 14px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer; white-space: nowrap">{{ nudgeLabel }}</button></div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isFines }}" hint-placeholder-val="{{ false }}">
+          <div style="flex: 1; padding: 24px; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+            <div style="flex: 999 1 380px; min-width: 0; border: 2px solid #121110; border-radius: 12px; overflow: hidden">
+              <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 1fr 1fr 80px; background: #121110; color: #FBF7EF; font-size: 12px; font-weight: 700"><span style="padding: 8px 12px">이름</span><span style="padding: 8px 12px">무엇</span><span style="padding: 8px 12px">언제</span><span style="padding: 8px 12px">금액</span><span style="padding: 8px 12px"></span></div>
+              <sc-for list="{{ fineRows }}" as="f" hint-placeholder-count="6"><div style="display: grid; grid-template-columns: 1.2fr 1.2fr 1fr 1fr 80px; border-top: 2px solid #DDD6C8; min-height: 52px; align-items: center; font-size: 14px"><b style="padding: 0 12px">{{ f.name }}</b><span style="padding: 0 12px">{{ f.why }}</span><span style="padding: 0 12px; color: #5B5650">{{ f.when }}</span><b style="padding: 0 12px; font-family: 'Barlow Condensed', sans-serif; font-size: 18px">{{ f.amount }}</b><span style="padding: 0 8px"><button type="button" aria-pressed="{{ f.paid }}" onClick="{{ f.toggle }}" style="{{ f.style }}">{{ f.label }}</button></span></div></sc-for>
+            </div>
+            <div role="group" aria-label="벌금 매기기" style="flex: 1 1 260px; max-width: 320px; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+              <b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 20px">벌금 매기기</b>
+              <label style="display: flex; flex-direction: column; gap: 8px; font-size: 14px; font-weight: 700">누구<select value="{{ fa.who }}" onChange="{{ fa.onWho }}" style="height: 44px; border: 2px solid #121110; border-radius: 10px; background: #FFFFFF; font: 500 15px 'IBM Plex Sans KR', sans-serif; color: #121110; padding: 0 8px"><sc-for list="{{ fa.people }}" as="p" hint-placeholder-count="12"><option value="{{ p.name }}">{{ p.label }}</option></sc-for></select></label>
+              <label style="display: flex; flex-direction: column; gap: 8px; font-size: 14px; font-weight: 700">언제<select value="{{ fa.game }}" onChange="{{ fa.onGame }}" style="height: 44px; border: 2px solid #121110; border-radius: 10px; background: #FFFFFF; font: 500 15px 'IBM Plex Sans KR', sans-serif; color: #121110; padding: 0 8px"><option value="11.15 경기">11.15 경기</option><option value="11.08 내전">11.08 내전</option><option value="11.01 경기">11.01 경기</option></select></label>
+              <span style="font-size: 14px; font-weight: 700">무엇</span>
+              <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px"><sc-for list="{{ fa.items }}" as="i" hint-placeholder-count="3"><button type="button" aria-pressed="{{ i.on }}" onClick="{{ i.pick }}" style="{{ i.style }}">{{ i.label }}<span>{{ i.amount }}</span></button></sc-for></div>
+              <span style="font-size: 12px; line-height: 1.6; color: #5B5650">매기면 그 팀원의 내가 낼 돈에 바로 올라가고 알림이 가요.</span>
+              <button type="button" onClick="{{ fa.save }}" style="height: 52px; border: 2px solid #121110; border-radius: 12px; background: #FCD01A; box-shadow: 3px 3px 0 #121110; font: 700 15px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer">{{ fa.cta }}</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isRules }}" hint-placeholder-val="{{ false }}">
+          <div style="flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+            <span style="font-size: 14px; line-height: 1.6; color: #5B5650">팀을 만들 때 정한 값이에요. 바꾸면 그 뒤에 올리는 일정부터 적용돼요. 운영진은 볼 수만 있어요.</span>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px">
+              <sc-for list="{{ rules }}" as="r" hint-placeholder-count="5"><label style="border: 2px solid #121110; border-radius: 12px; padding: 12px 16px; display: flex; flex-direction: column; gap: 8px"><b style="font-size: 14px">{{ r.title }}</b><span style="display: flex; align-items: center; gap: 8px; font-size: 14px"><span>{{ r.pre }}</span><input type="text" inputmode="numeric" value="{{ r.value }}" onChange="{{ r.on }}" aria-label="{{ r.title }}" style="width: 72px; height: 44px; box-sizing: border-box; border: 2px solid #121110; border-radius: 10px; padding: 0 12px; font: 700 18px 'Barlow Condensed', sans-serif; background: #FFFFFF; color: #121110"><span>{{ r.post }}</span></span></label></sc-for>
+            </div>
+            <div style="border: 2px solid #121110; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+              <b style="font-size: 14px">투표 마감</b>
+              <span style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px">경기<input type="text" inputmode="numeric" value="{{ closeDays }}" onChange="{{ onCloseDays }}" aria-label="경기 며칠 전 마감" style="width: 64px; height: 44px; box-sizing: border-box; border: 2px solid #121110; border-radius: 10px; padding: 0 12px; font: 700 18px 'Barlow Condensed', sans-serif; background: #FFFFFF; color: #121110">일 전<sc-for list="{{ closeAps }}" as="a" hint-placeholder-count="2"><button type="button" aria-pressed="{{ a.on }}" onClick="{{ a.pick }}" style="{{ a.style }}">{{ a.label }}</button></sc-for><input type="text" inputmode="numeric" value="{{ closeHour }}" onChange="{{ onCloseHour }}" aria-label="마감 몇 시" style="width: 64px; height: 44px; box-sizing: border-box; border: 2px solid #121110; border-radius: 10px; padding: 0 12px; font: 700 18px 'Barlow Condensed', sans-serif; background: #FFFFFF; color: #121110">시</span>
+              <span style="font-size: 14px; line-height: 1.6">{{ closeSummary }}</span>
+            </div>
+            <div style="border: 2px solid #121110; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+              <b style="font-size: 14px">불참 변경 벌금은 언제부터</b>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{ fineFrom }}" as="o" hint-placeholder-count="3"><button type="button" aria-pressed="{{ o.on }}" onClick="{{ o.pick }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div>
+              <sc-if value="{{ isCustom }}" hint-placeholder-val="{{ false }}"><span style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px">경기<input type="text" inputmode="numeric" value="{{ fineDays }}" onChange="{{ onFineDays }}" aria-label="며칠 전" style="width: 64px; height: 44px; box-sizing: border-box; border: 2px solid #121110; border-radius: 10px; padding: 0 12px; font: 700 18px 'Barlow Condensed', sans-serif; background: #FFFFFF; color: #121110">일 전<sc-for list="{{ fineAps }}" as="a" hint-placeholder-count="2"><button type="button" aria-pressed="{{ a.on }}" onClick="{{ a.pick }}" style="{{ a.style }}">{{ a.label }}</button></sc-for><input type="text" inputmode="numeric" value="{{ fineHour }}" onChange="{{ onFineHour }}" aria-label="몇 시" style="width: 64px; height: 44px; box-sizing: border-box; border: 2px solid #121110; border-radius: 10px; padding: 0 12px; font: 700 18px 'Barlow Condensed', sans-serif; background: #FFFFFF; color: #121110">시부터</span></sc-if>
+              <span style="font-size: 14px; line-height: 1.6">{{ fineSummary }}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; font-size: 14px"><b>쿼터 수</b><span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px">4쿼터</span><span style="color: #5B5650">축구팀은 바꿀 수 없어요</span></div>
+            <div style="margin-top: auto; display: flex; justify-content: flex-end; padding-top: 16px; border-top: 2px solid #DDD6C8"><button type="button" onClick="{{ saveRules }}" style="height: 52px; padding: 0 24px; border: 2px solid #121110; border-radius: 12px; background: #FCD01A; box-shadow: 3px 3px 0 #121110; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer">저장하기</button></div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+          <div style="flex: 1; padding: 24px; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+            <div style="flex: 1 1 320px; display: flex; flex-direction: column; gap: 16px">
+              <label style="display: flex; flex-direction: column; gap: 8px; font-size: 14px; font-weight: 700">팀 이름<input type="text" placeholder="TEST FC" style="height: 48px; box-sizing: border-box; border: 2px solid #121110; border-radius: 10px; padding: 0 12px; font: 500 16px 'IBM Plex Sans KR', sans-serif; background: #FFFFFF; color: #121110"></label>
+              <div style="display: flex; align-items: center; gap: 12px; font-size: 14px"><b>종목</b><span style="font-weight: 700; border: 2px solid #121110; border-radius: 5px; padding: 0 8px">축구팀</span><span style="color: #5B5650">만든 뒤에는 바꿀 수 없어요</span></div>
+              <div style="border: 2px solid #121110; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+                <span style="display: flex; flex-direction: column; gap: 4px"><b style="font-size: 16px">유니폼 색</b><span style="font-size: 12px; color: #5B5650">경기마다 HOME, AWAY 중에서 골라요</span></span>
+                <sc-for list="{{ kitRows }}" as="k" hint-placeholder-count="2"><div style="display: flex; flex-direction: column; gap: 8px"><span style="display: flex; align-items: center; gap: 8px; font-size: 14px"><b>{{ k.label }}</b><span>{{ k.name }}</span></span><div style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px"><sc-for list="{{ k.sw }}" as="c" hint-placeholder-count="12"><button type="button" aria-label="{{ c.aria }}" aria-pressed="{{ c.on }}" onClick="{{ c.pick }}" style="{{ c.btn }}"><span style="{{ c.dot }}"></span></button></sc-for></div></div></sc-for>
+                <span style="font-size: 12px; color: #5B5650">라인업 화면의 유니폼이 이 색으로 보여요. 골키퍼 유니폼은 골키퍼인 팀원이 직접 골라요.</span>
+              </div>
+            </div>
+            <div style="flex: 1 1 320px; display: flex; flex-direction: column; gap: 16px">
+              <div style="border: 2px solid #121110; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px"><b style="font-size: 16px">초대 링크</b><span style="display: flex; align-items: center; gap: 8px"><span style="flex: 1; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 18px">maniball.co.kr/j/TESTFC-7Q2K</span><button type="button" onClick="{{ copy }}" style="height: 40px; padding: 0 16px; border: 2px solid #121110; border-radius: 8px; background: #FBF7EF; font: 700 14px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer">{{ copyLabel }}</button></span><span style="font-size: 12px; color: #5B5650">링크로 들어온 사람은 무조건 팀원으로 시작해요.</span></div>
+              <button type="button" role="switch" aria-checked="{{ approve }}" onClick="{{ flipApprove }}" style="display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 0 16px; border: 2px solid #121110; border-radius: 12px; background: #FFFFFF; font-family: inherit; color: #121110; text-align: left; cursor: pointer"><span style="flex: 1; display: flex; flex-direction: column; gap: 4px"><b style="font-size: 16px">가입 승인제</b><span style="font-size: 12px; color: #5B5650">{{ approveSub }}</span></span><span style="{{ asw.track }}"><span style="{{ asw.knob }}"></span></span></button>
+              <div style="border: 2px solid #121110; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px"><span style="display: flex; justify-content: space-between; align-items: baseline"><b style="font-size: 16px">운영진</b><span style="font-size: 12px; color: #5B5650">팀 메뉴의 팀원에서 정해요</span></span>
+                <div style="display: flex; align-items: center; gap: 12px; min-height: 44px; border-bottom: 2px solid #DDD6C8"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 18px; width: 28px">10</b><span style="flex: 1; font-weight: 700">김도현 (나)</span><span style="font-size: 11px; font-weight: 700; border: 1.5px solid #121110; border-radius: 4px; padding: 0 4px; background: #121110; color: #FBF7EF">운영진</span></div>
+                <div style="display: flex; align-items: center; gap: 12px; min-height: 44px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 18px; width: 28px">4</b><span style="flex: 1; font-weight: 700">정우진</span><span style="font-size: 11px; font-weight: 700; border: 1.5px solid #121110; border-radius: 4px; padding: 0 4px">운영진</span></div>
+                <span style="font-size: 12px; line-height: 1.6; color: #5B5650">운영진은 여러 명 둘 수 있고, 운영진끼리 내리거나 내보낼 수 있어요.</span>
+              </div>
+              <button type="button" onClick="{{ openDelete }}" style="height: 52px; border: 2px solid #121110; border-radius: 12px; background: #FBF7EF; font: 700 15px 'IBM Plex Sans KR', sans-serif; color: #8C3B28; cursor: pointer">팀 지우기, 나가기</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isDelete }}" hint-placeholder-val="{{ false }}">
+          <div style="flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+            <b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">TEST FC를 어떻게 할까요?</b>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; padding: 4px">
+              <div style="border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; padding: 16px; display: flex; flex-direction: column; gap: 12px"><b style="font-size: 18px">다음 운영진 정하고 나가기</b><span style="font-size: 14px; line-height: 1.6">팀은 그대로 남고 나만 나가요. 내가 마지막 운영진이면 팀원 중에서 다음 운영진을 정해요.</span><span style="display: flex; align-items: center; gap: 8px; font-size: 14px"><b>다음 운영진</b><span style="border: 2px solid #121110; border-radius: 8px; padding: 4px 12px">4 정우진 (운영진)</span></span><button type="button" onClick="{{ leave }}" style="margin-top: auto; height: 52px; border: 2px solid #121110; border-radius: 12px; background: #121110; font: 700 15px 'IBM Plex Sans KR', sans-serif; color: #FBF7EF; cursor: pointer">정우진에게 맡기고 나가기</button></div>
+              <div style="border: 2px solid #8C3B28; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px"><b style="font-size: 18px; color: #8C3B28">매니볼에 팀 지우기 요청</b><span style="font-size: 14px; line-height: 1.6">팀 지우기는 매니볼 개발자에게 요청해서 해요. 확인한 뒤 지우고, 그때까지 팀은 그대로예요. 지우면 모든 기록이 사라지고 되돌릴 수 없어요. 매니볼을 더 좋게 만들 수 있게 이유를 남겨 주세요.</span><div style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{ reasons }}" as="r" hint-placeholder-count="4"><button type="button" aria-pressed="{{ r.on }}" onClick="{{ r.pick }}" style="{{ r.style }}">{{ r.label }}</button></sc-for></div><button type="button" onClick="{{ delTeam }}" style="margin-top: auto; height: 52px; border: 2px solid #8C3B28; border-radius: 12px; background: #FFFFFF; font: 700 15px 'IBM Plex Sans KR', sans-serif; color: #8C3B28; cursor: pointer">평가 남기고 지우기 요청 보내기</button></div>
+            </div>
+          </div>
+        </sc-if>
+      </section>
+    </div>
+    </sc-if>
+  </main>
+
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+    <div role="status" style="position: absolute; left: 50%; bottom: 32px; transform: translateX(-50%); z-index: 20; background: #121110; color: #FBF7EF; border-radius: 12px; padding: 16px 24px; font-size: 14px; white-space: nowrap">{{ toastText }}</div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"startView":{"editor":"enum","options":["join","pos","dues","fines","rules","settings","delete"],"default":"join"},"role":{"editor":"enum","options":["admin","member"],"default":"admin"},"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() { return Object.assign(this.__rv(), { lk: this.__lk() }); }
+  __lk() {
+    const g = (this.state || {}).go || '';
+    const o = { off: () => { if ((this.state || {}).go) this.setState({ go: '' }); } };
+    ['PC_Chat', 'PC_Chat_A', 'PC_Hire', 'PC_Hire_A', 'PC_Home', 'PC_Home_A', 'PC_Match', 'PC_Match_A', 'PC_Ops', 'PC_Rec', 'PC_Rec_A', 'PC_Sch', 'PC_Sch_A', 'PC_Seek', 'PC_Seek_A', 'PC_Team', 'PC_Team_A'].forEach((p) => { o[p] = g === p ? p + '.dc.html' : undefined; o['go_' + p] = () => { if ((this.state || {}).go !== p) this.setState({ go: p }); }; });
+    return o;
+  }
+  __rv() {
+    const LK = this.__lk();
+    const st = this.state || {};
+    const ink = '#121110';
+    const isAdmin = (this.props.role || 'admin') === 'admin';
+    const view = st.view || this.props.startView || 'join';
+    const me = isAdmin ? '김도현' : '이준호';
+    const team = { name: 'TEST FC', tag: 'FC', sport: '축구', role: isAdmin ? '운영진' : '팀원', num: isAdmin ? '10' : '7', color: '#5B8DEF' };
+    team.logoFill = 'position: absolute; inset: 0; border-radius: 25%; background: ' + team.color;
+    team.logoCut40 = 'position: absolute; left: 21%; top: 35%; width: 58%; height: 30%; border-radius: 3px; background: ' + team.color + '; display: flex; align-items: center; justify-content: center; color: #121110; font-family: Inter, \'Noto Sans KR\', sans-serif; font-weight: 800; font-size: 14px; line-height: 1';
+    const say = (msg, extra) => { this.setState(Object.assign({ toast: msg }, extra || {})); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ toast: '' }), 2200); };
+    const chipS = (bg) => 'font-size: 12px; font-weight: 700; border: 2px solid ' + ink + '; border-radius: 5px; padding: 0 8px; background: ' + bg;
+    const won = (n) => n.toLocaleString('ko-KR') + '원';
+
+    const MEM = [[1, '최성호'], [2, '서동현'], [3, '윤재민'], [4, '정우진'], [5, '강태윤'], [6, '임하준'], [7, '이준호'], [8, '한지훈'], [9, '박민수'], [10, '김도현'], [11, '오세진'], [12, '홍지성'], [13, '송현수'], [14, '신유찬'], [15, '노태경'], [16, '류진우'], [17, '권민재'], [18, '구본찬'], [19, '백승민'], [20, '양태민'], [21, '조은석'], [23, '문태오'], [24, '황재원'], [27, '안도윤'], [29, '차민규'], [31, '배준영']];
+    const JOIN = [{ id: 'a', name: '정다온', kakao: '다온', pos: 'CM / CDM', date: '11.19', dup: false }, { id: 'b', name: '이준호', kakao: 'jh.lee', pos: 'LW / CAM', date: '11.18', dup: true }];
+    const js_ = st.js || {};
+    const joins = JOIN.map((j) => { const s = js_[j.id] || 'pending';
+      return { name: j.name, kakao: j.kakao, pos: j.pos, date: j.date, dup: j.dup, pending: s === 'pending', state: s === 'pending' ? '기다림' : (s === 'yes' ? '팀원이 됐어요' : '거절했어요'),
+        stateStyle: chipS(s === 'yes' ? ink + '; color: #FBF7EF' : (s === 'no' ? '#FFFFFF; border-style: dashed' : '#FBF7EF')),
+        yes: () => say(j.name + '님을 받았어요.', { js: Object.assign({}, js_, { [j.id]: 'yes' }) }),
+        no: () => say(j.name + '님의 신청을 거절했어요.', { js: Object.assign({}, js_, { [j.id]: 'no' }) }) }; });
+    const joinLeft = JOIN.filter((j) => !js_[j.id]).length;
+    const ps = st.ps || 'pending';
+    const pr = { pending: ps === 'pending', state: ps === 'pending' ? '기다림' : (ps === 'yes' ? '받음' : '거절함'), stateStyle: chipS(ps === 'yes' ? ink + '; color: #FBF7EF' : (ps === 'no' ? '#FFFFFF; border-style: dashed' : '#FBF7EF')),
+      yes: () => say('받았어요. 이준호의 카드가 ST / LW로 바뀌었어요.', { ps: 'yes' }), no: () => say('거절했어요. 이준호에게 알림이 갔어요.', { ps: 'no' }) };
+
+    const month = st.month || '11월';
+    const UNPAID = { '11월': [10, 7, 13, 18, 24, 29, 31, 27], '10월': [29], '9월': [] };
+    const dp = st.dp || {};
+    const isPaid = (n) => { const k = month + '_' + n; return dp[k] !== undefined ? dp[k] : UNPAID[month].indexOf(n) < 0; };
+    const paidN = MEM.filter((m) => isPaid(m[0])).length;
+    const duesRows = MEM.slice().sort((a, b) => (isPaid(a[0]) - isPaid(b[0])) || (a[0] - b[0])).map((m) => { const p = isPaid(m[0]);
+      return { num: m[0], name: m[1] + (m[0] === 10 ? ' (나)' : ''), paid: p, label: p ? '냄' : '안 냄',
+        toggle: () => this.setState({ dp: Object.assign({}, dp, { [month + '_' + m[0]]: !p }) }),
+        row: 'display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 8px 0 12px; border: 2px ' + (p ? 'solid' : 'dashed') + ' ' + ink + '; border-radius: 10px; background: ' + (p ? '#FFFFFF' : '#FBF7EF'),
+        style: 'flex: none; width: 64px; height: 36px; border: 2px solid ' + ink + '; border-radius: 8px; font: 700 14px \'IBM Plex Sans KR\', sans-serif; cursor: pointer; background: ' + (p ? ink + '; color: #FBF7EF' : '#FFFFFF; color: ' + ink) }; });
+    const months = ['9월', '10월', '11월'].map((mo) => ({ label: mo, on: mo === month, pick: () => this.setState({ month: mo }),
+      style: 'height: 40px; padding: 0 16px; border: 2px solid ' + ink + '; border-radius: 20px; font: 700 16px \'IBM Plex Sans KR\', sans-serif; cursor: pointer; background: ' + (mo === month ? ink + '; color: #FBF7EF' : '#FFFFFF; color: ' + ink) }));
+    const left = 26 - paidN;
+
+    const FINES = [
+      { id: 'f1', name: '김도현', why: '지각', when: '10.11 경기', amount: 3000, paid: false },
+      { id: 'f2', name: '이준호', why: '지각', when: '10.18 경기', amount: 3000, paid: false },
+      { id: 'f3', name: '송현수', why: '말없이 불참', when: '10.25 경기', amount: 10000, paid: false },
+      { id: 'f4', name: '구본찬', why: '마감 뒤 불참', when: '11.01 경기', amount: 5000, paid: false },
+      { id: 'f5', name: '오세진', why: '지각', when: '10.11 경기', amount: 3000, paid: true },
+      { id: 'f6', name: '이준호', why: '마감 뒤 불참', when: '09.27 내전', amount: 5000, paid: true }
+    ].concat(st.newFines || []);
+    const fp = st.fp || {};
+    const fPaid = (f) => (fp[f.id] !== undefined ? fp[f.id] : f.paid);
+    const fineRows = FINES.slice().sort((a, b) => fPaid(a) - fPaid(b)).map((f) => { const p = fPaid(f);
+      return { name: f.name, why: f.why, when: f.when, amount: won(f.amount), paid: p, label: p ? '냄' : '안 냄', toggle: () => this.setState({ fp: Object.assign({}, fp, { [f.id]: !p }) }),
+        style: 'width: 64px; height: 36px; border: 2px solid ' + ink + '; border-radius: 8px; font: 700 14px \'IBM Plex Sans KR\', sans-serif; cursor: pointer; background: ' + (p ? ink + '; color: #FBF7EF' : '#FFFFFF; color: ' + ink) }; });
+    const fineOpenN = FINES.filter((f) => !fPaid(f)).length;
+    const ITEMS = [['지각', 3000], ['마감 뒤 불참', 5000], ['말없이 불참', 10000]];
+    const fav = Object.assign({ who: '권민재', game: '11.15 경기', item: 0 }, st.fa || {});
+    const fa = { who: fav.who, game: fav.game, people: MEM.map((m) => ({ name: m[1], label: m[0] + ' ' + m[1] })),
+      onWho: (ev) => this.setState({ fa: Object.assign({}, fav, { who: ev.target.value }) }),
+      onGame: (ev) => this.setState({ fa: Object.assign({}, fav, { game: ev.target.value }) }),
+      items: ITEMS.map((it, i) => ({ label: it[0], amount: won(it[1]), on: fav.item === i, pick: () => this.setState({ fa: Object.assign({}, fav, { item: i }) }),
+        style: 'min-height: 64px; border: 2px solid ' + ink + '; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font: 700 12px \'IBM Plex Sans KR\', sans-serif; cursor: pointer; background: ' + (fav.item === i ? ink + '; color: #FBF7EF' : '#FFFFFF; color: ' + ink) })),
+      cta: fav.who + '에게 ' + won(ITEMS[fav.item][1]) + ' 매기기',
+      save: (e) => { if (e && e.preventDefault) e.preventDefault(); say(fav.who + '에게 벌금을 매기고 알렸어요.', { newFines: (st.newFines || []).concat([{ id: 'n' + (st.newFines || []).length, name: fav.who, why: ITEMS[fav.item][0], when: fav.game, amount: ITEMS[fav.item][1], paid: false }]), fa: null }); } };
+
+    const rv = Object.assign({ cap: '14', scrim: '20', scrimDays: '3', close: '9', closeDays: '1', closeAp: 'pm', call: '10', fineFrom: 'close', fineDays: '2', fineAp: 'pm', fineHour: '6' }, st.rv || {});
+    const setR = (k) => (ev) => this.setState({ rv: Object.assign({}, rv, { [k]: String(ev && ev.target ? ev.target.value : '').replace(/[^0-9]/g, '').slice(0, 3) }) });
+    const rules = [['정원', '', '명, 넘으면 대기', 'cap'], ['내전 기준 인원', '참석과 대기 합쳐', '명', 'scrim'], ['내전 정하는 날', '경기', '일 전까지 유지되면', 'scrimDays'], ['출석 부르는 시간', '시작', '분 전', 'call']]
+      .map(([title, pre, post, key]) => ({ title: title, pre: pre, post: post, value: rv[key], on: setR(key) }));
+    const btn = (on) => 'height: 40px; padding: 0 14px; border: 2px solid ' + ink + '; border-radius: 8px; font: 700 14px \'IBM Plex Sans KR\', sans-serif; cursor: pointer; background: ' + (on ? ink + '; color: #FBF7EF' : '#FFFFFF; color: ' + ink);
+    const fineFrom = [['close', '투표 마감 뒤'], ['day', '경기 당일'], ['custom', '직접 정하기']].map(([k, l]) => ({ label: l, on: rv.fineFrom === k, pick: () => this.setState({ rv: Object.assign({}, rv, { fineFrom: k }) }), style: btn(rv.fineFrom === k) }));
+    const fineAps = [['am', '오전'], ['pm', '오후']].map(([k, l]) => ({ label: l, on: rv.fineAp === k, pick: () => this.setState({ rv: Object.assign({}, rv, { fineAp: k }) }), style: btn(rv.fineAp === k) }));
+    const closeAps = [['am', '오전'], ['pm', '오후']].map(([k, l]) => ({ label: l, on: rv.closeAp === k, pick: () => this.setState({ rv: Object.assign({}, rv, { closeAp: k }) }), style: btn(rv.closeAp === k) }));
+    const closeD = Math.max(0, parseInt(rv.closeDays, 10) || 0);
+    const closeWhen = (closeD ? '경기 ' + closeD + '일 전' : '경기 당일') + ' ' + (rv.closeAp === 'am' ? '오전' : '오후') + ' ' + (rv.close || '9') + '시';
+    const fineSummary = rv.fineFrom === 'close' ? '투표 마감(' + closeWhen + ') 뒤부터 참석이나 늦참에서 불참으로 바꾸면 수칙의 불참 벌금이 붙어요.'
+      : rv.fineFrom === 'day' ? '경기 당일 0시부터 참석이나 늦참에서 불참으로 바꾸면 수칙의 불참 벌금이 붙어요.'
+      : '경기 ' + rv.fineDays + '일 전 ' + (rv.fineAp === 'am' ? '오전' : '오후') + ' ' + rv.fineHour + '시부터 참석이나 늦참에서 불참으로 바꾸면 수칙의 불참 벌금이 붙어요.';
+
+    const KITS = [['흰색', '#FFFFFF'], ['검정', '#1E1E1E'], ['남색', '#23336B'], ['파랑', '#2F6BD8'], ['하늘', '#8EC8F2'], ['빨강', '#D23A33'], ['주황', '#F08A24'], ['노랑', '#F6D02F'], ['초록', '#2E9E4F'], ['보라', '#6B4AA8'], ['분홍', '#F2A7C3'], ['회색', '#9A9A9A']];
+    const kit = Object.assign({ home: '남색', away: '흰색' }, st.kit || {});
+    const kitRows = [['home', 'HOME'], ['away', 'AWAY']].map(([k, label]) => ({ label: label, name: kit[k],
+      sw: KITS.map(([n, h]) => ({ aria: label + ' ' + n, on: kit[k] === n, pick: () => this.setState({ kit: Object.assign({}, kit, { [k]: n }) }),
+        btn: 'height: 40px; padding: 0; border: 2px solid ' + (kit[k] === n ? ink : 'transparent') + '; border-radius: 10px; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer',
+        dot: 'width: 24px; height: 24px; box-sizing: border-box; border-radius: 50%; border: 2px solid ' + ink + '; background: ' + h })) }));
+    const approve = st.approve !== undefined ? st.approve : true;
+    const asw = { track: 'flex: none; position: relative; width: 50px; height: 30px; box-sizing: border-box; border-radius: 15px; border: 2px solid ' + ink + '; background: ' + (approve ? ink : '#FFFFFF'),
+      knob: 'position: absolute; top: 3px; left: ' + (approve ? 23 : 3) + 'px; width: 20px; height: 20px; box-sizing: border-box; border-radius: 50%; background: ' + (approve ? '#FBF7EF' : ink) };
+    const reason = st.reason || '';
+    const reasons = ['팀이 해체돼요', '기능이 부족해요', '쓰기 어려워요', '다른 방법을 써요'].map((r) => ({ label: r, on: reason === r, pick: () => this.setState({ reason: r }), style: btn(reason === r) }));
+
+    const MENU = [['join', '가입 승인', '초대 링크로 들어온 사람', joinLeft ? joinLeft + '명 기다림' : '없음', joinLeft > 0],
+      ['pos', '포지션 변경 요청', '팀원이 보낸 요청', pr.pending ? '1건' : '없음', pr.pending],
+      ['dues', '회비 관리', '달마다 낸 사람 체크', '11월 ' + MEM.filter((m) => (dp['11월_' + m[0]] !== undefined ? dp['11월_' + m[0]] : UNPAID['11월'].indexOf(m[0]) < 0)).length + '/26', false],
+      ['fines', '벌금 관리', '매기고, 낸 것 체크', '안 낸 ' + fineOpenN + '건', false],
+      ['rules', '기본 운영 규칙', '정원, 마감, 출석, 내전 기준', '', false],
+      ['settings', '팀 설정', '초대 링크, 가입 승인제, 유니폼, 팀 지우기', '', false]];
+    const area = view === 'delete' ? 'settings' : view;
+    const menu = MENU.map(([k, title, sub, right, hot]) => ({ title: title, sub: sub, right: right, on: area === k, go: () => this.setState({ view: k }),
+      rightStyle: 'font-size: 12px; font-weight: 700; border: 2px solid ' + ink + '; border-radius: 5px; padding: 0 8px; white-space: nowrap; background: ' + (right === '운영진' ? ink + '; color: #FBF7EF' : (hot ? '#FCD01A' : '#FFFFFF')),
+      style: 'display: flex; align-items: center; gap: 12px; min-height: 72px; box-sizing: border-box; padding: 12px 16px; border: 2px solid ' + ink + '; border-radius: 12px; font-family: inherit; color: ' + ink + '; cursor: pointer; box-shadow: ' + (area === k ? '6px 6px 0 ' + ink + '; transform: translate(-2px, -2px)' : '4px 4px 0 ' + ink) + '; background: ' + (area === k ? '#F4EFFF' : '#FFFFFF') }));
+    const TITLE = { join: ['가입 승인', '초대 링크로 들어온 사람을 받아요'], pos: ['포지션 변경 요청', '받으면 팀원 카드가 바로 바뀌어요'], dues: ['회비 관리', '눌러서 냄, 안 냄을 바꿔요'], fines: ['벌금 관리', '팀원이 내면 냄으로 체크해요'], rules: ['기본 운영 규칙', '운영진만 바꿀 수 있어요'], settings: ['팀 설정', '운영진만 바꿀 수 있어요'], delete: ['팀 지우기, 나가기', '운영진만 할 수 있어요'] };
+    const copied = !!st.copied;
+    return {
+      isAdmin: isAdmin, isMember: !isAdmin, denied: !isAdmin, allowed: isAdmin, me: me, team: team,
+      teamBtnLabel: team.name + ', 팀 바꾸기', openTeams: () => say('팀 바꾸기는 홈에서 해요'),
+      menu: menu, joins: joins, pr: pr, months: months, duesRows: duesRows, duesSum: won(paidN * 30000), duesPaid: paidN, duesLeft: left,
+      nudgeLabel: st.dn ? '보냈어요' : '안 낸 ' + left + '명에게 알리기', nudge: () => say(month + ' 회비를 안 낸 ' + left + '명에게 앱 알림을 보냈어요.', { dn: true }),
+      fineRows: fineRows, fa: fa, rules: rules, fineFrom: fineFrom, fineAps: fineAps, isCustom: rv.fineFrom === 'custom', fineDays: rv.fineDays, fineHour: rv.fineHour,
+      onFineDays: setR('fineDays'), onFineHour: setR('fineHour'), fineSummary: fineSummary,
+      closeAps: closeAps, closeDays: rv.closeDays, closeHour: rv.close, onCloseDays: setR('closeDays'), onCloseHour: setR('close'), closeSummary: '팀원 투표는 ' + closeWhen + '에 마감돼요. 일정마다 따로 바꿀 수도 있어요.',
+      saveRules: () => say('기본 운영 규칙을 저장했어요. 다음 일정부터 적용돼요.'),
+      kitRows: kitRows, approve: approve, asw: asw, approveSub: approve ? '켜짐: 링크로 들어와도 운영진이 받아야 팀원이 돼요' : '꺼짐: 링크로 들어오면 바로 팀원이 돼요',
+      flipApprove: () => this.setState({ approve: !approve }), copyLabel: copied ? '복사됨' : '복사', copy: () => say('초대 링크를 복사했어요.', { copied: true }),
+      reasons: reasons, openDelete: () => this.setState({ view: 'delete' }),
+      leave: () => say('정우진이 운영진이 됐어요. 시안이라 실제로 나가지는 않아요.'),
+      delTeam: () => say(reason ? '팀 지우기 요청을 보냈어요. 매니볼에서 확인하고 지운 뒤 알려 드려요' : '이유를 하나 골라 주세요'),
+      isJoin: view === 'join', isPos: view === 'pos', isDues: view === 'dues', isFines: view === 'fines', isRules: view === 'rules', isSettings: view === 'settings', isDelete: view === 'delete',
+      panelTitle: (TITLE[view] || TITLE.join)[0], panelSub: (TITLE[view] || TITLE.join)[1],
+      hasToast: !!st.toast, toastText: st.toast || ''
+    };
+  }
+}
+</script>
+</body>
+</html>

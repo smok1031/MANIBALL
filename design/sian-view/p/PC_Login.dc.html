@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>PC 카카오 로그인</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&amp;family=Black+Han+Sans&amp;family=IBM+Plex+Sans+KR:wght@400;500;700&amp;display=swap">
+<style>
+body,body *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,select,[contenteditable],[contenteditable] *{-webkit-user-select:text;user-select:text}
+img,svg,a{-webkit-user-drag:none}
+body{margin:0}
+*{scrollbar-width:none}
+*::-webkit-scrollbar{display:none}
+.tcard{transition:transform .16s ease-out,box-shadow .16s ease-out}
+.tcard:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 #121110}
+@media (prefers-reduced-motion: reduce){.tcard{transition:none}}
+</style>
+</helmet>
+<div style="-webkit-user-select: none; user-select: none; -webkit-touch-callout: none; width: 100%; min-height: 900px; box-sizing: border-box; background-color: #FBF7EF; background-image: linear-gradient(rgba(18, 17, 16, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(18, 17, 16, 0.06) 1px, transparent 1px); background-size: 16px 16px; color: #121110; font-family: 'IBM Plex Sans KR', sans-serif; position: relative; display: flex; flex-direction: column; word-break: keep-all">
+
+  <header style="min-height: 80px; flex: none; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 48px; border-bottom: 2px solid #121110">
+    <span style="display: inline-flex; align-items: center; gap: 8px"><span role="img" aria-label="매니볼" style="width: 40px; height: 40px; border-radius: 11px; background: #5B8DEF; border: 2px solid #121110; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; flex: none"><svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="22" fill="none" stroke="#121110" stroke-width="5"></circle><circle cx="23" cy="26" r="3.6" fill="#E46A2E"></circle><circle cx="23" cy="38" r="3.6" fill="#E46A2E"></circle><path d="M30 26 H43 M30 38 H41" fill="none" stroke="#121110" stroke-width="5" stroke-linecap="round"></path></svg></span><span style="display: flex; flex-direction: column; line-height: 1"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">매니볼</b><span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 3px; margin-top: 4px">MANIBALL</span></span></span>
+    <sc-if value="{{ isTeams }}" hint-placeholder-val="{{ false }}">
+      <button type="button" onClick="{{ logout }}" style="min-height: 44px; padding: 0 8px; border: 0; background: transparent; font: 500 14px 'IBM Plex Sans KR', sans-serif; color: #5B5650; text-decoration: underline; cursor: pointer">로그아웃</button>
+    </sc-if>
+    <sc-if value="{{ isLoginLike }}" hint-placeholder-val="{{ true }}">
+      <a href="{{ lk.PC_Landing }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Landing }}" onMouseDown="{{ lk.go_PC_Landing }}" onFocus="{{ lk.go_PC_Landing }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" style="font-size: 14px; color: #121110; min-height: 44px; display: inline-flex; align-items: center">매니볼 둘러보기</a>
+    </sc-if>
+  </header>
+
+  <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+    <main style="flex: 1; box-sizing: border-box; width: 100%; max-width: 1200px; margin: 0 auto; padding: 64px 48px; display: flex; flex-wrap: wrap; gap: 64px; align-items: center">
+      <div style="flex: 999 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 32px">
+        <div style="position: relative; background: #FFFFFF; border-radius: 16px; box-shadow: 0 1px 0 rgba(18, 17, 16, .08), 0 6px 14px rgba(18, 17, 16, .14)">
+          <div style="padding: 40px 40px 24px; display: flex; flex-direction: column; gap: 12px">
+            <span style="font-weight: 700; font-size: 16px">매니볼 패스</span>
+            <h1 style="margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 52px; line-height: 1.2">운영진이 매주 손으로 하던 일,<br>이제 매니볼이 해요</h1>
+          </div>
+          <div aria-hidden="true" style="position: relative; height: 2px"><span style="position: absolute; left: 40px; right: 40px; top: 0; height: 2px; background-image: radial-gradient(circle, #121110 1.2px, transparent 1.4px); background-size: 7px 2px; background-repeat: repeat-x"></span><span style="position: absolute; left: 0; top: -14px; width: 15px; height: 30px; background: #FBF7EF; border-radius: 0 15px 15px 0"></span><span style="position: absolute; right: 0; top: -14px; width: 15px; height: 30px; background: #FBF7EF; border-radius: 15px 0 0 15px"></span></div>
+          <div style="padding: 24px 40px 32px; display: flex; flex-wrap: wrap; gap: 8px">
+            <span style="font-size: 14px; font-weight: 700; border: 2px solid #121110; border-radius: 8px; padding: 4px 12px; background: #EAF2FF; color: #304773">참석 투표</span>
+            <span style="font-size: 14px; font-weight: 700; border: 2px solid #121110; border-radius: 8px; padding: 4px 12px; background: #EAF2FF; color: #304773">라인업</span>
+            <span style="font-size: 14px; font-weight: 700; border: 2px solid #121110; border-radius: 8px; padding: 4px 12px; background: #EAF2FF; color: #304773">출석과 벌금</span>
+            <span style="font-size: 14px; font-weight: 700; border: 2px solid #121110; border-radius: 8px; padding: 4px 12px; background: #EAF2FF; color: #304773">회비</span>
+            <span style="font-size: 14px; font-weight: 700; border: 2px solid #121110; border-radius: 8px; padding: 4px 12px; background: #FBF7EF">MOM</span>
+            <span style="font-size: 14px; font-weight: 700; border: 2px solid #121110; border-radius: 8px; padding: 4px 12px; background: #FFF1E3; color: #6B3A10">매칭과 용병</span>
+          </div>
+          <span style="position: absolute; right: 32px; top: -32px"><span aria-hidden="true" style="flex: none; width: 88px; height: 88px; box-sizing: border-box; border-radius: 50%; border: 2.5px solid #121110; background: #FBF7EF; transform: rotate(12deg); display: flex; align-items: center; justify-content: center; color: #121110"><b style="font-size: 24px">입장</b></span></span>
+        </div>
+        <ul style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px">
+          <li style="display: flex; align-items: center; gap: 12px; font-size: 16px"><span aria-hidden="true" style="flex: none; width: 28px; height: 28px; box-sizing: border-box; border: 2px solid #121110; border-radius: 8px; background: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg></span>참석 투표는 티켓 한 장으로</li>
+          <li style="display: flex; align-items: center; gap: 12px; font-size: 16px"><span aria-hidden="true" style="flex: none; width: 28px; height: 28px; box-sizing: border-box; border: 2px solid #121110; border-radius: 8px; background: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg></span>내 자리와 쉬는 쿼터를 바로 확인</li>
+          <li style="display: flex; align-items: center; gap: 12px; font-size: 16px"><span aria-hidden="true" style="flex: none; width: 28px; height: 28px; box-sizing: border-box; border: 2px solid #121110; border-radius: 8px; background: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg></span>내가 낼 돈과 계좌를 한 화면에서</li>
+        </ul>
+      </div>
+
+      <div style="flex: 1 1 360px; max-width: 420px; box-sizing: border-box; background: #FFFFFF; border: 2px solid #121110; border-radius: 16px; box-shadow: 4px 4px 0 #121110; padding: 32px; display: flex; flex-direction: column; gap: 16px">
+        <h2 style="margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 28px">카카오로 들어와요</h2>
+        <span style="font-size: 14px; line-height: 1.6">휴대폰에서 쓰던 그 계정이에요. 같은 계정이면 팀과 기록이 그대로 보여요.</span>
+        <sc-if value="{{ isError }}" hint-placeholder-val="{{ false }}">
+          <div role="alert" style="display: flex; gap: 8px; align-items: flex-start; border: 2px solid #121110; border-radius: 12px; background: #FBF7EF; padding: 12px 16px; text-align: left"><b style="flex: none; width: 22px; height: 22px; border-radius: 50%; background: #121110; color: #FBF7EF; display: flex; align-items: center; justify-content: center; font-size: 14px">!</b><span style="display: flex; flex-direction: column; gap: 4px"><b style="font-size: 16px">로그인하지 못했어요</b><span style="font-size: 12px">카카오 창에서 취소했거나 연결이 끊겼어요. 다시 눌러 주세요.</span></span></div>
+        </sc-if>
+        <button type="button" onClick="{{ login }}" style="width: 100%; height: 56px; box-sizing: border-box; border: 0; border-radius: 12px; background: #FEE500; color: rgba(0, 0, 0, 0.85); font: 600 16px -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'IBM Plex Sans KR', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#000000" fill-rule="evenodd" clip-rule="evenodd" d="M9.00002 0.599976C4.02917 0.599976 0 3.71296 0 7.55229C0 9.94003 1.55847 12.0452 3.93152 13.2969L2.93303 16.9446C2.84481 17.2669 3.21341 17.5238 3.49646 17.337L7.87334 14.4483C8.24268 14.4839 8.61815 14.5047 9.00002 14.5047C13.9706 14.5047 18 11.3917 18 7.55229C18 3.71296 13.9706 0.599976 9.00002 0.599976"></path></svg>카카오 로그인</button>
+        <span style="font-size: 12px; color: #5B5650; line-height: 1.6">카카오 창이 새로 열려요. 로그인하면 <span style="color: #121110">개인정보처리방침과 이용약관</span>에 동의하는 것으로 봐요.</span>
+      </div>
+    </main>
+  </sc-if>
+
+  <sc-if value="{{ isInvite }}" hint-placeholder-val="{{ false }}">
+    <main style="flex: 1; box-sizing: border-box; width: 100%; max-width: 1200px; margin: 0 auto; padding: 64px 48px; display: flex; flex-wrap: wrap; gap: 64px; align-items: center">
+      <div style="flex: 999 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+        <h1 style="margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 44px; line-height: 1.25">팀 초대를 받았어요</h1>
+        <div style="position: relative; background: #FFFFFF; border-radius: 16px; box-shadow: 0 1px 0 rgba(18, 17, 16, .08), 0 6px 14px rgba(18, 17, 16, .14)">
+          <div style="padding: 32px 40px 24px; display: flex; align-items: center; gap: 24px">
+            <span style="position: relative; flex: none; width: 96px; height: 96px; display: block"><span style="position: absolute; inset: 0; border-radius: 25%; background: #5B8DEF"></span><svg width="96" height="96" viewBox="6 6 88 88" aria-hidden="true" style="position: absolute; inset: 0; display: block"><g fill="none" stroke="#121110" stroke-width="2.5" stroke-linejoin="round" opacity="0.9"><rect x="18" y="15" width="64" height="70" rx="1"></rect><line x1="18" y1="50" x2="82" y2="50"></line><rect x="33" y="15" width="34" height="13"></rect><rect x="41" y="15" width="18" height="6"></rect><rect x="33" y="72" width="34" height="13"></rect><rect x="41" y="79" width="18" height="6"></rect></g></svg><span aria-hidden="true" style="position: absolute; left: 21%; top: 35%; width: 58%; height: 30%; border-radius: 3px; background: #5B8DEF; display: flex; align-items: center; justify-content: center; color: #121110; font-family: Inter, 'Noto Sans KR', sans-serif; font-weight: 800; font-size: 32px; line-height: 1">FC</span></span>
+            <span style="display: flex; flex-direction: column; gap: 4px"><span style="font-weight: 700; font-size: 14px">초대장</span><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 36px; line-height: 1.1">TEST FC</b><span style="font-size: 16px">축구팀  팀원 26명</span></span>
+          </div>
+          <div aria-hidden="true" style="position: relative; height: 2px"><span style="position: absolute; left: 40px; right: 40px; top: 0; height: 2px; background-image: radial-gradient(circle, #121110 1.2px, transparent 1.4px); background-size: 7px 2px; background-repeat: repeat-x"></span><span style="position: absolute; left: 0; top: -14px; width: 15px; height: 30px; background: #FBF7EF; border-radius: 0 15px 15px 0"></span><span style="position: absolute; right: 0; top: -14px; width: 15px; height: 30px; background: #FBF7EF; border-radius: 15px 0 0 15px"></span></div>
+          <div style="padding: 24px 40px 32px; font-size: 16px; line-height: 1.6">카카오로 로그인하고 가입 신청을 남기면, 운영진이 확인한 뒤 팀원이 돼요.</div>
+        </div>
+      </div>
+      <div style="flex: 1 1 360px; max-width: 420px; box-sizing: border-box; background: #FFFFFF; border: 2px solid #121110; border-radius: 16px; box-shadow: 4px 4px 0 #121110; padding: 32px; display: flex; flex-direction: column; gap: 16px">
+        <ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; border-top: 2px solid #121110">
+          <li style="display: flex; align-items: center; gap: 16px; min-height: 62px; border-bottom: 2px solid #DDD6C8"><b style="flex: none; width: 34px; height: 34px; box-sizing: border-box; border-radius: 50%; border: 2px solid #121110; background: #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-size: 20px">1</b><span style="display: flex; flex-direction: column; gap: 4px"><b style="font-size: 16px">카카오로 로그인</b><span style="font-size: 12px; color: #5B5650">비밀번호 없이 바로 들어와요</span></span></li>
+          <li style="display: flex; align-items: center; gap: 16px; min-height: 62px; border-bottom: 2px solid #DDD6C8"><b style="flex: none; width: 34px; height: 34px; box-sizing: border-box; border-radius: 50%; border: 2px solid #121110; background: #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-size: 20px">2</b><span style="display: flex; flex-direction: column; gap: 4px"><b style="font-size: 16px">가입 신청 남기기</b><span style="font-size: 12px; color: #5B5650">팀에서 쓰는 이름과 포지션을 적어요</span></span></li>
+          <li style="display: flex; align-items: center; gap: 16px; min-height: 62px; border-bottom: 2px solid #DDD6C8"><b style="flex: none; width: 34px; height: 34px; box-sizing: border-box; border-radius: 50%; border: 2px solid #121110; background: #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-size: 20px">3</b><span style="display: flex; flex-direction: column; gap: 4px"><b style="font-size: 16px">운영진 승인</b><span style="font-size: 12px; color: #5B5650">승인되면 알림이 오고 바로 투표할 수 있어요</span></span></li>
+        </ol>
+        <button type="button" onClick="{{ login }}" style="width: 100%; height: 56px; box-sizing: border-box; border: 0; border-radius: 12px; background: #FEE500; color: rgba(0, 0, 0, 0.85); font: 600 16px -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'IBM Plex Sans KR', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#000000" fill-rule="evenodd" clip-rule="evenodd" d="M9.00002 0.599976C4.02917 0.599976 0 3.71296 0 7.55229C0 9.94003 1.55847 12.0452 3.93152 13.2969L2.93303 16.9446C2.84481 17.2669 3.21341 17.5238 3.49646 17.337L7.87334 14.4483C8.24268 14.4839 8.61815 14.5047 9.00002 14.5047C13.9706 14.5047 18 11.3917 18 7.55229C18 3.71296 13.9706 0.599976 9.00002 0.599976"></path></svg>카카오 로그인하고 가입하기</button>
+        <span style="font-size: 12px; color: #5B5650">처음 한 번만 하면 다음부터 바로 들어와요. <span style="color: #121110">개인정보처리방침과 이용약관</span></span>
+      </div>
+    </main>
+  </sc-if>
+
+  <sc-if value="{{ isTeams }}" hint-placeholder-val="{{ false }}">
+    <main style="flex: 1; box-sizing: border-box; width: 100%; max-width: 1120px; margin: 0 auto; padding: 48px; display: flex; flex-direction: column; gap: 24px">
+      <div style="display: flex; flex-direction: column; gap: 8px"><h1 style="margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 36px">어느 팀으로 들어갈까요?</h1><span style="font-size: 16px; color: #5B5650">{{ me }}님이 속한 팀이에요. 들어갈 때마다 여기서 골라요.</span></div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; padding: 4px">
+        <sc-for list="{{ teams }}" as="t" hint-placeholder-count="3">
+          <a href="{{ t.href }}" tabIndex="0" onPointerDown="{{ t.go }}" onMouseDown="{{ t.go }}" onFocus="{{ t.go }}" onBlur="{{ t.off }}" onPointerLeave="{{ t.off }}" onMouseLeave="{{ t.off }}" class="tcard" style="min-height: 196px; box-sizing: border-box; padding: 24px; border: 2px solid #121110; border-radius: 16px; background: #FFFFFF; box-shadow: 4px 4px 0 #121110; color: #121110; text-decoration: none; display: flex; flex-direction: column; gap: 16px">
+            <span style="display: flex; align-items: center; gap: 16px"><span style="position: relative; flex: none; width: 64px; height: 64px; display: block"><span style="{{ t.fill }}"></span><svg width="64" height="64" viewBox="6 6 88 88" aria-hidden="true" style="position: absolute; inset: 0; display: block"><g fill="none" stroke="#121110" stroke-width="2.5" stroke-linejoin="round" opacity="0.9"><rect x="18" y="15" width="64" height="70" rx="1"></rect><line x1="18" y1="50" x2="82" y2="50"></line><rect x="33" y="15" width="34" height="13"></rect><rect x="41" y="15" width="18" height="6"></rect><rect x="33" y="72" width="34" height="13"></rect><rect x="41" y="79" width="18" height="6"></rect></g></svg><span aria-hidden="true" style="{{ t.tagStyle }}">{{ t.tag }}</span></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 26px; line-height: 1.1">{{ t.name }}</b><span style="{{ t.roleStyle }}">{{ t.role }}</span></span></span>
+            <span style="display: flex; flex-direction: column; gap: 4px; padding-top: 12px; border-top: 2px dashed #121110"><span style="font-size: 14px">{{ t.sub }}</span><b style="font-size: 14px">{{ t.next }}</b></span>
+          </a>
+        </sc-for>
+        <button type="button" onClick="{{ newTeam }}" style="min-height: 196px; border: 2px dashed #121110; border-radius: 16px; background: transparent; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>새 팀 만들기</button>
+      </div>
+      <span style="font-size: 14px; color: #5B5650; line-height: 1.6">다른 팀은 그 팀의 초대 링크로 들어오면 여기에 더해져요.</span>
+    </main>
+  </sc-if>
+
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}"><div role="status" style="position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%); z-index: 20; background: #121110; color: #FBF7EF; border-radius: 12px; padding: 16px 24px; font-size: 14px; white-space: nowrap">{{ toastText }}</div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"startView":{"editor":"enum","options":["login","error","invite","teams"],"default":"login"},"role":{"editor":"enum","options":["member","admin"],"default":"member"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return Object.assign(this.__rv(), { lk: this.__lk() }); }
+  __lk() {
+    const g = (this.state || {}).go || '';
+    const o = { off: () => { if ((this.state || {}).go) this.setState({ go: '' }); } };
+    ['PC_Home', 'PC_Home_A', 'PC_Landing'].forEach((p) => { o[p] = g === p ? p + '.dc.html' : undefined; o['go_' + p] = () => { if ((this.state || {}).go !== p) this.setState({ go: p }); }; });
+    return o;
+  }
+  __rv() {
+    const LK = this.__lk();
+    const st = this.state || {};
+    const ink = '#121110';
+    const sv = this.props.startView || 'login';
+    const view = st.view || sv;
+    const isAdmin = (this.props.role || 'member') === 'admin';
+    const T = isAdmin ? [
+      { name: 'TEST FC', tag: 'FC', color: '#5B8DEF', role: '운영진', sub: '축구팀  팀원 26명', next: '다음 일정 11.22 토 07:00 경기' },
+      { name: 'TEST FS', tag: 'FS', color: '#7FA36A', role: '팀원', sub: '풋살팀  팀원 12명', next: '다음 일정 11.20 목 21:00 훈련' },
+      { name: 'TEST FC 2', tag: 'FC', color: '#5B8DEF', role: '운영진', sub: '축구팀  팀원 22명', next: '다음 일정이 아직 없어요' }
+    ] : [
+      { name: 'TEST FC', tag: 'FC', color: '#5B8DEF', role: '팀원', sub: '축구팀  팀원 26명', next: '다음 일정 11.22 토 07:00 경기' },
+      { name: 'TEST FS', tag: 'FS', color: '#7FA36A', role: '운영진', sub: '풋살팀  팀원 12명', next: '다음 일정 11.20 목 21:00 훈련' },
+      { name: 'TEST FC 2', tag: 'FC', color: '#5B8DEF', role: '팀원', sub: '축구팀  팀원 22명', next: '다음 일정이 아직 없어요' }
+    ];
+    const teams = T.map((t) => ({ href: LK[isAdmin ? 'PC_Home_A' : 'PC_Home'], go: LK['go_' + (isAdmin ? 'PC_Home_A' : 'PC_Home')], off: LK.off, name: t.name, tag: t.tag, role: t.role, sub: t.sub, next: t.next,
+      fill: 'position: absolute; inset: 0; border-radius: 25%; background: ' + t.color,
+      tagStyle: 'position: absolute; left: 21%; top: 35%; width: 58%; height: 30%; border-radius: 3px; background: ' + t.color + '; display: flex; align-items: center; justify-content: center; color: #121110; font-family: Inter, \'Noto Sans KR\', sans-serif; font-weight: 800; font-size: 20px; line-height: 1',
+      roleStyle: 'align-self: flex-start; font-size: 12px; font-weight: 700; border: 2px solid ' + ink + '; border-radius: 5px; padding: 2px 8px; ' + (t.role === '팀원' ? 'background: #FFFFFF; color: ' + ink : 'background: ' + ink + '; color: #FBF7EF') }));
+    return {
+      isLogin: view === 'login' || view === 'error', isError: view === 'error' && !st.retry,
+      isInvite: view === 'invite', isTeams: view === 'teams', isLoginLike: view !== 'teams',
+      me: isAdmin ? '김도현' : '이준호', teams: teams,
+      hasToast: !!st.toast, toastText: st.toast || '',
+      login: () => this.setState({ view: 'teams', retry: true }),
+      logout: () => this.setState({ view: 'login', retry: true }),
+      newTeam: () => { this.setState({ toast: '새 팀 만들기는 다음 단계에서 그려요' }); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ toast: '' }), 2200); }
+    };
+  }
+}
+</script>
+</body>
+</html>

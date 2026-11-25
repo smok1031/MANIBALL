@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>투표 카드 비교 PC</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&amp;family=Black+Han+Sans&amp;family=IBM+Plex+Sans+KR:wght@400;500;700&amp;display=swap">
+<style>
+.vc-wrap{width:100%;min-height:900px;box-sizing:border-box;padding:40px 48px;background-color:#FBF7EF;background-image:linear-gradient(rgba(18,17,16,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(18,17,16,0.06) 1px,transparent 1px);background-size:16px 16px;color:#121110;font-family:'IBM Plex Sans KR',sans-serif;display:flex;flex-direction:column;gap:28px}
+.vc-h1{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:32px}
+.vc-sub{font-size:14px;color:#5B5650;line-height:1.6;margin:0}
+.vc-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.vc-col{background:#FFFFFF;border:2px solid #121110;border-radius:16px;box-shadow:4px 4px 0 #121110;padding:20px 24px 24px;display:flex;flex-direction:column;gap:16px}
+.vc-col.pick{box-shadow:6px 6px 0 #FCD01A}
+.vc-top{display:flex;align-items:center;gap:8px}
+.vc-tag{font-size:12px;font-weight:700;border:2px solid #121110;border-radius:5px;padding:2px 8px;background:#FFFFFF}
+.vc-tag.y{background:#FCD01A}
+.vc-tag.ink{background:#121110;color:#FBF7EF}
+.vc-t{font-family:'Black Han Sans',sans-serif;font-size:22px}
+.vc-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:8px 4px 4px}
+.vc-c{height:120px;border:2px solid #121110;border-radius:10px;background:#FFFFFF;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-weight:700;font-size:18px;box-shadow:4px 4px 0 #121110;box-sizing:border-box}
+.vc-c em{font-style:normal;font-size:12px;font-weight:500}
+.vc-c.on{background:#121110;color:#FBF7EF;transform:rotate(-4deg) translateY(-4px);box-shadow:4px 4px 0 #14BBC2}
+.vc-c.dash{border-style:dashed;box-shadow:none}
+.vc-c.flat{box-shadow:none;color:#6B655D}
+.vc-c.flat em{color:#6B655D}
+.vc-c.lock{border-style:dashed;box-shadow:none;color:#6B655D;background:transparent}
+.vc-note{font-size:13px;line-height:1.6}
+.vc-list{margin:0;padding-left:18px;font-size:13px;line-height:1.7}
+.vc-list b{font-weight:700}
+.vc-k{font-size:12px;font-weight:700;color:#5B5650}
+.vc-c.on.yes{background:#14BBC2;color:#121110;box-shadow:4px 4px 0 #121110}
+.vc-c.on.late{background:#FCD01A;color:#121110;box-shadow:4px 4px 0 #121110}
+.vc-c.on.no{background:#121110;color:#FBF7EF;box-shadow:4px 4px 0 #14BBC2}
+.vc-c.on.wait{background:#B8E9EB;color:#121110;box-shadow:4px 4px 0 #121110}
+.vc-c.on b{display:inline-flex;align-items:center;gap:6px}
+.vc-g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.vc-mini{display:flex;flex-direction:column;gap:6px}
+.vc-mini .vc-row{padding:4px 2px}
+.vc-mini .vc-c{height:96px;font-size:16px}
+.vc-strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border:2px solid #121110;border-radius:10px;overflow:hidden;background:#FFFFFF}
+.vc-strip>span{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-left:2px solid #121110;font-size:12px}
+.vc-strip>span:first-child{border-left:0}
+.vc-strip b{font:700 24px 'Barlow Condensed',sans-serif;line-height:1}
+.vc-sw{display:inline-block;width:10px;height:10px;border:2px solid #121110;border-radius:3px;margin-right:4px;vertical-align:-1px}
+</style>
+</helmet>
+<div class="vc-wrap">
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <h1 class="vc-h1">투표 카드: 참석을 누른 뒤 나머지 카드</h1>
+    <p class="vc-sub">셋 다 참석을 누른 상태예요. 마감 전이라 늦참, 불참으로 아직 바꿀 수 있어요. 고르신 쪽으로 휴대폰과 PC 투표 카드를 함께 바꿔요.</p>
+  </div>
+  <div class="vc-grid">
+    <section class="vc-col" aria-label="지금">
+      <div class="vc-top"><span class="vc-tag">지금</span><span class="vc-t">그대로</span></div>
+      <div class="vc-row"><span class="vc-c on">참석<em>처음부터 뛰어요</em></span><span class="vc-c">늦참<em>늦게 와요</em></span><span class="vc-c">불참<em>이번엔 못 가요</em></span></div>
+      <ul class="vc-list"><li>고른 카드는 검은 카드에 기울어짐</li><li>나머지도 그림자가 있어 셋 다 비슷하게 눈에 띔</li></ul>
+    </section>
+    <section class="vc-col" aria-label="점선 안">
+      <div class="vc-top"><span class="vc-tag">A안</span><span class="vc-t">나머지를 점선으로</span></div>
+      <div class="vc-row"><span class="vc-c on">참석<em>처음부터 뛰어요</em></span><span class="vc-c dash">늦참<em>늦게 와요</em></span><span class="vc-c dash">불참<em>이번엔 못 가요</em></span></div>
+      <ul class="vc-list"><li>고른 카드는 가장 또렷해짐</li><li><b>걸리는 점:</b> 앱에서 점선은 쉬는 쿼터, 준비 중, 마감처럼 "못 누름"이라 바꿀 수 없어 보임</li></ul>
+    </section>
+    <section class="vc-col pick" aria-label="권하는 안">
+      <div class="vc-top"><span class="vc-tag y">B안 권함</span><span class="vc-t">나머지를 납작하고 흐리게</span></div>
+      <div class="vc-row"><span class="vc-c on">참석<em>처음부터 뛰어요</em></span><span class="vc-c flat">늦참<em>늦게 와요</em></span><span class="vc-c flat">불참<em>이번엔 못 가요</em></span></div>
+      <ul class="vc-list"><li>실선은 그대로라 아직 누를 수 있는 버튼으로 보임</li><li>그림자를 빼고 글자를 회색으로 낮춰 고른 카드와 대비가 커짐</li></ul>
+    </section>
+  </div>
+  <section class="vc-col" aria-label="점선을 쓰는 곳" style="max-width:640px">
+    <div class="vc-top"><span class="vc-tag ink">B안과 함께</span><span class="vc-t">점선은 정말 못 바꿀 때만</span></div>
+    <span class="vc-k">예: 마감 뒤, 참석한 사람은 불참으로만 바꿀 수 있어요</span>
+    <div class="vc-row"><span class="vc-c on">참석<em>처음부터 뛰어요</em></span><span class="vc-c lock">늦참<em>마감됐어요</em></span><span class="vc-c flat">불참<em>바꾸면 벌금</em></span></div>
+    <p class="vc-note">이렇게 하면 "점선 = 못 누름" 규칙이 앱 전체에서 한 가지 뜻으로 유지돼요.</p>
+  </section>
+  <section class="vc-col pick" aria-label="고른 카드 색" style="box-shadow:6px 6px 0 #14BBC2">
+    <div class="vc-top"><span class="vc-tag y">새 제안</span><span class="vc-t">고른 카드는 답마다 색을 다르게 (B안과 함께)</span></div>
+    <p class="vc-note" style="margin:0">참석은 청록, 늦참은 노랑, 불참은 먹색이에요. 현장 출석 버튼(왔음 청록, 지각 노랑, 안 옴 먹색)과 바로 위 인원 칸 색과 같아서, 같은 답은 앱 어디서나 같은 색이에요. 색만 믿지 않게 기울기, 그림자, 체크 표시는 그대로 둬요.</p>
+    <div class="vc-g2">
+      <div class="vc-mini"><span class="vc-k">참석을 눌렀을 때</span><div class="vc-row"><span class="vc-c on yes"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>참석</b><em>처음부터 뛰어요</em></span><span class="vc-c flat">늦참<em>늦게 와요</em></span><span class="vc-c flat">불참<em>이번엔 못 가요</em></span></div></div>
+      <div class="vc-mini"><span class="vc-k">늦참을 눌렀을 때</span><div class="vc-row"><span class="vc-c flat">참석<em>처음부터 뛰어요</em></span><span class="vc-c on late"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>늦참</b><em>2Q부터 와요</em></span><span class="vc-c flat">불참<em>이번엔 못 가요</em></span></div></div>
+      <div class="vc-mini"><span class="vc-k">불참을 눌렀을 때</span><div class="vc-row"><span class="vc-c flat">참석<em>처음부터 뛰어요</em></span><span class="vc-c flat">늦참<em>늦게 와요</em></span><span class="vc-c on no"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>불참</b><em>이번엔 못 가요</em></span></div></div>
+      <div class="vc-mini"><span class="vc-k">정원이 차서 대기가 됐을 때</span><div class="vc-row"><span class="vc-c on wait"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>대기 3번</b><em>자리가 나면 들어가요</em></span><span class="vc-c flat">늦참 대기<em>자리가 나면 들어가요</em></span><span class="vc-c flat">불참<em>이번엔 못 가요</em></span></div></div>
+    </div>
+    <span class="vc-k">인원 칸도 같은 색으로 (지금은 불참이 옅은 분홍, 대기가 먹색이라 투표 카드와 달라요)</span>
+    <div class="vc-strip"><span><b>12</b><span><i class="vc-sw" style="background:#14BBC2"></i>참석</span></span><span><b>2</b><span><i class="vc-sw" style="background:#FCD01A"></i>늦참</span></span><span><b>2</b><span><i class="vc-sw" style="background:#B8E9EB"></i>대기</span></span><span><b>5</b><span><i class="vc-sw" style="background:#121110"></i>불참</span></span><span><b>6</b><span><i class="vc-sw" style="background:transparent;border-style:dashed"></i>미응답</span></span></div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1600}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

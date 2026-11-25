@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>매니볼 화면 둘러보기</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+html,body{margin:0}
+body{background:#E9E3D7;font-family:'IBM Plex Sans KR',sans-serif;color:#121110;word-break:keep-all}
+.bar{position:sticky;top:0;z-index:1000;display:flex;align-items:center;gap:8px;padding:8px 12px;background:#121110;color:#FBF7EF}
+.bar a,.bar button{flex:none;height:36px;padding:0 12px;border:2px solid #FBF7EF;border-radius:8px;background:transparent;color:#FBF7EF;font:700 13px 'IBM Plex Sans KR',sans-serif;text-decoration:none;display:inline-flex;align-items:center;cursor:pointer}
+.bar a[aria-disabled=true]{opacity:.35;pointer-events:none}
+.bar .t{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.3}
+.bar .t b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar .t span{font-size:11px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stage{display:flex;justify-content:center;padding:16px 12px 40px}
+.frame{position:relative;flex:none;box-shadow:0 10px 40px rgba(18,17,16,.25);background:#FBF7EF;overflow:hidden}
+.frame>.host{position:absolute;left:0;top:0;transform-origin:0 0;overflow:hidden}
+.err{padding:24px;font-size:14px}
+</style>
+</head>
+<body>
+<div class="bar"><a href="index.html" id="back">목록</a><span class="t"><b id="ttl"></b><span id="grp"></span></span><a id="prev" href="#">이전</a><a id="next" href="#">다음</a></div>
+<div class="stage"><div class="frame" id="frame"><div class="host" id="host"></div></div></div>
+<script src="boards.js"></script>
+<script>
+(function () {
+  "use strict";
+  var P = new URLSearchParams(location.search);
+  var C = P.get('c') === 'p' ? 'p' : 'm', F = (P.get('f') || '').replace(/[^A-Za-z0-9_]/g, '');
+  var BASE = './' + C + '/';
+  var S = window.SIAN[C], flat = [];
+  S.groups.forEach(function (g) { g.boards.forEach(function (b) { flat.push({ b: b, g: g.title }); }); });
+  var idx = flat.findIndex(function (x) { return x.b.f === F; });
+  var me = idx >= 0 ? flat[idx] : { b: { f: F, t: F, w: C === 'p' ? 1440 : 390, h: C === 'p' ? 1000 : 844 }, g: '' };
+  document.getElementById('back').href = 'index.html#' + C;
+  document.getElementById('ttl').textContent = me.b.t;
+  document.getElementById('grp').textContent = me.g;
+  document.title = me.b.t + ' | 매니볼 화면 둘러보기';
+  var link = function (i) { return i >= 0 && i < flat.length ? 'view.html?c=' + C + '&f=' + flat[i].b.f : null; };
+  [['prev', idx - 1], ['next', idx + 1]].forEach(function (p) { var a = document.getElementById(p[0]); var h = idx >= 0 ? link(p[1]) : null; if (h) a.href = h; else a.setAttribute('aria-disabled', 'true'); });
+
+  // 크기 맞추기 (화면보다 넓으면 줄여서 보여요)
+  var frame = document.getElementById('frame'), host = document.getElementById('host');
+  host.style.width = me.b.w + 'px'; host.style.height = me.b.h + 'px';
+  function fit() { var s = Math.min(1, (window.innerWidth - 24) / me.b.w); host.style.transform = 'scale(' + s + ')'; frame.style.width = Math.round(me.b.w * s) + 'px'; frame.style.height = Math.round(me.b.h * s) + 'px'; }
+  fit(); window.addEventListener('resize', fit);
+
+  // 시안 화면 그리기 (디자인 캔버스의 화면 파일을 그대로 읽어서 그려요)
+  function DCLogic(props) { this.props = props || {}; this.state = {}; }
+  DCLogic.prototype.setState = function (s) { Object.assign(this.state, typeof s === 'function' ? s(this.state) : s); if (this._rerender) this._rerender(); };
+  window.DCLogic = DCLogic;
+  var cache = {}, headDone = {};
+  function load(name) {
+    if (cache[name]) return cache[name];
+    return cache[name] = fetch(BASE + name.replace(/\.dc\.html$/, '') + '.dc.html').then(function (r) { if (!r.ok) throw new Error(name); return r.text(); }).then(function (txt) {
+      var doc = new DOMParser().parseFromString(txt, 'text/html');
+      var x = doc.querySelector('x-dc'); var helmet = x.querySelector('helmet');
+      if (helmet) { if (!headDone[name]) { Array.prototype.forEach.call(helmet.childNodes, function (n) { document.head.appendChild(document.importNode(n, true)); }); headDone[name] = 1; } helmet.remove(); }
+      var sc = doc.querySelector('script[data-dc-script]'); var props = {};
+      try { var dp = JSON.parse(sc.getAttribute('data-props') || '{}'); for (var k in dp) if (dp[k] && typeof dp[k] === 'object' && 'default' in dp[k]) props[k] = dp[k]['default']; } catch (e) { }
+      var Comp = new Function('DCLogic', sc.textContent + '\nreturn Component;')(DCLogic);
+      return { tpl: x, Comp: Comp, defaults: props };
+    });
+  }
+  function evalExpr(expr, scope) { try { return new Function('__s', 'with(__s){ return (' + expr + '); }')(scope); } catch (e) { return undefined; } }
+  var RE = /\{\{\s*([\s\S]+?)\s*\}\}/g;
+  function interp(str, scope) { var m = str.match(/^\s*\{\{\s*([\s\S]+?)\s*\}\}\s*$/); if (m) return evalExpr(m[1], scope); return str.replace(RE, function (_, e) { var v = evalExpr(e, scope); return v == null ? '' : v; }); }
+  var camel = function (s) { return s.replace(/-([a-z])/g, function (_, c) { return c.toUpperCase(); }); };
+  async function renderNode(node, scope, out) {
+    if (node.nodeType === 3) { out.appendChild(document.createTextNode(node.textContent.indexOf('{{') >= 0 ? node.textContent.replace(RE, function (_, e) { var v = evalExpr(e, scope); return v == null ? '' : v; }) : node.textContent)); return; }
+    if (node.nodeType !== 1) return;
+    var tag = node.tagName.toLowerCase();
+    if (tag === 'sc-if') { if (interp(node.getAttribute('value'), scope)) for (var c of node.childNodes) await renderNode(c, scope, out); return; }
+    if (tag === 'sc-for') { var list = interp(node.getAttribute('list'), scope) || []; var as = node.getAttribute('as') || 'item';
+      for (var i = 0; i < list.length; i++) { var s2 = Object.create(scope); s2[as] = list[i]; s2.index = i; for (var c2 of node.childNodes) await renderNode(c2, s2, out); } return; }
+    if (tag === 'dc-import') { var props = {}; for (var a of node.attributes) { if (a.name === 'name' || a.name.indexOf('hint-') === 0) continue; props[camel(a.name)] = a.value.indexOf('{{') >= 0 ? interp(a.value, scope) : a.value; }
+      var wrap = document.createElement('div'); wrap.style.display = 'contents'; out.appendChild(wrap); await mount(node.getAttribute('name'), props, wrap); return; }
+    if (tag === 'script' || tag === 'helmet') return;
+    var el = document.createElementNS(node.namespaceURI || 'http://www.w3.org/1999/xhtml', node.tagName.toLowerCase() === node.tagName ? node.tagName : tag);
+    for (var at of node.attributes) {
+      if (at.name.indexOf('hint-') === 0 || at.name === 'ref') continue;
+      if (/^on/i.test(at.name)) { (function (fn, evn) { if (typeof fn !== 'function') return;
+          if (evn === 'change' || evn === 'input') { el.addEventListener('input', function (ev) { if (!ev.isComposing) fn(ev); }); el.addEventListener('compositionend', function (ev) { fn(ev); }); }
+          else el.addEventListener(evn, function (ev) { fn(ev); });
+        })(interp(at.value, scope), at.name.slice(2).toLowerCase()); continue; }
+      if (at.value.indexOf('{{') >= 0) { var v = interp(at.value, scope); if (v === false || v == null) continue; if (['value', 'checked', 'disabled', 'selected'].indexOf(at.name) >= 0) { try { el[at.name] = v; } catch (e) { } } if (typeof v !== 'function') el.setAttribute(at.name, v === true ? '' : v); }
+      else el.setAttribute(at.name, at.value);
+    }
+    for (var c3 of node.childNodes) await renderNode(c3, scope, el);
+    out.appendChild(el);
+  }
+  async function mount(name, props, h) {
+    var L = await load(name);
+    var inst = new L.Comp(Object.assign({}, L.defaults, props));
+    var busy = false, again = false;
+    var draw = async function () {
+      if (busy) { again = true; return; } busy = true;
+      // 글을 쓰던 칸은 다시 그린 뒤에도 그대로 이어서 쓸 수 있게
+      var ae = document.activeElement, fi = -1, ss = null, se = null;
+      if (ae && h.contains(ae) && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) { fi = Array.prototype.indexOf.call(h.querySelectorAll('input,textarea,select'), ae); try { ss = ae.selectionStart; se = ae.selectionEnd; } catch (e) { } }
+      var vals = inst.renderVals ? inst.renderVals() : {}; var frag = document.createElement('div'); frag.style.display = 'contents';
+      for (var c of L.tpl.childNodes) await renderNode(c, vals, frag);
+      h.replaceChildren(frag);
+      if (fi >= 0) { var n = h.querySelectorAll('input,textarea,select')[fi]; if (n) { n.focus(); try { if (ss != null) n.setSelectionRange(ss, se); } catch (e) { } } }
+      busy = false; if (again) { again = false; draw(); }
+    };
+    inst._rerender = draw; await draw();
+    if (typeof inst.componentDidMount === 'function') { try { inst.componentDidMount(); } catch (e) { } }
+  }
+  // 화면 안의 다른 화면 링크는 이 둘러보기 안에서 열어요
+  host.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href]'); if (!a) return;
+    var href = a.getAttribute('href') || '';
+    var m = href.match(/([A-Za-z0-9_]+)\.dc\.html/);
+    e.preventDefault();
+    if (m) location.href = 'view.html?c=' + C + '&f=' + m[1];
+  });
+  if (!F) { host.innerHTML = '<p class="err">화면을 찾지 못했어요. 목록으로 돌아가 주세요.</p>'; return; }
+  mount(F, {}, host).catch(function (e) { console.error(e); host.innerHTML = '<p class="err">이 화면을 불러오지 못했어요. 목록으로 돌아가 주세요.</p>'; });
+})();
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 매니볼 배포 스크립트
-#   tools/release.sh test     지금 main을 테스트 사이트(/kei-fc/test/)에 올린다. 테스트용 Supabase를 쓴다 (tools/stage.env)
+#   tools/release.sh test     지금 main을 테스트 사이트(/kei-fc/test/)에 올린다. 테스트용 Supabase를 쓴다 (tools/stage.env). 시안 둘러보기(design/sian-view)는 test/sian 에
 #   tools/release.sh approve  지금 테스트 사이트에 올라간 버전을 "승인"으로 표시한다 (approved 브랜치)
 #   tools/release.sh prod     승인된 버전이 운영과 다르면 운영 사이트(/kei-fc/)에 올린다. test/ 폴더는 건드리지 않는다
 # 운영 서버(Supabase)용 SQL이 새로 생겼으면 알려만 준다. SQL은 사람이 Supabase SQL 편집기에서 직접 실행한다
@@ -23,6 +23,8 @@ case "$MODE" in
     set -a; . tools/stage.env; set +a
     VITE_STAGE=test npm run build >/dev/null
     publish dist test
+    # 시안 둘러보기 (로그인 없이 보는 정적 화면, 테스트 사이트에만): design/sian-view -> test/sian
+    if [ -d design/sian-view ]; then rm -rf "$GHP/test/sian"; cp -r design/sian-view "$GHP/test/sian"; fi
     sha=$(git rev-parse --short HEAD)
     echo "$sha" > "$GHP/test/version.txt"
     git -C "$GHP" add -A && git -C "$GHP" commit -q -m "테스트 사이트: $sha" && git -C "$GHP" push -q origin HEAD:gh-pages
