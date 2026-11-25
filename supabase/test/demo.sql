@@ -1,7 +1,7 @@
 -- 테스트 사이트 전용: 로그인 없이 체험하기 (운영에는 넣지 않는다)
 -- 카카오 로그인 없이 들어온 사람(Supabase 익명 로그인)마다 TEST FC를 복사한 자기만의 체험 팀을 만들어 준다.
 -- 체험하는 사람은 그 팀의 Admin이라 팀원, 운영진, Admin 기능을 모두 써 볼 수 있다. 다른 사람의 체험 팀이나 원본 TEST FC는 건드리지 못한다.
--- 원본의 Admin(실제 계정)은 복사본에서 체험하는 사람으로 바뀌고 이름도 "체험 Admin"이 된다. 가짜 팀원 26명은 그대로 복사한다.
+-- 원본의 Admin(실제 계정)은 복사본에서 체험하는 사람으로 바뀌고 이름도 "체험 운영진"이 된다. 가짜 팀원 26명은 그대로 복사한다.
 -- 체험 팀은 만든 지 하루가 지나면 지운다.
 
 create table if not exists public.demo_teams (
@@ -28,7 +28,7 @@ begin
   if nid is not null and exists (select 1 from public.members where team_id = nid and user_id = me) then return nid; end if;
   select user_id into owner from public.members where team_id = tpl and role = 'owner' limit 1;
   if owner is null then raise exception 'no_template'; end if;
-  nid := gen_random_uuid(); nm := '체험 Admin';
+  nid := gen_random_uuid(); nm := '체험 운영진';
   -- 복사는 사용자 행동이 아니라서 사용자 규칙 검사(트리거)를 건너뛰게 이 요청의 로그인 정보를 비운다 (이 함수 안에서만)
   perform set_config('request.jwt.claims', '', true); perform set_config('request.jwt.claim.sub', '', true);
   insert into public.teams select (jsonb_populate_record(null::public.teams, to_jsonb(t) || jsonb_build_object(

@@ -1486,6 +1486,11 @@ async function boot() {
   S.session = session;
   const code = ls.get("mb-join");
   if (!session) {
+    // 테스트 사이트: ?demo 주소로 들어오면 로그인 없이 바로 체험 팀으로 (다른 팀에 보여줄 때 쓰는 링크)
+    if (STAGE && qs.has("demo") && !code) {
+      try { const { error } = await sb.auth.signInAnonymously(); if (error) throw error; await demoEnter(true); return; }
+      catch (e) { console.error(e); toast("체험을 시작하지 못했어요. 로그인 없이 체험하기를 눌러 주세요"); }
+    }
     if (code) { const { data } = await sb.rpc("team_by_code", { p_code: code }); S.inviteTeam = data && data[0] ? data[0].name : ""; S.flow = S.inviteTeam ? "invite" : "login"; if (!S.inviteTeam) ls.set("mb-join", null); }
     else S.flow = "login";
     render(); return;
