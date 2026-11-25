@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>정기 점검 중 PC</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&amp;family=Black+Han+Sans&amp;family=IBM+Plex+Sans+KR:wght@400;500;700&amp;display=swap">
+<style>
+body{margin:0;background:#FBF7EF}
+.mt{box-sizing:border-box;background-color:#FBF7EF;background-image:linear-gradient(rgba(18,17,16,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(18,17,16,0.06) 1px,transparent 1px);background-size:16px 16px;color:#121110;font-family:'IBM Plex Sans KR',sans-serif;word-break:keep-all;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.mt *{user-select:none;-webkit-user-select:none;-webkit-user-drag:none}
+.sc{scrollbar-width:none;-ms-overflow-style:none;touch-action:pan-y;cursor:grab}
+.sc::-webkit-scrollbar{display:none;width:0;height:0}
+.brand{display:flex;align-items:center;gap:10px}
+.mark{width:40px;height:40px;border-radius:11px;background:#5B8DEF;border:2px solid #121110;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.bname{display:flex;flex-direction:column;line-height:1}
+.bname b{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:22px}
+.bname span{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:2px;color:#5B5650;margin-top:3px}
+.tk{border:2px solid #121110;border-radius:16px;background:#FFFFFF;overflow:hidden;display:flex;flex-direction:column}
+.tk-top{background:#121110;color:#FBF7EF;display:flex;flex-direction:column;gap:10px}
+.kick{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:3px;color:#7CA4F0}
+.h1{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400;line-height:1.15}
+.when{align-self:flex-start;border:2px solid #FBF7EF;border-radius:8px;padding:5px 10px;font-weight:700}
+.tk-stub{border-top:2px dashed #121110;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.tk-stub .n{font-family:'Barlow Condensed',sans-serif;font-weight:700;line-height:1}
+.muted{margin:0;color:#5B5650;line-height:1.65}
+.h2{margin:0;display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.h2 b{font-size:18px}
+.h2 span{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:#5B5650}
+.ch{border:2px solid #121110;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;background:#FFFFFF;box-shadow:4px 4px 0 #121110}
+.ch-h{display:flex;align-items:baseline;gap:10px;padding:12px 16px 10px}
+.ch-h .no{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;color:#5B5650}
+.ch-h b{font-size:16px}
+.ch-b{background:#F3EEE4;padding:10px 16px 12px;display:flex;flex-direction:column;gap:4px;border-top:2px solid #121110}
+.ch-a{padding:10px 16px 14px;display:flex;flex-direction:column;gap:4px;border-top:2px dashed #121110}
+.tag{align-self:flex-start;font-size:12px;font-weight:700;border:1.5px solid #121110;border-radius:6px;padding:0 7px}
+.tag.a{background:#121110;color:#FBF7EF}
+.ch-b span.tx{font-size:14px;line-height:1.55;color:#5B5650}
+.ch-a span.tx{font-size:15px;line-height:1.55;font-weight:500}
+.tk,.ch,.more,.brand,.h2,.muted{flex-shrink:0}
+.more{min-height:52px;border:2px solid #121110;border-radius:12px;background:#FFFFFF;color:#121110;font:700 15px 'IBM Plex Sans KR',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+</style>
+</helmet>
+<div class="mt" onDragStart="{{ noDrag }}" style="-webkit-user-select: none; user-select: none; -webkit-touch-callout: none; width: 1280px; height: 800px; overflow: hidden">
+  <div style="max-width: 1120px; margin: 0 auto; padding: 0 40px; box-sizing: border-box; height: 100%; display: flex; flex-direction: column">
+    <div style="height: 80px; display: flex; align-items: center"><div class="brand"><span class="mark" role="img" aria-label="매니볼"><svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="22" fill="none" stroke="#121110" stroke-width="5"></circle><circle cx="23" cy="26" r="3.6" fill="#E46A2E"></circle><circle cx="23" cy="38" r="3.6" fill="#E46A2E"></circle><path d="M30 26 H43 M30 38 H41" fill="none" stroke="#121110" stroke-width="5" stroke-linecap="round"></path></svg></span><span class="bname"><b>매니볼</b><span>MANIBALL</span></span></div></div>
+    <div style="flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1.1fr; gap: 48px; padding: 16px 0 40px">
+      <div style="display: flex; flex-direction: column; gap: 22px">
+        <div class="tk" style="box-shadow: 4px 4px 0 #121110">
+          <div class="tk-top" style="padding: 34px 32px 30px; gap: 14px">
+            <span class="kick" style="font-size: 16px">MAINTENANCE</span>
+            <h1 class="h1" style="font-size: 52px">지금은 정기 점검<br>중이에요</h1>
+            <span class="when" style="font-size: 16px">매주 수요일 04:00~05:00</span>
+          </div>
+          <div class="tk-stub" style="padding: 18px 32px">
+            <span style="font-size: 16px; font-weight: 700">다시 열리기까지</span>
+            <span style="display: flex; align-items: baseline; gap: 6px"><span style="font-size: 17px; font-weight: 700">약</span><span class="n" style="font-size: 56px">23</span><span style="font-size: 17px; font-weight: 700">분</span></span>
+          </div>
+        </div>
+        <p class="muted" style="font-size: 16px">점검하는 동안에는 매니볼 홈페이지와 앱을 쓸 수 없어요. 점검이 끝나면 이 화면에서 바로 다시 열려요. 시간은 한국 시간이에요.</p>
+      </div>
+      <div style="min-height: 0; display: flex; flex-direction: column; gap: 14px">
+        <div class="h2"><b style="font-size: 20px">이번 점검에서 바뀌는 것</b><span>{{ total }}</span></div>
+        <div class="sc" ref="{{ dragRef }}" onPointerDown="{{ dragDown }}" onPointerMove="{{ dragMove }}" onPointerUp="{{ dragUp }}" onPointerLeave="{{ dragUp }}" onClickCapture="{{ dragClick }}" onDragStart="{{ noDrag }}" style="flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding: 0 6px 8px 0">
+        <sc-for list="{{ shown }}" as="c" hint-placeholder-count="3">
+  <div class="ch">
+    <div class="ch-h"><span class="no">{{ c.no }}</span><b>{{ c.title }}</b></div>
+    <div class="ch-b"><span class="tag">수정 전</span><span class="tx">{{ c.before }}</span></div>
+    <div class="ch-a"><span class="tag a">수정 후</span><span class="tx">{{ c.after }}</span></div>
+  </div>
+</sc-for>
+        <sc-if value="{{ hasMore }}" hint-placeholder-val="{{ true }}"><button type="button" class="more" onClick="{{ toggle }}">{{ moreLabel }}<sc-if value="{{ isOpen }}" hint-placeholder-val="{{ false }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></sc-if><sc-if value="{{ isClosed }}" hint-placeholder-val="{{ true }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></sc-if></button></sc-if>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const notes = [{"title": "새 화면", "before": "화면 디자인과 아래 탭 구성이 예전 모습이었어요", "after": "티켓 모양 일정과 새 색으로 화면을 새로 만들었어요. 아래 탭은 홈, 일정, 기록, 팀이고 운영진에게는 운영 탭이 하나 더 있어요"}, {"title": "참석 투표", "before": "참석, 늦참, 불참 버튼을 눌러 투표했어요", "after": "투표 카드를 누르면 일정 목록으로 돌아가고, 처음 투표하면 내 티켓이 뜯기며 도장이 찍혀요. 누르면 바로 바뀌어서 반응이 빨라졌어요"}, {"title": "투표 마감과 불참 벌금", "before": "모두 투표하면 바로 마감됐어요", "after": "정한 마감 시각까지 투표해요. 벌금 기준 시각이 지난 뒤 참석에서 불참으로 바꾸면 사유를 남기고 팀 수칙의 불참 벌금이 붙어요"}, {"title": "빠진 기능", "before": "팀 통장, 엑셀 입금 맞추기, 공지 설문, 달력, 유니폼 색, 명단 엑셀 기능이 있었어요", "after": "자주 쓰지 않는 기능은 빼고 화면을 단순하게 했어요"}, {"title": "경기 기록", "before": "골을 넣은 사람만 적었어요", "after": "최종 점수와 골마다 넣은 사람, 도운 사람을 적어요"}, {"title": "용병 신청", "before": "팀원이 언제든 용병을 신청할 수 있었어요", "after": "운영진이 경기마다 '용병 받기'를 켜야 신청할 수 있고, 투표 마감과 함께 닫혀요. 받은 용병은 정원에 들어가요"}, {"title": "가입 승인", "before": "초대 링크로 들어오면 바로 팀원이 됐어요", "after": "초대 링크로 가입 신청을 보내고, 운영진이 승인하면 팀원이 돼요. 운영진이 가입 승인제를 끄면 바로 팀원이 돼요"}, {"title": "라인업 짜기 (운영진)", "before": "자리와 선수를 차례로 눌러 바꿨어요", "after": "자리를 누르면 넣을 선수 목록이 열려요. 선호 포지션이 아닌 선수도 넣을 수 있고, 넣으면 그 쿼터 그 자리에 고정돼요"}, {"title": "팀원 라인업", "before": "팀원도 모든 선수의 자리와 휴식표를 봤어요", "after": "운영진이 라인업을 알리면, 팀원은 내 출전과 휴식 쿼터, 포메이션만 봐요"}, {"title": "팀 고르기", "before": "팀 고르기 화면에 풋살, 축구가 글자로 표시됐어요", "after": "풋살(FS)과 축구(FC) 로고로 팀을 구분해요"}, {"title": "팀 수칙", "before": "수칙을 한 줄씩 추가했어요", "after": "수칙은 1. 2. 번호를 붙여 직접 적고, 벌금은 그 아래에 따로 적어요"}, {"title": "기본 운영 규칙", "before": "투표 마감, 정원, 지각 기준, 내전 기준을 일정마다 정했어요", "after": "팀을 만들 때 기본값을 정하고, 운영진만 바꿀 수 있어요"}, {"title": "종목", "before": "팀 설정에서 풋살팀, 축구팀을 바꿀 수 있었어요", "after": "종목은 팀을 만들 때만 정하고 바꿀 수 없어요"}, {"title": "풋살 늦참", "before": "풋살팀도 참석, 늦참, 불참으로 투표했어요", "after": "풋살팀은 참석, 불참으로만 투표해요"}, {"title": "외부 공유", "before": "단톡방에 올릴 문구를 복사하는 버튼이 있었어요", "after": "알림은 매니볼 알림함으로만 가요"}, {"title": "뒤로 가기", "before": "뒤로를 누르면 화면마다 정해진 곳으로 갔어요", "after": "뒤로를 누르면 들어온 화면으로 돌아가요"}, {"title": "숫자 입력", "before": "금액과 계좌번호 칸에 글자도 들어가고, 금액에 쉼표가 없었어요", "after": "숫자 칸은 숫자 키패드가 뜨고 숫자만 들어가요. 금액은 30,000처럼 쉼표가 붙어요"}];
+    const open = !!(this.state && this.state.open);
+    const list = notes.map((n, i) => ({ ...n, no: (i < 9 ? '0' : '') + (i + 1) }));
+    const rest = list.length - 4;
+    return {
+      shown: open ? list : list.slice(0, 4),
+      total: list.length + '개',
+      hasMore: rest > 0,
+      moreLabel: open ? '접기' : '나머지 ' + rest + '개 더 보기',
+      isOpen: open,
+      isClosed: !open,
+      toggle: () => this.setState({ open: !open }),
+      noDrag: (e) => { e.preventDefault(); },
+      dragRef: (el) => { this._sc = el; },
+      dragDown: (e) => { if (!this._sc || (e && e.pointerType && e.pointerType !== 'mouse')) return; this._drag = { y: e.clientY, top: this._sc.scrollTop }; this._moved = false; },
+      dragMove: (e) => { if (!this._drag || !this._sc) return; const dy = e.clientY - this._drag.y; if (Math.abs(dy) > 6) this._moved = true; this._sc.scrollTop = this._drag.top - dy; },
+      dragUp: () => { this._drag = null; },
+      dragClick: (e) => { if (this._moved) { e.preventDefault(); e.stopPropagation(); this._moved = false; } }
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,908 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>일정 운영진</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&amp;family=Black+Han+Sans&amp;family=IBM+Plex+Sans+KR:wght@400;500;700&amp;display=swap">
+<style>
+/* 글자 끌어서 선택 막기 */
+body,body *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,select,[contenteditable],[contenteditable] *{-webkit-user-select:text;user-select:text}
+img,svg,a{-webkit-user-drag:none}
+
+body{margin:0}
+
+/* 챕터 버튼: 지금 있는 칸과 누르는 칸이 왼쪽 위로 살짝 올라옴 (54번 B) */
+.mbn{position: relative; transition: transform .16s ease-out, box-shadow .16s ease-out; -webkit-tap-highlight-color: transparent}.mbn:active, .mbn.on{transform: translate(-3px, -3px); box-shadow: 0 0 0 2px #121110; z-index: 1}.mbn.on{animation: mbnlift .36s cubic-bezier(.3, 1.6, .5, 1) .4s both}@keyframes mbnlift{from{transform: none; box-shadow: 0 0 0 0 #121110}to{transform: translate(-3px, -3px); box-shadow: 0 0 0 2px #121110}}@media (prefers-reduced-motion: reduce){.mbn{transition: none}.mbn.on{animation: none}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background-color: #FBF7EF; background-image: linear-gradient(rgba(18, 17, 16, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(18, 17, 16, 0.06) 1px, transparent 1px); background-size: 16px 16px; color: #121110; font-family: 'IBM Plex Sans KR', sans-serif; position: relative; overflow: hidden; display: flex; flex-direction: column; word-break: keep-all">
+
+<sc-if value="{{ isList }}" hint-placeholder-val="{{ true }}">
+  <header style="height: 60px; flex: none; display: flex; align-items: center; padding: 0 12px 0 24px; gap: 8px">
+    <h1 style="flex: 1; margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">일정</h1><button type="button" onClick="{{ openNew }}" style="flex: none; height: 40px; padding: 0 16px; border: 2px solid #121110; border-radius: 10px; background: #121110; color: #FBF7EF; font: 700 14px 'IBM Plex Sans KR', sans-serif; cursor: pointer; display: inline-flex; align-items: center; gap: 8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FBF7EF" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>일정 올리기</button>
+  </header>
+  <main ref="{{ dragRef }}" onPointerDown="{{ dragDown }}" onPointerMove="{{ dragMove }}" onPointerUp="{{ dragUp }}" onPointerLeave="{{ dragUp }}" onClickCapture="{{ dragClick }}" style="flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; touch-action: pan-y; cursor: grab; user-select: none"><div style="padding: 0 24px 28px; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; border-bottom: 2px solid #121110; padding-bottom: 8px"><span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 32px; line-height: 1">11 – 12</span><span style="font-size: 12px; color: #5B5650">{{ pendingNote }}</span></div>
+    <sc-for list="{{ tickets }}" as="t" hint-placeholder-count="4">
+      <div style="display: flex; height: 136px; position: relative">
+        <button type="button" onClick="{{ t.open }}" aria-label="{{ t.aria }}" style="{{ t.main }}">
+          <span style="display: flex; justify-content: space-between; align-items: center; min-height: 24px">
+            <span style="display: flex; align-items: baseline; gap: 8px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px">{{ t.date }}</b><span style="{{ t.kindStyle }}">{{ t.kind }}</span></span>
+            <sc-if value="{{ t.attached }}" hint-placeholder-val="{{ true }}"><span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 16px; background: #121110; color: #FBF7EF; border-radius: 6px; padding: 4px 8px">{{ t.dday }}</span></sc-if>
+          </span>
+          <b style="font-family: 'Barlow Condensed', sans-serif; font-size: 32px; line-height: 1">{{ t.time }}</b>
+          <span style="font-size: 12px">{{ t.sub }}</span>
+          <span style="font-size: 12px">참가 <b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px">{{ t.count }}</b></span>
+        </button>
+        <button type="button" aria-label="다시 투표하기" onClick="{{ t.revote }}" style="{{ t.stampStyle }}"><b style="font-size: 14px">{{ t.voteLabel }}</b><span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 1px">{{ t.stampSub }}</span></button>
+        <sc-if value="{{ t.attached }}" hint-placeholder-val="{{ true }}">
+          <div style="{{ t.stub }}">
+            <span aria-hidden="true" style="position: absolute; left: -11px; top: -2px; width: 20px; height: 11px; box-sizing: border-box; border: 2px solid #121110; border-top: 0; border-radius: 0 0 10px 10px; background: #FBF7EF; z-index: 2"></span>
+            <span aria-hidden="true" style="position: absolute; left: -11px; bottom: -2px; width: 20px; height: 11px; box-sizing: border-box; border: 2px solid #121110; border-bottom: 0; border-radius: 10px 10px 0 0; background: #FBF7EF; z-index: 2"></span>
+            <sc-if value="{{ t.canGo }}" hint-placeholder-val="{{ true }}">
+              <button type="button" onClick="{{ t.go }}" aria-label="{{ t.goLabel }}" style="flex: 1; border: 0; padding: 0; background: transparent; border-radius: 0 14px 14px 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: #121110; font: 700 16px 'IBM Plex Sans KR', sans-serif; line-height: 1.3; white-space: pre-line; cursor: pointer">
+                <span>{{ t.goText }}</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+              </button>
+            </sc-if>
+            <sc-if value="{{ t.closed }}" hint-placeholder-val="{{ false }}">
+              <span style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; color: #5B5650; text-align: center"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px; color: #121110">{{ t.openDate }}</b>투표 시작</span>
+            </sc-if>
+          </div>
+        </sc-if>
+      </div>
+    </sc-for>
+  </div></main>
+  <nav aria-label="하단 메뉴" style="flex: none; margin: 0 24px 20px; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 2px; background: #121110; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; height: 64px">
+    <a href="B17_Main.dc.html" class="mbn" style="border-radius: 10px 0 0 10px; background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg><span>홈</span></a>
+    <a href="B17_A2_Schedule.dc.html" aria-current="page" class="mbn on" style="background: #14BBC2; text-decoration: none; color: #121110; font-weight: 700; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg><span>일정</span></a>
+    <a href="B17_A_Chat.dc.html" class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5h16v11.5H10.5L6 19.5V16H4z"></path><path d="M8 8.8h8M8 11.8h5"></path></svg><span>대화</span><span aria-label="안 읽은 대화 7" style="position: absolute; top: 6px; right: 8px; min-width: 18px; height: 18px; box-sizing: border-box; padding: 0 4px; border-radius: 9px; background: #121110; color: #FBF7EF; font: 700 11px 'Barlow Condensed', sans-serif; display: inline-flex; align-items: center; justify-content: center">7</span></a>
+    <a href="B17_A_Record.dc.html" class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M6 20v-8M12 20V5M18 20v-5"></path></svg><span>기록</span></a>
+    <a href="B17_A_Team.dc.html" class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16.5 14.6c2.4.3 4.2 2.1 4.8 5.4"></path></svg><span>팀</span></a>
+    <a href="B17_A_Ops.dc.html" class="mbn" style="border-radius: 0 10px 10px 0; background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"></path></svg><span>운영</span></a>
+  </nav>
+</sc-if>
+
+<sc-if value="{{ isForm }}" hint-placeholder-val="{{ false }}">
+  <header style="height: 60px; flex: none; display: flex; align-items: center; padding: 0 8px; gap: 4px">
+    <button type="button" aria-label="뒤로" onClick="{{ goBack }}" style="width: 44px; height: 44px; flex: none; border: 0; background: transparent; padding: 0; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
+    <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">{{ formTitle }}</b><span style="font-size: 12px; color: #5B5650">{{ formSub }}</span></span>
+  </header>
+  <main ref="{{ dragRef }}" onPointerDown="{{ dragDown }}" onPointerMove="{{ dragMove }}" onPointerUp="{{ dragUp }}" onPointerLeave="{{ dragUp }}" onClickCapture="{{ dragClick }}" style="flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; touch-action: pan-y; cursor: grab; user-select: none"><div style="padding: 4px 24px 24px; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; font-weight: 700">종류
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+        <sc-for list="{{ kinds }}" as="k" hint-placeholder-count="2"><button type="button" aria-pressed="{{ k.on }}" onClick="{{ k.pick }}" style="{{ k.style }}">{{ k.label }}</button></sc-for>
+      </div>
+      <span style="font-size: 12px; font-weight: 400; color: #5B5650">내전은 직접 만들지 않아요. 상대가 미정인 일정에 사람이 모이면 정해요.</span>
+    </div>
+    <label style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; font-weight: 700">날짜<input type="date" value="{{ f.date }}" onChange="{{ f.on_date }}" placeholder="" style="box-sizing: border-box; width: 100%; height: 48px; border: 2px solid #121110; border-radius: 10px; background: #FFFFFF; padding: 0 12px; font: 500 16px 'IBM Plex Sans KR', sans-serif; color: #121110"></label>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px"><label style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; font-weight: 700">시작<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="5" value="{{ f.start }}" onChange="{{ f.on_start }}" placeholder="07:00" style="box-sizing: border-box; width: 100%; height: 48px; border: 2px solid #121110; border-radius: 10px; background: #FFFFFF; padding: 0 12px; font: 500 16px 'IBM Plex Sans KR', sans-serif; color: #121110"></label><label style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; font-weight: 700">끝<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="5" value="{{ f.end }}" onChange="{{ f.on_end }}" placeholder="09:00" style="box-sizing: border-box; width: 100%; height: 48px; border: 2px solid #121110; border-radius: 10px; background: #FFFFFF; padding: 0 12px; font: 500 16px 'IBM Plex Sans KR', sans-serif; color: #121110"></label></div>
+    <label style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; font-weight: 700">장소<input type="text" autocapitalize="off" autocomplete="off" spellcheck="false" value="{{ f.place }}" onChange="{{ f.on_place }}" placeholder="구장 이름" style="box-sizing: border-box; width: 100%; height: 48px; border: 2px solid #121110; border-radius: 10px; background: #FFFFFF; padding: 0 12px; font: 500 16px 'IBM Plex Sans KR', sans-serif; color: #121110"></label>
+    <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; font-weight: 700">상대팀
+      <div style="display: flex; gap: 8px"><input type="text" autocapitalize="off" autocomplete="off" spellcheck="false" value="{{ f.opp }}" onChange="{{ f.on_opp }}" placeholder="팀 이름" aria-label="상대팀" style="box-sizing: border-box; width: 100%; height: 48px; border: 2px solid #121110; border-radius: 10px; background: #FFFFFF; padding: 0 12px; font: 500 16px 'IBM Plex Sans KR', sans-serif; color: #121110; flex: 1; {{ f.oppDim }}"><button type="button" aria-pressed="{{ f.tbd }}" onClick="{{ f.toggleTbd }}" style="{{ f.tbdStyle }}">미정</button></div>
+      <span style="font-size: 12px; font-weight: 400; color: #5B5650">{{ f.tbdNote }}</span>
+    </div>
+    <sc-if value="{{ f.showKit }}" hint-placeholder-val="{{ true }}">
+    <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; font-weight: 700">상대 유니폼 색<span style="font-weight: 400; color: #5B5650">상대 팀이 입고 올 유니폼 색을 골라요. 겹치지 않는 우리 유니폼을 추천해 드려요.</span>
+      <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px"><sc-for list="{{ f.oppKits }}" as="c" hint-placeholder-count="12"><button type="button" aria-label="{{ c.name }}" aria-pressed="{{ c.on }}" onClick="{{ c.pick }}" style="{{ c.btn }}"><span style="{{ c.dot }}"><sc-if value="{{ c.on }}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{ c.mark }}" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg></sc-if></span></button></sc-for></div>
+      <span style="font-weight: 400; color: #5B5650">{{ f.oppKitName }}</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; font-weight: 700">우리 유니폼
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px"><sc-for list="{{ f.kitOpts }}" as="k" hint-placeholder-count="2"><button type="button" aria-pressed="{{ k.on }}" onClick="{{ k.pick }}" style="{{ k.style }}"><svg viewBox="-2 -2 52 48" aria-hidden="true" style="width: 28px; height: 26px; flex: none; display: block"><path d="M13 3 H19 C20 6 22 7 24 7 C26 7 28 6 29 3 H35 L46 12 L40 19 L37 17 V41 H11 V17 L8 19 L2 12 Z" fill="{{ k.color }}" stroke="#121110" stroke-width="3.7" stroke-linejoin="round"></path></svg><span style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2"><b style="font: 700 16px 'Barlow Condensed', sans-serif">{{ k.label }}</b><span style="font-size: 12px; font-weight: 400">{{ k.name }}</span></span><sc-if value="{{ k.rec }}" hint-placeholder-val="{{ false }}"><span style="margin-left: auto; font-size: 12px; font-weight: 700; background: #E2F7F8; color: #005459; border: 2px solid #121110; border-radius: 6px; padding: 0 8px">추천</span></sc-if></button></sc-for></div>
+      <span style="font-weight: 400; color: #5B5650">HOME, AWAY 색은 팀 설정에서 정해요. 라인업 화면의 유니폼이 이 색으로 보여요.</span>
+    </div>
+    </sc-if>
+    <div style="display: flex; flex-direction: column; gap: 8px; border-top: 2px solid #121110; padding-top: 16px">
+      <span style="display: flex; align-items: center; gap: 8px; font-size: 16px">정원<input type="text" inputmode="numeric" pattern="[0-9]*" aria-label="정원" value="{{ f.cap }}" onChange="{{ f.on_cap }}" style="box-sizing: border-box; width: 64px; height: 44px; border: 2px solid #121110; border-radius: 10px; background: #FFFFFF; padding: 0 8px; text-align: center; font: 700 20px 'Barlow Condensed', sans-serif; color: #121110">명, 넘으면 대기로</span>
+      <span style="display: flex; align-items: center; gap: 8px; font-size: 16px">투표는<input type="date" aria-label="투표 시작일" value="{{ f.open }}" onChange="{{ f.on_open }}" style="box-sizing: border-box; width: 64px; height: 44px; border: 2px solid #121110; border-radius: 10px; background: #FFFFFF; padding: 0 8px; text-align: center; font: 700 20px 'Barlow Condensed', sans-serif; color: #121110; width: 150px">부터 받아요</span>
+      <div role="group" aria-label="투표 마감" style="display: flex; flex-direction: column; gap: 8px; border: 2px solid #121110; border-radius: 12px; background: #FFFFFF; padding: 12px">
+        <b style="font-size: 14px">투표 마감</b>
+        <span style="display: flex; align-items: center; gap: 8px; font-size: 16px">경기<span style="display: inline-flex; align-items: stretch; height: 44px; box-sizing: border-box; border: 2px solid #121110; border-radius: 10px; overflow: hidden; background: #FBF7EF"><button type="button" aria-label="하루 줄이기" onClick="{{ f.dMinus }}" style="width: 44px; border: 0; border-right: 2px solid #121110; background: #FFFFFF; font: 700 20px 'Barlow Condensed', sans-serif; color: #121110; cursor: pointer">-</button><b aria-live="polite" style="min-width: 76px; display: flex; align-items: center; justify-content: center; font: 700 18px 'IBM Plex Sans KR', sans-serif">{{ f.dLabel }}</b><button type="button" aria-label="하루 늘리기" onClick="{{ f.dPlus }}" style="width: 44px; border: 0; border-left: 2px solid #121110; background: #FFFFFF; font: 700 20px 'Barlow Condensed', sans-serif; color: #121110; cursor: pointer">+</button></span></span>
+        <span style="display: flex; align-items: center; gap: 8px; font-size: 16px"><span style="display: inline-flex; gap: 0; border: 2px solid #121110; border-radius: 10px; overflow: hidden"><sc-for list="{{ f.apOpts }}" as="a" hint-placeholder-count="2"><button type="button" aria-pressed="{{ a.on }}" onClick="{{ a.pick }}" style="{{ a.style }}">{{ a.label }}</button></sc-for></span><input type="text" inputmode="numeric" pattern="[0-9]*" aria-label="투표 마감 시" value="{{ f.close }}" onChange="{{ f.on_close }}" style="box-sizing: border-box; height: 44px; border: 2px solid #121110; border-radius: 10px; background: #FFFFFF; font: 700 20px 'Barlow Condensed', sans-serif; color: #121110; width: 56px; padding: 0 8px; text-align: center">시에 마감</span>
+        <span style="{{ f.dlStyle }}">{{ f.dlLine }}</span>
+      </div>
+      <span style="display: flex; align-items: center; gap: 8px; font-size: 16px">시작<input type="text" inputmode="numeric" pattern="[0-9]*" aria-label="출석 부르는 시간" value="{{ f.call }}" onChange="{{ f.on_call }}" style="box-sizing: border-box; width: 64px; height: 44px; border: 2px solid #121110; border-radius: 10px; background: #FFFFFF; padding: 0 8px; text-align: center; font: 700 20px 'Barlow Condensed', sans-serif; color: #121110">분 전에 출석 불러요</span>
+      <span style="font-size: 12px; color: #5B5650">마감 시각과 출석 시간은 기본 운영 규칙에서 가져왔어요. 이 일정만 바꿀 수 있어요.</span>
+    </div>
+  </div></main>
+  <div style="flex: none; padding: 12px 24px 28px; border-top: 2px solid #121110; display: flex; flex-direction: column; gap: 8px">
+    <button type="button" onClick="{{ saveForm }}" style="width: 100%; height: 56px; border: 2px solid #121110; border-radius: 12px; background: #FCD01A; color: #121110; font: 700 16px 'IBM Plex Sans KR', sans-serif; cursor: pointer; box-shadow: 3px 3px 0 #121110">{{ formCta }}</button>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isScrim }}" hint-placeholder-val="{{ false }}">
+  <header style="height: 60px; flex: none; display: flex; align-items: center; padding: 0 8px; gap: 4px">
+    <button type="button" aria-label="뒤로" onClick="{{ goBack }}" style="width: 44px; height: 44px; flex: none; border: 0; background: transparent; padding: 0; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
+    <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">내전 정하기</b><span style="font-size: 12px; color: #5B5650">11.26 수, 경기 3일 전</span></span>
+  </header>
+  <main ref="{{ dragRef }}" onPointerDown="{{ dragDown }}" onPointerMove="{{ dragMove }}" onPointerUp="{{ dragUp }}" onPointerLeave="{{ dragUp }}" onClickCapture="{{ dragClick }}" style="flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; touch-action: pan-y; cursor: grab; user-select: none"><div style="padding: 4px 24px 24px; display: flex; flex-direction: column; gap: 16px">
+    <div style="background: #FFFFFF; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; padding: 16px 16px; display: flex; flex-direction: column; gap: 8px">
+      <span style="display: flex; align-items: baseline; gap: 8px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 24px">11.29 토</b><span style="font-size: 12px; font-weight: 700">상대 미정</span></span>
+      <b style="font-family: 'Barlow Condensed', sans-serif; font-size: 34px; line-height: 1">07:00 ~ 09:00</b>
+      <span style="font-size: 14px">상암 월드컵 보조구장</span>
+      <div style="display: flex; align-items: baseline; gap: 8px; border-top: 2px dashed rgba(18, 17, 16, 0.35); padding-top: 8px; margin-top: 8px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 46px; line-height: 1">20</b><span style="font-size: 14px">명 (참석 14, 대기 6)</span></div>
+    </div>
+    <span style="font-size: 16px; line-height: 1.7">경기 3일 전까지 20명이 유지됐어요. 상대팀이 미정이라 내전을 할 수 있어요. 운영진끼리 상의해서 정하면 팀원에게 알림이 가요.</span>
+    <sc-if value="{{ scrimUndecided }}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <button type="button" onClick="{{ scrimYes }}" style="height: 56px; border: 2px solid #121110; border-radius: 12px; background: #FCD01A; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer; box-shadow: 3px 3px 0 #121110">내전 하기</button>
+        <button type="button" onClick="{{ scrimNo }}" style="height: 52px; border: 2px solid #121110; border-radius: 12px; background: #FBF7EF; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer">이번에는 안 하기</button>
+      </div>
+    </sc-if>
+    <sc-if value="{{ scrimDecided }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; align-items: center; gap: 12px; border: 2px solid #121110; border-radius: 14px; padding: 16px 16px"><span style="flex: none; width: 52px; height: 52px; box-sizing: border-box; border-radius: 50%; border: 2.5px solid #121110; background: {{ scrimColor }}; transform: rotate(-12deg); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px">{{ scrimStamp }}</span><span style="font-size: 14px; line-height: 1.6">{{ scrimText }}</span></div>
+    </sc-if>
+  </div></main>
+  <nav aria-label="하단 메뉴" style="flex: none; margin: 0 24px 20px; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 2px; background: #121110; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; height: 64px">
+    <a href="B17_Main.dc.html" class="mbn" style="border-radius: 10px 0 0 10px; background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg><span>홈</span></a>
+    <a href="B17_A2_Schedule.dc.html" aria-current="page" class="mbn on" style="background: #14BBC2; text-decoration: none; color: #121110; font-weight: 700; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg><span>일정</span></a>
+    <a href="B17_A_Chat.dc.html" class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5h16v11.5H10.5L6 19.5V16H4z"></path><path d="M8 8.8h8M8 11.8h5"></path></svg><span>대화</span><span aria-label="안 읽은 대화 7" style="position: absolute; top: 6px; right: 8px; min-width: 18px; height: 18px; box-sizing: border-box; padding: 0 4px; border-radius: 9px; background: #121110; color: #FBF7EF; font: 700 11px 'Barlow Condensed', sans-serif; display: inline-flex; align-items: center; justify-content: center">7</span></a>
+    <a href="B17_A_Record.dc.html" class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M6 20v-8M12 20V5M18 20v-5"></path></svg><span>기록</span></a>
+    <a href="B17_A_Team.dc.html" class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16.5 14.6c2.4.3 4.2 2.1 4.8 5.4"></path></svg><span>팀</span></a>
+    <a href="B17_A_Ops.dc.html" class="mbn" style="border-radius: 0 10px 10px 0; background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"></path></svg><span>운영</span></a>
+  </nav>
+</sc-if>
+
+<sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
+  <header style="height: 60px; flex: none; display: flex; align-items: center; padding: 0 8px; gap: 4px">
+    <button type="button" aria-label="뒤로" onClick="{{ goBack }}" style="width: 44px; height: 44px; flex: none; border: 0; background: transparent; padding: 0; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
+    <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">{{ d.title }}</b><span style="font-size: 12px; color: #5B5650">{{ d.sub }}</span></span>
+  </header>
+  <main ref="{{ dragRef }}" onPointerDown="{{ dragDown }}" onPointerMove="{{ dragMove }}" onPointerUp="{{ dragUp }}" onPointerLeave="{{ dragUp }}" onClickCapture="{{ dragClick }}" style="flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; touch-action: pan-y; cursor: grab; user-select: none"><div style="padding: 4px 24px 28px; display: flex; flex-direction: column; gap: 16px">
+    <div style="{{ d.heroStyle }}">
+      <sc-if value="{{ canceled }}" hint-placeholder-val="{{ false }}"><span style="position: absolute; top: 112px; right: 24px; z-index: 2"><span aria-hidden="true" style="display: inline-flex; align-items: center; padding: 4px 12px; border: 2.5px solid #8C3B28; border-radius: 8px; color: #8C3B28; background: rgba(251, 247, 239, 0.9); transform: rotate(-10deg); font-weight: 700; font-size: 24px; letter-spacing: 2px">{{ cancelWord }} 취소</span></span></sc-if>
+      <div style="padding: 24px 24px 16px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #005459"><span style="width: 10px; height: 10px; border-radius: 50%; background: #14BBC2; border: 2px solid #121110; box-sizing: border-box; flex: none"></span>{{ d.label }}</span>
+          <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px; background: #121110; color: #FBF7EF; border-radius: 8px; padding: 4px 8px">{{ d.dday }}</span>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 8px">
+          <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 92px; line-height: 0.9; letter-spacing: -1px">{{ d.start }}</span>
+          <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 24px">~ {{ d.end }}</span>
+        </div>
+        <b style="font-size: 16px; margin-top: 8px">{{ d.day }}</b>
+        <span style="font-size: 14px">{{ d.place }}</span>
+      </div>
+      <div aria-hidden="true" style="position: relative; height: 2px">
+        <span style="position: absolute; left: 20px; right: 20px; top: 0; height: 2px; background-image: radial-gradient(circle, #121110 1.2px, transparent 1.4px); background-size: 7px 2px; background-repeat: repeat-x"></span>
+        <span style="position: absolute; left: 0; top: -11px; width: 12px; height: 24px; background: #FBF7EF; border-radius: 0 12px 12px 0"></span>
+        <span style="position: absolute; right: 0; top: -11px; width: 12px; height: 24px; background: #FBF7EF; border-radius: 12px 0 0 12px"></span>
+      </div>
+      <div style="padding: 16px 24px 24px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; font-family: 'Barlow Condensed', sans-serif; font-size: 16px">
+          <span>참석 <b style="font-size: 24px">{{ d.att }}</b> / {{ d.cap }}</span>
+          <span style="font-family: 'IBM Plex Sans KR', sans-serif; font-size: 12px">{{ d.seat }}</span>
+        </div>
+        <span style="height: 6px; border-radius: 3px; background: rgba(18, 17, 16, 0.2); display: block; overflow: hidden"><span style="{{ d.bar }}"></span></span>
+        <span style="font-size: 12px">{{ d.dl }}</span>
+      </div>
+    </div>
+
+    <sc-if value="{{ canceled }}" hint-placeholder-val="{{ false }}">
+    <div style="display: flex; flex-direction: column; gap: 8px; background: #FFFFFF; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; padding: 16px">
+      <span style="display: flex; align-items: center; gap: 8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8C3B28" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18M5.6 5.6l12.8 12.8"></path></svg><b style="font-size: 16px; color: #8C3B28">운영진이 {{ cancelObj }} 취소했어요</b></span>
+      <span style="display: flex; align-items: center; gap: 8px; font-size: 14px"><span style="font-size: 12px; font-weight: 700; padding: 0 8px; border-radius: 5px; border: 2px solid #121110; background: #121110; color: #FBF7EF">{{ cancelReason }}</span>참석 {{ d.att }} / 정원 {{ d.cap }}</span>
+      <span style="font-size: 14px; line-height: 1.6">{{ cancelText }}</span>
+      <span style="font-size: 12px; color: #5B5650">팀원 26명에게 알렸어요. 투표는 닫히고, 불참 벌금은 붙지 않고, 기록에도 남지 않아요.</span>
+    </div>
+    </sc-if>
+
+    <div style="border: 2px solid #121110; border-radius: 12px; background: #FFFFFF; box-shadow: 4px 4px 0 #121110; padding: 12px 0 12px 16px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); color: #121110">
+      <sc-for list="{{ counts }}" as="c" hint-placeholder-count="5"><span style="display: flex; flex-direction: column; gap: 4px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 34px; line-height: 1">{{ c.n }}</b><span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px"><span style="{{ c.sw }}"></span>{{ c.label }}</span></span></sc-for>
+    </div>
+
+<sc-if value="{{ showMyVote }}" hint-placeholder-val="{{ true }}">
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 12px; font-weight: 700">내 투표</span>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 4px 4px">
+        <sc-for list="{{ myVote }}" as="v" hint-placeholder-count="3"><button type="button" aria-pressed="{{ v.on }}" onClick="{{ v.pick }}" style="{{ v.style }}">{{ v.label }}</button></sc-for>
+      </div>
+      <sc-if value="{{ myLate }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <span style="flex: none; font-size: 12px; font-weight: 700">몇 쿼터부터?</span>
+          <div style="flex: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+            <sc-for list="{{ myQs }}" as="q" hint-placeholder-count="4"><button type="button" aria-pressed="{{ q.on }}" onClick="{{ q.pick }}" style="{{ q.style }}">{{ q.label }}</button></sc-for>
+          </div>
+        </div>
+      </sc-if>
+      <span style="font-size: 12px; color: #5B5650">{{ myNote }}</span>
+    </div>
+    </sc-if>
+
+    <section aria-label="운영진 도구" style="display: flex; flex-direction: column; gap: 8px">
+      <span style="display: flex; align-items: center; gap: 8px; border-bottom: 2px solid #121110; padding-bottom: 8px"><b style="font-size: 16px">운영진</b><span style="font-size: 12px; color: #5B5650">팀원 화면에는 보이지 않아요</span></span>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+        <sc-for list="{{ tools }}" as="tl" hint-placeholder-count="5"><button type="button" onClick="{{ tl.go }}" style="{{ tl.style }}"><span style="{{ tl.tile }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{ tl.ic }}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ tl.d }}"></path></svg></span><span style="display: flex; flex-direction: column; gap: 4px; text-align: left"><b style="font-size: 16px; color: {{ tl.tc }}">{{ tl.label }}</b><span style="font-size: 12px; color: #5B5650">{{ tl.sub }}</span></span><sc-if value="{{ tl.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="position: absolute; right: -6px; top: -10px; display: inline-flex; align-items: center; font-size: 12px; font-weight: 700; border: 2px solid #121110; border-radius: 5px; padding: 0 8px; line-height: 1.5; background: #FCD01A; color: #121110; box-shadow: 2px 2px 0 #121110">{{ tl.badge }}</span></sc-if></button></sc-for>
+      </div>
+    </section>
+    <section style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px"><span style="display: flex; align-items: baseline; gap: 8px; border-bottom: 2px solid #8C3B28; padding-bottom: 8px"><b style="font-size: 16px; color: #8C3B28">주의</b><span style="font-size: 12px; color: #5B5650">팀원 모두에게 영향이 가요</span></span>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+        <sc-for list="{{ tools2 }}" as="tl" hint-placeholder-count="2"><button type="button" onClick="{{ tl.go }}" style="{{ tl.style }}"><span style="{{ tl.tile }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{ tl.ic }}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ tl.d }}"></path></svg></span><span style="display: flex; flex-direction: column; gap: 4px; text-align: left"><b style="font-size: 16px; color: {{ tl.tc }}">{{ tl.label }}</b><span style="font-size: 12px; color: #5B5650">{{ tl.sub }}</span></span><sc-if value="{{ tl.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="position: absolute; right: -6px; top: -10px; display: inline-flex; align-items: center; font-size: 12px; font-weight: 700; border: 2px solid #121110; border-radius: 5px; padding: 0 8px; line-height: 1.5; background: #FCD01A; color: #121110; box-shadow: 2px 2px 0 #121110">{{ tl.badge }}</span></sc-if></button></sc-for>
+      </div>
+    </section>
+  </div></main>
+  <nav aria-label="하단 메뉴" style="flex: none; margin: 0 24px 20px; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 2px; background: #121110; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; height: 64px">
+    <a href="B17_Main.dc.html" class="mbn" style="border-radius: 10px 0 0 10px; background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg><span>홈</span></a>
+    <a href="B17_A2_Schedule.dc.html" aria-current="page" class="mbn on" style="background: #14BBC2; text-decoration: none; color: #121110; font-weight: 700; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg><span>일정</span></a>
+    <a href="B17_A_Chat.dc.html" class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5h16v11.5H10.5L6 19.5V16H4z"></path><path d="M8 8.8h8M8 11.8h5"></path></svg><span>대화</span><span aria-label="안 읽은 대화 7" style="position: absolute; top: 6px; right: 8px; min-width: 18px; height: 18px; box-sizing: border-box; padding: 0 4px; border-radius: 9px; background: #121110; color: #FBF7EF; font: 700 11px 'Barlow Condensed', sans-serif; display: inline-flex; align-items: center; justify-content: center">7</span></a>
+    <a href="B17_A_Record.dc.html" class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M6 20v-8M12 20V5M18 20v-5"></path></svg><span>기록</span></a>
+    <a href="B17_A_Team.dc.html" class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16.5 14.6c2.4.3 4.2 2.1 4.8 5.4"></path></svg><span>팀</span></a>
+    <a href="B17_A_Ops.dc.html" class="mbn" style="border-radius: 0 10px 10px 0; background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"></path></svg><span>운영</span></a>
+  </nav>
+</sc-if>
+
+<sc-if value="{{ isRoster }}" hint-placeholder-val="{{ false }}">
+  <header style="height: 60px; flex: none; display: flex; align-items: center; padding: 0 8px; gap: 4px">
+    <button type="button" aria-label="뒤로" onClick="{{ goBack }}" style="width: 44px; height: 44px; flex: none; border: 0; background: transparent; padding: 0; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
+    <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">참석 명단</b><span style="font-size: 12px; color: #5B5650">11.22 토 경기, 팀원 26명</span></span>
+  </header>
+  <div style="flex: none; padding: 4px 24px 8px; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none">
+    <sc-for list="{{ rtabs }}" as="r" hint-placeholder-count="5"><button type="button" aria-pressed="{{ r.on }}" onClick="{{ r.pick }}" style="{{ r.style }}">{{ r.label }} <b style="font-family: 'Barlow Condensed', sans-serif; font-size: 16px">{{ r.n }}</b></button></sc-for>
+  </div>
+  <main ref="{{ dragRef }}" onPointerDown="{{ dragDown }}" onPointerMove="{{ dragMove }}" onPointerUp="{{ dragUp }}" onPointerLeave="{{ dragUp }}" onClickCapture="{{ dragClick }}" style="flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; touch-action: pan-y; cursor: grab; user-select: none"><div style="padding: 0 24px 24px; display: flex; flex-direction: column">
+    <sc-for list="{{ rrows }}" as="p" hint-placeholder-count="8">
+      <div style="display: flex; align-items: center; gap: 12px; min-height: 54px; border-bottom: 2px solid #DDD6C8">
+        <b style="flex: none; width: 34px; font-family: 'Barlow Condensed', sans-serif; font-size: 20px; text-align: center">{{ p.num }}</b>
+        <span style="flex: 1; display: flex; flex-direction: column; gap: 4px"><b style="font-size: 16px">{{ p.name }}</b><span style="font-size: 12px; color: #5B5650">{{ p.pos }}</span></span>
+        <sc-if value="{{ p.hasTag }}" hint-placeholder-val="{{ false }}"><span style="{{ p.tagStyle }}">{{ p.tag }}</span></sc-if>
+      </div>
+    </sc-for>
+  </div></main>
+  <sc-if value="{{ isNoReply }}" hint-placeholder-val="{{ false }}">
+    <div style="flex: none; padding: 12px 24px 28px; border-top: 2px solid #121110; display: flex; flex-direction: column; gap: 8px">
+      <button type="button" onClick="{{ nudge }}" aria-disabled="{{ nudged }}" style="{{ nudgeStyle }}">{{ nudgeLabel }}</button>
+      <span style="font-size: 12px; color: #5B5650; text-align: center">{{ nudgeNote }}</span>
+    </div>
+  </sc-if>
+</sc-if>
+
+<sc-if value="{{ isLineup }}" hint-placeholder-val="{{ false }}">
+  <header style="height: 60px; flex: none; display: flex; align-items: center; padding: 0 8px; gap: 4px">
+    <button type="button" aria-label="뒤로" onClick="{{ goBack }}" style="width: 44px; height: 44px; flex: none; border: 0; background: transparent; padding: 0; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
+    <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">라인업 짜기</b><span style="font-size: 12px; color: #5B5650">11.22 토 경기</span></span><button type="button" onClick="{{ openFormation }}" style="flex: none; height: 40px; margin-right: 8px; padding: 0 8px; border: 2px solid #121110; border-radius: 8px; background: #FBF7EF; font: 700 16px 'Barlow Condensed', sans-serif; color: #121110; cursor: pointer; display: inline-flex; align-items: center; gap: 4px">{{ formation }}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+  </header>
+  <main ref="{{ dragRef }}" onPointerDown="{{ dragDown }}" onPointerMove="{{ dragMove }}" onPointerUp="{{ dragUp }}" onPointerLeave="{{ dragUp }}" onClickCapture="{{ dragClick }}" style="flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; touch-action: pan-y; cursor: grab; user-select: none"><div style="padding: 0 24px 24px; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding-top: 4px">
+      <sc-for list="{{ qtabs }}" as="q" hint-placeholder-count="4"><button type="button" aria-pressed="{{ q.on }}" onClick="{{ q.pick }}" style="{{ q.style }}">{{ q.label }}</button></sc-for>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="display: flex; justify-content: space-between; align-items: baseline"><b style="font-size: 16px">우리 유니폼</b><span style="font-size: 12px; color: #5B5650">{{ kitNote }}</span></span>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px"><sc-for list="{{ kitOpts }}" as="k" hint-placeholder-count="2"><button type="button" aria-pressed="{{ k.on }}" onClick="{{ k.pick }}" style="{{ k.style }}"><svg viewBox="-2 -2 52 48" aria-hidden="true" style="width: 28px; height: 26px; flex: none; display: block"><path d="M13 3 H19 C20 6 22 7 24 7 C26 7 28 6 29 3 H35 L46 12 L40 19 L37 17 V41 H11 V17 L8 19 L2 12 Z" fill="{{ k.color }}" stroke="#121110" stroke-width="3.7" stroke-linejoin="round"></path></svg><span style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2"><b style="font: 700 16px 'Barlow Condensed', sans-serif">{{ k.label }}</b><span style="font-size: 12px">{{ k.name }}</span></span><sc-if value="{{ k.rec }}" hint-placeholder-val="{{ false }}"><span style="margin-left: auto; font-size: 12px; font-weight: 700; background: #E2F7F8; color: #005459; border: 2px solid #121110; border-radius: 6px; padding: 0 8px">추천</span></sc-if></button></sc-for></div>
+    </div>
+    <div style="position: relative; height: 440px; border-radius: 12px; border: 2px solid #121110; box-shadow: 4px 4px 0 #121110; background: repeating-linear-gradient(180deg, #64A823 0 44px, #5B9A1F 44px 88px); overflow: hidden">
+      <span aria-hidden="true" style="position: absolute; left: 10px; right: 10px; top: 10px; bottom: 10px; border: 2px solid rgba(251, 247, 239, 0.9); border-radius: 4px"></span>
+      <span aria-hidden="true" style="position: absolute; left: 10px; right: 10px; top: 50%; border-top: 2px solid rgba(251, 247, 239, 0.9)"></span>
+      <span aria-hidden="true" style="position: absolute; left: 50%; top: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px; border: 2px solid rgba(251, 247, 239, 0.9); border-radius: 50%"></span>
+      <span aria-hidden="true" style="position: absolute; left: 50%; top: 10px; width: 150px; height: 46px; margin-left: -75px; border: 2px solid rgba(251, 247, 239, 0.9); border-top: 0"></span>
+      <span aria-hidden="true" style="position: absolute; left: 50%; bottom: 10px; width: 150px; height: 46px; margin-left: -75px; border: 2px solid rgba(251, 247, 239, 0.9); border-bottom: 0"></span>
+      <sc-for list="{{ spots }}" as="p" hint-placeholder-count="11">
+        <button type="button" onClick="{{ p.pick }}" aria-label="{{ p.aria }}" style="{{ p.wrap }}"><span style="{{ p.jbox }}"><sc-if value="{{ p.pinned }}" hint-placeholder-val="{{ false }}"><svg width="22" height="26" viewBox="0 0 22 26" aria-hidden="true" style="position: absolute; left: 8px; top: -3px; z-index: 3; overflow: visible; pointer-events: none"><ellipse cx="13.5" cy="22.6" rx="6" ry="2" fill="rgba(18, 17, 16, 0.3)"></ellipse><ellipse cx="8" cy="23" rx="2.2" ry="1.2" fill="#121110"></ellipse><g transform="rotate(22 8 23)"><line x1="8" y1="14" x2="8" y2="23" stroke="#121110" stroke-width="2" stroke-linecap="round"></line><path d="M4 14h8l-1.5-4V6.5h1V4.5h-7v2h1V10z" fill="#14BBC2" stroke="#121110" stroke-width="1.6" stroke-linejoin="round"></path><path d="M6.2 7v2.6" stroke="#FBF7EF" stroke-width="1.2" stroke-linecap="round"></path></g></svg></sc-if><svg viewBox="-2 -2 52 48" aria-hidden="true" style="{{ p.jsvg }}"><path d="M13 3 H19 C20 6 22 7 24 7 C26 7 28 6 29 3 H35 L46 12 L40 19 L37 17 V41 H11 V17 L8 19 L2 12 Z" fill="{{ p.kit }}" stroke="#121110" stroke-width="1.9" stroke-linejoin="round" stroke-dasharray="{{ p.dash }}"></path></svg><span style="{{ p.inStyle }}">{{ p.inLabel }}</span></span><span style="{{ p.underStyle }}"><sc-if value="{{ p.guest }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="flex: none; width: 16px; height: 16px; border-radius: 50%; background: #121110; color: #FBF7EF; font-size: 12px; font-weight: 700; line-height: 16px; text-align: center; margin-left: -4px">용</span></sc-if>{{ p.underLabel }}</span></button>
+      </sc-for>
+    </div>
+    <button type="button" onClick="{{ saveImg }}" style="align-self: flex-end; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border: 2px solid #121110; border-radius: 10px; background: #FFFFFF; box-shadow: 3px 3px 0 #121110; font: 700 14px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"></path></svg>사진으로 저장</button>
+    
+    <section aria-label="쿼터 수" style="display: flex; flex-direction: column">
+      <span style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #121110; padding-bottom: 8px"><b style="font-size: 16px">출전 쿼터</b><span style="font-size: 12px; color: #5B5650">{{ benchNote }}</span></span>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 16px">
+        <sc-for list="{{ load }}" as="l" hint-placeholder-count="16">
+          <span style="display: flex; align-items: center; gap: 8px; min-height: 36px; border-bottom: 2px solid #DDD6C8"><span style="flex: 1; font-size: 14px; white-space: nowrap">{{ l.name }}</span><span style="display: flex; gap: 4px"><sc-for list="{{ l.qs }}" as="d" hint-placeholder-count="4"><span style="{{ d.style }}"></span></sc-for></span><b style="width: 18px; text-align: right; font-family: 'Barlow Condensed', sans-serif; font-size: 16px">{{ l.n }}</b></span>
+        </sc-for>
+      </div>
+    </section>
+  </div></main>
+  <div style="flex: none; padding: 8px 24px 28px; border-top: 2px solid #DDD6C8; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+    <button type="button" onClick="{{ autoFill }}" style="height: 52px; border: 2px solid #121110; border-radius: 12px; background: #FBF7EF; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer">자동 배치</button>
+    <button type="button" onClick="{{ publish }}" style="height: 52px; border: 2px solid #121110; border-radius: 12px; background: #FCD01A; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer; box-shadow: 3px 3px 0 #121110">{{ publishLabel }}</button>
+  </div>
+  <sc-if value="{{ isPick }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 10; background: rgba(18, 17, 16, 0.55); display: flex; flex-direction: column; justify-content: flex-end">
+      <button type="button" aria-label="닫기" onClick="{{ closeSheet }}" style="flex: 1; min-height: 120px; border: 0; background: transparent; cursor: default"></button>
+      <div style="max-height: 640px; background: #FBF7EF; border-radius: 22px 22px 0 0; border-top: 2px solid #121110; padding: 8px 24px 24px; display: flex; flex-direction: column; gap: 8px">
+        <span aria-hidden="true" style="align-self: center; width: 40px; height: 4px; border-radius: 2px; background: #DDD6C8"></span>
+        <span style="display: flex; align-items: baseline; justify-content: space-between"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">{{ pickTitle }}</b><span style="font-size: 12px; color: #5B5650">지금 {{ pickNow }}</span></span>
+        <button type="button" role="switch" aria-checked="{{ pinOn }}" onClick="{{ togglePin }}" style="display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 16px; border: 2px solid #121110; border-radius: 12px; background: {{ pinBg }}; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer; text-align: left"><svg width="18" height="18" viewBox="0 0 24 24" fill="#121110" aria-hidden="true"><path d="M15 3l6 6-3 1-4 4 1 5-2 2-4-5-5 5-1-1 5-5-5-4 2-2 5 1 4-4z"></path></svg><span style="flex: 1">이 자리에 고정</span><span style="font-size: 12px">{{ pinText }}</span></button>
+        <div style="flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column">
+          <sc-for list="{{ cands }}" as="c" hint-placeholder-count="8">
+            <button type="button" onClick="{{ c.pick }}" style="{{ c.style }}"><b style="flex: none; width: 30px; font-family: 'Barlow Condensed', sans-serif; font-size: 20px; text-align: center">{{ c.num }}</b><span style="flex: 1; display: flex; flex-direction: column; gap: 4px; text-align: left"><b style="font-size: 16px">{{ c.name }}</b><span style="font-size: 12px; color: #5B5650">{{ c.sub }}</span></span><sc-if value="{{ c.match }}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; font-weight: 700; background: #121110; color: #FBF7EF; border: 2px solid #121110; border-radius: 4px; padding: 0 4px">{{ c.matchText }}</span></sc-if></button>
+          </sc-for>
+        </div>
+        <button type="button" onClick="{{ clearSlot }}" style="height: 46px; border: 0; background: transparent; font: 500 16px 'IBM Plex Sans KR', sans-serif; color: #121110; text-decoration: underline; cursor: pointer">이 자리 비우기</button>
+      </div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ isFormation }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 10; background: rgba(18, 17, 16, 0.55); display: flex; flex-direction: column; justify-content: flex-end">
+      <button type="button" aria-label="닫기" onClick="{{ closeSheet }}" style="flex: 1; border: 0; background: transparent; cursor: default"></button>
+      <div style="background: #FBF7EF; border-radius: 22px 22px 0 0; border-top: 2px solid #121110; padding: 8px 24px 28px; display: flex; flex-direction: column; gap: 12px">
+        <span aria-hidden="true" style="align-self: center; width: 40px; height: 4px; border-radius: 2px; background: #DDD6C8"></span>
+        <b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">포메이션</b>
+        <span style="font-size: 12px; color: #5B5650">참석 14명으로 자동 배치했을 때, 전체 자리 중 1선호 자리에 들어가는 비율이에요. 바꾸면 고정한 자리는 풀리고 다시 채워요.</span>
+        <div style="display: flex; flex-direction: column">
+          <sc-for list="{{ forms }}" as="fm" hint-placeholder-count="6"><button type="button" aria-pressed="{{ fm.on }}" aria-label="{{ fm.aria }}" onClick="{{ fm.pick }}" style="display: flex; align-items: center; gap: 12px; min-height: 72px; padding: 8px 0; border: 0; border-bottom: 2px solid #DDD6C8; background: transparent; text-align: left; font-family: inherit; color: #121110; cursor: pointer"><span style="flex: none; width: 96px; display: flex; flex-direction: column; gap: 4px"><b style="font: 700 20px 'Barlow Condensed', sans-serif; line-height: 1; white-space: nowrap">{{ fm.label }}</b><span style="font-size: 12px; color: #5B5650">{{ fm.desc }}</span></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px"><span style="display: flex; align-items: baseline; gap: 8px"><b style="font-size: 16px">{{ fm.first }}</b><sc-if value="{{ fm.best }}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; font-weight: 700; background: #B8E9EB; color: #005459; border: 2px solid #121110; border-radius: 6px; padding: 0 8px">가장 잘 맞아요</span></sc-if></span><span aria-hidden="true" style="display: flex; height: 12px; border: 2px solid #121110; border-radius: 4px; overflow: hidden; background: #FBF7EF"><span style="{{ fm.bar1 }}"></span><span style="{{ fm.bar2 }}"></span></span><span style="font-size: 12px; color: #5B5650">{{ fm.rest }}</span></span><span style="flex: none; width: 24px; display: flex; justify-content: center"><sc-if value="{{ fm.on }}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg></sc-if></span></button></sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</sc-if>
+
+<sc-if value="{{ isCheck }}" hint-placeholder-val="{{ false }}">
+  <header style="height: 60px; flex: none; display: flex; align-items: center; padding: 0 8px; gap: 4px">
+    <button type="button" aria-label="뒤로" onClick="{{ goBack }}" style="width: 44px; height: 44px; flex: none; border: 0; background: transparent; padding: 0; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
+    <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">현장 출석</b><span style="font-size: 12px; color: #5B5650">06:50에 출석 불러요 (시작 10분 전)</span></span>
+  </header>
+  <main ref="{{ dragRef }}" onPointerDown="{{ dragDown }}" onPointerMove="{{ dragMove }}" onPointerUp="{{ dragUp }}" onPointerLeave="{{ dragUp }}" onClickCapture="{{ dragClick }}" style="flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; touch-action: pan-y; cursor: grab; user-select: none"><div style="padding: 0 24px 24px; display: flex; flex-direction: column">
+    <span style="font-size: 12px; color: #5B5650; padding: 4px 0 8px">출석 부를 때 없으면 지각이에요. 늦참은 고른 쿼터에 맞춰 오면 지각이 아니에요.</span>
+    <sc-for list="{{ crow }}" as="c" hint-placeholder-count="10">
+      <div style="display: flex; align-items: center; gap: 8px; min-height: 58px; border-bottom: 2px solid #DDD6C8">
+        <b style="flex: none; width: 28px; font-family: 'Barlow Condensed', sans-serif; font-size: 20px; text-align: center">{{ c.num }}</b>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px"><b style="font-size: 16px">{{ c.name }}</b><span style="font-size: 12px; color: #5B5650">{{ c.sub }}</span></span>
+        <span style="display: flex; gap: 4px"><sc-for list="{{ c.opts }}" as="o" hint-placeholder-count="3"><button type="button" aria-pressed="{{ o.on }}" onClick="{{ o.pick }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></span>
+      </div>
+    </sc-for>
+    <section aria-label="벌금" style="display: flex; flex-direction: column; gap: 8px; padding-top: 16px">
+      <b style="font-size: 16px; border-bottom: 2px solid #121110; padding-bottom: 8px">벌금 매길 사람</b>
+      <sc-for list="{{ fineRows }}" as="f" hint-placeholder-count="2">
+        <button type="button" role="checkbox" aria-checked="{{ f.on }}" onClick="{{ f.toggle }}" style="display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0; border: 0; border-bottom: 2px solid #DDD6C8; background: transparent; font: inherit; color: #121110; text-align: left; cursor: pointer"><span style="{{ f.box }}"></span><span style="flex: 1; font-size: 16px">{{ f.name }}  <span style="color: #5B5650; font-size: 12px">{{ f.why }}</span></span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px">{{ f.amount }}</b></button>
+      </sc-for>
+      <sc-if value="{{ noFines }}" hint-placeholder-val="{{ false }}"><span style="font-size: 14px; color: #5B5650; padding: 8px 0">지각하거나 안 온 사람이 없어요.</span></sc-if>
+    </section>
+  </div></main>
+  <div style="flex: none; padding: 12px 24px 28px; border-top: 2px solid #121110">
+    <button type="button" onClick="{{ finishCheck }}" style="width: 100%; height: 56px; border: 2px solid #121110; border-radius: 12px; background: #FCD01A; color: #121110; font: 700 16px 'IBM Plex Sans KR', sans-serif; cursor: pointer; box-shadow: 3px 3px 0 #121110">{{ checkCta }}</button>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isMerc }}" hint-placeholder-val="{{ false }}">
+  <header style="height: 60px; flex: none; display: flex; align-items: center; padding: 0 8px; gap: 4px">
+    <button type="button" aria-label="뒤로" onClick="{{ goBack }}" style="width: 44px; height: 44px; flex: none; border: 0; background: transparent; padding: 0; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
+    <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">용병 받기</b><span style="font-size: 12px; color: #5B5650">11.22 토 경기</span></span>
+  </header>
+  <main ref="{{ dragRef }}" onPointerDown="{{ dragDown }}" onPointerMove="{{ dragMove }}" onPointerUp="{{ dragUp }}" onPointerLeave="{{ dragUp }}" onClickCapture="{{ dragClick }}" style="flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; touch-action: pan-y; cursor: grab; user-select: none"><div style="padding: 4px 24px 24px; display: flex; flex-direction: column; gap: 16px">
+    <button type="button" role="switch" aria-checked="{{ mercOpen }}" onClick="{{ toggleMerc }}" style="{{ mercSwitchRow }}">
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px"><b style="font-size: 16px">이 경기 용병 받기</b><span style="font-size: 12px">{{ mercSwitchSub }}</span></span>
+      <span aria-hidden="true" style="{{ mercTrack }}"><span style="{{ mercKnob }}"></span></span>
+    </button>
+    <span style="font-size: 12px; line-height: 1.6; color: #5B5650">켜면 팀원 일정 화면에 '용병 신청하기' 버튼이 열려요. 받은 용병은 정원 14명 안에 들어가고, 정원이 다 찼으면 대기 뒤에 서요. 투표가 마감되면 신청도 같이 닫혀요.</span>
+    <sc-if value="{{ mercEmpty }}" hint-placeholder-val="{{ false }}">
+      <span style="font-size: 14px; color: #5B5650; border: 2px dashed #9C9488; border-radius: 12px; padding: 16px; text-align: center">아직 들어온 신청이 없어요.</span>
+    </sc-if>
+    <sc-if value="{{ mercOff }}" hint-placeholder-val="{{ true }}">
+      <span style="font-size: 14px; color: #5B5650; border: 2px dashed #9C9488; border-radius: 12px; padding: 16px; text-align: center">지금은 받지 않아요. 팀원 화면의 신청 버튼도 닫혀 있어요.</span>
+    </sc-if>
+    <sc-for list="{{ mercs }}" as="m" hint-placeholder-count="1">
+      <div style="border: 2px solid #121110; border-radius: 16px; padding: 16px 16px; display: flex; flex-direction: column; gap: 8px">
+        <span style="display: flex; align-items: center; gap: 8px"><span style="flex: 1; display: flex; flex-direction: column; gap: 4px"><b style="font-size: 16px">{{ m.name }}</b><span style="font-size: 12px">{{ m.sub }}</span></span><span style="{{ m.stateStyle }}">{{ m.state }}</span></span>
+        <span style="font-size: 14px; background: #FFFFFF; border: 2px dashed #121110; border-radius: 10px; padding: 8px 12px">{{ m.note }}</span>
+        <sc-if value="{{ m.pending }}" hint-placeholder-val="{{ true }}">
+          <span style="font-size: 12px; color: #5B5650">정원 14명이 다 차서, 받으면 대기 3번으로 들어가요.</span>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px"><button type="button" onClick="{{ m.no }}" style="height: 48px; border: 2px solid #121110; border-radius: 10px; background: #FBF7EF; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer">거절</button><button type="button" onClick="{{ m.yes }}" style="height: 48px; border: 2px solid #121110; border-radius: 10px; background: #121110; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #FBF7EF; cursor: pointer">받기</button></div>
+        </sc-if>
+      </div>
+    </sc-for>
+  </div></main>
+  <nav aria-label="하단 메뉴" style="flex: none; margin: 0 24px 20px; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 2px; background: #121110; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; height: 64px">
+    <a href="B17_Main.dc.html" class="mbn" style="border-radius: 10px 0 0 10px; background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg><span>홈</span></a>
+    <a href="B17_A2_Schedule.dc.html" aria-current="page" class="mbn on" style="background: #14BBC2; text-decoration: none; color: #121110; font-weight: 700; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg><span>일정</span></a>
+    <a href="B17_A_Chat.dc.html" class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5h16v11.5H10.5L6 19.5V16H4z"></path><path d="M8 8.8h8M8 11.8h5"></path></svg><span>대화</span><span aria-label="안 읽은 대화 7" style="position: absolute; top: 6px; right: 8px; min-width: 18px; height: 18px; box-sizing: border-box; padding: 0 4px; border-radius: 9px; background: #121110; color: #FBF7EF; font: 700 11px 'Barlow Condensed', sans-serif; display: inline-flex; align-items: center; justify-content: center">7</span></a>
+    <a href="B17_A_Record.dc.html" class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M6 20v-8M12 20V5M18 20v-5"></path></svg><span>기록</span></a>
+    <a href="B17_A_Team.dc.html" class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16.5 14.6c2.4.3 4.2 2.1 4.8 5.4"></path></svg><span>팀</span></a>
+    <a href="B17_A_Ops.dc.html" class="mbn" style="border-radius: 0 10px 10px 0; background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"></path></svg><span>운영</span></a>
+  </nav>
+</sc-if>
+
+<sc-if value="{{ isLeaveYes }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; inset: 0; z-index: 10; background: rgba(18, 17, 16, 0.55); display: flex; align-items: center; justify-content: center; padding: 24px">
+    <div role="alertdialog" aria-labelledby="leaveTitle" style="width: 100%; box-sizing: border-box; background: #FBF7EF; border: 2px solid #121110; border-radius: 16px; padding: 24px 24px 16px; display: flex; flex-direction: column; gap: 16px; box-shadow: 6px 6px 0 #121110">
+      <span aria-hidden="true" style="align-self: flex-start; width: 34px; height: 46px; box-sizing: border-box; border: 2px solid #121110; border-radius: 5px; background: #121110; color: #FBF7EF; transform: rotate(-10deg); display: flex; align-items: center; justify-content: center; font: 700 24px 'Barlow Condensed', sans-serif">!</span>
+      <b id="leaveTitle" style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px; line-height: 1.3">{{ leaveTitle }}</b>
+      <span style="font-size: 14px; line-height: 1.6">{{ leaveText }}</span>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px">
+        <button type="button" onClick="{{ leaveKeep }}" style="height: 52px; border: 2px solid #121110; border-radius: 12px; background: #121110; color: #FBF7EF; font: 700 16px 'IBM Plex Sans KR', sans-serif; cursor: pointer">참석 그대로 두기</button>
+        <button type="button" onClick="{{ leaveGo }}" style="height: 46px; border: 0; background: transparent; color: #121110; font: 500 16px 'IBM Plex Sans KR', sans-serif; text-decoration: underline; cursor: pointer">{{ leaveLabel }}</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isDelete }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; inset: 0; z-index: 10; background: rgba(18, 17, 16, 0.55); display: flex; align-items: center; justify-content: center; padding: 24px">
+    <div role="alertdialog" aria-label="일정 지우기" style="width: 100%; background: #FBF7EF; border: 2px solid #121110; border-radius: 16px; box-shadow: 6px 6px 0 #121110; padding: 24px 24px 24px; display: flex; flex-direction: column; gap: 16px; text-align: center">
+      <h2 style="margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">11.22 경기를 지울까요?</h2>
+      <span style="font-size: 14px; line-height: 1.6">투표한 21명에게 일정이 없어졌다고 알림이 가요.<br>지우면 투표와 라인업도 함께 사라지고 되돌릴 수 없어요.</span>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 8px">
+        <button type="button" onClick="{{ toDetail }}" style="height: 52px; border: 2px solid #121110; border-radius: 12px; background: #121110; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #FBF7EF; cursor: pointer">남기기</button>
+        <button type="button" onClick="{{ doDelete }}" style="height: 52px; border: 2px solid #121110; border-radius: 12px; background: #FFFFFF; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #8C3B28; cursor: pointer">지우기</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+<sc-if value="{{ isCancel }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; inset: 0; z-index: 10; background: rgba(18, 17, 16, 0.55); display: flex; flex-direction: column; justify-content: flex-end">
+    <div role="dialog" aria-label="{{ cancelWord }} 취소하기" style="background: #FBF7EF; border-top: 2px solid #121110; border-radius: 22px 22px 0 0; padding: 8px 24px 28px; display: flex; flex-direction: column; gap: 12px">
+      <span aria-hidden="true" style="align-self: center; width: 40px; height: 4px; border-radius: 2px; background: #9C9488"></span>
+      <h2 style="margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">{{ cancelWord }} 취소하기</h2>
+      <span style="font-size: 14px">{{ d.sub }} {{ d.start }}, {{ d.place }}</span>
+      <div style="display: flex; justify-content: space-between; align-items: center; background: #FFFFFF; border: 2px solid #121110; border-radius: 12px; padding: 12px 16px"><span style="font-size: 14px">지금 참석</span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 24px">{{ d.att }} <span style="font-size: 16px; color: #5B5650">/ 정원 {{ d.cap }}</span></b></div>
+      <b style="font-size: 14px">취소 사유</b>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{ cchips }}" as="c" hint-placeholder-count="5"><button type="button" aria-pressed="{{ c.on }}" onClick="{{ c.pick }}" style="{{ c.style }}">{{ c.label }}</button></sc-for></div>
+      <textarea aria-label="팀원에게 보일 말" value="{{ cancelText }}" onChange="{{ onCancelText }}" placeholder="팀원에게 보일 말을 적어요" style="box-sizing: border-box; width: 100%; min-height: 88px; border: 2px solid #121110; border-radius: 10px; background: #FFFFFF; padding: 8px 12px; font: 400 14px/1.6 'IBM Plex Sans KR', sans-serif; color: #121110; resize: none"></textarea>
+      <span style="font-size: 12px; color: #5B5650; line-height: 1.6">팀원 26명 모두에게 알림이 가요. 이 일정의 불참 벌금은 붙지 않고, 투표는 닫혀요.</span>
+      <button type="button" onClick="{{ cancelNext }}" style="height: 52px; border: 2px solid #121110; border-radius: 12px; background: {{ cancelBtnBg }}; color: {{ cancelBtnFg }}; font: 700 16px 'IBM Plex Sans KR', sans-serif; cursor: pointer">{{ cancelWord }} 취소하고 알리기</button>
+      <button type="button" onClick="{{ cancelClose }}" style="align-self: center; border: 0; background: transparent; font: 500 14px 'IBM Plex Sans KR', sans-serif; text-decoration: underline; color: #121110; padding: 8px; cursor: pointer">그만두기</button>
+    </div>
+  </div>
+</sc-if>
+<sc-if value="{{ isCancelOk }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; inset: 0; z-index: 10; background: rgba(18, 17, 16, 0.55); display: flex; align-items: center; justify-content: center; padding: 24px">
+    <div role="alertdialog" aria-label="취소 확인" style="width: 100%; background: #FFFFFF; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; padding: 24px; display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px; line-height: 1.3">{{ cancelAsk }}</h2>
+      <div style="border-left: 4px solid #121110; padding: 4px 12px; font-size: 14px; line-height: 1.6"><b>사유: {{ cancelReason }}</b><br>{{ cancelText }}</div>
+      <span style="font-size: 14px; line-height: 1.6">팀원 26명에게 바로 알림이 가요. 시작 전까지는 운영진이 취소를 되돌릴 수 있어요.</span>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 4px">
+        <button type="button" onClick="{{ cancelBack }}" style="height: 52px; border: 2px solid #121110; border-radius: 12px; background: #FFFFFF; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer">돌아가기</button>
+        <button type="button" onClick="{{ cancelDo }}" style="height: 52px; border: 2px solid #121110; border-radius: 12px; background: #8C3B28; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #FBF7EF; cursor: pointer">취소하고 알리기</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+<sc-if value="{{ isUncancel }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; inset: 0; z-index: 10; background: rgba(18, 17, 16, 0.55); display: flex; align-items: center; justify-content: center; padding: 24px">
+    <div role="alertdialog" aria-label="취소 되돌리기" style="width: 100%; background: #FFFFFF; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; padding: 24px; display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px; line-height: 1.3">취소를 되돌릴까요?</h2>
+      <span style="font-size: 14px; line-height: 1.6">일정이 다시 열리고 팀원에게 알림이 가요. 취소 전에 받은 투표는 그대로 남아 있어요.</span>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 4px">
+        <button type="button" onClick="{{ cancelClose }}" style="height: 52px; border: 2px solid #121110; border-radius: 12px; background: #FFFFFF; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer">그대로 두기</button>
+        <button type="button" onClick="{{ uncancelDo }}" style="height: 52px; border: 2px solid #121110; border-radius: 12px; background: #121110; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #FBF7EF; cursor: pointer">다시 열기</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}"><div role="status" style="position: absolute; left: 20px; right: 20px; bottom: 96px; z-index: 20; background: #121110; color: #FBF7EF; border-radius: 12px; padding: 16px 16px; font-size: 14px; text-align: center; line-height: 1.5">{{ toastText }}</div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"startView":{"editor":"enum","options":["new","scrim","detail","manage","roster","lineup","lineupB","pick","check","merc","mercOn","edit","delete","cancel","cancelOk","canceled"],"default":"manage"},"onBack":{"editor":null},"startCur":{"editor":null},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const ink = '#121110';
+    // 유니폼 색: 팀 설정의 HOME, AWAY (시안 값: 남색, 흰색). 상대 유니폼 색과 겹치지 않는 쪽을 추천한다
+    const KITS = [['흰색', '#FFFFFF'], ['검정', '#1E1E1E'], ['남색', '#23336B'], ['파랑', '#2F6BD8'], ['하늘', '#8EC8F2'], ['빨강', '#D23A33'], ['주황', '#F08A24'], ['노랑', '#F6D02F'], ['초록', '#2E9E4F'], ['보라', '#6B4AA8'], ['분홍', '#F2A7C3'], ['회색', '#9A9A9A']];
+    const kitHex = (n) => (KITS.find((k) => k[0] === n) || KITS[0])[1];
+    const onKit = (hex) => { const v = parseInt(hex.slice(1), 16); const c = [v >> 16 & 255, v >> 8 & 255, v & 255].map((x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }); const L = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; return (L + 0.05) / 0.0556 >= 0.98 / (L + 0.05) ? ink : '#FBF7EF'; };
+    const TEAMKIT = { home: '남색', away: '흰색' };
+    const GKKIT = '주황';
+    const kitBtn = (on) => 'display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 12px; border: 2px solid ' + ink + '; border-radius: 10px; text-align: left; cursor: pointer; color: ' + ink + '; background: ' + (on ? '#B8E9EB; box-shadow: 3px 3px 0 ' + ink : '#FFFFFF');
+    const sv0 = this.props.startView && this.props.startView !== 'list' ? this.props.startView : 'manage';
+    const nameMode = 'below'; // 이름은 유니폼 아래 이름표 (4-6-2로 정함)
+    const sv = sv0 === 'lineupB' ? 'lineup' : sv0;
+    const isCx = sv === 'cancel' || sv === 'cancelOk' || sv === 'canceled';
+    const view = st.view !== undefined ? st.view : (sv === 'pick' ? 'lineup' : (sv === 'delete' || isCx ? 'manage' : sv));
+    const overlay = st.overlay !== undefined ? st.overlay : (sv === 'pick' ? 'pick' : (sv === 'delete' ? 'delete' : (sv === 'cancel' || sv === 'cancelOk' ? sv : null)));
+    // 경기 취소 (59번): 사유를 고르고 적은 뒤 한 번 더 확인하면 취소되고 팀원 모두에게 알림이 간다. 경기 전까지 되돌릴 수 있다
+    const canceled = st.canceled !== undefined ? st.canceled : sv === 'canceled';
+    const cr = st.cr !== undefined ? st.cr : (isCx ? '인원 부족' : null);
+    const ctext = st.ctext !== undefined ? st.ctext : (isCx ? '참석이 10명이라 훈련을 하기 어려워요. 다음 주 일정은 곧 다시 올릴게요.' : '');
+    const say = (t) => { this.setState({ toast: t }); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ toast: null }), 2200); };
+    const M = {
+      1: ['최성호', 'GK', ''], 2: ['서동현', 'RB', 'CB'], 3: ['윤재민', 'CB', 'LB'], 4: ['정우진', 'CB', 'CDM'], 5: ['강태윤', 'LB', 'LW'], 6: ['임하준', 'CDM', 'CM'], 7: ['이준호', 'LW', 'CAM'], 8: ['한지훈', 'CM', 'CAM'], 9: ['박민수', 'ST', 'CAM'], 10: ['김도현', 'CAM', 'ST'],
+      11: ['오세진', 'RW', 'ST'], 12: ['홍지성', 'CB', 'RB'], 13: ['송현수', 'CM', 'CDM'], 14: ['신유찬', 'CM', 'CDM'], 15: ['노태경', 'RB', 'RW'], 16: ['류진우', 'LW', ''], 17: ['권민재', 'RW', ''], 18: ['구본찬', 'CAM', 'CM'], 19: ['백승민', 'ST', 'LW'], 20: ['양태민', 'LB', 'CB'],
+      21: ['조은석', 'LW', 'RW'], 23: ['문태오', 'ST', 'RW'], 24: ['황재원', 'LW', 'CM'], 27: ['안도윤', 'RW', 'LW'], 29: ['차민규', 'ST', 'LW'], 31: ['배준영', 'GK', 'CB']
+    };
+    const G = { yes: [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 15, 17], wait: [19, 27], late: [14, 16], no: [4, 12, 20, 21, 23], none: [13, 18, 24, 29, 31] };
+    const LATEQ = { 14: 2, 16: 3 };
+    const myE1 = Object.assign({ e1: 'yes' }, st.myv || {}).e1;
+    const e1Left = !!st.e1Left;
+    const promoted = e1Left ? G.wait[0] : null;
+    const byNum = (a, b) => a - b;
+    G.yes = G.yes.filter((n) => n !== 10);
+    if (e1Left) { G.yes = G.yes.concat([promoted]).sort(byNum); G.wait = G.wait.slice(1); }
+    if (myE1 === 'no') G.no = G.no.concat([10]).sort(byNum);
+    else if (e1Left) G.wait = G.wait.concat([10]);
+    else if (myE1 === 'late') { G.late = G.late.concat([10]).sort(byNum); LATEQ[10] = (st.myq || {}).e1 || 2; }
+    else G.yes = G.yes.concat([10]).sort(byNum);
+    const GW = Object.assign({}, G, { wait: G.wait.concat(st.merc === 'yes' ? ['m1'] : []) });
+    const vcol = {};
+    const vname = { yes: '참석', wait: '대기', late: '늦참', no: '불참', none: '미응답' };
+    const posOf = (n) => (n === 'm1' ? 'LB / CB' : (M[n][2] ? M[n][1] + ' / ' + M[n][2] : M[n][1]));
+    const nm = (n) => (n === 'm1' ? '최민혁 (용병)' : M[n][0] + (n === 10 ? ' (나)' : ''));
+
+    // list
+    const scrimDone = st.scrim || null;
+    const EV = [
+      { id: 'e1', date: '11.22 토', day: '11.22 토요일', kind: '경기', label: '친선 경기', time: '07:00 ~ 09:00', start: '07:00', sub: '상암 월드컵 보조구장', att: G.yes.length + G.late.length, cap: 14, count: (G.yes.length + G.late.length) + '/14', dday: 'D-3', blue: true, open: true, dl: '투표 마감 11.21 금 21:00' },
+      { id: 'e2', date: '11.26 수', day: '11.26 수요일', kind: '훈련', label: '훈련', time: '20:00 ~ 22:00', start: '20:00', sub: '난지 인조잔디 구장', att: 10, cap: 16, count: '10/16', dday: 'D-7', blue: false, open: true, dl: '투표 마감 11.25 화 21:00', cnt: [9, 0, 1, 4, 12] },
+      { id: 'e3', date: '11.29 토', day: '11.29 토요일', kind: scrimDone === 'yes' ? '내전' : '상대 미정', label: scrimDone === 'yes' ? '내전' : '상대 미정', time: '07:00 ~ 09:00', start: '07:00', sub: '상암 월드컵 보조구장', att: scrimDone === 'yes' ? 20 : 14, cap: scrimDone === 'yes' ? 20 : 14, count: scrimDone === 'yes' ? '20/20' : '20/14', dday: 'D-10', blue: false, open: true, scrim: !scrimDone, dl: '투표 마감 11.28 금 21:00', cnt: scrimDone === 'yes' ? [20, 0, 0, 2, 4] : [14, 6, 0, 2, 4] },
+      { id: 'e4', date: '12.06 토', day: '12.06 토요일', kind: '경기', label: '친선 경기', time: '08:00 ~ 10:00', start: '08:00', sub: '고양 종합운동장 보조구장', att: 0, cap: 22, count: '0/22', dday: 'D-17', blue: true, open: false, openDate: '12.01', dl: '투표 12.01부터', cnt: [0, 0, 0, 0, 0] }
+    ].concat(st.added ? [{ id: 'e5', date: '12.13 토', day: '12.13 토요일', kind: '경기', label: '친선 경기', time: '07:00 ~ 09:00', start: '07:00', sub: '상암 월드컵 보조구장', att: 0, cap: 14, count: '0/14', dday: 'D-24', blue: true, open: false, openDate: '12.08', dl: '투표 12.08부터', cnt: [0, 0, 0, 0, 0] }] : []);
+    const myv0 = Object.assign({ e1: 'yes' }, st.myv || {});
+    EV.forEach((e) => {
+      const v = myv0[e.id];
+      if (!e.cnt || !v) return;
+      const c = e.cnt.slice();
+      const full = e.att >= e.cap;
+      if (v === 'yes' || v === 'late') { if (full) c[1] += 1; else { c[v === 'yes' ? 0 : 2] += 1; e.att += 1; } }
+      else c[3] += 1;
+      c[4] = Math.max(0, c[4] - 1);
+      e.cnt = c;
+      e.count = e.scrim ? e.count : e.att + '/' + e.cap;
+    });
+    const cur = st.cur || this.props.startCur || 'e1';
+    const home = 'manage';
+    const later = (fn) => setTimeout(fn, 1300);
+    const CE = EV.find((e) => e.id === cur) || EV[0];
+    const myv = Object.assign({ e1: 'yes' }, st.myv || {});
+    const myq = st.myq || {};
+    const torn = Object.assign({ e1: true }, st.torn || {});
+    const vcolT = {};
+    const vnameT = { yes: '참석', late: '늦참', no: '불참' };
+    let zig = 'polygon(0 0';
+    for (let i = 0; i <= 20; i++) zig += ', ' + (i % 2 === 0 ? '100%' : 'calc(100% - 8px)') + ' ' + (i * 5) + '%';
+    zig += ', 0 100%)';
+    const toDetail = (id) => { if (this._moved) return; this.setState({ view: 'detail', overlay: null, cur: id, seen: myv[id] || null, seenQ: myq[id] || null }); };
+    const tickets = EV.map((e) => {
+      const isTorn = !!torn[e.id];
+      const tearing = st.tearing === e.id;
+      const bg = '#FFFFFF';
+      const v = myv[e.id];
+      return {
+        date: e.date, kind: e.kind, kindStyle: 'font-size: 12px; font-weight: 700; border: 2px solid ' + ink + '; border-radius: 5px; padding: 0 8px; background: ' + ('#E2F7F8') + '; color: #005459', time: e.time, sub: e.sub, count: e.count, dday: e.dday,
+        aria: e.date + ' ' + e.kind + ' 관리',
+        open: () => { if (e.scrim) { if (!this._moved) this.setState({ view: 'scrim' }); } else toDetail(e.id); },
+        attached: !isTorn,
+        canGo: e.open, closed: !e.open, openDate: e.openDate || '',
+        goText: e.scrim ? '내전\n정하기' : '투표\n하기',
+        goLabel: e.date + ' ' + e.kind + (e.scrim ? ' 내전 정하기' : ' 투표하기'),
+        go: () => { if (e.scrim) { if (!this._moved) this.setState({ view: 'scrim' }); } else toDetail(e.id); },
+        voteLabel: vnameT[v] || '',
+        stampSub: v === 'late' && myq[e.id] ? myq[e.id] + 'Q부터' : 'TICKET',
+        revote: () => toDetail(e.id),
+        main: 'flex: 1; min-width: 0; position: relative; color: ' + ink + '; display: flex; flex-direction: column; justify-content: center; align-items: stretch; gap: 4px; text-align: left; font-family: inherit; cursor: pointer; background: ' + bg + '; border: 2px solid ' + ink + '; border-radius: 16px 0 0 16px; ' + (isTorn ? 'border-right: 0; padding: 12px 24px 12px 16px; clip-path: ' + zig : 'border-right: 2px dashed ' + ink + '; padding: 12px 16px 12px 16px'),
+        stub: 'position: relative; width: 80px; flex: none; display: flex; box-sizing: border-box; background: ' + (tearing && v ? '#FBF7EF' : bg) + '; border: 2px solid ' + ink + '; border-left: 0; border-radius: 0 16px 16px 0; transform-origin: 0 0; transition: transform 0.6s cubic-bezier(0.55, 0, 0.8, 0.3) 0.15s, opacity 0.4s ease-in 0.35s, background 0.15s; ' + (tearing ? 'transform: translate(36px, 18px) rotate(14deg); opacity: 0' : 'transform: none; opacity: 1'),
+        stampStyle: 'position: absolute; top: 50%; right: 22px; margin-top: -31px; width: 62px; height: 62px; padding: 0; box-sizing: border-box; border-radius: 50%; border: 2.5px ' + (v === 'no' ? 'dashed' : 'solid') + ' ' + ink + '; background: #FBF7EF; color: ' + ink + '; font-family: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; z-index: 3; transition: transform 0.3s cubic-bezier(0.3, 1.6, 0.6, 1), opacity 0.2s; ' + (isTorn && st.restamp !== e.id ? 'transform: rotate(-12deg) scale(1); opacity: 1' : 'transform: rotate(-12deg) scale(1.8); opacity: 0; pointer-events: none' + (isTorn ? '' : '; visibility: hidden'))
+      };
+    });
+    const pendingN = EV.filter((e) => e.open && !e.scrim && !torn[e.id]).length;
+    const leaveDetail = () => {
+      const v = myv[cur]; const q = myq[cur] || null;
+      const valid = v && (v !== 'late' || q);
+      const changed = valid && (v !== st.seen || q !== st.seenQ);
+      if (!changed) { this.setState({ view: home, overlay: null }); return; }
+      if (torn[cur]) { this.setState({ view: home, overlay: null, restamp: cur }); setTimeout(() => this.setState({ restamp: null }), 120); return; }
+      this.setState({ view: home, overlay: null, tearing: cur });
+      setTimeout(() => { const s2 = this.state || {}; this.setState({ torn: Object.assign({}, s2.torn || {}, { [cur]: true }), tearing: null }); }, 650);
+    };
+
+    // form
+    const isEdit = view === 'edit';
+    const base = isEdit ? { kind: '경기', date: '2026-11-22', start: '07:00', end: '09:00', place: '상암 월드컵 보조구장', opp: '성산 FC', tbd: false, cap: '14', open: '2026-11-15', cd: '1', ap: 'pm', close: '9', call: '10' }
+                        : { kind: '경기', date: '', start: '07:00', end: '09:00', place: '', opp: '', tbd: false, cap: '14', open: '', cd: '1', ap: 'pm', close: '9', call: '10' };
+    const fv = Object.assign({}, base, st.form || {});
+    const dg = (v) => String(v || '').replace(/[^0-9]/g, '');
+    const tm = (v) => { const d = dg(v).slice(0, 4); return d.length > 2 ? d.slice(0, 2) + ':' + d.slice(2) : d; };
+    const CLEAN = { start: tm, end: tm, cap: (v) => dg(v).slice(0, 2), close: (v) => dg(v).slice(0, 2), call: (v) => dg(v).slice(0, 3) };
+    const setF = (k) => (ev) => { const raw = ev && ev.target ? ev.target.value : ''; this.setState({ form: Object.assign({}, st.form || {}, { [k]: CLEAN[k] ? CLEAN[k](raw) : raw }) }); };
+    const f = {};
+    ['date', 'start', 'end', 'place', 'opp', 'cap', 'open', 'close', 'call'].forEach((k) => { f[k] = fv[k]; f['on_' + k] = setF(k); });
+    // 투표 마감: 경기 며칠 전, 오전/오후 몇 시 (기본 운영 규칙 값을 가져와 이 일정만 바꿔요)
+    const setFv = (o) => this.setState({ form: Object.assign({}, st.form || {}, o) });
+    const cdN = Math.max(0, Math.min(14, parseInt(fv.cd || '0', 10) || 0));
+    f.dLabel = cdN === 0 ? '당일' : cdN + '일 전';
+    f.dMinus = () => setFv({ cd: String(Math.max(0, cdN - 1)) });
+    f.dPlus = () => setFv({ cd: String(Math.min(14, cdN + 1)) });
+    const apV = fv.ap === 'am' ? 'am' : 'pm';
+    f.apOpts = [['am', '오전'], ['pm', '오후']].map(([k, l], i) => ({ label: l, on: apV === k, pick: () => setFv({ ap: k }),
+      style: 'height: 40px; min-width: 60px; border: 0; ' + (i ? 'border-left: 2px solid ' + ink + '; ' : '') + "font: 700 16px 'IBM Plex Sans KR', sans-serif; cursor: pointer; background: " + (apV === k ? ink + '; color: #FBF7EF' : '#FFFFFF; color: ' + ink) }));
+    const hN = parseInt(fv.close || '', 10);
+    const dParse = (v) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; };
+    const gd = dParse(fv.date), od = dParse(fv.open);
+    const sm = /^(\d{1,2}):(\d{2})$/.exec(fv.start || '');
+    let dlLine = '', dlBad = false;
+    if (!(hN >= 1 && hN <= 12)) { dlLine = '시는 1부터 12 사이로 적어 주세요.'; dlBad = true; }
+    else {
+      const h24 = (hN % 12) + (apV === 'pm' ? 12 : 0);
+      const when = (apV === 'pm' ? '오후 ' : '오전 ') + hN + '시';
+      if (cdN === 0 && sm && h24 * 60 >= (+sm[1]) * 60 + (+sm[2])) { dlLine = '경기 시작(' + fv.start + ') 뒤라 마감할 수 없어요. 시간을 앞당기거나 하루 전으로 바꿔 주세요.'; dlBad = true; }
+      else if (!gd) dlLine = '경기 ' + f.dLabel + ' ' + when + '에 마감돼요. 날짜를 고르면 마감 날짜가 여기 나와요.';
+      else {
+        const dd = new Date(gd.getFullYear(), gd.getMonth(), gd.getDate() - cdN);
+        if (od && dd < od) { dlLine = '마감이 투표 시작일(' + (od.getMonth() + 1) + '.' + String(od.getDate()).padStart(2, '0') + ')보다 앞이에요. 하루 수를 줄여 주세요.'; dlBad = true; }
+        else dlLine = (dd.getMonth() + 1) + '.' + String(dd.getDate()).padStart(2, '0') + ' ' + when + '에 마감돼요.';
+      }
+    }
+    f.dlLine = dlLine;
+    f.dlStyle = 'font-size: 13px; line-height: 1.5; ' + (dlBad ? 'color: #A3361F; font-weight: 700' : 'color: #121110');
+    f.tbd = !!fv.tbd;
+    f.toggleTbd = () => this.setState({ form: Object.assign({}, st.form || {}, { tbd: !fv.tbd }) });
+    f.tbdStyle = 'flex: none; height: 48px; padding: 0 16px; border: 2px solid ' + ink + '; border-radius: 10px; font: 700 16px \'IBM Plex Sans KR\', sans-serif; color: ' + ink + '; cursor: pointer; background: ' + (fv.tbd ? ink + '; color: #FBF7EF' : '#FFFFFF');
+    f.oppDim = fv.tbd ? 'opacity: 0.4' : 'opacity: 1';
+    f.tbdNote = fv.tbd ? '상대가 미정이면, 경기 3일 전까지 참석과 대기를 합쳐 20명이 모일 때 내전을 할 수 있어요. 내전 라인업은 A팀 HOME, B팀 AWAY 유니폼으로 보여요.' : '상대팀이 정해진 일정은 내전으로 바꿀 수 없어요.';
+    const oppKit = fv.oppKit !== undefined ? fv.oppKit : (isEdit ? '남색' : '');
+    const recKit = oppKit && (oppKit === TEAMKIT.home || (oppKit === '파랑' && TEAMKIT.home === '남색') || (oppKit === '검정' && TEAMKIT.home === '남색')) ? 'away' : (oppKit && oppKit === TEAMKIT.away ? 'home' : '');
+    const myKit = fv.kit || recKit || 'home';
+    f.showKit = !fv.tbd;
+    f.oppKits = KITS.map(([n, h]) => ({ name: n, on: oppKit === n, mark: onKit(h), pick: () => this.setState({ form: Object.assign({}, st.form || {}, { oppKit: oppKit === n ? '' : n, kit: undefined }) }),
+      btn: 'height: 44px; padding: 0; border: 2px solid ' + (oppKit === n ? ink : 'transparent') + '; border-radius: 10px; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer',
+      dot: 'width: 28px; height: 28px; box-sizing: border-box; border-radius: 50%; border: 2px solid ' + ink + '; background: ' + h + '; display: flex; align-items: center; justify-content: center' }));
+    f.oppKitName = oppKit ? '상대 ' + (fv.opp || '팀') + ': ' + oppKit + (recKit ? '. 겹치지 않게 ' + recKit.toUpperCase() + '를 추천해요' : '') : '아직 안 골랐어요. 고르지 않아도 일정은 만들 수 있어요.';
+    f.kitOpts = ['home', 'away'].map((k) => ({ label: k.toUpperCase(), name: TEAMKIT[k], color: kitHex(TEAMKIT[k]), on: myKit === k, rec: recKit === k, style: kitBtn(myKit === k),
+      pick: () => this.setState({ form: Object.assign({}, st.form || {}, { kit: k }) }) }));
+    const kinds = ['경기', '훈련'].map((k) => ({ label: k, on: fv.kind === k,
+      pick: () => this.setState({ form: Object.assign({}, st.form || {}, { kind: k }) }),
+      style: 'height: 48px; border: 2px solid ' + ink + '; border-radius: 8px; font: 700 16px \'IBM Plex Sans KR\', sans-serif; color: ' + ink + '; cursor: pointer; transition: transform 0.2s; background: ' + (fv.kind === k ? ink + '; color: #FBF7EF' : '#FFFFFF') + '; ' + (fv.kind === k ? 'transform: rotate(-3deg); box-shadow: 3px 3px 0 ' + ink : 'transform: none') }));
+
+    // merc
+    const mercOpen = st.mercOpen !== undefined ? st.mercOpen : sv === 'mercOn';
+    const ms = st.merc || 'pending';
+    const hasReq = sv === 'mercOn' || st.merc !== undefined;
+    const mercs = (hasReq && (mercOpen || ms !== 'pending')) ? [{ name: '최민혁', sub: '이준호가 신청했어요  LB / CB', note: '회사 동료예요. 수비 쪽이면 어디든 괜찮대요.', pending: ms === 'pending', state: ms === 'pending' ? '기다림' : (ms === 'yes' ? '대기 3번' : '거절했어요'),
+      stateStyle: 'flex: none; font-size: 12px; font-weight: 700; border: 2px solid ' + ink + '; border-radius: 5px; padding: 0 8px; background: ' + (ms === 'yes' ? ink + '; color: #FBF7EF' : (ms === 'no' ? '#FFFFFF; border-style: dashed' : '#FBF7EF')),
+      yes: () => { this.setState({ merc: 'yes' }); say('최민혁을 받았어요. 정원이 다 차서 대기 3번으로 들어갔어요.'); },
+      no: () => { this.setState({ merc: 'no' }); say('거절했어요. 이준호에게 알림이 갔어요.'); } }] : [];
+    const mercPending = mercOpen && hasReq && ms === 'pending';
+
+    // detail
+    const CI = { yes: 0, wait: 1, late: 2, no: 3, none: 4 };
+    const counts = ['yes', 'late', 'wait', 'no', 'none'].map((k) => ({ n: CE.cnt ? CE.cnt[CI[k]] : GW[k].length, label: vname[k], sw: 'width: 10px; height: 10px; box-sizing: border-box; border: 2px ' + (k === 'none' ? 'dashed' : 'solid') + ' #121110; border-radius: 3px; background: ' + ({ yes: '#14BBC2', late: '#FCD01A', wait: '#B8E9EB', no: '#121110' }[k] || 'transparent') }));  // 집계 칸은 투표 화면(4-2-4)과 같은 모양
+    const mv = myv[cur] || null;
+    const mq = myq[cur] || null;
+    const setVote = (id) => {
+      const ns = { myv: Object.assign({}, st.myv || {}, { [cur]: id }), myq: Object.assign({}, myq, { [cur]: id === 'late' ? (mv === 'late' ? mq : null) : null }), overlay: null };
+      if (cur === 'e1' && id === 'no' && mv !== 'no' && !e1Left) { ns.e1Left = true; say('내 자리가 대기 1번 ' + M[G.wait[0]][0] + '에게 넘어갔어요.'); }
+      if (cur === 'e1' && mv === 'no' && id !== 'no' && e1Left) say('정원이 다 차서 대기 ' + (G.wait.length + 1) + '번으로 들어갔어요.');
+      this.setState(ns);
+    };
+    const myVote = [['yes', '참석'], ['late', '늦참'], ['no', '불참']].map(([id, l]) => ({ label: l, on: mv === id,
+      pick: () => { if (!CE.open) { say('투표는 ' + CE.openDate + '부터 열려요.'); return; } if (id === mv) return; if (cur === 'e1' && id === 'no' && mv !== 'no' && !e1Left && G.wait.length) { this.setState({ overlay: 'leaveYes', leaveTo: id }); return; } setVote(id); },
+      style: 'height: 58px; border: 2px solid ' + ink + '; border-radius: 6px; color: ' + ink + '; font: 700 16px \'IBM Plex Sans KR\', sans-serif; cursor: pointer; transition: transform 0.25s cubic-bezier(0.3, 1.5, 0.6, 1); ' + (mv === id ? 'background: ' + ink + '; color: #FBF7EF; transform: rotate(-6deg) translateY(-3px); box-shadow: 4px 4px 0 ' + ink : 'background: #FFFFFF; transform: none') }));
+    const TOOLS = [
+      ['참석 명단', '미응답 ' + (CE.cnt ? CE.cnt[4] : GW.none.length) + '명', '#E2F7F8', 'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01', 'roster'],
+      ['라인업 짜기', st.published ? '알렸어요' : '아직 안 알림', '#E2F7F8', 'M4 3h16v18H4zM4 12h16M12 9.5a2.5 2.5 0 1 1 0 5a2.5 2.5 0 1 1 0-5', 'lineup'],
+      ['현장 출석', '경기 날 06:50', '#E2F7F8', 'M4 12l5 5 11-11', 'check'],
+      ['용병 받기', mercOpen ? '받는 중' : '안 받음', '#E2F7F8', 'M9 4.8a3.2 3.2 0 1 1 0 6.4a3.2 3.2 0 1 1 0-6.4M3 20c.8-3.5 3-5.5 6-5.5s5.2 2 6 5.5M18 8v6M15 11h6', 'merc', mercPending ? '신청 1' : ''],
+      ['일정 고치기', '시간, 장소, 정원', '#E2F7F8', 'M4 20h4L19 9l-4-4L4 16z', 'edit'],
+      [canceled ? '취소 되돌리기' : '경기 취소', canceled ? '시작 전까지 돼요' : '사유를 알려요', '#FFFFFF', 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18M5.6 5.6l12.8 12.8', 'cancel', '', !canceled],
+      ['일정 지우기', '되돌릴 수 없어요', '#FFFFFF', 'M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13', 'delete', '', true]
+    ];
+    const toolOf = ([label, sub, color, d, to, badge, danger]) => ({ label: label, sub: sub, d: d, badge: badge || '', hasBadge: !!badge, ic: danger ? '#8C3B28' : ink, tc: danger ? '#8C3B28' : ink,
+      tile: 'flex: none; width: 36px; height: 36px; box-sizing: border-box; border-radius: 10px; border: 2px solid ' + ink + '; background: ' + color + '; display: flex; align-items: center; justify-content: center',
+      go: () => { if (this._moved) return; if (to === 'delete') this.setState({ overlay: 'delete' }); else if (to === 'cancel') this.setState({ overlay: canceled ? 'uncancel' : 'cancel' }); else this.setState({ view: to, overlay: null }); },
+      style: 'position: relative; display: flex; align-items: center; gap: 8px; min-height: 64px; padding: 8px 8px; border: 2px solid ' + ink + '; border-radius: 12px; background: #FBF7EF; font-family: inherit; color: ' + ink + '; cursor: pointer' });
+    const tools = TOOLS.slice(0, 5).map(toolOf); const tools2 = TOOLS.slice(5).map(toolOf);
+
+    // roster
+    const rt = st.rt || (sv === 'roster' ? 'none' : 'yes');
+    const rtabs = ['yes', 'late', 'wait', 'no', 'none'].map((k) => ({ label: vname[k], n: GW[k].length, on: rt === k,
+      pick: () => this.setState({ rt: k }),
+      style: 'flex: none; height: 40px; padding: 0 12px; border: 2px solid ' + ink + '; border-radius: 20px; font: 700 14px \'IBM Plex Sans KR\', sans-serif; color: ' + ink + '; cursor: pointer; background: ' + (rt === k ? ink + '; color: #FBF7EF' : '#FFFFFF') }));
+    const rrows = GW[rt].map((n, i) => {
+      let tag = '';
+      if (rt === 'wait') tag = '대기 ' + (i + 1) + '번' + (n === 'm1' ? ', 용병' : '');
+      if (rt === 'late') tag = LATEQ[n] + 'Q부터';
+      if (rt === 'no' && (n === 4 || (n === 10 && e1Left))) tag = '참석에서 바꿈';
+      if (rt === 'yes' && n === promoted) tag = '대기에서 올라옴';
+      return { num: n === 'm1' ? '용' : n, name: nm(n), pos: posOf(n), hasTag: !!tag, tag: tag, tagStyle: 'flex: none; font-size: 12px; font-weight: 700; border: 2px solid ' + ink + '; border-radius: 5px; padding: 0 8px; background: #FBF7EF' };
+    });
+    const nudged = !!st.nudged;
+
+    // lineup
+    // 고를 수 있는 포메이션 6개 (아마추어, 동호인 리그에서 많이 쓰는 것). 참석한 사람으로 자동 배치했을 때 1선호, 2선호, 빈자리 비율 (시안 값)
+    const FORMS = ['4-4-2', '4-2-3-1', '4-3-3', '4-4-1-1', '4-1-2-1-2', '3-5-2'];
+    const FDESC = { '4-4-2': '수비 4, 미드 4, 공격 2', '4-2-3-1': '수비형 미드 2, 공격형 미드 1', '4-3-3': '수비형 미드 1, 윙어 2', '4-4-1-1': '미드 4, 공격형 미드 1, 공격 1', '4-1-2-1-2': '4-4-2 다이아몬드', '3-5-2': '센터백 3, 측면 2, 공격 2' };
+    const FFIT = { '4-2-3-1': [82, 18, 0], '4-4-2': [73, 27, 0], '4-3-3': [70, 30, 0], '4-4-1-1': [68, 32, 0], '4-1-2-1-2': [64, 33, 3], '3-5-2': [84, 10, 6] };
+    const formation = st.formation || '4-2-3-1';
+    const lines = formation.split('-').map(Number);
+    const SL = [{ pos: 'GK', x: 50, y: 90 }];
+    const lineY = (i) => 74 - i * (61 / (lines.length - 1));
+    lines.forEach((n, i) => {
+      let names;
+      const last = i === lines.length - 1; const first = i === 0;
+      if (first) names = n === 3 ? ['CB', 'CB', 'CB'] : (n === 4 ? ['LB', 'CB', 'CB', 'RB'] : ['LB', 'CB', 'CB', 'CB', 'RB']);
+      else if (last) names = n === 1 ? ['ST'] : (n === 2 ? ['ST', 'ST'] : ['LW', 'ST', 'RW']);
+      else {
+        const firstMid = i === 1; const lastMid = i === lines.length - 2; const midCount = lines.length - 2;
+        if (n === 1) names = firstMid && midCount > 1 ? ['CDM'] : (lastMid ? ['CAM'] : ['CDM']);
+        else if (n === 2) names = firstMid && midCount > 1 ? ['CDM', 'CDM'] : (lastMid && midCount > 1 ? ['CAM', 'CAM'] : ['CM', 'CM']);
+        else if (n === 3) names = lastMid && midCount > 1 && lines[lines.length - 1] === 1 ? ['LW', 'CAM', 'RW'] : (midCount === 1 ? ['CM', 'CDM', 'CM'] : ['CM', 'CM', 'CM']);
+        else if (n === 4) names = ['LW', 'CM', 'CM', 'RW'];
+        else names = lines[0] === 3 ? ['LB', 'CM', 'CDM', 'CM', 'RB'] : ['LW', 'CM', 'CM', 'CM', 'RW'];
+      }
+      names.forEach((p, k) => { SL.push({ pos: p, x: n === 1 ? 50 : (n === 2 ? (k ? 65 : 35) : 12 + k * (76 / (n - 1))), y: lineY(i) }); });
+    });
+    const PLAY = G.yes.concat(G.late);
+    const pinKey = formation;
+    const pins = (st.pins && st.pins[pinKey]) || {};
+    const PL = Object.assign({}, M, { m1: ['최민혁(용병)', 'LB', 'CB'] });
+    const auto = () => {
+      const res = {}; const cnt = {};
+      PLAY.forEach((p) => { cnt[p] = 0; });
+      for (let q = 1; q <= 4; q++) {
+        res[q] = {};
+        Object.keys(pins).forEach((k) => { const [pq, si] = k.split('_').map(Number); if (pq === q) { res[q][si] = pins[k]; cnt[pins[k]] = (cnt[pins[k]] || 0) + 1; } });
+        const used = new Set(Object.values(res[q]));
+        SL.forEach((s, si) => {
+          if (res[q][si] !== undefined) return;
+          let pool = PLAY.filter((p) => !used.has(p) && (!LATEQ[p] || q >= LATEQ[p]));
+          if (s.pos === 'GK') pool = pool.filter((p) => PL[p][1] === 'GK');
+          else pool = pool.filter((p) => PL[p][1] !== 'GK');
+          if (!pool.length) return;
+          const score = (p) => cnt[p] * 10 - (PL[p][1] === s.pos ? 4 : 0) - (PL[p][2] === s.pos ? 2 : 0) + (String(p).length > 2 ? 1 : 0) + (Number(p) % 7) * 0.01;
+          pool.sort((a, b) => score(a) - score(b));
+          res[q][si] = pool[0]; used.add(pool[0]); cnt[pool[0]] = (cnt[pool[0]] || 0) + 1;
+        });
+      }
+      return res;
+    };
+    const manual = (st.manual && st.manual[pinKey]) || null;
+    const LU = manual || auto();
+    const lq = st.lq || 1;
+    const qtabs = [1, 2, 3, 4].map((n) => ({ label: n + 'Q', on: n === lq, pick: () => this.setState({ lq: n }),
+      style: 'height: 44px; border: 2px solid ' + ink + '; border-radius: 8px; font: 700 20px \'Barlow Condensed\', sans-serif; color: ' + ink + '; cursor: pointer; background: ' + (n === lq ? ink + '; color: #FBF7EF' : '#FFFFFF') + '; ' + (n === lq ? 'box-shadow: 3px 3px 0 ' + ink : '') }));
+    const sel = st.sel !== undefined ? st.sel : (sv === 'pick' ? 9 : null);
+    const shortName = (p) => (p === undefined ? '빈 자리' : PL[p][0].replace('(용병)', ''));
+    // 라인업 유니폼: 경기 일정에서 고른 우리 유니폼 색 (없으면 추천, 그다음 HOME). GK는 골키퍼가 직접 고른 색
+    const luKit = (st.form && st.form.kit) || st.luKit || 'away';
+    const kitOpts = ['home', 'away'].map((k) => ({ label: k.toUpperCase(), name: TEAMKIT[k], color: kitHex(TEAMKIT[k]), on: luKit === k, rec: k === 'away', style: kitBtn(luKit === k),
+      pick: () => this.setState({ luKit: k }) }));
+    const kitNote = '상대 성산 FC: 남색';
+    const spots = SL.map((s, si) => {
+      const p = LU[lq][si]; const pinned = pins[lq + '_' + si] !== undefined; const off = p !== undefined && PL[p][1] !== s.pos && PL[p][2] !== s.pos;
+      const guest = p !== undefined && String(PL[p][0]).indexOf('(용병)') >= 0;
+      const empty = p === undefined; const hex = s.pos === 'GK' ? kitHex(GKKIT) : kitHex(TEAMKIT[luKit]);
+      const selOn = sel === si && overlay === 'pick';
+      const tagBg = pinned ? '#B8E9EB' : (off ? '#CFC8BA' : '#FBF7EF');
+      const nameTag = 'display: inline-flex; align-items: center; gap: 4px; height: 24px; box-sizing: border-box; margin-top: -6px; padding: 0 8px; border-radius: 12px; border: 2px ' + (empty ? 'dashed' : 'solid') + ' ' + ink + '; font: 700 12px \'IBM Plex Sans KR\', sans-serif; white-space: nowrap; color: ' + ink + '; background: ' + (empty ? 'rgba(251, 247, 239, 0.55)' : tagBg);
+      const posTag = (pinned || off) ? 'display: inline-flex; align-items: center; height: 20px; box-sizing: border-box; padding: 0 4px; border-radius: 4px; border: 2px solid ' + ink + '; background: ' + tagBg + '; font: 700 12px \'Barlow Condensed\', sans-serif; color: ' + ink : 'font: 700 12px \'Barlow Condensed\', sans-serif; color: ' + ink + '; line-height: 20px';
+      const big = nameMode === 'in';
+      return { pinned: pinned, guest: guest, aria: lq + '쿼터 ' + s.pos + ' 자리, ' + shortName(p) + (guest ? ', 용병' : '') + (pinned ? ', 고정' : ''),
+        pick: () => { if (!this._moved) this.setState({ overlay: 'pick', sel: si }); },
+        wrap: 'position: absolute; left: ' + s.x + '%; top: ' + s.y + '%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0; border: 0; background: transparent; cursor: pointer; z-index: 2',
+        jbox: 'position: relative; display: block; width: 56px; height: 52px; border-radius: 8px; ' + (selOn ? 'box-shadow: 0 0 0 3px #FBF7EF, 0 0 0 5px ' + ink : ''),
+        jsvg: 'display: block; width: 100%; height: 100%; overflow: visible',
+        kit: empty ? 'rgba(251, 247, 239, 0.45)' : hex, dash: empty ? '4 3' : 'none',
+        inLabel: big ? (empty ? '빈자리' : shortName(p)) : s.pos,
+        inStyle: 'position: absolute; left: 0; right: 0; top: 25px; text-align: center; white-space: nowrap; letter-spacing: -0.2px; color: ' + (empty ? ink : onKit(hex)) + '; font: 700 16px \'Barlow Condensed\', sans-serif; line-height: 1',
+        underLabel: big ? s.pos : shortName(p), underStyle: big ? posTag : nameTag };
+    });
+    const playedCnt = {}; PLAY.forEach((p) => { playedCnt[p] = 0; });
+    for (let q = 1; q <= 4; q++) Object.values(LU[q]).forEach((p) => { playedCnt[p] = (playedCnt[p] || 0) + 1; });
+    const load = PLAY.map((p) => ({ name: PL[p][0].replace('(용병)', ' 용병'), n: playedCnt[p] || 0,
+      qs: [1, 2, 3, 4].map((q) => { const inQ = Object.values(LU[q]).indexOf(p) >= 0; const na = LATEQ[p] && q < LATEQ[p];
+        return { style: 'width: 10px; height: 10px; box-sizing: border-box; border-radius: 2px; border: 2px solid ' + (na ? 'rgba(18, 17, 16, 0.3)' : ink) + '; background: ' + (inQ ? (q === lq ? '#14BBC2' : ink) : 'transparent') }; }) }));
+    const benchNow = PLAY.filter((p) => Object.values(LU[lq]).indexOf(p) < 0 && !(LATEQ[p] && lq < LATEQ[p]));
+    const writeLU = (fn) => { const cur = JSON.parse(JSON.stringify(LU)); fn(cur); this.setState({ manual: Object.assign({}, st.manual || {}, { [pinKey]: cur }) }); };
+    const selSlot = sel !== null && sel !== undefined ? SL[sel] : null;
+    const curP = selSlot ? LU[lq][sel] : undefined;
+    const pinOn = selSlot ? pins[lq + '_' + sel] !== undefined : false;
+    const setPin = (on, p) => { const np = Object.assign({}, pins); if (on && p !== undefined) np[lq + '_' + sel] = p; else delete np[lq + '_' + sel]; this.setState({ pins: Object.assign({}, st.pins || {}, { [pinKey]: np }) }); };
+    const cands = selSlot ? PLAY.filter((p) => (selSlot.pos === 'GK') === (PL[p][1] === 'GK') && !(LATEQ[p] && lq < LATEQ[p])).map((p) => {
+      const inSlot = Object.keys(LU[lq]).find((k) => LU[lq][k] === p);
+      const m1 = PL[p][1] === selSlot.pos; const m2 = PL[p][2] === selSlot.pos;
+      return { num: String(p).length > 2 ? '용' : p, name: PL[p][0], match: m1 || m2, matchText: m1 ? '1선호' : '2선호',
+        sub: (inSlot !== undefined ? lq + 'Q ' + SL[inSlot].pos + '에 있어요' : lq + 'Q 쉬는 중') + ', 지금까지 ' + (playedCnt[p] || 0) + '쿼터',
+        pick: () => { writeLU((cur) => { const k = Object.keys(cur[lq]).find((x) => cur[lq][x] === p); if (k !== undefined) { if (curP !== undefined) cur[lq][k] = curP; else delete cur[lq][k]; } cur[lq][sel] = p; }); setPin(true, p); this.setState({ overlay: null }); },
+        style: 'display: flex; align-items: center; gap: 8px; min-height: 56px; padding: 0 4px; border: 0; border-bottom: 2px solid #DDD6C8; background: ' + (p === curP ? '#FFFFFF' : 'transparent') + '; font-family: inherit; color: ' + ink + '; cursor: pointer' };
+    }) : [];
+    // 빈자리가 적고 1선호가 높은 순서. 맨 위에 '가장 잘 맞아요'
+    const forms = FORMS.slice().sort((a, b) => FFIT[a][2] - FFIT[b][2] || FFIT[b][0] - FFIT[a][0]).map((fm, k) => ({ label: fm, desc: FDESC[fm], on: fm === formation, best: k === 0,
+      first: '1선호 ' + FFIT[fm][0] + '%', rest: '2선호 ' + FFIT[fm][1] + '%, 빈자리 ' + FFIT[fm][2] + '%',
+      bar1: 'width: ' + FFIT[fm][0] + '%; background: ' + ink, bar2: 'width: ' + FFIT[fm][1] + '%; background: #B8E9EB',
+      aria: fm + ', 1선호 ' + FFIT[fm][0] + '%, 2선호 ' + FFIT[fm][1] + '%, 빈자리 ' + FFIT[fm][2] + '%',
+      pick: () => this.setState({ formation: fm, overlay: null }) }));
+
+    // check
+    const CHK = G.yes.concat(G.late);
+    const defaultAtt = { 11: 'tardy', 17: 'tardy' };
+    const att = Object.assign({}, defaultAtt, st.att || {});
+    const crow = CHK.map((n) => {
+      const cur = att[n] || 'here';
+      return { num: n, name: nm(n), sub: LATEQ[n] ? '늦참, ' + LATEQ[n] + 'Q부터' : posOf(n),
+        opts: [['here', '왔음', '#14BBC2; color: ' + ink], ['tardy', '지각', '#B8E9EB; color: ' + ink], ['absent', '안 옴', ink + '; color: #FBF7EF']].map(([k, l, c]) => ({ label: l, on: cur === k,
+          pick: () => this.setState({ att: Object.assign({}, att, { [n]: k }) }),
+          style: 'height: 36px; padding: 0 8px; border: 2px solid ' + ink + '; border-radius: 7px; font: 700 12px \'IBM Plex Sans KR\', sans-serif; color: ' + ink + '; cursor: pointer; background: ' + (cur === k ? c + '; box-shadow: 2px 2px 0 ' + ink : '#FFFFFF') })) };
+    });
+    const fineSkip = st.fineSkip || {};
+    const fineList = CHK.filter((n) => att[n] === 'tardy' || att[n] === 'absent');
+    const fineRows = fineList.map((n) => { const on = !fineSkip[n]; const ab = att[n] === 'absent';
+      return { name: M[n][0], why: ab ? '말없이 불참' : '지각', amount: ab ? '10,000원' : '3,000원', on: on,
+        toggle: () => this.setState({ fineSkip: Object.assign({}, fineSkip, { [n]: on }) }),
+        box: 'flex: none; width: 22px; height: 22px; box-sizing: border-box; border: 2px solid ' + ink + '; border-radius: 5px; background: ' + (on ? ink : 'transparent') }; });
+    const fineN = fineRows.filter((r) => r.on).length;
+
+    return {
+      isList: view === 'list', isForm: view === 'new' || view === 'edit', isScrim: view === 'scrim', isDetail: view === 'detail' || view === 'manage', showMyVote: view === 'detail' && !canceled, isRoster: view === 'roster',
+      isLineup: view === 'lineup', isPick: overlay === 'pick' && view === 'lineup', isFormation: overlay === 'formation' && view === 'lineup',
+      isCheck: view === 'check', isMerc: view === 'merc' || view === 'mercOn', isDelete: overlay === 'delete',
+      canceled: canceled && (view === 'manage' || view === 'detail'), isCancel: overlay === 'cancel', isCancelOk: overlay === 'cancelOk', isUncancel: overlay === 'uncancel',
+      cancelWord: CE.kind === '훈련' ? '훈련' : '경기', cancelObj: CE.kind === '훈련' ? '훈련을' : '경기를', cancelReason: cr || '', cancelText: ctext || (cr ? cr + '로 취소해요.' : ''),
+      cancelAsk: CE.date.split(' ')[0] + ' ' + (CE.kind === '훈련' ? '훈련을' : '경기를') + ' 취소할까요?',
+      cchips: ['인원 부족', '날씨', '구장 사정', '상대 팀 사정', '그 밖의 사유'].map((l) => ({ label: l, on: cr === l, pick: () => this.setState({ cr: l }),
+        style: 'min-height: 40px; padding: 0 12px; border: 2px solid ' + ink + '; border-radius: 8px; font: 700 14px \'IBM Plex Sans KR\', sans-serif; cursor: pointer; background: ' + (cr === l ? ink + '; color: #FBF7EF' : '#FFFFFF; color: ' + ink) })),
+      onCancelText: (ev) => this.setState({ ctext: ev && ev.target ? ev.target.value : '' }),
+      cancelBtnBg: cr ? '#8C3B28' : '#DDD6C8', cancelBtnFg: cr ? '#FBF7EF' : '#5B5650',
+      cancelNext: () => { if (!cr) { say('취소 사유를 골라 주세요.'); return; } this.setState({ overlay: 'cancelOk' }); },
+      cancelBack: () => this.setState({ overlay: 'cancel' }),
+      cancelClose: () => this.setState({ overlay: null }),
+      cancelDo: () => { this.setState({ overlay: null, canceled: true }); say((CE.kind === '훈련' ? '훈련을' : '경기를') + ' 취소했어요. 팀원 26명에게 알렸어요.'); },
+      uncancelDo: () => { this.setState({ overlay: null, canceled: false }); say('취소를 되돌렸어요. 팀원에게 알렸어요.'); },
+      scrimOpen: !scrimDone, tickets: tickets,
+      openNew: () => this.setState({ view: 'new', form: null }),
+      openScrim: (e) => { if (e && e.preventDefault) e.preventDefault(); this.setState({ view: 'scrim' }); },
+      formTitle: isEdit ? '일정 고치기' : '일정 올리기', formSub: isEdit ? '11.22 토 경기' : '올리면 팀원에게 알림이 가요',
+      formCta: isEdit ? '고친 내용 저장' : '올리기',
+      kinds: kinds, f: f,
+      saveForm: () => { if (dlBad) { say('투표 마감을 다시 확인해 주세요'); return; } if (isEdit) { this.setState({ view: home, form: null }); say('일정을 고쳤어요. 투표한 사람에게 알림이 갔어요.'); } else { this.setState({ view: home, form: null, added: true }); say('일정을 올렸어요. 팀원에게 알림이 갔어요.'); if (this.props.onBack && sv === 'new') later(() => this.props.onBack()); } },
+      scrimUndecided: !scrimDone, scrimDecided: !!scrimDone,
+      scrimStamp: scrimDone === 'yes' ? '내전' : '안 함', scrimColor: scrimDone === 'yes' ? '#E2F7F8' : '#FBF7EF',
+      scrimText: scrimDone === 'yes' ? '내전을 하기로 했어요. 팀원 20명에게 알림이 갔고, 일정이 내전으로 바뀌었어요.' : '이번에는 하지 않기로 했어요. 팀원에게 알림이 갔어요.',
+      scrimYes: () => this.setState({ scrim: 'yes' }), scrimNo: () => this.setState({ scrim: 'no' }),
+      counts: counts, myVote: myVote, tools: tools, tools2: tools2,
+      pendingNote: pendingN > 0 ? '투표할 일정 ' + pendingN + '개' : '모두 투표했어요',
+      d: { title: view === 'manage' ? '일정 관리' : '일정 상세', sub: CE.date + ' ' + CE.kind, label: CE.label, dday: CE.dday, start: CE.start, day: CE.day, place: CE.sub, att: CE.att, cap: CE.cap, wait: CE.cnt ? CE.cnt[1] : GW.wait.length, dl: canceled ? '취소됨  11.24 월 21:10, 운영진 김도현' : CE.dl,
+        heroStyle: 'background: ' + (canceled ? '#FFFFFF' : '#B8E9EB') + '; color: ' + ink + '; box-shadow: 0 1px 0 rgba(18, 17, 16, .08), 0 6px 14px rgba(18, 17, 16, .14); border-radius: 12px; display: flex; flex-direction: column; position: relative',
+        end: CE.time.split(' ~ ')[1], seat: (() => { const w = CE.cnt ? CE.cnt[1] : GW.wait.length; const left = CE.cap - CE.att; return CE.open === false && !CE.att ? '투표 전이에요' : (w > 0 ? '정원이 다 찼어요, 대기 ' + w + '명' : (left > 0 ? left + '자리 남았어요' : '정원이 다 찼어요')); })(), bar: 'display: block; height: 6px; width: ' + Math.min(100, Math.round(CE.att / CE.cap * 100)) + '%; background: ' + ink },
+      myLate: mv === 'late',
+      isLeaveYes: overlay === 'leaveYes' && view === 'detail',
+      leaveTitle: (mv === 'late' ? '늦참' : '참석') + '에서 불참으로 바꿀까요?',
+      leaveText: '정원 14명이 다 찼고 대기 ' + G.wait.length + '명이 있어요. 지금 바꾸면 내 자리는 대기 1번에게 넘어가고, 다시 참석이나 늦참을 누르면 대기 ' + G.wait.length + '번이 돼요.',
+      leaveLabel: '불참으로 바꾸기',
+      leaveKeep: () => this.setState({ overlay: null }),
+      leaveGo: () => setVote(st.leaveTo || 'no'),
+      myQs: [2, 3, 4].map((n) => ({ label: n + 'Q', on: mq === n,
+        pick: () => this.setState({ myq: Object.assign({}, myq, { [cur]: n }) }),
+        style: 'width: 100%; height: 34px; padding: 0; border: 2px solid ' + ink + '; border-radius: 7px; color: ' + ink + '; font: 700 16px/1 \'Barlow Condensed\', sans-serif; cursor: pointer; transition: transform 0.25s cubic-bezier(0.3, 1.5, 0.6, 1), background 0.15s; ' + (mq === n ? 'background: ' + ink + '; color: #FBF7EF; transform: rotate(-4deg)' : 'background: #FFFFFF; transform: none') })),
+      myNote: !CE.open ? '투표는 ' + CE.openDate + '부터 열려요.' : (mv === 'yes' ? '마감 전까지 바꿀 수 있어요.' : (mv === 'late' ? (mq ? mq + '쿼터부터 뛸 수 있어요. 마감 전까지 바꿀 수 있어요.' : '몇 쿼터부터 올 수 있는지 골라 주세요.') : (mv === 'no' ? '마감 뒤에 바꾸면 벌금이 생길 수 있어요.' : '아직 투표하지 않았어요.'))),
+      rtabs: rtabs, rrows: rrows, isNoReply: rt === 'none', nudged: nudged,
+      nudgeLabel: nudged ? '보냈어요' : '미응답 5명에게 알리기',
+      nudgeNote: nudged ? '다음 알림은 19:12부터 보낼 수 있어요. 운영진 모두 합쳐 1시간에 한 번이에요.' : '운영진 모두 합쳐 1시간에 한 번만 보낼 수 있어요.',
+      nudgeStyle: 'width: 100%; height: 56px; border: 2px solid ' + ink + '; border-radius: 12px; background: ' + (nudged ? '#FBF7EF; border-style: dashed' : ink) + '; color: ' + (nudged ? '#5B5650' : '#FBF7EF') + '; font: 700 16px \'IBM Plex Sans KR\', sans-serif; cursor: pointer; ' + (nudged ? 'pointer-events: none' : ''),
+      nudge: () => { if (!nudged) { this.setState({ nudged: true }); say('미응답 5명에게 앱 알림을 보냈어요.'); } },
+      formation: formation, openFormation: () => this.setState({ overlay: 'formation' }), forms: forms,
+      qtabs: qtabs, spots: spots, load: load, kitOpts: kitOpts, kitNote: kitNote,
+      benchNote: lq + 'Q 쉬는 사람 ' + benchNow.length + '명',
+      saveImg: () => say('라인업 사진을 저장했어요. 모든 쿼터 경기장이 한 장에 담겨요.'),
+      autoFill: () => { this.setState({ manual: Object.assign({}, st.manual || {}, { [pinKey]: null }) }); say('고정한 자리는 두고 나머지를 다시 채웠어요.'); },
+      publishLabel: st.published ? '다시 알리기' : '라인업 알리기',
+      publish: () => { this.setState({ published: true }); say('라인업을 알렸어요. 팀원 화면에 바로 보여요.'); },
+      pickTitle: selSlot ? lq + 'Q ' + selSlot.pos + ' 자리' : '', pickNow: shortName(curP), pinOn: pinOn,
+      pinBg: pinOn ? '#FFFFFF; box-shadow: 3px 3px 0 #121110' : '#FBF7EF', pinText: pinOn ? '켜짐' : '꺼짐',
+      togglePin: () => setPin(!pinOn, curP), cands: cands,
+      clearSlot: () => { writeLU((cur) => { delete cur[lq][sel]; }); setPin(false); this.setState({ overlay: null }); },
+      closeSheet: () => this.setState({ overlay: null }),
+      crow: crow, fineRows: fineRows, noFines: fineRows.length === 0,
+      checkCta: fineN ? '벌금 ' + fineN + '건 매기고 출석 마치기' : '출석 마치기',
+      finishCheck: () => { this.setState({ view: home }); say(fineN ? '출석을 마쳤어요. 벌금 ' + fineN + '건을 매기고 팀원에게 알렸어요.' : '출석을 마쳤어요.'); },
+      waitN: GW.wait.length, mercs: mercs, mercOpen: mercOpen, mercOff: !mercOpen && !mercs.length, mercEmpty: mercOpen && !mercs.length,
+      mercSwitchSub: mercOpen ? '받는 중이에요. 팀원이 신청할 수 있어요.' : '꺼져 있어요. 팀원은 신청할 수 없어요.',
+      toggleMerc: () => { this.setState({ mercOpen: !mercOpen }); say(mercOpen ? '용병 받기를 껐어요. 팀원 화면의 신청 버튼이 닫혔어요.' : '용병 받기를 켰어요. 팀원 화면에 신청 버튼이 열렸어요.'); },
+      mercSwitchRow: 'display: flex; align-items: center; gap: 16px; min-height: 72px; padding: 12px 16px; box-sizing: border-box; border: 2px solid ' + ink + '; border-radius: 16px; font-family: inherit; color: ' + ink + '; text-align: left; cursor: pointer; transition: background 0.2s; background: ' + (mercOpen ? '#FFFFFF' : '#FBF7EF') + '; ' + (mercOpen ? 'box-shadow: 4px 4px 0 ' + ink : ''),
+      mercTrack: 'flex: none; position: relative; width: 52px; height: 30px; box-sizing: border-box; border: 2px solid ' + ink + '; border-radius: 15px; transition: background 0.2s; background: ' + (mercOpen ? ink : '#FFFFFF'),
+      mercKnob: 'position: absolute; top: 3px; left: ' + (mercOpen ? '25px' : '3px') + '; width: 20px; height: 20px; box-sizing: border-box; border-radius: 50%; border: 2px solid ' + ink + '; background: #FBF7EF; transition: left 0.2s',
+      toDetail: () => this.setState({ overlay: null }),
+      doDelete: () => { this.setState({ overlay: null, view: this.props.onBack ? view : home }); say('11.22 경기를 지웠어요.'); if (this.props.onBack) later(() => this.props.onBack('deleted')); },
+      goBack: () => {
+        if (['roster', 'lineup', 'check', 'merc', 'mercOn', 'edit'].indexOf(view) >= 0) { this.setState({ view: home, overlay: null }); return; }
+        if (this.props.onBack && (view === sv || view === 'manage')) { this.props.onBack(); return; }
+        if (view === 'detail') { leaveDetail(); return; }
+        // 부품 보드로 따로 열었을 때: 옛 일정 목록 대신 관리 화면에 머물러요. 일정 목록은 4-2 보드(B17_A2_Schedule)가 기준이에요
+        if (!this.props.onBack && (view === home || view === sv)) { say('부품 보드예요. 일정 목록은 4-2 일정 보드에서 봐요.'); return; }
+        this.setState({ view: home, overlay: null });
+      },
+      hasToast: !!st.toast,
+      toastText: st.toast || '',
+      dragRef: (el) => { this._scroller = el; },
+      dragDown: (e) => { if (!this._scroller || (e && e.pointerType && e.pointerType !== 'mouse')) return; this._drag = { y: e.clientY, top: this._scroller.scrollTop }; this._moved = false; },
+      dragMove: (e) => { if (!this._drag || !this._scroller) return; const dy = e.clientY - this._drag.y; if (Math.abs(dy) > 6) this._moved = true; this._scroller.scrollTop = this._drag.top - dy; },
+      dragUp: () => { this._drag = null; },
+      dragClick: (e) => { if (this._moved) { e.preventDefault(); e.stopPropagation(); this._moved = false; } }
+    };
+  }
+}
+</script>
+</body>
+</html>

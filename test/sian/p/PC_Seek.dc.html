@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>PC 용병 구직</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&amp;family=Black+Han+Sans&amp;family=IBM+Plex+Sans+KR:wght@400;500;700&amp;display=swap">
+<style>
+body,body *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,select,[contenteditable],[contenteditable] *{-webkit-user-select:text;user-select:text}
+img,svg,a{-webkit-user-drag:none}
+body{margin:0}
+*{scrollbar-width:none}
+*::-webkit-scrollbar{display:none}
+.snv{position:relative;transition:transform .16s ease-out,box-shadow .16s ease-out}
+.snv:hover,.snv.on{transform:translate(-3px,-3px);box-shadow:0 0 0 2px #121110;z-index:1}
+.tkb{transition:transform .16s ease-out}
+.tkb:hover{transform:translate(-2px,-2px)}
+.pstamp{animation:pstamp .34s cubic-bezier(.3,1.6,.5,1) both}@keyframes pstamp{from{transform:scale(1.5) rotate(-8deg);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion: reduce){.snv,.tkb{transition:none}.pstamp{animation:none}}
+</style>
+</helmet>
+<div style="-webkit-user-select: none; user-select: none; -webkit-touch-callout: none; width: 100%; min-height: 900px; box-sizing: border-box; background-color: #FBF7EF; background-image: linear-gradient(rgba(18, 17, 16, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(18, 17, 16, 0.06) 1px, transparent 1px); background-size: 16px 16px; color: #121110; font-family: 'IBM Plex Sans KR', sans-serif; position: relative; display: flex; flex-wrap: wrap; align-items: stretch; word-break: keep-all">
+
+  <aside aria-label="팀과 메뉴" style="flex: 1 1 232px; box-sizing: border-box; padding: 24px 20px; display: flex; flex-direction: column; gap: 24px; border-right: 2px solid #121110; background: #FBF7EF">
+    <span style="display: inline-flex; align-items: center; gap: 8px"><span role="img" aria-label="매니볼" style="width: 32px; height: 32px; border-radius: 9px; background: #5B8DEF; border: 2px solid #121110; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; flex: none"><svg width="24" height="24" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="22" fill="none" stroke="#121110" stroke-width="5"></circle><circle cx="23" cy="26" r="3.6" fill="#E46A2E"></circle><circle cx="23" cy="38" r="3.6" fill="#E46A2E"></circle><path d="M30 26 H43 M30 38 H41" fill="none" stroke="#121110" stroke-width="5" stroke-linecap="round"></path></svg></span><span style="display: flex; flex-direction: column; line-height: 1"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 20px">매니볼</b><span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 3px; margin-top: 4px">MANIBALL</span></span></span>
+
+    <button type="button" onClick="{{ openTeams }}" aria-label="{{ teamBtnLabel }}" style="display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 8px 12px; box-sizing: border-box; border: 2px solid #121110; border-radius: 12px; background: #FFFFFF; box-shadow: 4px 4px 0 #121110; font-family: inherit; color: #121110; text-align: left; cursor: pointer">
+      <span style="position: relative; flex: none; width: 40px; height: 40px; display: block"><span style="{{ team.logoFill }}"></span><svg width="40" height="40" viewBox="6 6 88 88" aria-hidden="true" style="position: absolute; inset: 0; display: block"><g fill="none" stroke="#121110" stroke-width="2.5" stroke-linejoin="round" opacity="0.9"><rect x="18" y="15" width="64" height="70" rx="1"></rect><line x1="18" y1="50" x2="82" y2="50"></line><rect x="33" y="15" width="34" height="13"></rect><rect x="41" y="15" width="18" height="6"></rect><rect x="33" y="72" width="34" height="13"></rect><rect x="41" y="79" width="18" height="6"></rect></g></svg><span aria-hidden="true" style="{{ team.logoCut40 }}">{{ team.tag }}</span></span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 20px; line-height: 1.1">{{ team.name }}</b><span style="font-size: 12px">{{ team.sport }}팀  {{ team.role }}</span></span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M4 8h13l-3-3M20 16H7l3 3"></path></svg>
+    </button>
+
+    <sc-if value="{{ isMember }}" hint-placeholder-val="{{ true }}">
+    <nav aria-label="메뉴" style="display: flex; flex-direction: column; gap: 2px; background: #121110; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110">
+      <a href="{{ lk.PC_Home }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Home }}" onMouseDown="{{ lk.go_PC_Home }}" onFocus="{{ lk.go_PC_Home }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 10px 10px 0 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg>홈</a>
+      <a href="{{ lk.PC_Sch }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Sch }}" onMouseDown="{{ lk.go_PC_Sch }}" onFocus="{{ lk.go_PC_Sch }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>일정</a>
+      <a href="{{ lk.PC_Chat }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Chat }}" onMouseDown="{{ lk.go_PC_Chat }}" onFocus="{{ lk.go_PC_Chat }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5h16v11.5H10.5L6 19.5V16H4z"></path><path d="M8 8.8h8M8 11.8h5"></path></svg>대화<span aria-label="안 읽은 대화 3" style="margin-left: auto; min-width: 24px; height: 24px; box-sizing: border-box; padding: 0 6px; border-radius: 12px; background: #121110; color: #FBF7EF; font: 700 13px 'Barlow Condensed', sans-serif; display: inline-flex; align-items: center; justify-content: center">3</span></a>
+      <a href="{{ lk.PC_Rec }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Rec }}" onMouseDown="{{ lk.go_PC_Rec }}" onFocus="{{ lk.go_PC_Rec }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M6 20v-8M12 20V5M18 20v-5"></path></svg>기록</a>
+      <a href="{{ lk.PC_Team }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Team }}" onMouseDown="{{ lk.go_PC_Team }}" onFocus="{{ lk.go_PC_Team }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0 0 10px 10px; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16.5 14.6c2.4.3 4.2 2.1 4.8 5.4"></path></svg>팀</a>
+    </nav>
+    </sc-if>
+    <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
+    <nav aria-label="메뉴" style="display: flex; flex-direction: column; gap: 2px; background: #121110; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110">
+      <a href="{{ lk.PC_Home_A }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Home_A }}" onMouseDown="{{ lk.go_PC_Home_A }}" onFocus="{{ lk.go_PC_Home_A }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 10px 10px 0 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg>홈</a>
+      <a href="{{ lk.PC_Sch_A }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Sch_A }}" onMouseDown="{{ lk.go_PC_Sch_A }}" onFocus="{{ lk.go_PC_Sch_A }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>일정</a>
+      <a href="{{ lk.PC_Chat_A }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Chat_A }}" onMouseDown="{{ lk.go_PC_Chat_A }}" onFocus="{{ lk.go_PC_Chat_A }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5h16v11.5H10.5L6 19.5V16H4z"></path><path d="M8 8.8h8M8 11.8h5"></path></svg>대화<span aria-label="안 읽은 대화 3" style="margin-left: auto; min-width: 24px; height: 24px; box-sizing: border-box; padding: 0 6px; border-radius: 12px; background: #121110; color: #FBF7EF; font: 700 13px 'Barlow Condensed', sans-serif; display: inline-flex; align-items: center; justify-content: center">3</span></a>
+      <a href="{{ lk.PC_Rec_A }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Rec_A }}" onMouseDown="{{ lk.go_PC_Rec_A }}" onFocus="{{ lk.go_PC_Rec_A }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M6 20v-8M12 20V5M18 20v-5"></path></svg>기록</a>
+      <a href="{{ lk.PC_Team_A }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Team_A }}" onMouseDown="{{ lk.go_PC_Team_A }}" onFocus="{{ lk.go_PC_Team_A }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16.5 14.6c2.4.3 4.2 2.1 4.8 5.4"></path></svg>팀</a>
+      <a href="{{ lk.PC_Ops }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Ops }}" onMouseDown="{{ lk.go_PC_Ops }}" onFocus="{{ lk.go_PC_Ops }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border-radius: 0 0 10px 10px; background: #FFFFFF; color: #5B5650; font-size: 16px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"></path></svg>운영</a>
+    </nav>
+    </sc-if>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700"><span aria-hidden="true" style="width: 10px; height: 10px; box-sizing: border-box; border-radius: 50%; border: 2px solid #121110; background: #F2A65A"></span>다른 팀과</span>
+      <sc-if value="{{ isMember }}" hint-placeholder-val="{{ true }}">
+      <nav aria-label="다른 팀과" style="display: flex; flex-direction: column; gap: 2px; background: #121110; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110">
+        <a href="{{ lk.PC_Match }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Match }}" onMouseDown="{{ lk.go_PC_Match }}" onFocus="{{ lk.go_PC_Match }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 12px 0 16px; border-radius: 10px 10px 0 0; background: #FFFFFF; color: #5B5650; font-size: 15px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h11l-3-3M20 17H9l3 3"></path></svg><span style="flex: 1">매칭</span></a>
+        <a href="{{ lk.PC_Hire }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Hire }}" onMouseDown="{{ lk.go_PC_Hire }}" onFocus="{{ lk.go_PC_Hire }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 12px 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 15px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v4h3l7 4V6L7 10z"></path><path d="M18 9a4 4 0 0 1 0 6"></path></svg><span style="flex: 1">용병 구인</span></a>
+        <a href="{{ lk.PC_Seek }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Seek }}" onMouseDown="{{ lk.go_PC_Seek }}" onFocus="{{ lk.go_PC_Seek }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" aria-current="page" class="snv on" style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 12px 0 16px; border-radius: 0 0 10px 10px; background: #F2A65A; color: #121110; font-weight: 700; font-size: 15px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="8" r="4"></circle><path d="M3 21c.8-4 3.5-6 7-6 1.4 0 2.6.3 3.6.9"></path><circle cx="18" cy="17" r="3"></circle><path d="M20.2 19.2 22 21"></path></svg><span style="flex: 1">용병 구직</span></a>
+      </nav>
+      </sc-if>
+      <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
+      <nav aria-label="다른 팀과" style="display: flex; flex-direction: column; gap: 2px; background: #121110; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110">
+        <a href="{{ lk.PC_Match_A }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Match_A }}" onMouseDown="{{ lk.go_PC_Match_A }}" onFocus="{{ lk.go_PC_Match_A }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 12px 0 16px; border-radius: 10px 10px 0 0; background: #FFFFFF; color: #5B5650; font-size: 15px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h11l-3-3M20 17H9l3 3"></path></svg><span style="flex: 1">매칭</span></a>
+        <a href="{{ lk.PC_Hire_A }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Hire_A }}" onMouseDown="{{ lk.go_PC_Hire_A }}" onFocus="{{ lk.go_PC_Hire_A }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" class="snv" style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 12px 0 16px; border-radius: 0; background: #FFFFFF; color: #5B5650; font-size: 15px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v4h3l7 4V6L7 10z"></path><path d="M18 9a4 4 0 0 1 0 6"></path></svg><span style="flex: 1">용병 구인</span></a>
+        <a href="{{ lk.PC_Seek_A }}" tabIndex="0" onPointerDown="{{ lk.go_PC_Seek_A }}" onMouseDown="{{ lk.go_PC_Seek_A }}" onFocus="{{ lk.go_PC_Seek_A }}" onBlur="{{ lk.off }}" onPointerLeave="{{ lk.off }}" onMouseLeave="{{ lk.off }}" aria-current="page" class="snv on" style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 12px 0 16px; border-radius: 0 0 10px 10px; background: #F2A65A; color: #121110; font-weight: 700; font-size: 15px; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="8" r="4"></circle><path d="M3 21c.8-4 3.5-6 7-6 1.4 0 2.6.3 3.6.9"></path><circle cx="18" cy="17" r="3"></circle><path d="M20.2 19.2 22 21"></path></svg><span style="flex: 1">용병 구직</span></a>
+      </nav>
+      </sc-if>
+    </div>
+
+    <div style="margin-top: auto; display: flex; align-items: center; gap: 12px; padding-top: 16px; border-top: 2px solid #DDD6C8">
+      <span aria-hidden="true" style="flex: none; width: 40px; height: 40px; box-sizing: border-box; border-radius: 50%; border: 2px solid #121110; background: #121110; color: #FBF7EF; display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px">{{ team.num }}</span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px"><b style="font-size: 16px">{{ me }}</b><span style="font-size: 12px; color: #5B5650">카카오 계정 연결됨</span></span>
+      <button type="button" style="min-height: 44px; padding: 0 4px; border: 0; background: transparent; font: 500 14px 'IBM Plex Sans KR', sans-serif; color: #5B5650; text-decoration: underline; cursor: pointer">로그아웃</button>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 720px; min-width: 0; box-sizing: border-box; padding: 24px 32px 40px; display: flex; flex-direction: column; gap: 20px">
+    <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; min-height: 64px">
+      <span style="flex: 1; display: flex; align-items: baseline; gap: 12px"><h1 style="margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 32px">{{ pageTitle }}</h1><span style="font-size: 14px; color: #5B5650">{{ pageSub }}</span></span>
+      <span style="font-size: 12px; font-weight: 700; border: 2px solid #121110; border-radius: 5px; padding: 2px 8px; background: #FFFFFF">우리 팀 실력 3 중급</span>
+      <sc-for list="{{ headBtns }}" as="b" hint-placeholder-count="2"><button type="button" onClick="{{ b.go }}" aria-pressed="{{ b.on }}" style="{{ b.style }}">{{ b.label }}</button></sc-for>
+    </header>
+
+    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+      <span style="font-size: 14px">{{ fltSum }}</span>
+      <button type="button" aria-expanded="{{ fOpen }}" onClick="{{ fToggle }}" style="height: 36px; padding: 0 14px; border: 2px solid #121110; border-radius: 10px; background: #FFFFFF; font: 700 13px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer; display: inline-flex; align-items: center; gap: 6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"></path></svg>{{ fBtn }}</button>
+    </div>
+    <sc-if value="{{ fOpen }}" hint-placeholder-val="{{ false }}">
+    <div role="group" aria-label="거르기" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 16px; border: 2px solid #121110; border-radius: 12px; background: #FFFFFF">
+      <sc-for list="{{ filters }}" as="g" hint-placeholder-count="3">
+        <span style="{{ g.style }}"><b style="font-size: 12px; margin-right: 4px">{{ g.label }}</b><sc-for list="{{ g.opts }}" as="o" hint-placeholder-count="4"><button type="button" aria-pressed="{{ o.on }}" onClick="{{ o.pick }}" style="{{ o.style }}">{{ o.label }}</button></sc-for><sc-for list="{{ g.sets }}" as="gs" hint-placeholder-count="0"><span role="group" aria-label="{{ gs.name }}" style="{{ gs.box }}"><button type="button" aria-pressed="{{ gs.on }}" onClick="{{ gs.pick }}" style="{{ gs.style }}">{{ gs.name }}</button><sc-for list="{{ gs.opts }}" as="o" hint-placeholder-count="3"><button type="button" aria-pressed="{{ o.on }}" onClick="{{ o.pick }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></span></sc-for></span>
+      </sc-for>
+    </div>
+    </sc-if>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+      <section aria-label="{{ listAria }}" style="flex: 1 1 340px; max-width: 420px; display: flex; flex-direction: column; gap: 12px">
+        <span style="font-size: 12px; color: #5B5650">{{ listNote }}</span>
+        <sc-for list="{{ cards }}" as="c" hint-placeholder-count="4">
+          <button type="button" onClick="{{ c.pick }}" aria-pressed="{{ c.on }}" style="{{ c.btn }}">
+            <span style="display: flex; align-items: center; gap: 12px">
+              <span aria-hidden="true" style="{{ c.logo }}"><svg viewBox="-2 -2 52 48" style="position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible"><path d="M13 3 H19 C20 6 22 7 24 7 C26 7 28 6 29 3 H35 L46 12 L40 19 L37 17 V41 H11 V17 L8 19 L2 12 Z" fill="currentColor" stroke="#121110" stroke-width="2.4" stroke-linejoin="round"></path></svg><span style="position: absolute; left: 0; right: 0; top: 48%; text-align: center; line-height: 1; color: var(--kt)">{{ c.tag }}</span></span>
+              <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: left"><b style="font-size: 16px">{{ c.team }}</b><span style="font-size: 12px">{{ c.sub }}</span></span>
+              <span style="{{ c.lvStyle }}">{{ c.lv }}</span>
+            </span>
+            <sc-if value="{{ c.hasKind }}" hint-placeholder-val="{{ true }}"><span style="display: flex; align-items: center; gap: 8px; text-align: left"><span style="{{ c.kindBadge }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{ c.kindStroke }}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ c.kindIcon }}"></path></svg>{{ c.kind }}</span><span style="min-width: 0; display: flex; flex-direction: column; gap: 0"><b style="font-size: 14px; line-height: 1.3">{{ c.kindVs }}</b><span style="font-size: 12px; color: #5B5650">{{ c.kindSub }}</span></span></span></sc-if>
+            <span style="display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; row-gap: 2px; text-align: left"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 22px; white-space: nowrap">{{ c.when }}</b><span style="font-size: 13px">{{ c.place }}</span></span>
+            <span style="display: flex; flex-wrap: wrap; gap: 4px"><sc-for list="{{ c.chips }}" as="k" hint-placeholder-count="3"><span style="{{ k.style }}">{{ k.label }}</span></sc-for></span>
+          </button>
+        </sc-for>
+        <sc-if value="{{ noCards }}" hint-placeholder-val="{{ false }}"><span style="border: 2px dashed #121110; border-radius: 12px; padding: 16px; font-size: 14px; text-align: center">이 조건에 맞는 글이 없어요. 거르기를 바꿔 보세요.</span></sc-if>
+      </section>
+
+      <section aria-label="{{ panelTitle }}" style="flex: 999 1 460px; min-width: 0; min-height: 680px; box-sizing: border-box; background: #FFFFFF; border: 2px solid #121110; border-radius: 16px; box-shadow: 4px 4px 0 #121110; display: flex; flex-direction: column">
+        <div style="display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 0 16px 0 24px; border-bottom: 2px solid #121110">
+          <sc-if value="{{ hasBack }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ goBack }}" style="height: 40px; padding: 0 12px 0 8px; border: 2px solid #121110; border-radius: 8px; background: #FBF7EF; font: 700 14px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer; display: inline-flex; align-items: center; gap: 4px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>{{ backLabel }}</button></sc-if>
+          <span aria-hidden="true" style="font-size: 12px; font-weight: 700; background: #F2A65A; border: 2px solid #121110; border-radius: 5px; padding: 2px 8px">{{ panelKind }}</span>
+          <h2 style="flex: 1; min-width: 0; margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">{{ panelTitle }}</h2>
+          <sc-if value="{{ hasState }}" hint-placeholder-val="{{ false }}"><span style="{{ stateStyle }}">{{ stateLabel }}</span></sc-if>
+        </div>
+
+        <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ true }}">
+          <div style="flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 20px">
+            <sc-if value="{{ dt.hasHero }}" hint-placeholder-val="{{ true }}"><div style="display: flex; align-items: stretch; background: #FFFFFF; border-radius: 12px; box-shadow: 0 1px 0 rgba(18, 17, 16, .08), 0 6px 14px rgba(18, 17, 16, .14); overflow: hidden">
+              <div style="flex: 1; min-width: 0; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px">
+                <span style="display: flex; align-items: center; gap: 10px"><span style="{{ dt.heroBadge }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ dt.heroStroke }}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ dt.heroIcon }}"></path></svg>{{ dt.heroKind }}</span><b style="font-size: 16px">{{ dt.heroVs }}</b></span>
+                <span style="display: flex; align-items: baseline; gap: 10px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 64px; line-height: .95">{{ dt.heroTime }}</b><span style="font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 600">{{ dt.heroEnd }}</span></span>
+                <span style="font-size: 14px">{{ dt.heroDate }}  {{ dt.heroPlace }}</span>
+              </div>
+              <div aria-hidden="true" style="flex: none; width: 2px; margin: 14px 0; background-image: radial-gradient(circle, #121110 1.2px, transparent 1.4px); background-size: 2px 7px; background-repeat: repeat-y"></div>
+              <div style="flex: none; width: 210px; padding: 18px 20px; background: #FDE7D2; display: flex; flex-direction: column; justify-content: center; gap: 4px"><span style="font-size: 12px; font-weight: 700">{{ dt.heroK }}</span><b style="font-family: 'Barlow Condensed', 'IBM Plex Sans KR', sans-serif; font-size: 30px; line-height: 1.1">{{ dt.heroV }}</b><span style="font-size: 12px; color: #5B5650">{{ dt.heroS }}</span></div>
+            </div></sc-if>
+            <div style="display: flex; align-items: center; gap: 16px">
+              <span aria-hidden="true" style="{{ dt.logoBig }}"><svg viewBox="-2 -2 52 48" style="position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible"><path d="M13 3 H19 C20 6 22 7 24 7 C26 7 28 6 29 3 H35 L46 12 L40 19 L37 17 V41 H11 V17 L8 19 L2 12 Z" fill="currentColor" stroke="#121110" stroke-width="2.4" stroke-linejoin="round"></path></svg><span style="position: absolute; left: 0; right: 0; top: 48%; text-align: center; line-height: 1; color: var(--kt)">{{ dt.tag }}</span></span>
+              <span style="flex: 1; display: flex; flex-direction: column; gap: 4px"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 28px; line-height: 1.1">{{ dt.team }}</b><span style="font-size: 14px">{{ dt.teamSub }}</span></span>
+              <span style="display: flex; flex-direction: column; align-items: center; gap: 2px; border: 2px solid #121110; border-radius: 12px; padding: 8px 16px; background: #FFF1E3"><span style="font-size: 12px; font-weight: 700">실력</span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 32px; line-height: 1">{{ dt.lvN }}</b><span style="font-size: 12px; font-weight: 700">{{ dt.lvName }}</span></span>
+            </div>
+            
+            <div style="border: 2px solid #121110; border-radius: 12px; overflow: hidden">
+              <sc-for list="{{ dt.rows }}" as="r" hint-placeholder-count="6"><div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 2px solid #DDD6C8; min-height: 48px; align-items: center"><span style="padding: 0 16px; font-size: 13px; font-weight: 700; background: #FBF7EF; align-self: stretch; display: flex; align-items: center">{{ r.k }}</span><span style="padding: 8px 16px; font-size: 15px; line-height: 1.5">{{ r.v }}</span></div></sc-for>
+            </div>
+            <sc-if value="{{ dt.hasPos }}" hint-placeholder-val="{{ false }}"><div style="display: flex; flex-direction: column; gap: 8px"><b style="font-size: 14px">구하는 포지션</b><div style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{ dt.pos }}" as="p" hint-placeholder-count="3"><span style="{{ p.style }}"><span style="display: flex; align-items: baseline; gap: 6px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px; line-height: 1">{{ p.pos }}</b><span style="font-size: 12px; line-height: 1">{{ p.n }}</span></span></span></sc-for></div></div></sc-if>
+            <sc-if value="{{ dt.hasMemo }}" hint-placeholder-val="{{ true }}"><div style="background: #FBF7EF; border-radius: 12px; padding: 12px 16px; display: flex; flex-direction: column; gap: 6px"><span style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #5B5650"><svg width="14" height="14" viewBox="0 0 24 24" fill="#5B5650" aria-hidden="true"><path d="M5 18c-1.2-1.3-2-2.8-2-5 0-3.6 2.4-6.3 6-7.5l.8 1.6C7.4 8.2 6.4 9.7 6.2 11.3c.3-.1.7-.2 1.1-.2 1.9 0 3.2 1.4 3.2 3.3 0 2-1.5 3.6-3.4 3.6-.8 0-1.5-.2-2.1 0zm10 0c-1.2-1.3-2-2.8-2-5 0-3.6 2.4-6.3 6-7.5l.8 1.6c-2.4 1.1-3.4 2.6-3.6 4.2.3-.1.7-.2 1.1-.2 1.9 0 3.2 1.4 3.2 3.3 0 2-1.5 3.6-3.4 3.6-.8 0-1.5-.2-2.1 0z"></path></svg>{{ dt.memoLabel }}</span><span style="font-size: 16px; line-height: 1.6">{{ dt.memo }}</span></div></sc-if>
+            <sc-if value="{{ dt.hasReport }}" hint-placeholder-val="{{ false }}"><div style="display: flex; align-items: center; gap: 12px; font-size: 13px; color: #5B5650"><span style="flex: 1; line-height: 1.6">구장 목록에 없는 구장이라 그 팀이 금액을 직접 적었어요. 실제보다 높게 적어 용병비를 더 받으면 그 팀은 다른 팀과 기능이 제한돼요.</span><button type="button" onClick="{{ dt.report }}" style="flex: none; height: 40px; padding: 0 14px; border: 2px solid #121110; border-radius: 10px; background: #FFFFFF; font: 700 14px 'IBM Plex Sans KR', sans-serif; color: #8C3B28; cursor: pointer">구장비 신고</button></div></sc-if>
+
+            <sc-if value="{{ dt.hasApplicants }}" hint-placeholder-val="{{ false }}">
+              <section style="display: flex; flex-direction: column; gap: 8px">
+                <span style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #121110; padding-bottom: 8px"><b style="font-size: 16px">{{ dt.appTitle }}</b><span style="font-size: 12px; color: #5B5650">{{ dt.appNote }}</span></span>
+                <sc-for list="{{ applicants }}" as="a" hint-placeholder-count="3">
+                  <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-height: 64px; border-bottom: 2px solid #DDD6C8; padding: 8px 0">
+                    <span style="flex: 1 1 220px; display: flex; flex-direction: column; gap: 2px"><span style="display: flex; align-items: center; gap: 8px"><b style="font-size: 16px">{{ a.name }}</b><span style="{{ a.stateStyle }}">{{ a.state }}</span></span><span style="font-size: 12px; color: #5B5650">{{ a.sub }}</span><sc-if value="{{ a.hasRate }}" hint-placeholder-val="{{ false }}"><span style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700"><span role="img" aria-label="{{ a.lvAria }}" style="display: inline-flex; gap: 2px"><sc-for list="{{ a.bars }}" as="b" hint-placeholder-count="5"><span style="{{ b.style }}"></span></sc-for></span>{{ a.rate }}</span></sc-if></span>
+                    <sc-if value="{{ a.hasPayChk }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ a.payChk }}" style="height: 40px; padding: 0 14px; border: 2px solid #121110; border-radius: 10px; background: #FCD01A; box-shadow: 3px 3px 0 #121110; font: 700 14px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer">입금 확인</button></sc-if><sc-if value="{{ a.pending }}" hint-placeholder-val="{{ true }}"><span style="display: flex; gap: 8px"><button type="button" onClick="{{ a.no }}" style="height: 40px; padding: 0 14px; border: 2px solid #121110; border-radius: 10px; background: #FBF7EF; font: 700 14px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer">거절</button><button type="button" onClick="{{ a.yes }}" style="height: 40px; padding: 0 18px; border: 2px solid #121110; border-radius: 10px; background: #121110; font: 700 14px 'IBM Plex Sans KR', sans-serif; color: #FBF7EF; cursor: pointer">받기</button></span></sc-if>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ dt.hasLvGuide }}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; line-height: 1.6; color: #5B5650; padding-top: 4px">{{ dt.lvGuide }}</span></sc-if>
+              </section>
+            </sc-if>
+
+            <div style="margin-top: auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 12px; padding-top: 16px; border-top: 2px solid #DDD6C8">
+              <span style="flex: 1 1 260px; font-size: 13px; line-height: 1.6; color: #5B5650">{{ ctaNote }}</span>
+              <sc-if value="{{ hasCta }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ cta }}" aria-disabled="{{ ctaOff }}" style="{{ ctaStyle }}">{{ ctaLabel }}</button></sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isForm }}" hint-placeholder-val="{{ false }}">
+          <div role="group" style="flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+            <span style="font-size: 14px; line-height: 1.6; color: #5B5650">{{ formGuide }}</span>
+            <sc-for list="{{ fields }}" as="f" hint-placeholder-count="5">
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <span style="display: flex; align-items: baseline; gap: 8px"><b style="font-size: 14px">{{ f.label }}</b><span style="font-size: 12px; color: #5B5650">{{ f.hint }}</span></span>
+                <sc-if value="{{ f.isStars }}" hint-placeholder-val="{{ false }}"><span role="group" aria-label="{{ f.label }}" style="display: flex; align-items: center; gap: 6px"><sc-for list="{{ f.stars }}" as="sr" hint-placeholder-count="5"><button type="button" aria-label="{{ sr.aria }}" aria-pressed="{{ sr.on }}" onClick="{{ sr.pick }}" style="width: 44px; height: 44px; padding: 0; border: 0; background: transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center"><svg width="34" height="34" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.8 5.8 6.4.9-4.6 4.5 1.1 6.3L12 17.3l-5.7 3 1.1-6.3-4.6-4.5 6.4-.9z" fill="{{ sr.fill }}" stroke="#121110" stroke-width="1.8" stroke-linejoin="round"></path></svg></button></sc-for><b style="margin-left: 6px; font-family: 'Barlow Condensed', 'IBM Plex Sans KR', sans-serif; font-size: 20px">{{ f.starsTxt }}</b></span></sc-if>
+                <sc-if value="{{ f.isChips }}" hint-placeholder-val="{{ true }}"><div style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{ f.opts }}" as="o" hint-placeholder-count="4"><button type="button" aria-pressed="{{ o.on }}" onClick="{{ o.pick }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div></sc-if>
+                <sc-if value="{{ f.isText }}" hint-placeholder-val="{{ false }}"><input type="text" aria-label="{{ f.label }}" placeholder="{{ f.ph }}" style="height: 48px; box-sizing: border-box; border: 2px solid #121110; border-radius: 10px; padding: 0 12px; font: 500 16px 'IBM Plex Sans KR', sans-serif; background: #FFFFFF; color: #121110"></sc-if>
+                <sc-if value="{{ f.isMoney }}" hint-placeholder-val="{{ false }}"><span style="display: flex; align-items: center; gap: 8px"><input type="text" inputmode="numeric" aria-label="{{ f.label }}" value="{{ f.value }}" onInput="{{ f.onMoney }}" style="width: 200px; height: 48px; box-sizing: border-box; border: 2px solid #121110; border-radius: 10px; padding: 0 12px; font: 700 20px 'Barlow Condensed', sans-serif; text-align: right; background: #FFFFFF; color: #121110"><b style="font-size: 16px">원</b></span></sc-if>
+                <sc-if value="{{ f.isReceipt }}" hint-placeholder-val="{{ false }}"><span style="display: flex; align-items: center; gap: 12px; min-height: 56px; box-sizing: border-box; border: 2px dashed #121110; border-radius: 10px; padding: 8px 12px; background: #FBF7EF"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><circle cx="9" cy="11" r="2"></circle><path d="M21 17l-5-5-8 7"></path></svg><span style="flex: 1; font-size: 14px">{{ f.rcptLabel }}</span><button type="button" aria-pressed="{{ f.rcptOn }}" onClick="{{ f.rcptPick }}" style="height: 40px; padding: 0 14px; border: 2px solid #121110; border-radius: 10px; background: #FFFFFF; font: 700 14px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer">사진 고르기</button></span></sc-if>
+                <sc-if value="{{ f.isFee }}" hint-placeholder-val="{{ false }}"><div style="display: flex; flex-direction: column; gap: 6px; border: 2px solid #121110; border-radius: 12px; padding: 12px 16px; background: #FFF1E3"><span style="display: flex; align-items: baseline; gap: 8px"><span style="font-size: 13px; font-weight: 700">용병 한 명당</span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 32px; line-height: 1">{{ f.feeBig }}</b></span><sc-for list="{{ f.feeLines }}" as="l" hint-placeholder-count="3"><span style="font-size: 13px; line-height: 1.6">{{ l.t }}</span></sc-for></div></sc-if>
+                <sc-if value="{{ f.isList }}" hint-placeholder-val="{{ false }}"><div style="border: 2px solid #121110; border-radius: 12px; overflow: hidden"><sc-for list="{{ f.items }}" as="it" hint-placeholder-count="3"><div style="display: grid; grid-template-columns: 120px 1fr; border-bottom: 2px solid #DDD6C8; min-height: 44px; align-items: stretch"><span style="padding: 8px 12px; font-size: 13px; font-weight: 700; background: #FBF7EF; display: flex; align-items: center">{{ it.k }}</span><span style="padding: 8px 12px; font-size: 14px; line-height: 1.5; display: flex; align-items: center">{{ it.v }}</span></div></sc-for></div></sc-if>
+                <sc-if value="{{ f.isFixed }}" hint-placeholder-val="{{ false }}"><span style="min-height: 48px; box-sizing: border-box; border: 2px dashed #121110; border-radius: 10px; padding: 12px; font-size: 15px; background: #FBF7EF">{{ f.value }}</span></sc-if>
+                <sc-if value="{{ f.isShort }}" hint-placeholder-val="{{ false }}">
+                  <div style="border: 2px solid #121110; border-radius: 12px; overflow: hidden">
+                    <div style="display: grid; grid-template-columns: 1fr 0.9fr 2.2fr 0.9fr; background: #121110; color: #FBF7EF; font-size: 12px; font-weight: 700"><span style="padding: 8px 12px">자리</span><span style="padding: 8px 12px">필요</span><span style="padding: 8px 12px">참석 팀원으로 채움</span><span style="padding: 8px 12px">빈 자리</span></div>
+                    <sc-for list="{{ f.rows }}" as="r" hint-placeholder-count="10">
+                      <div style="{{ r.row }}">
+                        <b style="padding: 0 12px; font-family: 'Barlow Condensed', sans-serif; font-size: 18px">{{ r.pos }}</b>
+                        <span style="padding: 0 12px; font-size: 14px">{{ r.need }}</span>
+                        <span style="padding: 0 12px; font-size: 12px; color: #5B5650">{{ r.have }}</span>
+                        <b style="padding: 0 12px; font-family: 'Barlow Condensed', sans-serif; font-size: 18px">{{ r.short }}</b>
+                        </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ f.isSlots }}" hint-placeholder-val="{{ false }}">
+                  <div style="display: flex; flex-direction: column; gap: 8px">
+                    <sc-for list="{{ f.slots }}" as="sl" hint-placeholder-count="2">
+                      <div role="group" aria-label="{{ sl.name }}" style="{{ sl.box }}">
+                        <span style="display: flex; align-items: center; gap: 10px"><b style="font-size: 15px">{{ sl.name }}</b><span style="flex: 1; font-size: 13px">{{ sl.desc }}</span><button type="button" aria-label="{{ sl.removeAria }}" onClick="{{ sl.remove }}" style="height: 32px; padding: 0 10px; border: 2px solid #121110; border-radius: 8px; background: #FFFFFF; font: 700 13px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer">빼기</button></span>
+                        <span style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{ sl.opts }}" as="o" hint-placeholder-count="4"><button type="button" aria-pressed="{{ o.on }}" onClick="{{ o.pick }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></span>
+                      </div>
+                    </sc-for>
+                    <button type="button" aria-disabled="{{ f.addOff }}" onClick="{{ f.add }}" style="{{ f.addStyle }}">+ 용병 한 명 더</button>
+                  </div>
+                  <span style="font-size: 13px; font-weight: 700">{{ f.total }}</span>
+                </sc-if>
+                <sc-if value="{{ f.isCount }}" hint-placeholder-val="{{ false }}"><span style="display: flex; flex-wrap: wrap; gap: 16px"><sc-for list="{{ f.counts }}" as="n" hint-placeholder-count="2"><span style="display: flex; align-items: center; gap: 8px"><span style="font-size: 14px; min-width: 40px">{{ n.label }}</span><button type="button" aria-label="{{ n.minusAria }}" onClick="{{ n.minus }}" style="width: 40px; height: 40px; border: 2px solid #121110; border-radius: 10px; background: #FFFFFF; font: 700 18px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer">-</button><b style="width: 40px; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 28px">{{ n.v }}</b><button type="button" aria-label="{{ n.plusAria }}" onClick="{{ n.plus }}" style="width: 40px; height: 40px; border: 2px solid #121110; border-radius: 10px; background: #FFFFFF; font: 700 18px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer">+</button></span></sc-for></span></sc-if>
+              </div>
+            </sc-for>
+            <div style="margin-top: auto; display: flex; justify-content: flex-end; gap: 12px; padding-top: 16px; border-top: 2px solid #DDD6C8">
+              <button type="button" onClick="{{ goBack }}" style="height: 52px; padding: 0 20px; border: 2px solid #121110; border-radius: 12px; background: #FBF7EF; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer">닫기</button>
+              <button type="button" onClick="{{ submit }}" style="height: 52px; padding: 0 24px; border: 2px solid #121110; border-radius: 12px; background: #FCD01A; box-shadow: 3px 3px 0 #121110; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer">{{ submitLabel }}</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isCase }}" hint-placeholder-val="{{ false }}">
+          <div style="flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 20px">
+            <div style="border: 2px solid #121110; border-radius: 12px; background: #FFF1E3; box-shadow: 4px 4px 0 #121110; padding: 16px; display: flex; flex-direction: column; gap: 6px"><b style="font-size: 18px; line-height: 1.4">{{ cs.title }}</b><span style="font-size: 13px; line-height: 1.6">{{ cs.sub }}</span></div>
+            <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+              <section aria-label="진행" style="flex: 1 1 240px; display: flex; flex-direction: column; gap: 12px">
+                <b style="font-size: 14px; border-bottom: 2px solid #121110; padding-bottom: 8px">진행</b>
+                <sc-for list="{{ cs.steps }}" as="st" hint-placeholder-count="4"><div style="display: flex; align-items: flex-start; gap: 12px"><span aria-hidden="true" style="{{ st.dot }}"></span><span style="display: flex; flex-direction: column; gap: 2px"><span style="{{ st.lab }}">{{ st.label }}</span><span style="font-size: 12px; color: #5B5650">{{ st.when }}</span></span></div></sc-for>
+              </section>
+              <section aria-label="앱에 남은 기록" style="flex: 2 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+                <b style="font-size: 14px; border-bottom: 2px solid #121110; padding-bottom: 8px">앱에 남은 기록 (고칠 수 없어요)</b>
+                <div style="border: 2px solid #121110; border-radius: 12px; overflow: hidden"><sc-for list="{{ cs.evid }}" as="it" hint-placeholder-count="4"><div style="display: grid; grid-template-columns: 110px 1fr; border-bottom: 2px solid #DDD6C8; min-height: 44px"><span style="padding: 8px 12px; font-size: 13px; font-weight: 700; background: #FBF7EF; display: flex; align-items: center">{{ it.k }}</span><span style="padding: 8px 12px; font-size: 14px; line-height: 1.5; display: flex; align-items: center">{{ it.v }}</span></div></sc-for></div>
+              </section>
+            </div>
+            <div style="margin-top: auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 12px; padding-top: 16px; border-top: 2px solid #DDD6C8">
+              <span style="flex: 1 1 280px; font-size: 13px; line-height: 1.6; color: #5B5650">{{ cs.note }}</span>
+              <span style="display: flex; gap: 8px; flex-wrap: wrap"><sc-for list="{{ cs.btns }}" as="b" hint-placeholder-count="2"><button type="button" onClick="{{ b.go }}" style="{{ b.style }}">{{ b.label }}</button></sc-for></span>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isMine }}" hint-placeholder-val="{{ false }}">
+          <div style="flex: 1; padding: 20px 24px 24px; display: flex; flex-direction: column; gap: 24px; background: #FBF7EF; border-radius: 0 0 14px 14px">
+            <p style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 14px; line-height: 1.5"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg><span><b>내가 용병으로 신청한 경기</b>만 모여요. 우리 팀 구인 글과 매칭 신청은 각 메뉴에서 봐요.</span></p>
+            <sc-for list="{{ mineGroups }}" as="g" hint-placeholder-count="3">
+              <section aria-label="{{ g.label }}" style="display: flex; flex-direction: column; gap: 12px">
+                <h3 style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 16px"><span aria-hidden="true" style="width: 12px; height: 12px; border-radius: 50%; border: 2px solid #121110; background: {{ g.dot }}"></span>{{ g.label }}<span style="display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 6px; box-sizing: border-box; border-radius: 12px; background: #121110; color: #FBF7EF; font: 700 13px Inter, sans-serif">{{ g.n }}</span><span style="font-size: 12px; font-weight: 400; color: #5B5650">{{ g.note }}</span></h3>
+                <sc-for list="{{ g.items }}" as="m" hint-placeholder-count="2">
+                  <div style="{{ m.card }}">
+                    <div style="display: flex; align-items: flex-start; gap: 14px">
+                      <span aria-hidden="true" style="{{ m.logo }}"><svg viewBox="-2 -2 52 48" style="position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible"><path d="M13 3 H19 C20 6 22 7 24 7 C26 7 28 6 29 3 H35 L46 12 L40 19 L37 17 V41 H11 V17 L8 19 L2 12 Z" fill="currentColor" stroke="#121110" stroke-width="2.4" stroke-linejoin="round"></path></svg><span style="position: absolute; left: 0; right: 0; top: 48%; text-align: center; line-height: 1; color: var(--kt)">{{ m.tag }}</span></span>
+                      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+                        <span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><b style="font-size: 17px">{{ m.team }}</b><span style="{{ m.kBadge }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{ m.kStroke }}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ m.kIcon }}"></path></svg>{{ m.kindName }}</span></span>
+                        <span style="display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 22px; white-space: nowrap">{{ m.when }}</b><sc-if value="{{ m.hasPlace }}" hint-placeholder-val="{{ true }}"><span style="font-size: 13px">{{ m.place }}</span></sc-if></span>
+                        <span style="font-size: 12px; color: #5B5650">{{ m.sub }}</span>
+                      </span>
+                      <span style="{{ m.style }}; flex: none; display: inline-flex; align-items: center; height: 26px; box-sizing: border-box">{{ m.state }}</span>
+                    </div>
+                    <sc-if value="{{ m.hasPay }}" hint-placeholder-val="{{ false }}"><div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; border-radius: 10px; padding: 12px 16px; background: #FDE7D2"><span style="flex: 1 1 320px; display: flex; flex-direction: column; gap: 4px"><b style="font-family: 'Barlow Condensed', 'IBM Plex Sans KR', sans-serif; font-size: 22px">{{ m.payTitle }}</b><sc-for list="{{ m.payLines }}" as="l" hint-placeholder-count="3"><span style="font-size: 13px; line-height: 1.6">{{ l.t }}</span></sc-for></span><span style="display: flex; gap: 8px"><sc-for list="{{ m.payBtns }}" as="b" hint-placeholder-count="2"><button type="button" onClick="{{ b.go }}" style="{{ b.style }}">{{ b.label }}</button></sc-for></span></div></sc-if>
+                  </div>
+                </sc-for>
+              </section>
+            </sc-for>
+            <span style="font-size: 12px; line-height: 1.6; color: #5B5650">{{ mineNote }}</span>
+          </div>
+        </sc-if>
+      </section>
+    </div>
+  </main>
+
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+    <div role="status" style="position: absolute; left: 50%; bottom: 32px; transform: translateX(-50%); z-index: 20; background: #121110; color: #FBF7EF; border-radius: 12px; padding: 16px 24px; font-size: 14px; white-space: nowrap">{{ toastText }}</div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"startView":{"editor":"enum","options":["list","form","mine","inbox","applied","report","case","rateTeam"],"default":"list"},"role":{"editor":"enum","options":["member","admin"],"default":"member"},"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() { return Object.assign(this.__rv(), { lk: this.__lk() }); }
+  __lk() {
+    const g = (this.state || {}).go || '';
+    const o = { off: () => { if ((this.state || {}).go) this.setState({ go: '' }); } };
+    ['PC_Chat', 'PC_Chat_A', 'PC_Hire', 'PC_Hire_A', 'PC_Home', 'PC_Home_A', 'PC_Match', 'PC_Match_A', 'PC_Ops', 'PC_Rec', 'PC_Rec_A', 'PC_Sch', 'PC_Sch_A', 'PC_Seek', 'PC_Seek_A', 'PC_Team', 'PC_Team_A'].forEach((p) => { o[p] = g === p ? p + '.dc.html' : undefined; o['go_' + p] = () => { if ((this.state || {}).go !== p) this.setState({ go: p }); }; });
+    return o;
+  }
+  __rv() {
+    const LK = this.__lk();
+    const st = this.state || {};
+    const ink = '#121110';
+    const AREA = 'seek';
+    const isAdmin = (this.props.role || 'member') === 'admin';
+    // 신고 기능은 보류 (2026-11-24). true로 바꾸면 신고 버튼, 내 신고, 받은 신고가 다시 보여요
+    const REPORT_ON = false;
+    const sv = this.props.startView || 'list';
+    const view0 = st.view || (sv === 'applied' ? 'list' : sv);
+    // 팀원이 운영진 화면 이름으로 들어와도 운영진 화면은 열리지 않게 막는다
+    const view = (!isAdmin && ({ match: ['form', 'new', 'inbox'], hire: ['form', 'new', 'inbox', 'case'], seek: ['new', 'inbox'] })[AREA].indexOf(view0) >= 0) ? 'list' : view0;
+    const me = isAdmin ? '김도현' : '이준호';
+    const myPos = isAdmin ? 'CAM' : 'LW';
+    const team = { name: 'TEST FC', tag: 'FC', sport: '축구', role: isAdmin ? '운영진' : '팀원', num: isAdmin ? '10' : '7', color: '#5B8DEF' };
+    team.logoFill = 'position: absolute; inset: 0; border-radius: 25%; background: ' + team.color;
+    team.logoCut40 = 'position: absolute; left: 21%; top: 35%; width: 58%; height: 30%; border-radius: 3px; background: ' + team.color + '; display: flex; align-items: center; justify-content: center; color: #121110; font-family: Inter, \'Noto Sans KR\', sans-serif; font-weight: 800; font-size: 14px; line-height: 1';
+    const say = (msg, extra) => { this.setState(Object.assign({ toast: msg }, extra || {})); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ toast: '' }), 2200); };
+    const LV = ['', '입문', '초급', '중급', '중상급', '상급'];
+    const ro = (p) => p + (/M$/.test(p) ? '으로' : '로');
+    const lv = (n) => '실력 ' + n + ' ' + LV[n];
+    const chip = (bg, dashed) => 'font-size: 12px; font-weight: 700; border: 2px ' + (dashed ? 'dashed' : 'solid') + ' ' + ink + '; border-radius: 5px; padding: 0 8px; background: ' + bg;
+    const pill = (on) => 'height: 34px; padding: 0 12px; border: 2px solid ' + ink + '; border-radius: 17px; font: 700 13px \'IBM Plex Sans KR\', sans-serif; cursor: pointer; background: ' + (on ? ink + '; color: #FBF7EF' : '#FFFFFF; color: ' + ink);
+    const kitDark = (c) => { const h = c.replace('#', ''); const v = [0, 2, 4].map((i) => { const x = parseInt(h.substr(i, 2), 16) / 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2] < 0.18; };
+    const logo = (c, size) => 'flex: none; position: relative; display: block; width: ' + size + 'px; height: ' + Math.round(size * 48 / 52) + 'px; color: ' + c + '; --kt: ' + (kitDark(c) ? '#FBF7EF' : ink) + '; font: 800 ' + Math.round(size * 0.27) + 'px Inter, \'Noto Sans KR\', sans-serif';
+    // 용병이 남긴 팀 평가: [매너 평균, 준비 평균, 평가 수, 많이 받은 말]. 3번 모이기 전에는 숫자를 안 보여요
+    const TRV = { noeul: [4.6, 4.3, 14, ['시간 잘 지킴', '쿼터 고르게']], hangang: [4.8, 4.7, 21, ['공, 조끼 준비', '말이 친절함']], eunpyeong: [4.2, 3.9, 5, ['쿼터 고르게']], seongsan: [4.4, 4.5, 33, ['구장 일찍 잡음', '시간 잘 지킴']], mapo: [3.6, 3.8, 9, ['늦게 시작']], seobu: [0, 0, 1, []] };
+    const trvText = (t) => { const r = TRV[t]; if (!r || r[2] < 3) return '아직 평가가 적어요 (3번 모이면 보여요)'; return '매너 ' + r[0].toFixed(1) + ', 준비 ' + r[1].toFixed(1) + ' (용병 ' + r[2] + '명)' + (r[3].length ? ', 많이 받은 말: ' + r[3].join(', ') : ''); };
+    const trvChip = (t) => { const r = TRV[t]; return r && r[2] >= 3 ? '용병 평가 ' + ((r[0] + r[1]) / 2).toFixed(1) : ''; };
+    const TEAMS = {
+      noeul: { name: '노을 FC', tag: 'NO', c: '#F2A7C3', lv: 3, area: '마포', home: '상암 월드컵 보조구장', n: 22, since: '6개월째', chk: 24, kept: [4, 4] },
+      hangang: { name: '한강 유나이티드', tag: 'HU', c: '#8EC8F2', lv: 4, area: '마포', home: '망원 한강공원 축구장', n: 25, since: '8개월째', chk: 31, kept: [5, 5] },
+      eunpyeong: { name: '은평 FC', tag: 'EP', c: '#F6D02F', lv: 2, area: '은평', home: '불광천 인조잔디 구장', n: 17, since: '3개월째', chk: 9, kept: [1, 1] },
+      seongsan: { name: '성산 FC', tag: 'SS', c: '#2E9E4F', lv: 3, area: '마포', home: '성산 인조잔디 구장', n: 20, since: '1년째', chk: 40, kept: [7, 8] },
+      mapo: { name: '마포 FC', tag: 'MP', c: '#F08A24', lv: 3, area: '마포', home: '난지 인조잔디 구장', n: 19, since: '5개월째', chk: 18, kept: [3, 3] },
+      seobu: { name: '서부 FC', tag: 'SB', c: '#9A9A9A', lv: 2, area: '은평', home: '불광천 인조잔디 구장', n: 15, since: '2주째', chk: 0, kept: [0, 0] }
+    };
+
+    // ===== 매칭 =====
+    const MATCHES = [
+      { id: 'a', t: 'hangang', day: 'sat', when: '12.06 토 07:00', end: '09:00', place: '망원 한강공원 축구장', field: '구장 잡음', mem: 12, merc: 2, kit: '하늘', memo: '4쿼터, 쿼터마다 20분이에요. 끝나고 같이 정리해요.', area: '마포' },
+      { id: 'b', t: 'eunpyeong', day: 'sun', when: '12.07 일 08:00', end: '10:00', place: '구장 있는 팀을 찾아요 (은평, 마포 쪽)', field: '구장 없음', mem: 10, merc: 1, kit: '노랑', memo: '처음 매칭해 봐요. 편하게 뛰어 주세요.', area: '은평' },
+      { id: 'c', t: 'seongsan', day: 'sat', when: '12.13 토 07:00', end: '09:00', place: '성산 인조잔디 구장', field: '구장 잡음', mem: 14, merc: 0, kit: '초록', memo: '용병 없이 팀원만 나와요.', area: '마포' },
+      { id: 'd', t: 'mapo', day: 'sat', when: '12.13 토 19:00', end: '21:00', place: '난지 인조잔디 구장', field: '구장 잡음', mem: 11, merc: 3, kit: '주황', memo: '조명 있는 구장이에요.', area: '마포' }
+    ];
+    // ===== 다른 팀 용병 구인 (구직 화면에서 봐요) =====
+    const SEEKS = [
+      { id: 's1', fee: [120000, 16], t: 'noeul', kind: '매칭', vs: 'mapo', day: 'sat', when: '11.29 토 19:00', end: '21:00', place: '상암 월드컵 보조구장', pos: [['LW/LB', 1], ['CB', 1]], memo: '측면에서 많이 뛰어 줄 분 찾아요.', area: '마포' },
+      { id: 's2', fee: [80000, 20], feeSelf: true, t: 'hangang', kind: '내전', day: 'sun', when: '11.30 일 08:00', end: '10:00', place: '망원 한강공원 축구장', pos: [['LW', 2], ['ST', 1]], memo: '내전이라 부담 없이 오세요.', area: '마포' },
+      { id: 's3', fee: [110000, 14], feeMode: 'pay', payAmt: 10000, t: 'eunpyeong', kind: '매칭', vs: 'seobu', day: 'sat', when: '12.06 토 10:00', end: '12:00', place: '불광천 인조잔디 구장', pos: [['CAM', 1], ['GK', 1]], memo: '골키퍼 장갑은 팀에 있어요.', area: '은평' },
+      { id: 's4', fee: [100000, 14], t: 'seongsan', kind: '매칭', vs: 'hangang', day: 'sun', when: '12.07 일 07:00', end: '09:00', place: '성산 인조잔디 구장', pos: [['RW', 1], ['LW', 1], ['CM', 1]], memo: '상대가 실력 4라 빠른 분이면 좋아요.', area: '마포' }
+    ];
+    // ===== 우리 팀 용병 구인 =====
+    const HIRES = [
+      { id: 'h1', fee: [100000, 12], kind: '내전', ev: '11.29 토 08:00 내전', when: '11.29 토 08:00', end: '10:00', place: '고양 종합운동장 보조구장', pos: [['CB', 2], ['ST/LW', 1], ['GK', 1]], memo: '내전 인원이 모자라요. A팀, B팀 어디든 들어가요.', state: '받는 중' },
+      { id: 'h2', fee: [100000, 15], feeMode: 'free', kind: '매칭', ev: '11.22 토 07:00 경기 vs 노을 FC', vs: 'noeul', when: '11.22 토 07:00', end: '09:00', place: '상암 월드컵 보조구장', pos: [['GK', 1]], memo: '골키퍼 한 명만 더 있으면 쿼터마다 쉴 수 있어요.', state: '마감' }
+    ];
+    // [이름, 소개, 상태, 레벨 점수, 용병으로 온 경기, 안 옴]
+    // 레벨 점수: 현장 출석으로 온 경기마다 +1, 그 경기 별점 5개 +2, 4개 +1, 3개 0, 2개 -1, 1개 -2, 안 옴 -3 (0 아래로는 안 내려가요)
+    // 레벨: 1(0~2점) 2(3~7점) 3(8~14점) 4(15~24점) 5(25점부터). 점수가 깎이면 레벨도 내려가요. 별점 숫자와 레벨은 구인 팀 운영진만 레벨로 봐요
+    // 용병비: 내전은 구장비를 참여 인원으로, 매칭은 구장비를 두 팀이 반씩 나눈 뒤 우리 참여 인원으로 나눠요. 500원 단위로 내려요
+    const won = (n) => n.toLocaleString('ko-KR') + '원';
+    const feeOf = (kind, total, people) => { const share = kind === '매칭' ? total / 2 : total; const raw = people > 0 ? share / people : 0; return { share: share, raw: raw, fee: Math.floor(raw / 500) * 500 }; };
+    const feeLine = (kind, total, people, who) => '구장비 ' + won(total) + (kind === '매칭' ? ' ÷ 2팀' : '') + ' ÷ ' + people + '명' + (who ? ' (' + who + ')' : '') + ', 500원 단위 내림';
+    // 용병비 방식: split 구장비 나눠 받기, free 무료, pay 팀이 교통비를 드림
+    const modeOf = (x) => x.feeMode || 'split';
+    const feeShort = (x) => modeOf(x) === 'free' ? '용병비 무료' : (modeOf(x) === 'pay' ? '교통비 ' + won(x.payAmt) + ' 드려요' : '용병비 ' + won(feeOf(x.kind, x.fee[0], x.fee[1]).fee) + (x.feeSelf ? ' (직접 적은 금액)' : ''));
+    const feeRow = (x) => modeOf(x) === 'free' ? '무료예요. 받으면 바로 확정돼요' : (modeOf(x) === 'pay' ? '그 팀이 교통비 ' + won(x.payAmt) + '을 드려요. 경기 뒤 현장 출석으로 온 게 확인되면 보내요' : won(feeOf(x.kind, x.fee[0], x.fee[1]).fee) + '  ' + feeLine(x.kind, x.fee[0], x.fee[1]));
+    const feeSrc = (x) => x.feeSelf ? '그 팀이 직접 적은 금액 (구장 목록에 없는 구장)' : x.place + ', 구장 목록 금액';
+    const APPS = { h1: [['오지훈', 'ST / LW', 'pending', 4, 5, 1], ['박건우', 'CB / CDM', 'pending', 27, 12, 0], ['류성민', 'GK', 'paid', 3, 2, 1]], h2: [['최민혁', '강태호 지인, CB / RB (팀 안 추천)', 'in', 11, 6, 0]] };
+    const LV_AT = [0, 3, 8, 15, 25];
+    const lvOf = (pt) => LV_AT.filter((t) => pt >= t).length;
+    const rateKey = (a) => a[3];
+    const MATCH_IN = [['은평 FC', '실력 2 초급, 투표로 확인된 팀원 10 + 용병 2명, 매니볼 3개월째, 약속 인원 지킴 1 / 1', 'pending'], ['서부 FC', '실력 2 초급, 투표로 확인된 팀원 9 + 용병 3명, 매니볼 2주째 (새 팀), 매칭 기록 없음', 'pending']];
+
+    const flt = Object.assign({ day: 'all', area: 'all', lv: 'all', pos: myPos, kind: 'all' }, st.f || {});
+    const setF = (k, v) => this.setState({ f: Object.assign({}, flt, { [k]: v }), sel: null });
+    const opts = (k, list) => list.map(([v, label]) => ({ label: label, on: flt[k] === v, pick: () => setF(k, v), style: pill(flt[k] === v) }));
+    const DAY = [['all', '전체'], ['sat', '토요일'], ['sun', '일요일']];
+    const AREAS = [['all', '전체'], ['마포', '마포'], ['은평', '은평']];
+    const LVS = [['all', '전체'], [2, '2 초급'], [3, '3 중급'], [4, '4 중상급']];
+    const ORDER = ['GK', 'LB', 'CB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST'];
+    const PG = [['GK', '골키퍼', ['GK']], ['DF', '수비', ['LB', 'CB', 'RB']], ['MF', '미드필더', ['CDM', 'CM', 'CAM']], ['FW', '공격', ['LW', 'RW', 'ST']]];
+    const posSet = (v) => (v === 'all' ? null : ((PG.find((g) => g[0] === v) || [])[2] || [v]));
+    const fitPos = (label) => { const set = posSet(flt.pos); return !set || label.split('/').some((p) => set.indexOf(p) >= 0); };
+    const isOnePos = flt.pos !== 'all' && !PG.some((g) => g[0] === flt.pos && g[2].length > 1);
+    const posName = flt.pos === 'all' ? '' : (PG.find((g) => g[0] === flt.pos && g[2].length > 1) ? PG.find((g) => g[0] === flt.pos)[1] + ' (' + posSet(flt.pos).join(', ') + ')' : flt.pos);
+    const grpPill = (on) => (on ? pill(true) : pill(false).replace('background: #FFFFFF', 'background: #FFF1E3'));
+    const posSets = PG.map((g) => { const gOn = g[2].length > 1 ? flt.pos === g[0] : flt.pos === g[2][0]; return { name: g[1], on: gOn, pick: () => setF('pos', g[2].length > 1 ? g[0] : g[2][0]), style: grpPill(gOn),
+      box: 'display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 3px; border: 2px solid #DDD6C8; border-radius: 20px',
+      opts: g[2].length > 1 ? opts('pos', g[2].map((p) => [p, p])) : [] }; });
+    const fStyle = 'display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-right: 12px';
+    const kept = (T) => (T.kept && T.kept[1] ? '매칭 약속 인원 지킴 ' + T.kept[0] + ' / ' + T.kept[1] : '매칭 기록 없음');
+    const pass = (x, tlv) => (flt.day === 'all' || x.day === flt.day) && (flt.area === 'all' || x.area === flt.area) && (flt.lv === 'all' || tlv === flt.lv) && (!flt.kind || flt.kind === 'all' || x.kind === flt.kind);
+    const KINDF = [['all', '전체'], ['매칭', '다른 팀과'], ['내전', '팀 내전']];
+
+    const isMatchK = (x) => x.kind === '매칭';
+    // 경기 종류 이름: 메뉴 '매칭'과 헷갈리지 않게 화면에는 '다른 팀과', '팀 내전'으로 보여요 (데이터 값은 그대로)
+    const kn = (k) => ({ '매칭': '다른 팀과', '내전': '팀 내전' })[k] || k;
+    const kWord = (k) => k === '내전' ? '내전' : '경기';
+    const kindVs = (x) => isMatchK(x) ? (x.vs ? (x.t ? TEAMS[x.t].name : 'TEST FC') + ' vs ' + TEAMS[x.vs].name : '상대 정하는 중') : (x.t ? TEAMS[x.t].name : 'TEST FC') + '끼리 A팀 대 B팀';
+    const kindSub = (x) => isMatchK(x) ? (x.vs ? '상대 ' + lv(TEAMS[x.vs].lv) : '') : '다른 팀 없이 그 팀 사람끼리';
+    const kindBadge = (x) => 'flex: none; display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; box-sizing: border-box; border-radius: 6px; border: 2px solid ' + ink + '; font: 700 13px \'IBM Plex Sans KR\', sans-serif; ' + (isMatchK(x) ? 'background: ' + ink + '; color: #FBF7EF' : 'background: #FFFFFF; color: ' + ink);
+    const kindIcon = (x) => isMatchK(x) ? 'M4 7h11l-3-3M20 17H9l3 3' : 'M4 5h16v14H4zM12 5v14';
+    const kindStroke = (x) => isMatchK(x) ? '#FBF7EF' : ink;
+    let pageTitle, pageSub, filters, items, listNote, listAria;
+    if (AREA === 'match') {
+      pageTitle = '매칭'; pageSub = '경기할 상대 팀을 찾아요. 같은 종목(축구) 팀만 보여요.';
+      filters = [{ label: '날짜', opts: opts('day', DAY) }, { label: '지역', opts: opts('area', AREAS) }, { label: '상대 실력', opts: opts('lv', LVS) }];
+      items = MATCHES.filter((m) => pass(m, TEAMS[m.t].lv)); listAria = '매칭 글'; listNote = '상대를 찾는 팀이 올린 글이에요. 누르면 오른쪽에 자세히 나와요.';
+    } else if (AREA === 'seek') {
+      pageTitle = '용병 구직'; pageSub = '내 포지션을 구하는 다른 팀 경기를 찾아 신청해요.';
+      filters = [{ label: '포지션', opts: opts('pos', [['all', '전체']]), sets: posSets, style: fStyle + '; flex-basis: 100%; row-gap: 8px' }, { label: '경기 종류', opts: opts('kind', KINDF) }, { label: '날짜', opts: opts('day', DAY) }, { label: '지역', opts: opts('area', AREAS) }];
+      items = SEEKS.filter((s) => s.pos.some((p) => fitPos(p[0])) && pass(s, TEAMS[s.t].lv)); listAria = '용병 구인 글'; listNote = (flt.pos === 'all' ? '용병을 구하는 다른 팀 경기를 모두 보여요.' : posName + ' 자리를 구하는 다른 팀 경기예요.') + ' 처음에는 내 1선호 포지션으로 걸러져요.';
+    } else {
+      pageTitle = '용병 구인'; pageSub = '우리 경기에 올 용병을 다른 팀 사람들에게서 구해요.';
+      filters = [{ label: '보기', opts: [['all', '전체'], ['open', '받는 중']].map(([v, label]) => ({ label: label, on: (flt.state || 'all') === v, pick: () => this.setState({ f: Object.assign({}, flt, { state: v }), sel: null }), style: pill((flt.state || 'all') === v) })) }, { label: '경기 종류', opts: opts('kind', KINDF) }];
+      items = HIRES.filter((h) => ((flt.state || 'all') === 'all' || h.state === '받는 중') && (flt.kind === 'all' || h.kind === flt.kind)); listAria = '우리 팀 용병 구인 글'; listNote = isAdmin ? '우리 팀이 올린 글이에요. 일정에서 가져와 올려요.' : '우리 팀이 올린 글이에요. 글은 운영진이 올리고 신청을 받아요.';
+    }
+    filters = filters.map((g) => Object.assign({ sets: [], style: fStyle }, g));
+    const fltSum = filters.map((g) => { if (g.label === '포지션') return flt.pos === 'all' ? '모든 포지션' : posName + ' 자리'; const on = (g.opts || []).find((o) => o.on); return g.label + ' ' + (on ? on.label : ''); }).join(', ');
+    const selId = st.sel || (items[0] ? items[0].id : null);
+    const applied = Object.assign(sv === 'applied' || (sv === 'mine' && AREA === 'seek') ? (AREA === 'match' ? { a: true } : { s1: true }) : {}, st.applied || {});
+    const cards = items.map((x) => {
+      const on = x.id === selId;
+      const T = x.t ? TEAMS[x.t] : { name: 'TEST FC', tag: 'FC', c: '#23336B', lv: 3, n: 26 };
+      let chips = [];
+      if (AREA === 'match') chips = [{ label: '팀원 ' + x.mem + ' (투표 확인) + 용병 ' + x.merc, style: chip('#FFFFFF') }, { label: x.field, style: chip('#FFFFFF', x.field !== '구장 잡음') }];
+      else chips = [].concat(x.pos.map((p) => ({ label: p[0] + ' ' + p[1] + '명', style: chip(AREA === 'seek' && flt.pos !== 'all' && fitPos(p[0]) ? ink + '; color: #FBF7EF' : '#FBF7EF') })));
+      if (AREA !== 'match' && x.fee) chips.push({ label: feeShort(x), style: chip(modeOf(x) === 'pay' ? '#FCD01A' : '#FFFFFF') });
+      if (AREA === 'seek' && trvChip(x.t)) chips.push({ label: trvChip(x.t), style: chip('#FFFFFF') });
+      if (applied[x.id]) chips.push({ label: '신청함', style: chip(ink + '; color: #FBF7EF') });
+      if (AREA === 'hire') chips.push({ label: x.state, style: chip(x.state === '받는 중' ? '#FCD01A' : '#FFFFFF', x.state !== '받는 중') });
+      return { team: T.name, tag: T.tag, sub: AREA === 'hire' ? '우리 일정에서 올린 글' : (T.area || '') + '  팀원 ' + T.n + '명', lv: lv(T.lv), when: x.when, place: x.place, chips: chips, on: on, hasKind: AREA !== 'match', kind: kn(x.kind || ''), kindVs: AREA !== 'match' ? kindVs(x) : '', kindSub: AREA !== 'match' ? kindSub(x) : '', kindBadge: AREA !== 'match' ? kindBadge(x) : '', kindIcon: AREA !== 'match' ? kindIcon(x) : '', kindStroke: AREA !== 'match' ? kindStroke(x) : '',
+        logo: logo(T.c, 40), lvStyle: chip('#FFF1E3'),
+        btn: 'display: flex; flex-direction: column; gap: 10px; width: 100%; box-sizing: border-box; padding: 14px 16px; border: 0; border-radius: 12px; background: ' + (on ? '#FDE7D2' : '#FFFFFF') + '; font-family: inherit; color: ' + ink + '; cursor: pointer; box-shadow: ' + (on ? '0 0 0 2px ' + ink + ', 6px 6px 0 ' + ink + '; transform: translate(-2px, -2px)' : '0 1px 0 rgba(18, 17, 16, .08), 0 4px 10px rgba(18, 17, 16, .10)'),
+        pick: () => this.setState({ sel: x.id, view: 'list' }) };
+    });
+    const x = items.find((i) => i.id === selId) || null;
+
+    // 오른쪽 자세히
+    let dt = { memoLabel: AREA === 'hire' ? '우리 팀이 남긴 말' : '그 팀이 남긴 말', team: '', tag: '', teamSub: '', lvN: '', lvName: '', rows: [], pos: [], hasPos: false, memo: '', hasMemo: false, hasApplicants: false, appTitle: '', appNote: '', logoBig: '', hasLvGuide: false, lvGuide: '', hasReport: false, report: () => {}, hasKind: false, kind: '', kindVs: '', kindSub: '', kindBadge: '', kindIcon: '', kindStroke: '', kindBox: '', hasHero: false, heroDate: '', heroTime: '', heroEnd: '', heroPlace: '', heroK: '', heroV: '', heroS: '', heroKind: '', heroVs: '', heroBadge: '', heroIcon: '', heroStroke: '' };
+    let ctaLabel = '', ctaNote = '', hasCta = false, ctaOff = false, cta = () => {};
+    let applicants = [];
+    if (x) {
+      const T = x.t ? TEAMS[x.t] : { name: 'TEST FC', tag: 'FC', c: '#23336B', lv: 3, n: 26, area: '고양', home: '상암 월드컵 보조구장' };
+      const heroR = AREA === 'match' ? { k: '구장', v: x.field, s: '팀원 ' + x.mem + ' + 용병 ' + x.merc + ' (투표로 확인)' } : { k: modeOf(x) === 'pay' ? '교통비 (그 팀이 드려요)' : '용병비', v: modeOf(x) === 'free' ? '무료' : (modeOf(x) === 'pay' ? won(x.payAmt) : won(feeOf(x.kind, x.fee[0], x.fee[1]).fee)), s: AREA === 'hire' ? x.state : (x.feeSelf ? '그 팀이 직접 적은 구장비' : (modeOf(x) === 'split' ? '먼저 보내야 확정' : '받으면 바로 확정')) };
+      dt.hasHero = true; dt.heroDate = x.when.split(' ').slice(0, 2).join(' '); dt.heroTime = x.when.split(' ')[2]; dt.heroEnd = '~ ' + x.end; dt.heroPlace = x.place; dt.heroK = heroR.k; dt.heroV = heroR.v; dt.heroS = heroR.s;
+      dt.heroKind = AREA === 'match' ? '매칭 글' : kn(x.kind); dt.heroVs = AREA === 'match' ? T.name + '가 상대를 찾아요' : kindVs(x); dt.heroBadge = kindBadge(AREA === 'match' ? { kind: '매칭' } : x); dt.heroIcon = kindIcon(AREA === 'match' ? { kind: '매칭' } : x); dt.heroStroke = kindStroke(AREA === 'match' ? { kind: '매칭' } : x);
+      if (AREA !== 'match') dt = Object.assign(dt, { hasKind: true, kind: kn(x.kind), kindVs: kindVs(x), kindSub: kindSub(x), kindBadge: kindBadge(x).replace('height: 28px', 'height: 36px').replace('13px', '16px'), kindIcon: kindIcon(x), kindStroke: kindStroke(x), kindBox: 'display: flex; align-items: center; gap: 12px; padding: 12px 16px; border: 2px solid ' + ink + '; border-radius: 12px; background: ' + (isMatchK(x) ? '#FFF1E3' : '#FFFFFF') });
+      dt = Object.assign(dt, { team: T.name, tag: T.tag, teamSub: (T.area ? T.area + '  ' : '') + '축구팀  가입한 팀원 ' + T.n + '명', lvN: T.lv, lvName: LV[T.lv], memo: x.memo, hasMemo: !!x.memo, logoBig: logo(T.c, 64) });
+      if (AREA === 'match') {
+        dt.rows = [{ k: '팀 기록', v: '매니볼 ' + T.since + ', 현장 출석 받은 경기 ' + T.chk + '번, ' + kept(T) }, { k: '상대 실력', v: lv(T.lv) + ' (팀이 직접 고른 실력)' }, { k: '상대 유니폼', v: x.kit + '  우리는 AWAY 흰색을 추천해요' }];
+        hasCta = true;
+        if (applied[x.id]) { ctaLabel = '신청 취소'; ctaNote = '신청했어요. 상대가 받으면 우리 일정에 경기로 올라가요. 경기 뒤 현장 출석으로 실제 온 팀원과 용병 수가 서로에게 보여요.'; cta = () => say('매칭 신청을 취소했어요', { applied: Object.assign({}, applied, { [x.id]: false }) }); }
+        else if (isAdmin) { ctaLabel = '매칭 신청하기'; ctaNote = '우리 팀원 수는 직접 적지 않고, 그 날 일정의 참석 투표 수를 그대로 보내요.'; cta = () => this.setState({ view: 'form' }); }
+        else { ctaLabel = '운영진만 신청할 수 있어요'; ctaOff = true; ctaNote = '팀원은 매칭 글을 볼 수 있고, 신청은 운영진이 해요.'; }
+      } else if (AREA === 'seek') {
+        dt.rows = [{ k: '용병들의 평가', v: trvText(x.t) }, { k: '이 팀 실력', v: lv(T.lv) }, { k: '팀 기록', v: '매니볼 ' + T.since + ', 현장 출석 받은 경기 ' + T.chk + '번' }].concat(modeOf(x) === 'split' ? [{ k: '용병비 계산', v: feeLine(x.kind, x.fee[0], x.fee[1]) }, { k: '구장비', v: feeSrc(x) }] : [{ k: modeOf(x) === 'pay' ? '교통비' : '용병비', v: feeRow(x) }]);
+        dt.hasPos = true; dt.pos = x.pos.map((p) => ({ pos: p[0], n: p[1] + '명', style: 'display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 14px; box-sizing: border-box; border: 2px solid ' + ink + '; border-radius: 10px; background: ' + (flt.pos !== 'all' && fitPos(p[0]) ? ink + '; color: #FBF7EF' : '#FFFFFF') }));
+        hasCta = true;
+        if (applied[x.id]) { ctaLabel = '신청 취소'; ctaNote = '신청했어요. 그 팀 운영진이 받으면 알림이 와요. 용병비를 보내고 그 팀이 확인하면 참석 명단과 대화방에 들어가요.'; cta = () => say('신청을 취소했어요', { applied: Object.assign({}, applied, { [x.id]: false }) }); }
+        else { ctaLabel = isOnePos ? ro(flt.pos) + ' 신청하기' : '신청하기'; ctaNote = '신청은 팀원, 운영진 누구나 개인으로 해요. ' + (modeOf(x) === 'free' ? '무료라 받으면 바로 확정되고 그 경기 대화방에 들어가요.' : (modeOf(x) === 'pay' ? '받으면 바로 확정되고 대화방에 들어가요. 교통비는 경기 뒤 현장 출석으로 온 게 확인되면 신청할 때 적은 계좌로 와요.' : '받으면 용병비 ' + won(feeOf(x.kind, x.fee[0], x.fee[1]).fee) + '을 먼저 보내야 경기가 확정되고 그 경기 대화방에 들어가요.')); cta = () => this.setState({ view: 'form' }); }
+        dt.hasReport = REPORT_ON && !!x.feeSelf && modeOf(x) === 'split'; dt.report = () => say('신고했어요. 매니볼이 그 구장의 실제 금액을 확인해요');
+      } else {
+        dt.rows = [{ k: '연결한 일정', v: x.ev + (x.id === 'h1' ? '  참석 8 / 22, 빈 자리에서 골랐어요' : '  참석 14 / 14, GK 자리가 비어요') }, { k: '우리 팀 실력', v: lv(3) }, { k: '용병들이 본 우리 팀', v: '매너 4.5, 준비 4.2 (용병 11명), 많이 받은 말: 시간 잘 지킴. 누가 남겼는지는 안 보여요' }].concat(modeOf(x) === 'split' ? [{ k: '용병비 계산', v: feeLine(x.kind, x.fee[0], x.fee[1]) }, { k: '구장비', v: feeSrc(x) }] : [{ k: modeOf(x) === 'pay' ? '교통비' : '용병비', v: feeRow(x) }])
+          ;
+        dt.hasPos = true; dt.pos = x.pos.map((p) => ({ pos: p[0], n: p[1] + '명', style: 'display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 14px; box-sizing: border-box; border: 2px solid ' + ink + '; border-radius: 10px; background: #FFFFFF' }));
+        const ap = Object.assign({}, st.ap || {});
+        applicants = (APPS[x.id] || []).map((a, i) => [a, i]).sort((p, q) => rateKey(q[0]) - rateKey(p[0])).map(([a, i]) => { const key = x.id + i; const s = ap[key] || a[2];
+          const L = lvOf(a[3]);
+          return { name: a[0], sub: a[1], hasRate: isAdmin, lvAria: '레벨 ' + L + ' / 5',
+            bars: [1, 2, 3, 4, 5].map((n) => ({ style: 'width: 10px; height: 14px; box-sizing: border-box; border: 2px solid ' + ink + '; border-radius: 2px; background: ' + (n <= L ? '#F2A65A' : '#FFFFFF') })),
+            rate: '레벨 ' + L + ', 용병 경기 ' + a[4] + '번' + (a[5] ? ', 안 옴 ' + a[5] + '번' : ''), pending: isAdmin && s === 'pending', state: ({ pending: '기다림', yes: '받음, 입금 기다림', paid: '입금했어요, 확인해 주세요', in: '확정, 대화방에 들어옴', no: '거절함' })[s] || '받음',
+            hasPayChk: isAdmin && s === 'paid', payChk: () => say(a[0] + '님 입금을 확인했어요. 참석 명단과 대화방에 들어갔어요', { ap: Object.assign({}, ap, { [key]: 'in' }) }),
+            stateStyle: chip(s === 'in' ? ink + '; color: #FBF7EF' : (s === 'paid' ? '#FCD01A' : (s === 'no' ? '#FFFFFF' : '#FBF7EF')), s === 'no'),
+            yes: () => say(a[0] + '님을 받았어요. 용병비를 보내면 확인해 주세요. 3시간 안에 안 보내면 자동으로 취소돼요', { ap: Object.assign({}, ap, { [key]: 'yes' }) }),
+            no: () => say(a[0] + '님의 신청을 거절했어요', { ap: Object.assign({}, ap, { [key]: 'no' }) }) }; });
+        dt.hasApplicants = true; dt.appTitle = '신청한 사람 ' + applicants.length + '명'; dt.appNote = isAdmin ? '받은 뒤 용병비 입금을 확인해야 확정돼요. 레벨이 낮은 사람은 아래에 보여요' : '운영진만 받고 거절해요';
+        dt.hasLvGuide = isAdmin; dt.lvGuide = '레벨은 매니볼에서 용병으로 뛴 기록으로 정해져요. 현장 출석으로 온 경기마다 오르고, 그 경기 운영진의 평가가 좋으면 더 오르고 나쁘면 덜 오르거나 내려가요. 안 오면 크게 내려가요. 레벨과 평가는 용병 본인에게 안 보여요.';
+        hasCta = isAdmin; ctaLabel = x.state === '받는 중' ? '구인 마감하기' : '다시 받기'; ctaNote = isAdmin ? '구장, 시간, 빈 자리는 일정에서 가져와요. 팀원이 참석으로 바꿔 자리가 차면 그 자리는 글에서 빠져요.' : '우리 팀 일정에 오는 용병이에요. 받은 용병은 일정의 참석 명단에 보여요.';
+        cta = () => say(x.state === '받는 중' ? '구인을 마감했어요' : '다시 받기 시작했어요');
+      }
+    }
+    if (AREA === 'match' && view === 'inbox') {
+      const mi = Object.assign({}, st.mi || {});
+      applicants = MATCH_IN.map((a, i) => { const s = mi[i] || a[2]; return { name: a[0], sub: a[1], hasRate: false, lvAria: '', bars: [], rate: '', hasPayChk: false, payChk: () => {}, pending: s === 'pending', state: s === 'pending' ? '기다림' : (s === 'yes' ? '받음' : '거절함'),
+        stateStyle: chip(s === 'yes' ? ink + '; color: #FBF7EF' : (s === 'no' ? '#FFFFFF' : '#FBF7EF'), s === 'no'),
+        yes: () => say(a[0] + '와 매칭했어요. 12.06 토 경기 일정에 상대가 들어갔어요', { mi: Object.assign({}, mi, { [i]: 'yes' }) }),
+        no: () => say(a[0] + '의 신청을 거절했어요', { mi: Object.assign({}, mi, { [i]: 'no' }) }) }; });
+      dt = Object.assign({}, dt, { hasHero: false, team: 'TEST FC', tag: 'FC', teamSub: '우리가 올린 매칭 글', lvN: 3, lvName: '중급', logoBig: logo('#23336B', 64),
+        rows: [{ k: '날짜와 시간', v: '12.06 토 07:00 ~ 09:00' }, { k: '구장 위치', v: '상암 월드컵 보조구장 (구장 잡음)' }, { k: '우리 인원', v: '팀원 14명 (12.06 경기 참석 투표로 확인) + 용병 0명' }, { k: '우리 유니폼', v: 'HOME 남색' }],
+        pos: [], hasPos: false, memo: '', hasMemo: false, hasApplicants: true, appTitle: '받은 매칭 신청 ' + MATCH_IN.length + '건', appNote: '하나를 받으면 나머지는 자동으로 닫혀요' });
+      hasCta = false; ctaNote = '받으면 12.06 토 경기 일정의 상대가 정해지고, 팀원에게 알림이 가요.';
+    }
+
+    // 쓰기와 신청 폼
+    const fv = Object.assign({ mem: 14, merc: 0, kind: '경기', field: 'yes', ev: 'e3', pos: [], lv: 3, need: 1, apPos: flt.pos, fmode: 'split', payAmt: '10,000', payAcct: '' }, st.fv || {});
+    const setV = (k, v) => this.setState({ fv: Object.assign({}, fv, { [k]: v }) });
+    const chipOpts = (k, list) => list.map(([v, label]) => ({ label: label, on: fv[k] === v, pick: () => setV(k, v), style: pill(fv[k] === v) }));
+    const cnt = (k, label, max) => ({ label: label, v: fv[k], minusAria: label + ' 줄이기', plusAria: label + ' 늘리기', minus: () => setV(k, Math.max(0, fv[k] - 1)), plus: () => (max !== undefined && fv[k] >= max ? say('용병은 투표로 확인된 팀원 ' + max + '명을 넘을 수 없어요') : setV(k, fv[k] + 1)) });
+    let fields = [], formGuide = '', submitLabel = '', formTitle = '', submit = (e) => { if (e && e.preventDefault) e.preventDefault(); };
+    const base = (t, extra) => Object.assign({ label: t, hint: '', isChips: false, isText: false, isFixed: false, isCount: false, isShort: false, isSlots: false, slots: [], addOff: false, add: () => {}, addStyle: '', rows: [], total: '', opts: [], counts: [], value: '', ph: '', isMoney: false, onMoney: () => {}, isReceipt: false, rcptOn: false, rcptLabel: '', rcptPick: () => {}, isFee: false, feeBig: '', feeLines: [], isList: false, items: [], isStars: false, stars: [], starsTxt: '' }, extra);
+    // 부족한 자리: 고른 일정의 포메이션 자리를 참석, 늦참한 팀원의 1선호로 먼저, 다음 2선호로 채우고 남는 자리만 구할 수 있어요
+    const SLOTS1 = { GK: 1, LB: 1, CB: 2, RB: 1, CDM: 2, LW: 1, CAM: 1, RW: 1, ST: 1 };
+    const EVX = {
+      e3: { fee: 100000, title: '11.29 토 08:00 내전', att: [['정우진', 'GK', 'CB'], ['박민수', 'CB', 'CDM'], ['강태호', 'CB', 'RB'], ['송민재', 'CDM', 'CM'], ['한지훈', 'RB', 'CB'], ['이준호', 'LW', 'GK'], ['김도현', 'CAM', 'ST'], ['최성호', 'ST', 'CAM']], mult: 2, form: '내전 A팀, B팀 4-2-3-1 (22자리)', place: '고양 종합운동장 보조구장, 11.29 토 08:00', kind: '내전  상대 실력은 없어요' },
+      e4: { fee: 100000, title: '12.06 토 07:00 경기', att: [['김태윤', 'LB', 'CB'], ['박민수', 'CB', 'CDM'], ['강태호', 'CB', 'RB'], ['한지훈', 'RB', 'CB'], ['송민재', 'CDM', 'CM'], ['서현우', 'CM', 'CAM'], ['이준호', 'LW', 'GK'], ['김도현', 'CAM', 'ST'], ['신동욱', 'RW', 'LW'], ['최성호', 'ST', 'CAM'], ['임준영', 'LB', 'RB'], ['조민혁', 'CM', 'CDM'], ['윤재민', 'CDM', 'CM'], ['장현수', 'ST', 'RW']], mult: 1, form: '4-2-3-1 (11자리)', place: '상암 월드컵 보조구장, 12.06 토 07:00', kind: '매칭  상대가 정해지면 상대 실력이 함께 보여요' }
+    };
+    const shortOf = (ev) => {
+      const need = {}; Object.keys(SLOTS1).forEach((k) => { need[k] = SLOTS1[k] * ev.mult; });
+      const fill = {}; Object.keys(need).forEach((k) => { fill[k] = []; });
+      const placed = {};
+      ev.att.forEach(([n, p1]) => { if (need[p1] !== undefined && fill[p1].length < need[p1]) { fill[p1].push(n + ' (1선호)'); placed[n] = true; } });
+      ev.att.forEach(([n, p1, p2]) => { if (!placed[n] && need[p2] !== undefined && fill[p2].length < need[p2]) { fill[p2].push(n + ' (2선호)'); placed[n] = true; } });
+      return Object.keys(need).map((k) => ({ pos: k, need: need[k], have: fill[k], short: need[k] - fill[k].length }));
+    };
+    if (AREA === 'match' && view === 'form' && x) {
+      formTitle = TEAMS[x.t].name + '에 매칭 신청'; formGuide = '팀원 수는 직접 적지 않고 일정의 참석 투표에서 가져와요. 실제로 온 인원은 경기 뒤 현장 출석으로 상대에게 보여요.';
+      fields = [base('우리 팀 실력', { isFixed: true, value: lv(3) + '  (팀 설정에서 바꿔요)' }), base('우리 팀원', { hint: '직접 적지 않아요', isFixed: true, value: '12.06 토 경기에 참석, 늦참으로 투표한 팀원 14명  투표가 바뀌면 상대에게도 바로 바뀌어 보여요' }), base('용병', { hint: '직접 적지 않아요', isFixed: true, value: '그 일정에 확정된 용병 0명 (용병 구인에서 받은 사람, 팀 용병 신청을 받은 사람)  더 받으면 상대에게도 바로 바뀌어 보여요' }), base('우리 유니폼', { isFixed: true, value: '상대가 ' + x.kit + '이라 AWAY 흰색을 입어요' }), base('한마디', { isText: true, ph: '상대 운영진에게 남길 말' })];
+      submitLabel = '매칭 신청 보내기'; submit = (e) => { if (e && e.preventDefault) e.preventDefault(); say('매칭을 신청했어요. 상대가 받으면 알림이 가요', { view: 'list', applied: Object.assign({}, applied, { [x.id]: true }) }); };
+    } else if (AREA === 'match' && view === 'new') {
+      formTitle = '매칭 글 올리기'; formGuide = '상대 팀이 실력, 구장 위치, 시간, 인원을 보고 신청해요.';
+      fields = [base('어느 일정', { hint: '상대를 정하지 못한 우리 경기에서 골라요', isChips: true, opts: chipOpts('ev', [['e4', '12.06 토 07:00 경기'], ['new', '새 일정 만들기']]) }), base('구장', { isChips: true, opts: chipOpts('field', [['yes', '우리가 잡았어요'], ['no', '아직 없어요']]) }), base('구장 위치', { isFixed: true, value: '상암 월드컵 보조구장 (일정에서 가져와요)' }), base('우리 실력', { isFixed: true, value: lv(3) }), base('우리 팀원', { hint: '직접 적지 않아요', isFixed: true, value: '고른 일정의 참석, 늦참 투표 수가 그대로 보여요 (지금 14명)' }), base('용병', { hint: '직접 적지 않아요', isFixed: true, value: '그 일정에 확정된 용병 0명 (용병 구인에서 받은 사람, 팀 용병 신청을 받은 사람)  더 받으면 상대에게도 바로 바뀌어 보여요' }), base('한마디', { isText: true, ph: '쿼터, 유니폼, 주차 같은 안내' })];
+      submitLabel = '매칭 글 올리기'; submit = (e) => { if (e && e.preventDefault) e.preventDefault(); say('매칭 글을 올렸어요. 신청이 오면 알림이 가요', { view: 'inbox' }); };
+    } else if (AREA === 'hire' && view === 'new') {
+      formTitle = '용병 구인 글 올리기'; formGuide = '우리 일정을 고르면 참석한 팀원의 포지션으로 비는 자리를 보여 드려요. 용병을 한 명씩 추가하고, 그 사람이 들어갈 수 있는 빈 자리를 골라요.';
+      const ev = EVX[fv.ev] || EVX.e3;
+      const sh = shortOf(ev);
+      const cap = {}; sh.forEach((r) => { if (r.short > 0) cap[r.pos] = r.short; });
+      const capTotal = Object.keys(cap).reduce((t, k) => t + cap[k], 0);
+      const emptyPos = ORDER.filter((p) => cap[p]);
+      const DEFSL = { e3: [['LB', 'LW'], ['GK']], e4: [[]] };
+      const slots = ((st.sl || {})[fv.ev] || DEFSL[fv.ev] || [[]]).map((q) => q.slice());
+      const setSl = (arr) => this.setState({ sl: Object.assign({}, st.sl || {}, { [fv.ev]: arr }) });
+      // 용병마다 고른 자리로 빈 자리를 모두 나눠 맡을 수 있는지 (한 자리에 한 명)
+      const fits = (arr) => { const seats = []; Object.keys(cap).forEach((k) => { for (let i = 0; i < cap[k]; i++) seats.push(k); }); const own = seats.map(() => -1);
+        const tryS = (si, seen) => { for (let j = 0; j < seats.length; j++) { if (!seen[j] && arr[si].indexOf(seats[j]) >= 0) { seen[j] = true; if (own[j] < 0 || tryS(own[j], seen)) { own[j] = si; return true; } } } return false; };
+        return arr.every((q, si) => !q.length || tryS(si, {})); };
+      const slotsV = slots.map((q, i) => ({ name: '용병 ' + (i + 1), desc: !q.length ? '들어갈 자리를 골라 주세요' : (q.length === 1 ? q[0] + ' 자리' : q.join(' 또는 ') + ' 되는 사람'),
+        box: 'display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; border: 2px solid ' + ink + '; border-radius: 12px; background: ' + (q.length ? '#FFF1E3' : '#FFFFFF'),
+        removeAria: '용병 ' + (i + 1) + ' 빼기', remove: () => setSl(slots.filter((_, j) => j !== i)),
+        opts: emptyPos.map((p) => { const on = q.indexOf(p) >= 0; return { label: p + '  빈 ' + cap[p], on: on, style: pill(on), pick: () => { const ns = slots.map((z) => z.slice()); ns[i] = on ? ns[i].filter((z) => z !== p) : ORDER.filter((z) => z === p || ns[i].indexOf(z) >= 0);
+          if (!fits(ns)) { say(on ? p + '을 빼면 빈 자리보다 사람이 많아져요' : '빈 자리보다 사람이 많아요'); return; } setSl(ns); } }; }) }));
+      const addOff = slots.length >= capTotal;
+      const feeTotal = ev.fee || 0;
+      const feePeople = ev.att.length + slots.length;
+      const blank = slots.findIndex((q) => !q.length);
+      const rows = sh.map((r) => ({ pos: r.pos, need: r.need + '자리', have: r.have.length ? r.have.join(', ') : '없어요', short: r.short,
+        row: 'display: grid; grid-template-columns: 1fr 0.9fr 2.2fr 0.9fr; border-top: 2px solid #DDD6C8; min-height: 48px; align-items: center; background: ' + (r.short > 0 ? '#FFFFFF' : '#FBF7EF') }));
+      fields = [base('어느 일정', { hint: '상대가 정해지지 않은 경기와 내전에서 골라요', isChips: true, opts: chipOpts('ev', [['e3', '11.29 토 내전 (참석 8 / 22)'], ['e4', '12.06 토 경기 (참석 14 / 14)']]) }),
+        base('경기 종류', { isFixed: true, value: ev.kind }), base('구장 위치와 시간', { isFixed: true, value: ev.place }), base('우리 팀 실력', { isFixed: true, value: lv(3) }),
+        base('비는 자리', { hint: ev.form + ', 참석, 늦참한 팀원 ' + ev.att.length + '명 기준', isShort: true, rows: rows }),
+        base('구할 용병', { hint: '한 사람이 LB, LW 둘 다 되면 두 자리를 같이 눌러요. 빈 자리가 있는 포지션만 보여요.', isSlots: true, slots: slotsV, addOff: addOff,
+          add: () => (addOff ? say('빈 자리는 모두 ' + capTotal + '자리예요') : setSl(slots.concat([[]]))),
+          addStyle: 'height: 44px; border: 2px solid ' + ink + '; border-radius: 10px; background: #FFFFFF; font: 700 14px \'IBM Plex Sans KR\', sans-serif; color: ' + ink + '; cursor: pointer; ' + (addOff ? 'opacity: 0.35; box-shadow: none' : 'box-shadow: 3px 3px 0 ' + ink),
+          total: !slots.length ? '구할 용병을 추가해 주세요' : '용병 ' + slots.length + '명을 구해요' + (blank >= 0 ? '. 용병 ' + (blank + 1) + '의 자리를 아직 안 골랐어요' : '') }),
+        base('용병비', { hint: '구장비를 나눠 받거나, 무료로 하거나, 오히려 교통비를 드릴 수 있어요', isChips: true, opts: chipOpts('fmode', [['split', '구장비 나눠 받기'], ['free', '무료'], ['pay', '교통비 드리기']]) }),
+        ...(fv.fmode === 'split' ? [base('구장비', { hint: '고른 일정의 구장과 시간으로 매니볼 구장 목록에서 불러와요', isFixed: true, value: won(feeTotal) + '  ' + ev.place + ', 2시간' }),
+          base('계산', { hint: '자동으로 계산돼요. 직접 고칠 수 없어요', isFee: true, feeBig: won(feeOf(ev.kind.indexOf('매칭') >= 0 ? '매칭' : '내전', feeTotal, feePeople).fee),
+          feeLines: [{ t: feeLine(ev.kind.indexOf('매칭') >= 0 ? '매칭' : '내전', feeTotal, feePeople, '팀원 ' + ev.att.length + ' + 용병 ' + slots.length) }, { t: '신청을 받을 때 정해져요' }] }),] : []),
+        ...(fv.fmode === 'pay' ? [base('교통비', { hint: '용병 한 명에게 드릴 금액이에요. 경기 뒤 현장 출석으로 온 게 확인된 용병에게만 보내요', isMoney: true, value: fv.payAmt, onMoney: (e2) => { const d = String(e2 && e2.target ? e2.target.value : '').replace(/[^0-9]/g, '').slice(0, 6); setV('payAmt', d ? Number(d).toLocaleString('ko-KR') : ''); } })] : []),
+        ...(fv.fmode === 'free' ? [base('무료', { isFixed: true, value: '용병비를 받지 않아요. 받으면 바로 확정되고 그 경기 대화방에 들어가요' })] : []),
+        base('한마디', { isText: true, ph: '용병에게 남길 말' })];
+      submitLabel = '구인 글 올리기'; submit = (e) => { if (e && e.preventDefault) e.preventDefault(); if (!slots.length) { say('구할 용병을 한 명 이상 추가해 주세요'); return; } if (blank >= 0) { say('용병 ' + (blank + 1) + '의 자리를 골라 주세요'); return; } if (fv.fmode === 'pay' && !String(fv.payAmt || '').replace(/[^0-9]/g, '')) { say('교통비를 적어 주세요'); return; } say('용병 구인 글을 올렸어요. 용병 구직 화면에 보여요', { view: 'list' }); };
+    } else if (AREA === 'seek' && view === 'form' && x) {
+      formTitle = TEAMS[x.t].name + ' ' + x.when.split(' ')[0] + ' ' + kWord(x.kind) + '에 신청'; formGuide = '받으면 그 팀 경기 참석 명단에 용병으로 들어가요.';
+      const apCur = x.pos.some((p) => p[0] === fv.apPos) ? fv.apPos : ((x.pos.find((p) => fitPos(p[0])) || x.pos[0])[0]);
+      fields = [base('신청 자리', { hint: '두 포지션이 적힌 자리는 둘 중 어디든 들어가요', isChips: true, opts: x.pos.map((p) => ({ label: p[0].split('/').join(' 또는 '), on: apCur === p[0], pick: () => setV('apPos', p[0]), style: pill(apCur === p[0]) })) }), base('내 포지션', { isFixed: true, value: (isAdmin ? 'CAM / ST' : 'LW / GK') + '  내 사물함의 1, 2선호예요' }), base('내 팀', { isFixed: true, value: '그 팀에는 보이지 않아요' })].concat(modeOf(x) === 'pay' ? [base('교통비 받을 계좌', { hint: '교통비 ' + won(x.payAmt) + ', 그 팀 운영진에게만 보여요', isText: true, ph: '은행, 계좌번호, 이름' })] : []).concat([base('한마디', { isText: true, ph: '그 팀 운영진에게만 보여요' })]);
+      submitLabel = '신청하기'; submit = (e) => { if (e && e.preventDefault) e.preventDefault(); say('신청했어요. 받으면 알림이 와요', { view: 'list', applied: Object.assign({}, applied, { [x.id]: true }) }); };
+    }
+
+    const payS = st.pay || 'wait';
+    const payBase = { hasPay: false, payTitle: '', payLines: [], payBtns: [] };
+    const bst = (main) => 'height: 44px; padding: 0 16px; border: 2px solid ' + ink + '; border-radius: 10px; font: 700 14px \'IBM Plex Sans KR\', sans-serif; color: ' + ink + '; cursor: pointer; background: ' + (main ? '#FCD01A; box-shadow: 3px 3px 0 ' + ink : '#FFFFFF');
+    const refS = st.ref || 'wait';
+    const mine = AREA === 'seek' ? [
+      Object.assign({}, payBase, { t: 'seongsan', kind: '매칭', when: '12.07 일 07:00', place: '성산 인조잔디 구장', grp: payS === 'in' ? 'up' : 'todo', title: '성산 FC  12.07 일 07:00 경기', sub: ro(myPos) + ' 신청', state: payS === 'wait' ? '받음, 용병비를 보내 주세요' : (payS === 'sent' ? '보냈어요, 그 팀 확인 기다림' : '확정, 대화방에 들어갔어요'), style: chip(payS === 'in' ? ink + '; color: #FBF7EF' : '#FCD01A'),
+        hasPay: payS !== 'in', payTitle: '용병비 ' + won(feeOf('매칭', 100000, 14).fee),
+        payLines: [{ t: feeLine('매칭', 100000, 14) }, { t: '성산 FC 계좌  테스트은행 1002-555-120034  박성산' }, { t: payS === 'wait' ? '오늘 15:20까지 보내야 확정돼요. 안 보내면 자동 취소' : '그 팀이 입금을 확인하면 확정돼요' }],
+        payBtns: payS === 'wait' ? [{ label: '계좌 복사', go: () => say('계좌번호를 복사했어요'), style: 'height: 44px; padding: 0 16px; border: 2px solid ' + ink + '; border-radius: 10px; background: #FFFFFF; font: 700 14px \'IBM Plex Sans KR\', sans-serif; color: ' + ink + '; cursor: pointer' }, { label: '보냈어요', go: () => say('그 팀에 알렸어요. 확인하면 대화방에 들어가요', { pay: 'sent' }), style: 'height: 44px; padding: 0 16px; border: 2px solid ' + ink + '; border-radius: 10px; background: #FCD01A; box-shadow: 3px 3px 0 ' + ink + '; font: 700 14px \'IBM Plex Sans KR\', sans-serif; color: ' + ink + '; cursor: pointer' }]
+          : [{ label: '확인된 걸로 보기 (시안)', go: () => say('입금이 확인됐어요. 대화방에 들어갔어요', { pay: 'in' }), style: 'height: 44px; padding: 0 16px; border: 2px dashed ' + ink + '; border-radius: 10px; background: #FFFFFF; font: 700 14px \'IBM Plex Sans KR\', sans-serif; color: ' + ink + '; cursor: pointer' }] }),
+      ...(!REPORT_ON ? [] : [Object.assign({}, payBase, { t: 'seobu', kind: '매칭', when: '11.22 토 07:00', place: '', grp: refS === 'wait' ? 'todo' : 'past', title: '서부 FC  11.22 토 07:00 경기', sub: ro(myPos) + ' 신청, 용병비 3,500원 냄 (그 팀이 11.20 21:14 입금 확인)', state: refS === 'got' ? '취소됨, 돌려받았어요' : (refS === 'rep' ? '취소됨, 신고함' : '취소됨, 돌려받기 기다림'), style: chip(refS === 'got' ? '#FFFFFF' : '#FCD01A', refS === 'got'),
+        hasPay: refS === 'wait', payTitle: '돌려받을 용병비 3,500원',
+        payLines: [{ t: '서부 FC가 11.21 18:02에 경기를 취소했어요 (사유: 인원 부족). 팀 사정 취소라 용병비를 모두 돌려받아요' }, { t: '그 팀은 11.22 18:02까지 돌려줘야 해요. 기한이 지나도 \'돌려받았어요\'를 안 누르면 자동으로 신고돼요' }],
+        payBtns: [{ label: '돌려받았어요', go: () => say('돌려받은 걸로 남겼어요', { ref: 'got' }), style: bst(false) }, { label: '못 받았어요, 신고', go: () => this.setState({ view: 'report', rep: 'refund' }), style: bst(true) }] }),
+      Object.assign({}, payBase, { t: 'noeul', kind: '매칭', when: '11.15 토 19:00', place: '상암 월드컵 보조구장', grp: 'todo', title: '노을 FC  11.15 토 19:00 경기', sub: ro(myPos) + ' 신청, 용병비 3,500원 냄, 상암 월드컵 보조구장', state: '팀이 안 온 것 같아요', style: chip('#FCD01A'),
+        hasPay: true, payTitle: '이 경기 기록',
+        payLines: [{ t: '내 도착: 18:52 \'도착했어요\' 누름, 휴대폰 위치가 구장 안 (구장에서 40m)' }, { t: '노을 FC: 현장 출석을 안 받았고, 일정 취소도 없었어요. 대화방 마지막 글 18:40' }, { t: '같은 경기 다른 용병 1명도 구장 안에서 도착을 눌렀어요' }],
+        payBtns: [{ label: '신고하기', go: () => this.setState({ view: 'report', rep: 'noshow' }), style: bst(true) }] })]),
+      Object.assign({}, payBase, { t: 'eunpyeong', kind: '매칭', when: '12.06 토 10:00', place: '불광천 인조잔디 구장', grp: 'up', title: '은평 FC  12.06 토 10:00 경기', sub: 'GK로 신청, 교통비 10,000원 받아요' + (REPORT_ON ? '. 경기 날 30분 전부터 \'도착했어요\'를 누를 수 있어요' : ''), state: '확정, 경기 뒤 교통비가 와요', style: chip(ink + '; color: #FBF7EF') }),
+      Object.assign({}, payBase, { t: 'noeul', kind: '매칭', when: '11.29 토 19:00', place: '상암 월드컵 보조구장', grp: applied.s1 ? 'wait' : 'none', title: '노을 FC  11.29 토 19:00 경기', sub: ro(myPos) + ' 신청', state: applied.s1 ? '기다림' : '신청 안 함', style: chip('#FBF7EF') }),
+      Object.assign({}, payBase, { t: 'hangang', kind: '내전', when: '11.08 토 08:00', place: '망원 한강공원 축구장', grp: st.rated ? 'past' : 'todo', title: '한강 유나이티드  11.08 토 내전', sub: ro(myPos) + ' 신청, 용병비 4,000원 냄', state: st.rated ? '다녀왔어요, 평가함' : '다녀왔어요', style: chip(ink + '; color: #FBF7EF'),
+        hasPay: !st.rated, payTitle: '이 팀은 어땠나요?', payLines: [{ t: '매너와 준비를 평가해 주세요. 다른 용병이 팀을 고를 때 보여요. 누가 남겼는지는 그 팀에 안 보여요' }, { t: '11.15까지 남길 수 있어요' }],
+        payBtns: [{ label: '팀 평가하기', go: () => this.setState({ view: 'rateTeam' }), style: bst(true) }] }),
+      Object.assign({}, payBase, { t: 'mapo', kind: '매칭', when: '10.26 일 07:00', place: '난지 인조잔디 구장', grp: 'past', title: '마포 FC  10.26 일 경기', sub: 'LW로 신청', state: '거절됨', style: chip('#FFFFFF', true) })
+    ] : [];
+
+    // 내 신청 목록: 할 일, 다가오는 경기, 기다리는 신청, 지난 경기로 묶어요
+    const GRP = [['todo', '해야 할 일', '지금 눌러야 하는 것'], ['up', '다가오는 경기', '확정됐어요'], ['wait', '기다리는 신청', '그 팀이 아직 안 정했어요'], ['past', '지난 경기', '끝났거나 안 된 신청']];
+    const mineGroups = GRP.map((g) => {
+      const items = mine.filter((m) => m.grp === g[0]).map((m) => { const T = TEAMS[m.t]; return Object.assign({}, m, { team: T.name, tag: T.tag, logo: logo(T.c, 44), kBadge: kindBadge(m).replace('height: 28px', 'height: 24px').replace('700 13px', '700 12px'), kIcon: kindIcon(m), kStroke: kindStroke(m), hasPlace: !!m.place, kindName: kn(m.kind),
+        card: 'display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 14px; background: #FFFFFF; box-shadow: ' + (g[0] === 'todo' ? '0 0 0 2px ' + ink + ', 4px 4px 0 ' + ink : '0 1px 0 rgba(18, 17, 16, .08), 0 4px 10px rgba(18, 17, 16, .10)') + (g[0] === 'past' ? '; opacity: .78' : '') }); });
+      return { key: g[0], label: g[1], note: g[2], n: items.length + '', items: items, has: items.length > 0, dot: g[0] === 'todo' ? '#FCD01A' : g[0] === 'up' ? '#14BBC2' : g[0] === 'wait' ? '#FFFFFF' : '#DDD6C8' };
+    }).filter((g) => g.has);
+
+    // 신고: 용병이 팀을 신고 (돈과 노쇼). 증거는 앱이 자동으로 남긴 기록이 먼저, 사진은 보탬
+    const REASONS = [['noshow', '돈을 냈는데 팀이 안 왔어요'], ['refund', '경기가 취소됐는데 돈을 안 돌려줘요'], ['nochk', '돈을 보냈는데 입금 확인을 안 해 줘요'], ['travel', '교통비를 약속대로 안 줘요'], ['fee', '구장비를 실제보다 높게 적었어요'], ['etc', '그 밖의 문제']];
+    const repR = st.rep || 'refund';
+    const EVID = {
+      refund: [['받음과 입금', '11.20 20:31 서부 FC가 받음, 21:02 내가 \'보냈어요\', 21:14 서부 FC가 입금 확인 (용병비 3,500원)'], ['경기 취소', '11.21 18:02 서부 FC 운영진 정우성이 취소, 사유 인원 부족'], ['돌려주기', '기한 11.22 18:02, 그 팀이 \'돌려줬어요\'를 누르지 않았어요'], ['대화방', '11.21 18:05 \'환불은 내일 해 드릴게요\' (서부 FC 운영진)']],
+      noshow: [['받음과 입금', '11.13 그 팀이 받음, 11.13 그 팀이 입금 확인 (용병비 3,500원)'], ['내 도착', '11.15 18:52 구장에서 40m, 휴대폰 위치 기록'], ['다른 용병', '같은 경기 용병 1명도 18:57 구장 안에서 도착'], ['그 팀', '현장 출석 없음, 일정 취소 없음, 대화방 마지막 글 18:40']],
+      nochk: [['받음', '그 팀이 받은 시각'], ['보냈어요', '내가 \'보냈어요\'를 누른 시각'], ['입금 확인', '아직 안 함']], travel: [['도착과 출석', '그 팀 현장 출석에서 왔음으로 체크됨'], ['교통비', '약속 금액, 받을 계좌 (신청할 때 적음)']], fee: [['구장비', '그 팀이 직접 적은 금액 (구장 목록에 없는 구장)']], etc: [['대화방', '그 경기 대화방 기록']] };
+    const caseS = st.cs || (sv === 'case' ? 'wait' : 'wait');
+    const STEPS = [['신고함', '11.22 18:30'], ['그 팀 답변 기다림', '11.24 18:30까지 (48시간)'], ['매니볼 확인', '기록과 양쪽 답변으로 판단해요'], ['결과', '사실이면 그 팀에 불이익, 아니면 신고를 닫아요']];
+    const stepAt = AREA === 'hire' ? 1 : ({ wait: 1, answered: 2, done: 3 })[caseS];
+    const steps = STEPS.map((x2, i) => ({ label: x2[0], when: x2[1], dot: 'flex: none; width: 18px; height: 18px; box-sizing: border-box; border-radius: 50%; border: 2px solid ' + ink + '; background: ' + (i < stepAt ? ink : (i === stepAt ? '#FCD01A' : '#FFFFFF')), lab: 'font-size: 15px; font-weight: ' + (i === stepAt ? 700 : 500) + '; color: ' + (i > stepAt ? '#6B655D' : ink) }));
+    const cs = AREA === 'hire' ? {
+        title: '받은 신고: 11.22 토 경기 용병비를 안 돌려줬다는 신고', sub: '신고한 사람 오지훈 (용병). 11.24 18:30까지 답하지 않으면 신고 내용대로 판단해요',
+        evid: EVID.refund.map((e) => ({ k: e[0], v: e[1].split('서부 FC').join('우리 팀') })), steps: steps,
+        note: '돌려줬다면 이체 화면을 올려 주세요. 신고가 사실로 확인되면 첫 번째는 돌려주기 요청과 매칭, 구인 7일 정지예요. 돌려주면 정지가 바로 풀려요.',
+        btns: [{ label: '사실과 달라요', go: () => say('답변을 남겼어요. 매니볼이 양쪽 기록을 확인해요'), style: bst(false) }, { label: '돌려줬어요 (이체 화면 올리기)', go: () => say('이체 화면을 올렸어요. 신고한 사람이 받았다고 누르면 바로 닫혀요'), style: bst(true) }] }
+      : {
+        title: REASONS.find((r) => r[0] === repR)[1], sub: (repR === 'noshow' ? '노을 FC  11.15 토 19:00 경기' : '서부 FC  11.22 토 07:00 경기') + ', 그 팀 운영진에게 알림이 갔어요',
+        evid: (EVID[repR] || []).map((e) => ({ k: e[0], v: e[1] })), steps: steps,
+        note: caseS === 'done' ? '서부 FC가 돌려주지 않은 게 확인됐어요. 서부 FC는 매칭과 구인이 7일 정지됐고, 돌려주면 풀려요.' : '그 팀이 답하면 알림이 와요. 그 사이 그 팀이 돌려주면 \'돌려받았어요\'를 눌러 주세요. 신고는 언제든 취소할 수 있어요.',
+        btns: [{ label: '신고 취소', go: () => say('신고를 취소했어요', { view: 'mine' }), style: bst(false) }, { label: '돌려받았어요', go: () => say('돌려받아서 신고를 닫았어요', { view: 'mine', ref: 'got' }), style: bst(true) }] };
+    if (AREA === 'seek' && view === 'rateTeam') {
+      const rt = Object.assign({ m: 0, p: 0, same: '', good: [], bad: [] }, st.rt || {});
+      const setRt = (k, v) => this.setState({ rt: Object.assign({}, rt, { [k]: v }) });
+      const starsOf = (k) => [1, 2, 3, 4, 5].map((n) => ({ n: n, on: rt[k] >= n, aria: k === 'm' ? '매너 별 ' + n + '개' : '준비 별 ' + n + '개', pick: () => setRt(k, n), fill: rt[k] >= n ? '#FCD01A' : '#FFFFFF' }));
+      const multi = (k, list) => list.map((t) => { const on = rt[k].indexOf(t) >= 0; return { label: t, on: on, pick: () => setRt(k, on ? rt[k].filter((z) => z !== t) : rt[k].concat([t])), style: pill(on) }; });
+      formTitle = '한강 유나이티드 11.08 내전 평가'; formGuide = '현장 출석으로 온 게 확인된 용병만 남겨요. 3명 이상 모이면 그 팀 구인 글에 평균과 많이 받은 말이 보여요. 누가 남겼는지는 그 팀에 안 보여요.';
+      fields = [base('매너', { hint: '말투, 존중, 거친 플레이', isStars: true, stars: starsOf('m'), starsTxt: rt.m ? rt.m + ' / 5' : '골라 주세요' }),
+        base('준비', { hint: '시간 약속, 구장, 공과 조끼, 라인업', isStars: true, stars: starsOf('p'), starsTxt: rt.p ? rt.p + ' / 5' : '골라 주세요' }),
+        base('글에 적힌 대로였나요', { hint: '포지션, 시간, 용병비', isChips: true, opts: [['same', '같았어요'], ['bit', '조금 달랐어요'], ['diff', '많이 달랐어요']].map((o) => ({ label: o[1], on: rt.same === o[0], pick: () => setRt('same', o[0]), style: pill(rt.same === o[0]) })) }),
+        base('좋았던 점', { hint: '여러 개 골라도 돼요', isChips: true, opts: multi('good', ['시간 잘 지킴', '구장 일찍 잡음', '공, 조끼 준비', '쿼터 고르게', '말이 친절함', '패스 잘 줌']) }),
+        base('아쉬운 점', { hint: '여러 개 골라도 돼요', isChips: true, opts: multi('bad', ['늦게 시작', '용병만 오래 뜀', '말이 거침', '적힌 포지션과 다름', '용병비가 적힌 것과 다름']) }),
+        base('한마디', { hint: '그 팀에는 안 보이고 매니볼만 봐요', isText: true, ph: '하고 싶은 말이 있으면 적어요 (안 적어도 돼요)' })];
+      submitLabel = '평가 남기기'; submit = (e) => { if (e && e.preventDefault) e.preventDefault(); if (!rt.m || !rt.p) { say('매너와 준비 별점을 골라 주세요'); return; } say('평가를 남겼어요. 고마워요', { view: 'mine', rated: true }); };
+    }
+    if (AREA === 'seek' && view === 'report') {
+      formTitle = '신고하기'; formGuide = '앱이 남긴 기록이 자동으로 붙어요. 사진은 기록에 없는 것만 보태요. 신고하면 그 팀 운영진에게 알림이 가고 48시간 안에 답해야 해요.';
+      fields = [base('어느 경기', { isFixed: true, value: repR === 'noshow' ? '노을 FC  11.15 토 19:00 경기' : '서부 FC  11.22 토 07:00 경기' }),
+        base('무엇이 문제인가요', { isChips: true, opts: REASONS.map((r) => ({ label: r[1], on: repR === r[0], pick: () => this.setState({ rep: r[0] }), style: pill(repR === r[0]) })) }),
+        base('자동으로 붙는 기록', { hint: '앱에 남은 그대로예요. 고칠 수 없어요', isList: true, items: (EVID[repR] || []).map((e) => ({ k: e[0], v: e[1] })) }),
+        base('보탤 사진', { hint: '없어도 돼요. 이체 화면, 구장 사진처럼 기록에 없는 것만', isReceipt: true, rcptOn: !!st.rp, rcptLabel: st.rp ? '이체 확인 화면.jpg  올렸어요' : '안 올렸어요', rcptPick: () => this.setState({ rp: !st.rp }) }),
+        base('자세히', { isText: true, ph: '그 팀과 매니볼에게만 보여요' })];
+      submitLabel = '신고하기'; submit = (e) => { if (e && e.preventDefault) e.preventDefault(); say('신고했어요. 그 팀 운영진에게 알림이 갔어요', { view: 'case', ref: 'rep', cs: 'wait' }); };
+    }
+    const HB = { match: isAdmin ? [['inbox', '받은 신청 2'], ['new', '매칭 글 올리기']] : [], hire: isAdmin ? (REPORT_ON ? [['case', '받은 신고 1']] : []).concat([['new', '구인 글 올리기']]) : [], seek: (REPORT_ON ? [['case', '내 신고']] : []).concat([['mine', '내 신청 목록']]) }[AREA];
+    const headBtns = HB.map(([v, label], i) => ({ label: label, on: view === v, go: () => this.setState({ view: v }),
+      style: 'height: 44px; padding: 0 16px; border: 2px solid ' + ink + '; border-radius: 10px; box-shadow: 3px 3px 0 ' + ink + '; font: 700 14px \'IBM Plex Sans KR\', sans-serif; color: ' + ink + '; cursor: pointer; background: ' + (i === HB.length - 1 && v === 'new' ? '#FCD01A' : (view === v ? '#FFF1E3' : '#FFFFFF')) }));
+    const isForm = view === 'form' || view === 'new' || (AREA === 'seek' && (view === 'report' || view === 'rateTeam'));
+    const KIND = { match: '매칭', hire: '용병 구인', seek: '용병 구직' }[AREA];
+    const pTitle = isForm ? formTitle : view === 'case' ? (AREA === 'hire' ? '받은 신고' : '내 신고') : view === 'mine' ? '내 신청 목록' : view === 'inbox' ? '우리 매칭 글과 받은 신청' : (x ? (AREA === 'hire' ? x.when + ' ' + kWord(x.kind) + ' 용병' : dt.team + '  ' + x.when + (AREA === 'seek' ? '  ' + kWord(x.kind) : '')) : '글을 골라 주세요');
+    const isApplied = x && applied[x.id] && view === 'list';
+    return {
+      isAdmin: isAdmin, isMember: !isAdmin, me: me, team: team,
+      teamBtnLabel: team.name + ', 팀 바꾸기', openTeams: () => say('팀 바꾸기는 홈에서 해요'),
+      pageTitle: pageTitle, pageSub: pageSub, headBtns: headBtns, filters: filters, fltSum: fltSum, fOpen: !!st.fOpen, fToggle: () => this.setState({ fOpen: !st.fOpen }), fBtn: st.fOpen ? '접기' : '거르기', cards: cards, noCards: !cards.length, listNote: listNote, listAria: listAria,
+      dt: dt, applicants: applicants, ctaLabel: ctaLabel, ctaNote: ctaNote, hasCta: hasCta && view === 'list', ctaOff: ctaOff, cta: cta,
+      ctaStyle: 'height: 52px; padding: 0 24px; border: 2px solid ' + ink + '; border-radius: 12px; font: 700 16px \'IBM Plex Sans KR\', sans-serif; cursor: pointer; ' + (ctaOff ? 'background: #FCD01A; color: ' + ink + '; opacity: 0.35; box-shadow: none; pointer-events: none' : (isApplied ? 'background: #FFFFFF; color: ' + ink : 'background: #FCD01A; color: ' + ink + '; box-shadow: 3px 3px 0 ' + ink)),
+      fields: fields, formGuide: formGuide, submitLabel: submitLabel, submit: submit, mine: mine, mineGroups: mineGroups, mineNote: (REPORT_ON ? '경기 날에는 구장에 도착해서 \'도착했어요\'를 눌러 주세요. 팀이 안 오거나 돈 문제가 생겼을 때 증거가 돼요. ' : '') + '그 팀이 받으면 알림이 와요. 용병비를 보내고 그 팀이 확인하면 참석 명단과 대화방에 들어가요. 그 팀 사정으로 경기가 취소되면 용병비를 모두 돌려받아요. 우리 팀 일정은 그대로예요.',
+      isDetail: (view === 'list' || view === 'inbox' || view === 'applied') && (!!x || view === 'inbox'), isForm: isForm, isMine: view === 'mine', isCase: view === 'case' && AREA !== 'match', cs: cs,
+      hasBack: isForm || view === 'mine' || view === 'inbox' || view === 'case', backLabel: view === 'report' || view === 'rateTeam' ? '내 신청 목록' : '목록 글', goBack: () => this.setState({ view: view === 'report' || view === 'rateTeam' ? 'mine' : 'list' }),
+      panelKind: KIND, panelTitle: pTitle,
+      hasState: !!isApplied, stateLabel: '신청함', stateStyle: chip(ink + '; color: #FBF7EF'),
+      hasToast: !!st.toast, toastText: st.toast || ''
+    };
+  }
+}
+</script>
+</body>
+</html>

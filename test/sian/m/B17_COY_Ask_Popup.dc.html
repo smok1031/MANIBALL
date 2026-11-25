@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>자리가 났어요 팝업</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body,body *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,select,[contenteditable],[contenteditable] *{-webkit-user-select:text;user-select:text}
+img,svg,a{-webkit-user-drag:none}
+body{margin:0}
+.askpop{animation: askpop .32s cubic-bezier(.3, 1.4, .5, 1) both}@keyframes askpop{from{transform: translateY(24px); opacity: 0}to{transform: none; opacity: 1}}@media (prefers-reduced-motion: reduce){.askpop{animation: none}}
+</style>
+</helmet>
+<div style="-webkit-user-select: none; user-select: none; -webkit-touch-callout: none; position: relative; width: 390px; height: 844px; overflow: hidden">
+  <dc-import name="B17_COY_Locker" hint-size="390px,844px"></dc-import>
+  <sc-if value="{{ open }}" hint-placeholder-val="{{ true }}">
+  <div role="dialog" aria-modal="true" aria-labelledby="ask-t" style="position: absolute; inset: 0; z-index: 30; background: rgba(18, 17, 16, .55); display: flex; align-items: flex-end; padding: 16px; box-sizing: border-box; font-family: 'IBM Plex Sans KR', sans-serif; color: #121110">
+    <div class="askpop" style="width: 100%; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; padding: 20px; border: 2px solid #121110; border-radius: 16px; background: #FCD01A; box-shadow: 4px 4px 0 #121110">
+      <sc-if value="{{ isAsk }}" hint-placeholder-val="{{ true }}">
+        <span style="display: flex; align-items: center; gap: 8px"><span style="font-size: 12px; font-weight: 700; border: 2px solid #121110; border-radius: 5px; padding: 1px 8px; background: #121110; color: #FBF7EF">대기 1번</span><span style="margin-left: auto; font: 700 20px 'Barlow Condensed', sans-serif">14:30까지</span></span>
+        <h2 id="ask-t" style="margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 26px; line-height: 1.2">자리가 났어요,<br>올 수 있나요?</h2>
+        <div style="display: flex; align-items: stretch; border-radius: 10px; background: #FFFFFF; overflow: hidden; box-shadow: 0 1px 0 rgba(18, 17, 16, .08), 0 6px 14px rgba(18, 17, 16, .14)">
+          <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding: 10px 14px"><b style="font-size: 15px">11.22 토 vs 노을 FC</b><span style="font-size: 13px">07:00 ~ 09:00, 상암 월드컵 보조구장</span><span style="font-size: 12px; color: #5B5650">강민재님이 불참으로 바꿔서 자리가 났어요</span></span>
+          <span aria-hidden="true" style="flex: none; width: 2px; margin: 8px 0; background-image: radial-gradient(circle, #121110 1.2px, transparent 1.4px); background-size: 2px 7px; background-repeat: repeat-y"></span>
+          <span style="flex: none; width: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: #14BBC2"><b style="font: 700 22px 'Barlow Condensed', sans-serif; line-height: 1">11.22</b><span style="font-size: 11px; font-weight: 700">토</span></span>
+        </div>
+        <span style="font-size: 13px; line-height: 1.6">갈게요를 누르면 바로 참석이 되고 그 경기 대화방에 들어가요. 14:30까지 답하지 않으면 다음 대기자에게 넘어가요. 못 가요를 눌러도 벌금은 없어요.</span>
+        <span style="font-size: 12px; line-height: 1.6; padding: 8px 12px; border: 2px dashed #121110; border-radius: 10px; background: #FFFFFF">답 기한은 경기까지 남은 시간에 따라 달라요. 하루보다 전이면 12시간, 하루 안쪽이면 4시간(경기 2시간 전까지), 4시간 안쪽이면 1시간이에요. 1시간 전부터는 대기자 모두에게 한꺼번에 물어요.</span>
+        <span style="display: flex; gap: 8px"><button type="button" onClick="{{ no }}" style="flex: 1; height: 52px; border: 2px solid #121110; border-radius: 12px; background: #FFFFFF; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer">못 가요</button><button type="button" onClick="{{ yes }}" style="flex: 2; height: 52px; border: 2px solid #121110; border-radius: 12px; background: #121110; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #FBF7EF; cursor: pointer; box-shadow: 3px 3px 0 #FBF7EF">갈게요, 참석할게요</button></span>
+        <button type="button" onClick="{{ later }}" style="align-self: center; min-height: 36px; border: 0; background: transparent; font: 500 13px 'IBM Plex Sans KR', sans-serif; color: #121110; text-decoration: underline; text-underline-offset: 3px; cursor: pointer">나중에 답할게요 (홈 위에 계속 보여요)</button>
+      </sc-if>
+      <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+        <h2 style="margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 26px; line-height: 1.2">{{ doneTitle }}</h2>
+        <span style="font-size: 14px; line-height: 1.6">{{ doneText }}</span>
+        <button type="button" onClick="{{ close }}" style="height: 52px; border: 2px solid #121110; border-radius: 12px; background: #FFFFFF; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer; box-shadow: 3px 3px 0 #121110">{{ doneBtn }}</button>
+      </sc-if>
+    </div>
+  </div>
+  </sc-if>
+  <sc-if value="{{ isLater }}" hint-placeholder-val="{{ false }}">
+    <button type="button" onClick="{{ reopen }}" style="position: absolute; left: 16px; right: 16px; top: 64px; z-index: 25; min-height: 52px; display: flex; align-items: center; gap: 10px; padding: 8px 14px; border: 2px solid #121110; border-radius: 12px; background: #FCD01A; box-shadow: 4px 4px 0 #121110; font: 700 14px 'IBM Plex Sans KR', sans-serif; color: #121110; text-align: left; cursor: pointer"><span style="flex: 1">11.22 토 경기에 자리가 났어요. 올 수 있나요?</span><span style="font: 700 18px 'Barlow Condensed', sans-serif">14:30</span></button>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const a = st.a || '';
+    return {
+      open: a !== 'later' && a !== 'closed', isAsk: !a, isDone: a === 'yes' || a === 'no', isLater: a === 'later',
+      doneTitle: a === 'yes' ? '참석으로 바뀌었어요' : '대기에서 빠졌어요',
+      doneText: a === 'yes' ? '11.22 토 vs 노을 FC 대화방에 들어갔어요. 운영진에게도 알렸어요.' : '벌금은 없어요. 다음 대기자에게 물어볼게요. 운영진에게도 알렸어요.',
+      doneBtn: a === 'yes' ? '대화방으로 가기' : '닫기',
+      yes: () => this.setState({ a: 'yes' }), no: () => this.setState({ a: 'no' }), later: () => this.setState({ a: 'later' }),
+      reopen: () => this.setState({ a: '' }), close: () => this.setState({ a: 'closed' })
+    };
+  }
+}
+</script>
+</body>
+</html>

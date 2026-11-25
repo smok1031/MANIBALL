@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>기록 운영진</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&amp;family=Black+Han+Sans&amp;family=IBM+Plex+Sans+KR:wght@400;500;700&amp;display=swap">
+<style>
+/* 글자 끌어서 선택 막기 */
+body,body *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,select,[contenteditable],[contenteditable] *{-webkit-user-select:text;user-select:text}
+img,svg,a{-webkit-user-drag:none}
+
+body{margin:0}
+
+/* 챕터 버튼: 지금 있는 칸과 누르는 칸이 왼쪽 위로 살짝 올라옴 (54번 B) */
+.mbn{position: relative; transition: transform .16s ease-out, box-shadow .16s ease-out; -webkit-tap-highlight-color: transparent}.mbn:active, .mbn.on{transform: translate(-3px, -3px); box-shadow: 0 0 0 2px #121110; z-index: 1}.mbn.on{animation: mbnlift .36s cubic-bezier(.3, 1.6, .5, 1) .4s both}@keyframes mbnlift{from{transform: none; box-shadow: 0 0 0 0 #121110}to{transform: translate(-3px, -3px); box-shadow: 0 0 0 2px #121110}}@media (prefers-reduced-motion: reduce){.mbn{transition: none}.mbn.on{animation: none}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background-color: #FBF7EF; background-image: linear-gradient(rgba(18, 17, 16, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(18, 17, 16, 0.06) 1px, transparent 1px); background-size: 16px 16px; color: #121110; font-family: 'IBM Plex Sans KR', sans-serif; position: relative; overflow: hidden; display: flex; flex-direction: column; word-break: keep-all">
+
+<sc-if value="{{ isList }}" hint-placeholder-val="{{ true }}">
+  <header style="height: 60px; flex: none; display: flex; align-items: center; padding: 0 24px; gap: 8px">
+    <h1 style="flex: 1; margin: 0; font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">기록</h1>
+    <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 16px; border: 2px solid #121110; border-radius: 6px; padding: 4px 8px; background: #FFFFFF">2026 시즌</span>
+  </header>
+  <main ref="{{ dragRef }}" onPointerDown="{{ dragDown }}" onPointerMove="{{ dragMove }}" onPointerUp="{{ dragUp }}" onPointerLeave="{{ dragUp }}" onClickCapture="{{ dragClick }}" style="flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; touch-action: pan-y; cursor: grab; user-select: none"><div style="padding: 4px 24px 28px; display: flex; flex-direction: column; gap: 12px">
+    <button type="button" onClick="{{ openSeason }}" style="display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 0 16px; border: 2px solid #121110; border-radius: 12px; background: #FFFFFF; color: #121110; box-shadow: 4px 4px 0 #121110; text-align: left; font-family: inherit; cursor: pointer">
+      <span style="flex: 1; display: flex; flex-direction: column; gap: 4px"><b style="font-size: 16px">2026 시즌 성적</b><span style="font-size: 12px">팀 성적과 내 출석</span></span>
+      <b style="font-family: 'Barlow Condensed', sans-serif; font-size: 24px">3승 1무 2패</b>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>
+    </button>
+
+    <sc-for list="{{ tickets }}" as="t" hint-placeholder-count="5">
+      <button type="button" onClick="{{ t.open }}" aria-label="{{ t.aria }}" style="display: flex; align-items: center; gap: 8px; flex: none; min-height: 104px; box-sizing: border-box; padding: 12px 12px 12px 16px; border: 0; border-radius: 12px; background: #FFFFFF; box-shadow: 0 1px 0 rgba(18, 17, 16, .08), 0 4px 10px rgba(18, 17, 16, .10); text-align: left; font-family: inherit; color: #121110; cursor: pointer">
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+          <span style="display: flex; align-items: center; gap: 8px"><span style="flex: none; font-size: 12px; font-weight: 700; border: 2px solid #121110; border-radius: 5px; padding: 0 8px; background: #FFECEF; color: #6B3440">{{ t.kind }}</span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px">{{ t.date }}</b></span>
+          <b style="font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ t.vs }}</b>
+          <span style="{{ t.momStyle }}">{{ t.mom }}</span>
+        </span>
+        <span style="flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 4px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 36px; line-height: .9">{{ t.score }}</b><span style="font-size: 12px; font-weight: 700; background: #121110; color: #FBF7EF; border-radius: 4px; padding: 0 8px">{{ t.result }}</span></span>
+        <span style="flex: none; width: 58px; display: flex; justify-content: center"><span style="{{ t.stamp }}"><b style="font-size: {{ t.meSize }}">{{ t.me }}</b><span style="font-size: 12px">{{ t.meSub }}</span></span></span>
+      </button>
+    </sc-for>
+  </div></main>
+  <nav aria-label="하단 메뉴" style="flex: none; margin: 0 24px 20px; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 2px; background: #121110; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; height: 64px">
+    <a href="B17_Main.dc.html" class="mbn" style="border-radius: 10px 0 0 10px; background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg><span>홈</span></a>
+    <a href="B17_A2_Schedule.dc.html" class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg><span>일정</span></a>
+    <a href="B17_A_Chat.dc.html" class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5h16v11.5H10.5L6 19.5V16H4z"></path><path d="M8 8.8h8M8 11.8h5"></path></svg><span>대화</span><span aria-label="안 읽은 대화 7" style="position: absolute; top: 6px; right: 8px; min-width: 18px; height: 18px; box-sizing: border-box; padding: 0 4px; border-radius: 9px; background: #121110; color: #FBF7EF; font: 700 11px 'Barlow Condensed', sans-serif; display: inline-flex; align-items: center; justify-content: center">7</span></a>
+    <a href="B17_A_Record.dc.html" aria-current="page" class="mbn on" style="background: #E48398; text-decoration: none; color: #121110; font-weight: 700; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M6 20v-8M12 20V5M18 20v-5"></path></svg><span>기록</span></a>
+    <a href="B17_A_Team.dc.html" class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16.5 14.6c2.4.3 4.2 2.1 4.8 5.4"></path></svg><span>팀</span></a>
+    <a href="B17_A_Ops.dc.html" class="mbn" style="border-radius: 0 10px 10px 0; background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"></path></svg><span>운영</span></a>
+  </nav>
+</sc-if>
+
+<sc-if value="{{ isSeason }}" hint-placeholder-val="{{ false }}">
+  <header style="height: 60px; flex: none; display: flex; align-items: center; padding: 0 8px; gap: 4px">
+    <button type="button" aria-label="뒤로" onClick="{{ goBack }}" style="width: 44px; height: 44px; border: 0; background: transparent; padding: 0; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
+    <span style="flex: 1; display: flex; flex-direction: column; line-height: 1.2"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">2026 시즌</b><span style="font-size: 12px; color: #5B5650">내전은 팀 성적에서 빼고 셌어요</span></span>
+  </header>
+  <main ref="{{ dragRef }}" onPointerDown="{{ dragDown }}" onPointerMove="{{ dragMove }}" onPointerUp="{{ dragUp }}" onPointerLeave="{{ dragUp }}" onClickCapture="{{ dragClick }}" style="flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; touch-action: pan-y; cursor: grab; user-select: none"><div style="padding: 4px 24px 28px; display: flex; flex-direction: column; gap: 16px">
+
+    <div style="display: flex; align-items: center; justify-content: space-between; border-top: 2px solid #121110; border-bottom: 2px solid #DDD6C8; padding: 12px 0">
+      <span style="font-size: 12px; font-weight: 700">팀 성적</span>
+      <span style="display: flex; align-items: baseline; gap: 8px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700"><span style="font-size: 32px">3<small style="font-size: 16px">승</small> 1<small style="font-size: 16px">무</small> 2<small style="font-size: 16px">패</small></span><span style="font-size: 16px; color: #5B5650">득 10  실 8</span></span>
+    </div>
+
+    <div style="background: #FFFFFF; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; padding: 16px 16px 16px; display: flex; flex-direction: column; gap: 12px">
+      <span style="display: flex; justify-content: space-between; align-items: baseline"><b style="font-size: 16px">내 출석</b><span style="font-size: 12px">8번 중 <b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px">8</b>번 왔어요</span></span>
+      <div style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; border-top: 2px dashed rgba(18, 17, 16, 0.35); padding-top: 12px">
+        <sc-for list="{{ punches }}" as="h" hint-placeholder-count="8">
+          <span style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="{{ h.hole }}"></span><span style="font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 600">{{ h.date }}</span></span>
+        </sc-for>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 2px solid #DDD6C8; padding-top: 8px">
+        <sc-for list="{{ counts }}" as="c" hint-placeholder-count="4">
+          <span style="display: flex; flex-direction: column; gap: 4px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 24px; line-height: 1">{{ c.n }}</b><span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px"><span style="{{ c.sw }}"></span>{{ c.label }}</span></span>
+        </sc-for>
+      </div>
+    </div>
+
+    <section aria-label="팀원 출석" style="display: flex; flex-direction: column">
+      <span style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #121110; padding-bottom: 8px"><b style="font-size: 16px">팀원 출석</b><span style="font-size: 12px; color: #5B5650">등번호 순, 운영진만 보여요</span></span>
+      <div style="display: grid; grid-template-columns: 30px 1fr repeat(4, 34px); align-items: center; min-height: 34px; font-size: 12px; color: #5B5650; border-bottom: 2px solid #DDD6C8"><span></span><span>이름</span><span style="text-align: center">참석</span><span style="text-align: center">늦참</span><span style="text-align: center">지각</span><span style="text-align: center">불참</span></div>
+      <sc-for list="{{ teamAtt }}" as="r" hint-placeholder-count="26">
+        <div style="display: grid; grid-template-columns: 30px 1fr repeat(4, 34px); align-items: center; min-height: 40px; border-bottom: 2px solid #DDD6C8"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 16px">{{ r.num }}</b><span style="font-size: 14px">{{ r.name }}</span><b style="text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 16px">{{ r.yes }}</b><b style="text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 16px">{{ r.late }}</b><b style="text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 16px">{{ r.tardy }}</b><b style="text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 16px">{{ r.no }}</b></div>
+      </sc-for>
+    </section>
+    <section aria-label="경기별 내 출석" style="display: flex; flex-direction: column">
+      <b style="font-size: 16px; border-bottom: 2px solid #121110; padding-bottom: 8px">경기별 내 출석</b>
+      <sc-for list="{{ seasonRows }}" as="r" hint-placeholder-count="8">
+        <button type="button" onClick="{{ r.open }}" style="display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0; border: 0; border-bottom: 2px solid #DDD6C8; background: transparent; text-align: left; font-family: inherit; color: #121110; cursor: pointer">
+          <b style="flex: none; width: 64px; font-family: 'Barlow Condensed', sans-serif; font-size: 16px">{{ r.date }}</b>
+          <span style="flex: 1; font-size: 16px">{{ r.vs }}</span>
+          <span style="{{ r.chip }}">{{ r.label }}</span>
+        </button>
+      </sc-for>
+    </section>
+  </div></main>
+  <nav aria-label="하단 메뉴" style="flex: none; margin: 0 24px 20px; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 2px; background: #121110; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; height: 64px">
+    <a href="B17_Main.dc.html" class="mbn" style="border-radius: 10px 0 0 10px; background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg><span>홈</span></a>
+    <a href="B17_A2_Schedule.dc.html" class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg><span>일정</span></a>
+    <a href="B17_A_Chat.dc.html" class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5h16v11.5H10.5L6 19.5V16H4z"></path><path d="M8 8.8h8M8 11.8h5"></path></svg><span>대화</span><span aria-label="안 읽은 대화 7" style="position: absolute; top: 6px; right: 8px; min-width: 18px; height: 18px; box-sizing: border-box; padding: 0 4px; border-radius: 9px; background: #121110; color: #FBF7EF; font: 700 11px 'Barlow Condensed', sans-serif; display: inline-flex; align-items: center; justify-content: center">7</span></a>
+    <a href="B17_A_Record.dc.html" aria-current="page" class="mbn on" style="background: #E48398; text-decoration: none; color: #121110; font-weight: 700; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M6 20v-8M12 20V5M18 20v-5"></path></svg><span>기록</span></a>
+    <a href="B17_A_Team.dc.html" class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16.5 14.6c2.4.3 4.2 2.1 4.8 5.4"></path></svg><span>팀</span></a>
+    <a href="B17_A_Ops.dc.html" class="mbn" style="border-radius: 0 10px 10px 0; background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"></path></svg><span>운영</span></a>
+  </nav>
+</sc-if>
+
+<sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
+  <header style="height: 60px; flex: none; display: flex; align-items: center; padding: 0 8px; gap: 4px">
+    <button type="button" aria-label="뒤로" onClick="{{ goBack }}" style="width: 44px; height: 44px; flex: none; border: 0; background: transparent; padding: 0; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
+    <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">경기 기록</b><span style="font-size: 12px; color: #5B5650">{{ d.dateLong }}</span></span><button type="button" onClick="{{ openResult }}" style="flex: none; height: 40px; margin-right: 8px; padding: 0 12px; border: 2px solid #121110; border-radius: 8px; background: #FBF7EF; font: 700 14px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer">결과 고치기</button>
+  </header>
+  <main ref="{{ dragRef }}" onPointerDown="{{ dragDown }}" onPointerMove="{{ dragMove }}" onPointerUp="{{ dragUp }}" onPointerLeave="{{ dragUp }}" onClickCapture="{{ dragClick }}" style="flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; touch-action: pan-y; cursor: grab; user-select: none"><div style="padding: 4px 24px 28px; display: flex; flex-direction: column; gap: 16px">
+    <div style="{{ d.card }}">
+      <span style="display: flex; align-items: baseline; gap: 8px; font-size: 12px; padding-right: 64px"><span style="{{ d.kindStyle }}">{{ d.kind }}</span><span>{{ d.place }}</span></span>
+      <div style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; padding: 8px 0 4px">
+        <b style="font-size: 16px; text-align: center">{{ d.home }}</b>
+        <b style="font-family: 'Barlow Condensed', sans-serif; font-size: 64px; line-height: 1; letter-spacing: -1px">{{ d.score }}</b>
+        <b style="font-size: 16px; text-align: center">{{ d.away }}</b>
+      </div>
+      <span style="{{ d.resultStamp }}">{{ d.result }}</span>
+    </div>
+
+    <sc-if value="{{ d.momOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="background: #FFFFFF; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; padding: 16px 16px 16px; display: flex; flex-direction: column; gap: 8px">
+        <span style="display: flex; justify-content: space-between; align-items: center"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 20px">MOM 투표</b><span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 16px; background: #121110; color: #FBF7EF; border-radius: 6px; padding: 4px 8px">D-3</span></span>
+        <span style="font-size: 14px">11.15 노을 FC전, 11.20 목 자정까지</span><span style="font-size: 12px; font-weight: 700">투표한 사람 9 / 13명  (운영진만 보여요)</span>
+        <sc-if value="{{ notVoted }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ openMom }}" style="height: 48px; border: 2px solid #121110; border-radius: 12px; background: #FCD01A; color: #121110; box-shadow: 3px 3px 0 #121110; font: 700 16px 'IBM Plex Sans KR', sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px">투표하기<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button></sc-if>
+        <sc-if value="{{ voted }}" hint-placeholder-val="{{ false }}"><span style="display: flex; align-items: center; gap: 8px; background: #FBF7EF; border: 2px solid #121110; border-radius: 12px; padding: 8px 12px; font-size: 14px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg><span><b>{{ votedName }}</b>에게 투표했어요. 결과는 11.21 금에 나와요.</span></span></sc-if>
+      </div>
+    </sc-if>
+
+    <section aria-label="골 기록" style="display: flex; flex-direction: column">
+      <span style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #121110; padding-bottom: 8px"><b style="font-size: 16px">골 기록</b><span style="font-size: 12px; color: #5B5650">넣은 사람과 도운 사람</span></span>
+      <sc-for list="{{ d.goals }}" as="g" hint-placeholder-count="5">
+        <div style="display: flex; align-items: center; gap: 12px; min-height: 56px; border-bottom: 2px solid #DDD6C8">
+          <span style="{{ g.ball }}"></span>
+          <span style="flex: 1; display: flex; flex-direction: column; gap: 4px"><b style="{{ g.nameStyle }}">{{ g.name }}</b><span style="font-size: 12px; color: #5B5650">{{ g.assist }}</span></span>
+          <span style="{{ g.sideStyle }}">{{ g.side }}</span>
+        </div>
+      </sc-for>
+      <sc-if value="{{ d.noGoals }}" hint-placeholder-val="{{ false }}"><span style="font-size: 14px; color: #5B5650; padding: 16px 0">이 경기는 우리 골이 없어요.</span></sc-if>
+    </section>
+
+    <sc-if value="{{ d.momDone }}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; align-items: center; gap: 16px; border: 2px solid #121110; border-radius: 12px; background: #FFFFFF; box-shadow: 4px 4px 0 #121110; padding: 16px 16px">
+        <span style="flex: none; width: 64px; height: 64px; box-sizing: border-box; border-radius: 50%; border: 2.5px solid #121110; background: #FDD1D8; transform: rotate(-12deg); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; font-family: 'Barlow Condensed', sans-serif; font-weight: 700"><span style="font-size: 20px">MOM</span><span style="font-size: 12px">{{ d.momVotes }}</span></span>
+        <span style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #5B5650">이 경기 MOM</span><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">{{ d.momName }}</b></span>
+      </div>
+    </sc-if>
+
+    <section aria-label="참석" style="display: flex; flex-direction: column; gap: 8px">
+      <span style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #121110; padding-bottom: 8px"><b style="font-size: 16px">이날 온 사람</b><span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px">{{ d.count }}</span></span>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px">
+        <sc-for list="{{ d.people }}" as="p" hint-placeholder-count="14">
+          <span style="{{ p.style }}">{{ p.name }}<sc-if value="{{ p.hasTag }}" hint-placeholder-val="{{ false }}"><span style="{{ p.tagStyle }}">{{ p.tag }}</span></sc-if></span>
+        </sc-for>
+      </div>
+    </section>
+  </div></main>
+  <nav aria-label="하단 메뉴" style="flex: none; margin: 0 24px 20px; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 2px; background: #121110; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; height: 64px">
+    <a href="B17_Main.dc.html" class="mbn" style="border-radius: 10px 0 0 10px; background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg><span>홈</span></a>
+    <a href="B17_A2_Schedule.dc.html" class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg><span>일정</span></a>
+    <a href="B17_A_Chat.dc.html" class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5h16v11.5H10.5L6 19.5V16H4z"></path><path d="M8 8.8h8M8 11.8h5"></path></svg><span>대화</span><span aria-label="안 읽은 대화 7" style="position: absolute; top: 6px; right: 8px; min-width: 18px; height: 18px; box-sizing: border-box; padding: 0 4px; border-radius: 9px; background: #121110; color: #FBF7EF; font: 700 11px 'Barlow Condensed', sans-serif; display: inline-flex; align-items: center; justify-content: center">7</span></a>
+    <a href="B17_A_Record.dc.html" aria-current="page" class="mbn on" style="background: #E48398; text-decoration: none; color: #121110; font-weight: 700; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M6 20v-8M12 20V5M18 20v-5"></path></svg><span>기록</span></a>
+    <a href="B17_A_Team.dc.html" class="mbn" style="background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16.5 14.6c2.4.3 4.2 2.1 4.8 5.4"></path></svg><span>팀</span></a>
+    <a href="B17_A_Ops.dc.html" class="mbn" style="border-radius: 0 10px 10px 0; background: #FFFFFF; text-decoration: none; color: #5B5650; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B5650" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"></path></svg><span>운영</span></a>
+  </nav>
+</sc-if>
+
+
+<sc-if value="{{ isResult }}" hint-placeholder-val="{{ false }}">
+  <header style="height: 60px; flex: none; display: flex; align-items: center; padding: 0 8px; gap: 4px">
+    <button type="button" aria-label="뒤로" onClick="{{ goBack }}" style="width: 44px; height: 44px; flex: none; border: 0; background: transparent; padding: 0; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
+    <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">결과 입력</b><span style="font-size: 12px; color: #5B5650">11.15 토 vs 노을 FC</span></span>
+  </header>
+  <main ref="{{ dragRef }}" onPointerDown="{{ dragDown }}" onPointerMove="{{ dragMove }}" onPointerUp="{{ dragUp }}" onPointerLeave="{{ dragUp }}" onClickCapture="{{ dragClick }}" style="flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; touch-action: pan-y; cursor: grab; user-select: none"><div style="padding: 4px 24px 24px; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; background: #FFFFFF; border: 2px solid #121110; border-radius: 12px; box-shadow: 4px 4px 0 #121110; padding: 16px 12px">
+      <b style="text-align: center; font-size: 16px">TEST FC</b><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 52px; line-height: 1">{{ rs.total }}</b><b style="text-align: center; font-size: 16px">노을 FC</b>
+    </div>
+    <section aria-label="최종 점수" style="display: flex; flex-direction: column">
+      <b style="font-size: 16px; border-bottom: 2px solid #121110; padding-bottom: 8px">최종 점수</b>
+      <div style="display: flex; align-items: center; gap: 8px; min-height: 72px">
+        <span style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px"><span style="font-size: 12px; font-weight: 700">TEST FC</span><span style="display: flex; align-items: center; gap: 8px"><button type="button" aria-label="우리 점수 내리기" onClick="{{ rs.usDown }}" style="width: 40px; height: 40px; border: 2px solid #121110; border-radius: 8px; background: #FBF7EF; font: 700 20px 'Barlow Condensed', sans-serif; color: #121110; cursor: pointer">-</button><b style="width: 34px; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 32px">{{ rs.us }}</b><button type="button" aria-label="우리 점수 올리기" onClick="{{ rs.usUp }}" style="width: 40px; height: 40px; border: 2px solid #121110; border-radius: 8px; background: #121110; font: 700 20px 'Barlow Condensed', sans-serif; color: #FBF7EF; cursor: pointer">+</button></span></span>
+        <span style="font-family: 'Barlow Condensed', sans-serif; font-size: 24px; padding-top: 16px">:</span>
+        <span style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px"><span style="font-size: 12px; font-weight: 700">노을 FC</span><span style="display: flex; align-items: center; gap: 8px"><button type="button" aria-label="상대 점수 내리기" onClick="{{ rs.themDown }}" style="width: 40px; height: 40px; border: 2px solid #121110; border-radius: 8px; background: #FBF7EF; font: 700 20px 'Barlow Condensed', sans-serif; color: #121110; cursor: pointer">-</button><b style="width: 34px; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 32px">{{ rs.them }}</b><button type="button" aria-label="상대 점수 올리기" onClick="{{ rs.themUp }}" style="width: 40px; height: 40px; border: 2px solid #121110; border-radius: 8px; background: #FFFFFF; font: 700 20px 'Barlow Condensed', sans-serif; color: #121110; cursor: pointer">+</button></span></span>
+      </div>
+    </section>
+    <section aria-label="우리 골" style="display: flex; flex-direction: column; gap: 8px">
+      <span style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #121110; padding-bottom: 8px"><b style="font-size: 16px">우리 골</b><span style="{{ rs.checkStyle }}">{{ rs.checkText }}</span></span>
+      <sc-for list="{{ rs.goals }}" as="g" hint-placeholder-count="3">
+        <div style="display: flex; flex-direction: column; gap: 8px; border: 2px solid #121110; border-radius: 12px; padding: 8px 12px">
+          <span style="display: flex; align-items: center; gap: 8px"><b style="flex: 1; font-size: 14px">{{ g.title }}</b><button type="button" onClick="{{ g.remove }}" style="height: 32px; padding: 0 8px; border: 0; background: transparent; font: 500 12px 'IBM Plex Sans KR', sans-serif; color: #8C3B28; text-decoration: underline; cursor: pointer">빼기</button></span>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+            <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 700">골<select value="{{ g.scorer }}" onChange="{{ g.onScorer }}" style="height: 40px; border: 2px solid #121110; border-radius: 8px; background: #FFFFFF; font: 500 16px 'IBM Plex Sans KR', sans-serif; color: #121110; padding: 0 8px"><sc-for list="{{ rs.people }}" as="p" hint-placeholder-count="14"><option value="{{ p.name }}">{{ p.name }}</option></sc-for></select></label>
+            <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 700">도움<select value="{{ g.assist }}" onChange="{{ g.onAssist }}" style="height: 40px; border: 2px solid #121110; border-radius: 8px; background: #FFFFFF; font: 500 16px 'IBM Plex Sans KR', sans-serif; color: #121110; padding: 0 8px"><option value="">도움 없음</option><sc-for list="{{ rs.people }}" as="p" hint-placeholder-count="14"><option value="{{ p.name }}">{{ p.name }}</option></sc-for></select></label>
+          </div>
+        </div>
+      </sc-for>
+      <button type="button" onClick="{{ rs.add }}" style="height: 48px; border: 2px dashed #121110; border-radius: 12px; background: transparent; font: 700 16px 'IBM Plex Sans KR', sans-serif; color: #121110; cursor: pointer">골 더하기</button>
+      <span style="font-size: 12px; color: #5B5650">고를 수 있는 사람은 이날 온 사람이에요. 상대 골은 최종 점수로만 적어요.</span>
+    </section>
+  </div></main>
+  <div style="flex: none; padding: 12px 24px 28px; border-top: 2px solid #121110">
+    <button type="button" onClick="{{ saveResult }}" style="{{ rs.saveStyle }}">저장하기</button>
+  </div>
+</sc-if>
+<sc-if value="{{ isMom }}" hint-placeholder-val="{{ false }}">
+  <header style="height: 60px; flex: none; display: flex; align-items: center; padding: 0 8px; gap: 4px">
+    <button type="button" aria-label="뒤로" onClick="{{ goBack }}" style="width: 44px; height: 44px; border: 0; background: transparent; padding: 0; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#121110" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
+    <span style="flex: 1; display: flex; flex-direction: column; line-height: 1.2"><b style="font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 24px">MOM 투표</b><span style="font-size: 12px; color: #5B5650">11.15 노을 FC전, 11.20 목 자정까지</span></span>
+  </header>
+  <main ref="{{ dragRef }}" onPointerDown="{{ dragDown }}" onPointerMove="{{ dragMove }}" onPointerUp="{{ dragUp }}" onPointerLeave="{{ dragUp }}" onClickCapture="{{ dragClick }}" style="flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; touch-action: pan-y; cursor: grab; user-select: none"><div style="padding: 4px 24px 24px; display: flex; flex-direction: column; gap: 16px">
+    <span style="font-size: 14px; line-height: 1.6">이날 온 사람 중에서 한 명을 골라요.<br>결과는 마감 다음 날 이 경기 티켓에 찍혀요.</span>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 4px 4px">
+      <sc-for list="{{ cands }}" as="c" hint-placeholder-count="12">
+        <button type="button" aria-pressed="{{ c.on }}" onClick="{{ c.pick }}" style="{{ c.style }}"><span style="display: flex; align-items: baseline; gap: 8px"><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px">{{ c.num }}</b><b style="font-size: 16px">{{ c.name }}</b></span><span style="font-size: 12px">{{ c.sub }}</span></button>
+      </sc-for>
+    </div>
+  </div></main>
+  <div style="flex: none; padding: 12px 24px 28px; border-top: 2px solid #121110">
+    <button type="button" onClick="{{ submitMom }}" aria-disabled="{{ noPick }}" style="{{ submitStyle }}">{{ submitLabel }}</button>
+  </div>
+</sc-if>
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}"><div role="status" style="position: absolute; left: 20px; right: 20px; bottom: 96px; z-index: 20; background: #121110; color: #FBF7EF; border-radius: 12px; padding: 16px 16px; font-size: 14px; text-align: center; line-height: 1.5">{{ toastText }}</div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"startView":{"editor":"enum","options":["list","season","detail","mom","voted","detailDone","result"],"default":"list"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const ink = '#121110';
+    const sv = this.props.startView || 'list';
+    const FILL = { yes: ink, late: 'linear-gradient(135deg, ' + ink + ' 50%, #FFFFFF 50%)', tardy: '#FFFFFF', no: 'transparent' };
+    const vname = { yes: '참석', late: '늦참', tardy: '지각', no: '불참' };
+    const ROSTER = [['최성호', 1], ['서동현', 2], ['윤재민', 3], ['정우진', 4], ['강태윤', 5], ['임하준', 6], ['이준호', 7], ['한지훈', 8], ['박민수', 9], ['김도현', 10], ['오세진', 11], ['홍지성', 12], ['송현수', 13], ['신유찬', 14], ['노태경', 15], ['류진우', 16], ['권민재', 17], ['구본찬', 18], ['백승민', 19], ['양태민', 20], ['조은석', 21], ['문태오', 23], ['황재원', 24], ['안도윤', 27], ['차민규', 29], ['배준영', 31]];
+    const M = [
+      { id: 'm1', date: '11.15 토', long: '2026.11.15 토 07:00', kind: '경기', opp: '노을 FC', place: '상암 월드컵 보조구장', us: 3, them: 2, q: [[1, 0], [0, 1], [1, 1], [1, 0]], me: 'yes', mom: null, n: 14, late: { '신유찬': 2 },
+        goals: [[1, '이준호', '김도현'], [2, null], [3, '박민수', '이준호'], [3, null], [4, '박민수', '']] },
+      { id: 'm2', date: '11.08 토', long: '2026.11.08 토 07:00', kind: '내전', opp: null, place: '상암 월드컵 보조구장', us: 4, them: 3, q: [[1, 1], [1, 0], [1, 1], [1, 1]], me: 'yes', mom: ['정우진', 6], n: 14, late: {},
+        goals: [[1, '이준호', '', 'A'], [1, '오세진', '한지훈', 'B'], [2, '박민수', '이준호', 'A'], [3, '김도현', '', 'A'], [3, '오세진', '', 'B'], [4, '정우진', '강태윤', 'A'], [4, '한지훈', '오세진', 'B']] },
+      { id: 'm3', date: '11.01 토', long: '2026.11.01 토 07:00', kind: '경기', opp: '한강 유나이티드', place: '난지 인조잔디 구장', us: 1, them: 1, q: [[0, 1], [0, 0], [1, 0], [0, 0]], me: 'late', meQ: 2, mom: ['최성호', 5], n: 13, late: { '김도현': 2, '이준호': 2 },
+        goals: [[1, null], [3, '김도현', '오세진']] },
+      { id: 'm4', date: '10.25 토', long: '2026.10.25 토 07:00', kind: '경기', opp: '마포 FC', place: '고양 종합운동장 보조구장', us: 0, them: 2, q: [[0, 0], [0, 1], [0, 0], [0, 1]], me: 'yes', mom: ['김도현', 4], n: 12, late: {},
+        goals: [[2, null], [4, null]] },
+      { id: 'm5', date: '10.18 토', long: '2026.10.18 토 07:00', kind: '경기', opp: '은평 FC', place: '상암 월드컵 보조구장', us: 2, them: 0, q: [[1, 0], [0, 0], [1, 0], [0, 0]], me: 'yes', mom: ['이준호', 7], n: 14, late: {},
+        goals: [[1, '이준호', '한지훈'], [3, '오세진', '이준호']] },
+      { id: 'm6', date: '10.11 토', long: '2026.10.11 토 07:00', kind: '경기', opp: '노을 FC', place: '난지 인조잔디 구장', us: 1, them: 2, q: [[0, 0], [1, 0], [0, 1], [0, 1]], me: 'tardy', mom: ['최성호', 4], n: 13, late: {},
+        goals: [[2, '김도현', '박민수'], [3, null], [4, null]] },
+      { id: 'm7', date: '10.04 토', long: '2026.10.04 토 07:00', kind: '경기', opp: '성산 FC', place: '상암 월드컵 보조구장', us: 3, them: 1, q: [[1, 0], [0, 1], [1, 0], [1, 0]], me: 'yes', mom: ['박민수', 6], n: 14, late: {},
+        goals: [[1, '박민수', '이준호'], [2, null], [3, '한지훈', '김도현'], [4, '이준호', '박민수']] },
+      { id: 'm8', date: '09.27 토', long: '2026.09.27 토 07:00', kind: '내전', opp: null, place: '난지 인조잔디 구장', us: 2, them: 2, q: [[1, 0], [0, 1], [1, 0], [0, 1]], me: 'yes', mom: ['강태윤', 5], n: 13, late: {},
+        goals: [[1, '김도현', '', 'A'], [2, '박민수', '오세진', 'B'], [3, '강태윤', '윤재민', 'A'], [4, '오세진', '', 'B']] }
+    ];
+    if (st.res) {
+      const r0 = M[0];
+      r0.us = st.res.us;
+      r0.them = st.res.them;
+      r0.goals = st.res.g.map((g) => [0, g.scorer, g.assist]);
+    }
+    const TARDY = { m5: ['이준호'], m6: ['김도현', '오세진'] };
+    const attOf = (mm) => {
+      const idx = M.indexOf(mm);
+      const core = new Set(['최성호']);
+      mm.goals.forEach((g) => { if (g[1]) core.add(g[1]); if (g[2]) core.add(g[2]); });
+      if (mm.mom) core.add(mm.mom[0]);
+      Object.keys(mm.late || {}).forEach((k) => core.add(k));
+      (TARDY[mm.id] || []).forEach((k) => core.add(k));
+      if (mm.me !== 'no') core.add('김도현'); else core.delete('김도현');
+      const out = ROSTER.filter((r) => core.has(r[0]));
+      for (let i = 0; out.length < mm.n && i < ROSTER.length; i++) {
+        const r = ROSTER[(idx * 7 + i * 3) % ROSTER.length];
+        if (out.indexOf(r) < 0 && !(r[0] === '김도현' && mm.me === 'no')) out.push(r);
+      }
+      return out.sort((x, y) => x[1] - y[1]);
+    };
+    const startMatch = sv === 'detailDone' ? 'm3' : 'm1';
+    const view = st.view !== undefined ? st.view : (sv === 'voted' || sv === 'detailDone' ? 'detail' : sv);
+    const cur = st.cur || startMatch;
+    const votedName = st.votedName !== undefined ? st.votedName : (sv === 'voted' ? '박민수' : null);
+    const pick = st.pick || null;
+    const resultOf = (m) => (m.us > m.them ? '승' : (m.us < m.them ? '패' : '무'));
+    const isWin = (m) => m.kind === '경기' && m.us > m.them;
+    const KC = {};
+    const KS = (k) => 'font-size: 12px; font-weight: 700; border: 2px solid ' + ink + '; border-radius: 5px; padding: 0 8px; background: #FFECEF; color: #6B3440';
+    const zig = (() => { let z = 'polygon(0 0'; for (let i = 0; i <= 20; i++) z += ', ' + (i % 2 === 0 ? '100%' : 'calc(100% - 8px)') + ' ' + (i * 5) + '%'; return z + ', 0 100%)'; })();
+    const tickets = M.map((m) => ({
+      date: m.date,
+      kind: m.kind,
+      kindStyle: KS(m.kind),
+      vs: m.opp ? 'vs ' + m.opp : 'A팀 대 B팀',
+      score: m.us + ':' + m.them,
+      result: m.kind === '내전' ? (m.us === m.them ? '무' : 'A팀 승') : resultOf(m),
+      mom: m.mom ? 'MOM ' + m.mom[0] : (votedName ? 'MOM 투표 완료' : 'MOM 투표하기'),
+      momStyle: 'align-self: flex-start; font-size: 12px; font-weight: 700; border: 2px solid ' + ink + '; border-radius: 5px; padding: 0 8px; background: ' + (m.mom ? '#FFECEF; color: #6B3440' : (votedName ? '#FBF7EF' : '#FCD01A')),
+      me: vname[m.me],
+      meSub: m.me === 'late' ? (m.meQ || 2) + 'Q부터' : '',
+      meSize: m.me === 'late' ? '14px' : '16px',
+      aria: m.date + ' ' + (m.opp || '내전') + ' ' + m.us + '대' + m.them + ' 기록 보기',
+      open: () => { if (!this._moved) this.setState({ view: 'detail', cur: m.id }); },
+      main: 'position: relative; flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; box-sizing: border-box; padding: 12px 24px 12px 16px',
+      stamp: 'width: 54px; height: 54px; box-sizing: border-box; border-radius: 50%; border: 2px ' + (m.me === 'no' ? 'dashed' : 'solid') + ' ' + ink + '; background: #FBF7EF; transform: rotate(-14deg); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1'
+    }));
+    const punches = M.slice().reverse().map((m) => ({
+      date: m.date.slice(0, 5),
+      hole: 'width: 24px; height: 24px; box-sizing: border-box; border-radius: 50%; ' + (m.me === 'no' ? 'border: 2px dashed rgba(18, 17, 16, 0.45); background: transparent' : 'border: 2px solid ' + ink + '; background: ' + FILL[m.me] + '; box-shadow: inset 2px 2px 0 rgba(18, 17, 16, 0.25)')
+    }));
+    const cnt = { yes: 0, late: 0, tardy: 0, no: 0 };
+    M.forEach((m) => { cnt[m.me]++; });
+    const counts = ['yes', 'late', 'tardy', 'no'].map((k) => ({ n: cnt[k], label: vname[k], sw: 'width: 10px; height: 10px; box-sizing: border-box; border: 2px ' + (k === 'no' ? 'dashed' : 'solid') + ' ' + ink + '; background: ' + FILL[k] }));
+    const seasonRows = M.map((x) => ({
+      date: x.date.slice(0, 5),
+      vs: x.opp ? x.opp : '내전',
+      label: vname[x.me] + (x.me === 'late' ? ' ' + (x.meQ || 2) + 'Q' : ''),
+      chip: 'flex: none; font-size: 12px; font-weight: 700; border: 2px solid ' + ink + '; border-radius: 5px; padding: 4px 8px; border-style: ' + (x.me === 'no' ? 'dashed' : 'solid') + '; background: #FFFFFF',
+      open: () => { if (!this._moved) this.setState({ view: 'detail', cur: x.id, from: 'season' }); }
+    }));
+    const m = M.find((x) => x.id === cur) || M[0];
+    const say = (t) => { this.setState({ toast: t }); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ toast: null }), 2200); };
+    const ALLM = M;
+    const teamAtt = ROSTER.map((r) => {
+      const c = { yes: 0, late: 0, tardy: 0, no: 0 };
+      ALLM.forEach((mm) => {
+        const inn = attOf(mm).indexOf(r) >= 0;
+        if (!inn) c.no++;
+        else if ((mm.late || {})[r[0]]) c.late++;
+        else if ((TARDY[mm.id] || []).indexOf(r[0]) >= 0) c.tardy++;
+        else c.yes++;
+      });
+      return { num: r[1], name: r[0] + (r[0] === '김도현' ? ' (나)' : ''), yes: c.yes, late: c.late, tardy: c.tardy, no: c.no };
+    });
+    const R0 = M[0];
+    const rsc = st.rsc || [R0.us, R0.them];
+    const rg = st.rg || R0.goals.filter((g) => g[1]).map((g) => ({ scorer: g[1], assist: g[2] || '' }));
+    const usTotal = rsc[0]; const themTotal = rsc[1];
+    const bump = (side, d) => () => { const n = rsc.slice(); n[side] = Math.max(0, n[side] + d); this.setState({ rsc: n }); };
+    const setG = (gi, k) => (ev) => { const n = rg.map((x) => Object.assign({}, x)); n[gi][k] = ev && ev.target ? ev.target.value : ''; this.setState({ rg: n }); };
+    const okCount = rg.length === usTotal;
+    const rs = {
+      total: usTotal + ' : ' + themTotal,
+      us: usTotal, them: themTotal, usUp: bump(0, 1), usDown: bump(0, -1), themUp: bump(1, 1), themDown: bump(1, -1),
+      goals: rg.map((g, gi) => ({ title: (gi + 1) + '번째 골', scorer: g.scorer, assist: g.assist, onScorer: setG(gi, 'scorer'), onAssist: setG(gi, 'assist'),
+        remove: () => this.setState({ rg: rg.filter((x, i) => i !== gi) }) })),
+      people: attOf(R0).map((r) => ({ name: r[0] })),
+      add: () => this.setState({ rg: rg.concat([{ scorer: '김도현', assist: '' }]) }),
+      checkText: okCount ? '점수와 골 기록이 맞아요' : '우리 점수 ' + usTotal + '골, 적은 골 ' + rg.length + '개',
+      checkStyle: 'font-size: 12px; font-weight: 700; border: 2px solid ' + ink + '; border-radius: 5px; padding: 0 8px; background: ' + (okCount ? '#FBF7EF' : ink + '; color: #FBF7EF'),
+      saveStyle: 'width: 100%; height: 56px; border: 2px solid ' + ink + '; border-radius: 12px; background: #FCD01A; color: ' + ink + '; box-shadow: 3px 3px 0 ' + ink + '; font: 700 16px \'IBM Plex Sans KR\', sans-serif; cursor: pointer; ' + (okCount ? 'opacity: 1' : 'opacity: 0.35; pointer-events: none')
+    };
+    const ours = m.kind === '내전';
+    const attendees = attOf(m);
+    const lateOf = Object.assign({}, m.late);
+    const stats = {};
+    m.goals.forEach((g) => { if (g[1]) { stats[g[1]] = stats[g[1]] || [0, 0]; stats[g[1]][0]++; } if (g[2]) { stats[g[2]] = stats[g[2]] || [0, 0]; stats[g[2]][1]++; } });
+    const d = {
+      dateLong: m.long,
+      kind: ours ? '내전' : '경기',
+      kindStyle: KS(ours ? '내전' : '경기'),
+      place: m.place,
+      home: ours ? 'A팀' : 'TEST FC',
+      away: ours ? 'B팀' : m.opp,
+      score: m.us + ' : ' + m.them,
+      result: ours ? (m.us === m.them ? '무' : 'A팀 승') : resultOf(m),
+      card: 'position: relative; border: 2px solid ' + ink + '; border-radius: 12px; padding: 16px 16px 16px; display: flex; flex-direction: column; gap: 8px; background: #FDD1D8; box-shadow: 4px 4px 0 ' + ink,
+      resultStamp: 'position: absolute; top: 12px; right: 12px; min-width: 46px; height: 46px; box-sizing: border-box; padding: 0 8px; border-radius: 23px; border: 2.5px solid ' + ink + '; background: #FBF7EF; transform: rotate(10deg); display: flex; align-items: center; justify-content: center; font: 700 16px \'IBM Plex Sans KR\', sans-serif',
+      quarters: m.q.map((s, i) => ({ label: (i + 1) + 'Q', score: s[0] + ':' + s[1] })),
+      noGoals: !m.goals.some((g) => g[1]),
+      goals: m.goals.filter((g) => g[1]).map((g) => {
+        const mine = !!g[1];
+        const side = g[3] || '';
+        return {
+          q: g[0] + 'Q',
+          name: mine ? g[1] : m.opp + ' 득점',
+          assist: mine ? (g[2] ? '도움 ' + g[2] : '도움 없음') : '',
+          side: side ? side + '팀' : '',
+          sideStyle: side ? 'flex: none; font-size: 12px; font-weight: 700; border: 2px solid ' + ink + '; border-radius: 5px; padding: 0 8px; background: ' + (side === 'A' ? ink + '; color: #FBF7EF' : '#FFFFFF') : 'display: none',
+          nameStyle: 'font-size: 16px; color: ' + (mine ? ink : '#5B5650') + '; font-weight: ' + (mine ? 700 : 500),
+          ball: 'flex: none; width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%; border: 2px solid ' + ink + '; background: ' + (mine ? ink : 'transparent')
+        };
+      }),
+      momOpen: !m.mom,
+      momDone: !!m.mom,
+      momName: m.mom ? m.mom[0] : '',
+      momVotes: m.mom ? m.mom[1] + '표' : '',
+      count: attendees.length + '명',
+      people: attendees.map((r) => {
+        const me = r[0] === '김도현';
+        const lq = lateOf[r[0]];
+        return {
+          name: r[0],
+          hasTag: !!lq,
+          tag: lq ? lq + 'Q부터' : '',
+          tagStyle: 'margin-left: 8px; font-size: 12px; font-weight: 700; background: #FFFFFF; color: ' + ink + '; border: 2px solid ' + ink + '; border-radius: 4px; padding: 0 4px',
+          style: 'display: inline-flex; align-items: center; height: 32px; box-sizing: border-box; padding: 0 8px; border-radius: 16px; border: 2px solid ' + ink + '; font-size: 14px; font-weight: ' + (me ? 700 : 500) + '; background: ' + (me ? ink : '#FFFFFF') + '; color: ' + (me ? '#FBF7EF' : ink)
+        };
+      })
+    };
+    const m1 = M[0];
+    const cands = attOf(m1).filter((r) => r[0] !== '김도현').map((r) => {
+      const s = stats0(r[0]);
+      const on = pick === r[0];
+      return {
+        name: r[0],
+        num: r[1],
+        sub: s,
+        on: on,
+        pick: () => { if (!this._moved) this.setState({ pick: r[0] }); },
+        style: 'min-height: 64px; border: 2px solid ' + ink + '; border-radius: 8px; color: ' + ink + '; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 4px; padding: 8px 12px; text-align: left; cursor: pointer; font-family: inherit; transition: transform 0.25s cubic-bezier(0.3, 1.5, 0.6, 1), box-shadow 0.25s, background 0.15s; ' + (on ? 'background: ' + ink + '; color: #FBF7EF; transform: rotate(-4deg) translateY(-3px); box-shadow: 4px 4px 0 ' + ink : 'background: #FFFFFF; transform: none; box-shadow: 0 0 0 ' + ink)
+      };
+    });
+    function stats0(name) {
+      let g = 0; let a = 0;
+      m1.goals.forEach((x) => { if (x[1] === name) g++; if (x[2] === name) a++; });
+      const parts = [];
+      if (g) parts.push(g + '골');
+      if (a) parts.push(a + '도움');
+      if (name === '신유찬') parts.push('2Q부터');
+      return parts.join(' ');
+    }
+    return {
+      isList: view === 'list',
+      isDetail: view === 'detail',
+      isSeason: view === 'season',
+      seasonRows: seasonRows,
+      openSeason: () => { if (!this._moved) this.setState({ view: 'season' }); },
+      isMom: view === 'mom',
+      isResult: view === 'result', rs: rs, teamAtt: teamAtt,
+      openResult: () => this.setState({ view: 'result', cur: 'm1' }),
+      saveResult: () => { if (!okCount) return; this.setState({ view: 'detail', cur: 'm1', res: { us: usTotal, them: themTotal, g: rg }, rsc: null, rg: null }); say('결과를 저장했어요. 팀원 기록에 바로 보여요.'); },
+      notVoted: !votedName,
+      voted: !!votedName,
+      votedName: votedName || '',
+      punches: punches,
+      counts: counts,
+      tickets: tickets,
+      d: d,
+      cands: cands,
+      noPick: !pick,
+      submitLabel: pick ? pick + '에게 투표하기' : '한 명을 골라 주세요',
+      submitStyle: 'width: 100%; height: 56px; border: 2px solid ' + ink + '; border-radius: 12px; background: #FCD01A; color: ' + ink + '; box-shadow: 3px 3px 0 ' + ink + '; font: 700 16px \'IBM Plex Sans KR\', sans-serif; cursor: pointer; ' + (pick ? 'opacity: 1' : 'opacity: 0.35; pointer-events: none'),
+      openMom: () => { if (!this._moved) this.setState({ view: 'mom', back: view }); },
+      submitMom: () => { if (pick) this.setState({ votedName: pick, view: 'detail', cur: 'm1', pick: null }); },
+      goBack: () => this.setState({ view: view === 'mom' || view === 'result' ? 'detail' : (view === 'detail' && st.from === 'season' ? 'season' : 'list'), from: null }),
+      hasToast: !!st.toast, toastText: st.toast || '',
+      dragRef: (el) => { this._scroller = el; },
+      dragDown: (e) => { if (!this._scroller || (e && e.pointerType && e.pointerType !== 'mouse')) return; this._drag = { y: e.clientY, top: this._scroller.scrollTop }; this._moved = false; },
+      dragMove: (e) => { if (!this._drag || !this._scroller) return; const dy = e.clientY - this._drag.y; if (Math.abs(dy) > 6) this._moved = true; this._scroller.scrollTop = this._drag.top - dy; },
+      dragUp: () => { this._drag = null; },
+      dragClick: (e) => { if (this._moved) { e.preventDefault(); e.stopPropagation(); this._moved = false; } }
+    };
+  }
+}
+</script>
+</body>
+</html>
