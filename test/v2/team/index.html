@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<script src="../maint-config.js?v=ce983d5"></script>
-<script src="../maint-gate.js?v=ce983d5"></script>
+<script src="../maint-config.js?v=3489ef0"></script>
+<script src="../maint-gate.js?v=3489ef0"></script>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://vlaiziklxvpykzsuvinn.supabase.co wss://vlaiziklxvpykzsuvinn.supabase.co https://kauth.kakao.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -46,6 +46,8 @@ button:disabled,[aria-disabled="true"]{cursor:default}
 input,textarea,select{font:inherit;color:var(--ink)}
 :focus-visible{outline:3px solid var(--sec);outline-offset:2px}
 .bh{font-family:'Black Han Sans',sans-serif;font-weight:400}
+/* 소제목과 강조 값: 본문 글씨체 굵게 (글씨체 1안). 대제목만 .bh */
+.bs{font-family:'IBM Plex Sans KR',sans-serif;font-weight:700;font-size:18px;line-height:1.35}
 .bc{font-family:'Barlow Condensed','IBM Plex Sans KR',sans-serif;font-weight:700}
 .sub{color:var(--sub)}
 .page{max-width:480px;min-height:100dvh;margin:0 auto;background-color:var(--bg);background-image:var(--grid);background-size:16px 16px;display:flex;flex-direction:column;position:relative}
@@ -91,7 +93,7 @@ input,textarea,select{font:inherit;color:var(--ink)}
 .box.dash{border:2px dashed var(--ink);color:var(--sub);box-shadow:none;background:var(--white)}
 .sec{display:flex;flex-direction:column;gap:12px;border-top:2px solid var(--ink);padding-top:12px}
 .sec>.sh{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.sec>.sh b{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:20px}
+.sec>.sh b{font-family:'IBM Plex Sans KR',sans-serif;font-weight:700;font-size:18px}
 /* 목록: 메뉴는 흰 카드가 한 장씩, 그냥 목록은 옅은 줄로 나눔 */
 .lst{display:flex;flex-direction:column;gap:12px}
 .lr{border:2px solid var(--ink);border-radius:12px;background:var(--white);box-shadow:var(--sh);width:100%;min-height:64px;padding:8px 16px;display:flex;align-items:center;gap:12px;text-align:left;font-size:16px;text-decoration:none;color:var(--ink)}
@@ -127,7 +129,7 @@ textarea.inp{height:auto;min-height:120px;padding:8px 12px;line-height:1.7;resiz
 .cn{display:flex;align-items:baseline;gap:4px}
 .empty{border:2px dashed var(--ink);border-radius:12px;background:var(--white);padding:32px 16px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;color:var(--sub)}
 .empty b{color:var(--ink);font-size:16px}
-.stamp{transform:rotate(-4deg);background:var(--white);border:2px solid var(--ink);border-radius:8px;padding:8px 16px;font-family:'Black Han Sans',sans-serif;font-size:20px;box-shadow:var(--sh)}
+.stamp{transform:rotate(-4deg);background:var(--white);border:2px solid var(--ink);border-radius:8px;padding:8px 16px;font-family:'IBM Plex Sans KR',sans-serif;font-weight:700;font-size:18px;box-shadow:var(--sh)}
 /* 아래에서 올라오는 창 */
 .scrim{position:fixed;inset:0;background:rgba(18,17,16,.55);z-index:40;display:flex;align-items:flex-end;justify-content:center}
 .sheet{background:var(--bg);border-top:2px solid var(--ink);border-radius:22px 22px 0 0;width:100%;max-width:480px;max-height:92dvh;overflow-y:auto;padding:8px 24px calc(28px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px}
@@ -320,8 +322,6 @@ html.pc .page{max-width:none;background-image:var(--grid)}
 .pnv>a:hover svg{stroke:var(--ink)}
 .pnv>a:active,.pnv>a[aria-current]{transform:translate(-3px,-3px);box-shadow:0 0 0 2px var(--ink);z-index:2}
 .pnv>a.lift{animation:mbnlift .36s cubic-bezier(.3,1.6,.5,1) both}
-/* PC 팀 챕터 오른쪽 칸: 칸 안 소제목(포지션 묶음, 팀 수칙, 공지 제목)은 본문 글씨체 굵게. 화면 맨 위 제목은 그대로 */
-html.pc .pcr2:is([data-p="notices"],[data-p="notice"],[data-p="rules"],[data-p="rules-edit"],[data-p="money"],[data-p="members"],[data-p="stats"]) .bh{font-family:'IBM Plex Sans KR',sans-serif!important;font-weight:700!important;font-size:18px!important}
 @media (prefers-reduced-motion:reduce){.pnv>a{transition:none}.pnv>a.lift{animation:none}}
 .pnv>.off{color:var(--mute);cursor:default}
 .pnv>.off svg{stroke:var(--mute)}
@@ -428,7 +428,7 @@ html.pc .toast{bottom:40px}
 .tcr{display:grid;grid-template-columns:1fr 1fr;border-top:2px solid var(--ink)}
 .tcs{position:relative;display:flex;flex-direction:column;gap:4px;padding:12px 14px;color:inherit;text-decoration:none}
 .tcs+.tcs{border-left:2px solid var(--ink)}
-.tcs .bh{font-size:18px;line-height:1.3}
+.tcs .bs{font-size:18px;line-height:1.3}
 .tcg{position:absolute;top:10px;right:8px}
 .tgrid{display:grid;grid-template-columns:1fr 1fr;border:2px solid var(--ink);border-radius:14px;background:var(--white);box-shadow:4px 4px 0 var(--ink);overflow:hidden}
 .tg{position:relative;display:flex;flex-direction:column;gap:6px;min-height:118px;padding:14px;color:var(--ink);text-decoration:none;border-top:2px solid var(--ink)}
@@ -521,6 +521,14 @@ html.pc .pcr2[data-p="season"] .body .punch[data-off]{border-style:dashed!import
 .hd .chal{height:36px;box-shadow:none;font-size:12px}
 .chpcbar{display:flex;justify-content:flex-end}
 .chr.chall{background:var(--sec3)}
+/* 운영진 대화방: 운영 챕터의 보라색으로 팀원 방과 구분 */
+.chr.chops,.chr.chops.on,html.pc .chr.chops{background:#E3D7FB}
+.chr.chops .chd.ic{background:#B093E5}
+.chr.chops .cht>span{color:#4A3F5C}
+.chtag.ink{background:var(--ink);color:var(--bg)}
+.chopsbar{flex:none;display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:2px solid var(--ink);background:#E3D7FB;font-size:12px;line-height:1.5}
+.chopsbar .ic{flex:none;width:32px;height:32px;box-sizing:border-box;border:2px solid var(--ink);border-radius:8px;background:#B093E5;display:flex;align-items:center;justify-content:center}
+.chopsbar .ic svg{width:18px;height:18px}
 .chd.ic{background:var(--sec2)}
 .chtag{display:inline-block;margin-left:6px;font-style:normal;font-size:10px;font-weight:700;border:2px solid var(--ink);border-radius:5px;padding:0 4px;background:var(--white);vertical-align:2px}
 .cht .chps{font-size:11px}
@@ -814,7 +822,7 @@ html.pcwide .page{max-width:none}
 .xmine .big{font-size:18px;font-weight:700}
 .xmine .note{font-size:12px}
 </style>
-  <script type="module" crossorigin src="../../assets/team-BG0f1xRP.js"></script>
+  <script type="module" crossorigin src="../../assets/team-C-Nz3A9y.js"></script>
   <link rel="modulepreload" crossorigin href="../../assets/modulepreload-polyfill-B5Qt9EMX.js">
 </head>
 <body>
