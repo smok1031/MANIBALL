@@ -318,6 +318,8 @@ html.pc .page{max-width:none;background-image:var(--grid)}
 .pnv>a:hover svg{stroke:var(--ink)}
 .pnv>a:active,.pnv>a[aria-current]{transform:translate(-3px,-3px);box-shadow:0 0 0 2px var(--ink);z-index:2}
 .pnv>a.lift{animation:mbnlift .36s cubic-bezier(.3,1.6,.5,1) both}
+/* PC 팀 챕터 오른쪽 칸: 칸 안 소제목(포지션 묶음, 팀 수칙, 공지 제목)은 본문 글씨체 굵게. 화면 맨 위 제목은 그대로 */
+html.pc .pcr2:is([data-p="notices"],[data-p="notice"],[data-p="rules"],[data-p="rules-edit"],[data-p="money"],[data-p="members"],[data-p="stats"]) .bh{font-family:'IBM Plex Sans KR',sans-serif!important;font-weight:700!important;font-size:18px!important}
 @media (prefers-reduced-motion:reduce){.pnv>a{transition:none}.pnv>a.lift{animation:none}}
 .pnv>.off{color:var(--mute);cursor:default}
 .pnv>.off svg{stroke:var(--mute)}
