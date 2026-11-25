@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<script src="../maint-config.js?v=072982f"></script>
-<script src="../maint-gate.js?v=072982f"></script>
+<script src="../maint-config.js?v=c530f90"></script>
+<script src="../maint-gate.js?v=c530f90"></script>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://vlaiziklxvpykzsuvinn.supabase.co wss://vlaiziklxvpykzsuvinn.supabase.co https://kauth.kakao.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -315,7 +315,11 @@ html.pc .page{max-width:none;background-image:var(--grid)}
 .pnv svg{stroke:var(--sub);flex:none}
 .pnv>a[aria-current]{background:var(--c);color:var(--ink);font-weight:700}
 .pnv>a[aria-current] svg{stroke:var(--ink)}
-.pnv>a:hover:not([aria-current]){background:#F6F2EA}
+.pnv>a{transition:transform .16s ease-out,box-shadow .16s ease-out,background-color .16s ease-out}
+.pnv>a:hover:not([aria-current]){background:#F6F2EA;transform:translate(-2px,-2px);box-shadow:0 0 0 2px var(--ink);z-index:1}
+.pnv>a:active,.pnv>a[aria-current]{transform:translate(-3px,-3px);box-shadow:0 0 0 2px var(--ink);z-index:2}
+.pnv>a.lift{animation:mbnlift .36s cubic-bezier(.3,1.6,.5,1) both}
+@media (prefers-reduced-motion:reduce){.pnv>a{transition:none}.pnv>a.lift{animation:none}}
 .pnv>.off{color:var(--mute);cursor:default}
 .pnv>.off svg{stroke:var(--mute)}
 .pnv>.off i,.pcn{margin-left:auto;font-style:normal}
@@ -807,7 +811,7 @@ html.pcwide .page{max-width:none}
 .xmine .big{font-size:18px;font-weight:700}
 .xmine .note{font-size:12px}
 </style>
-  <script type="module" crossorigin src="../../assets/team-DVuJP_PB.js"></script>
+  <script type="module" crossorigin src="../../assets/team-Ce7aHaem.js"></script>
   <link rel="modulepreload" crossorigin href="../../assets/modulepreload-polyfill-B5Qt9EMX.js">
 </head>
 <body>
