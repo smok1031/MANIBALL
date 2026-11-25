@@ -8,7 +8,7 @@ import { adminRoute, adminForm, AACT, eventFormInit, remindLeft, remindSheet, pl
 import { hd as uiHd, navBar, C, IC, teamLogo, setSec } from "./ui.js";
 import { pushInit, pushToggle, pushDetach, kakaoOff } from "./push.js";
 import { chatLoad, chatOnChange, CHACT } from "./chat.js";
-import { isPC, onPCChange, pcShell, pcSplit } from "./pc.js";
+import { isPC, onPCChange, pcShell, pcSplit, pcMarkSel } from "./pc.js";
 import { XACT } from "./xteam.js";
 
 const URL_ = import.meta.env.VITE_SUPABASE_URL || SUPABASE_URL;
@@ -253,7 +253,7 @@ const FUT_OLD = { GK: "골레이로", DF: "픽소", LW: "아라", RW: "아라", 
 const posFix = x => sport() === "futsal" ? FUT_OLD[x] || x : SOC_OLD[x] || x;
 const profileOf = u => { const p = (S.rsvp[u] && S.rsvp[u].profile) || null; if (!p) return p; const a = posFix(p.pos1), b = posFix(p.pos2); return { ...p, pos1: a, pos2: b === a ? "" : b }; };
 const myProfile = () => profileOf(S.uid);
-const nameOf = u => (profileOf(u) && profileOf(u).name) || (S.members.find(m => m.user_id === u) || {}).display_name || "이름 없음";
+const nameOf = u => (profileOf(u) && profileOf(u).name) || (S.members.find(m => m.user_id === u) || {}).display_name || (u ? "나간 팀원" : "모름");
 const people = () => S.members.map(m => ({ uid: m.user_id, role: m.role, name: nameOf(m.user_id), p: profileOf(m.user_id) || {} }));
 // 풋살은 늦참이 없다: 고를 수 없고, 예전에 늦참으로 낸 표는 참석으로 센다
 export const noLate = () => sport() === "futsal";
@@ -1195,6 +1195,7 @@ function render() {
   const pos = sel && "selectionStart" in act ? act.selectionStart : null;
   app.innerHTML = html;
   hideLinks(app);
+  if (pcOn) pcFeel(app);
   tuneInputs(app);
   askCheck();
   if (sel) { const el = app.querySelector(sel); if (el) { el.focus(); try { if (pos != null) el.setSelectionRange(pos, pos); } catch (e) { /* 날짜 칸 */ } } }
@@ -1425,6 +1426,28 @@ const ACT = {
   logout: () => confirmBox("로그아웃", "이 기기에서 로그아웃할까요?", "로그아웃", async () => { await pushDetach(); try { await sb.auth.signOut(); } catch (e) { /* 그래도 처음으로 */ } ls.set("mb-team", null); picked.clear(); location.replace(APP); }),
 };
 Object.assign(ACT, ACT2, ACT3, ACT4, ACT5, AACT, MACT, CHACT, XACT);
+// PC: 누르는 칸을 모양에 따라 나눠서 마우스를 올리면 살짝 들리고, 고른 칸은 들린 채로 보여요
+// pk-card: 테두리와 먹색 그림자가 있는 카드, pk-tk: 종이 티켓, pk-row: 테두리 없는 줄
+function pcFeel(root) {
+  const skip = ".chip,.chtab,.qc,.qq,.sgt,.sgs button,.sw,.btn,.pck,input,select,textarea";
+  root.querySelectorAll('.pcm a[data-href], .pcm [data-tk], .pcm button, .pcm a[data-act]').forEach(el => {
+    if (el.matches(skip) || el.disabled) return;
+    const up = el.parentElement && el.parentElement.closest(".pk-card,.pk-tk"); if (up) return;
+    const cs = getComputedStyle(el); const r = el.getBoundingClientRect();
+    if (r.width < 80 || r.height < 36 || cs.transform !== "none") return;
+    const ink = /rgb\(18, 17, 16\)/.test(cs.boxShadow) && /[1-9]px [1-9]px 0px/.test(cs.boxShadow);
+    if (el.matches(".pt,.ru,.rtk,[data-tk],.xl .xc")) el.classList.add("pk-tk");
+    else if (ink && parseFloat(cs.borderTopWidth) >= 2) el.classList.add("pk-card");
+    else if (el.closest(".pcl2,.pnl") || el.matches(".tcs,.nli,.mrow,.row")) el.classList.add("pk-row");
+  });
+  if (pcMarkSel) { const on = root.querySelector(".pcl2 " + pcMarkSel); if (on) on.classList.add("pk-on"); }
+  // 팀 설정: 왼쪽, 오른쪽 칸을 따로 쌓아서 서로 높이에 끌려 빈칸이 생기지 않게
+  root.querySelectorAll('.pcr2[data-p="settings"] .body').forEach(b => {
+    if (!b.querySelector(":scope>.sc2")) return;
+    const L = document.createElement("div"), R = document.createElement("div"); L.className = R.className = "scc";
+    [...b.children].forEach(k => (k.classList.contains("sc2") ? R : L).appendChild(k)); b.append(L, R);
+  });
+}
 // 화면 안의 링크는 주소를 data-href로 옮겨서 마우스를 올려도 브라우저 왼쪽 아래에 주소가 뜨지 않게 해요
 function hideLinks(root) {
   root.querySelectorAll('a[href^="#"]').forEach(a => { if (a.dataset.act) return; const h = a.getAttribute("href"); if (h === "#") return; a.dataset.href = h; a.removeAttribute("href"); a.setAttribute("role", a.getAttribute("role") || "link"); if (!a.hasAttribute("tabindex")) a.tabIndex = 0; });
@@ -1440,7 +1463,7 @@ document.addEventListener("click", ev => {
 
 /* ---------- 시작 ---------- */
 function startCreate() { S.flow = "create"; S.form = { name: "", sport: "futsal", feeMode: "monthly", fee: "", dueDay: "5", ...policyFormInit({}), rulesText: "", rules: [{ label: "지각", amount: "", kind: "late", klabel: "지각" }, { label: "말없이 불참", amount: "", kind: "absent", klabel: "말없이 불참" }, { label: "마감 뒤 불참", amount: "", kind: "cancel", klabel: "마감 뒤 불참" }] }; render(); }
-function startProfile() { const p = myProfile() || {}; const dn = nameOf(S.uid); S.flow = "profile"; S.form = { name: p.name || (dn && !["팀원", "이름 없음"].includes(dn) ? dn : "") || suggestedName(), num: p.num || "", pos1: p.pos1 || "", pos2: p.pos2 || "", foot: p.foot || "" }; render(); }
+function startProfile() { const p = myProfile() || {}; const dn = nameOf(S.uid); S.flow = "profile"; S.form = { name: p.name || (dn && !["팀원", "이름 없음", "나간 팀원", "모름"].includes(dn) ? dn : "") || suggestedName(), num: p.num || "", pos1: p.pos1 || "", pos2: p.pos2 || "", foot: p.foot || "" }; render(); }
 function suggestedName() { const m = (S.session && S.session.user.user_metadata) || {}; return String(m.nickname || m.name || m.full_name || "").slice(0, 20); }
 async function enter(tid) {
   hist.set([]); // 팀을 바꾸면 뒤로 가기 기록도 새로

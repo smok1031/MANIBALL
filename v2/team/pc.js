@@ -1,6 +1,6 @@
 // PC 화면 (브라우저 가로 1024px 이상): PC 시안처럼 왼쪽 메뉴와 넓은 본문. 휴대폰 화면은 그대로 둔다.
 // 화면 내용은 휴대폰과 같은 코드로 그리고, 여기서는 왼쪽 메뉴로 감싸기만 한다 (휴대폰과 PC가 엇갈리지 않게).
-import { S, esc, isAdmin, viewMode, myProfile, nameOf, sport, MBRAND, upcoming, past, isPlay, isCanceled, md, wd, route, scrimReady } from "./main.js";
+import { S, esc, isAdmin, viewMode, myProfile, nameOf, sport, MBRAND, upcoming, past, isPlay, isCanceled, md, wd, route, scrimReady, evStart } from "./main.js";
 import { teamLogo, C, IC } from "./ui.js";
 import { chatUnread } from "./chat.js";
 
@@ -107,7 +107,12 @@ const SPL = [
   { list: "/ops", det: /^\/(requests|posreqs|dues|fines|policy|settings)$/, def: () => "/requests", admin: true,
     mark: d => `a[href="#${d}"]`, pane: (d, h) => ({ kind: "운영", title: h.title }) },
 ];
+export let pcMarkSel = ""; // 왼쪽 목록에서 지금 고른 칸 (main이 렌더 뒤에 pk-on을 붙여요)
 export function pcSplit(r, page) {
+  pcMarkSel = "";
+  // 끝난 경기를 일정 주소로 열면 (휴대폰처럼) 기록 칸에서 연다
+  const pe = /^\/event\//.test(r) && evOf(r);
+  if (pe && !isCanceled(pe) && isPlay(pe) && Date.now() - evStart(pe) > 3 * 3600e3) r = "/game/" + pe.id;
   const sp = SPL.find(x => (r === x.list || x.det.test(r)) && (!x.admin || (isAdmin() && viewMode() === "admin")));
   if (!sp) return null;
   const d = r === sp.list ? sp.def() : r;
@@ -139,6 +144,6 @@ export function pcSplit(r, page) {
     const back = rh.back && rh.back !== "#" + sp.list && rh.back !== "#/" ? rh.back : "";
     right = paneHead({ kind: meta.kind, title: meta.title || rh.title, sub: rh.brand ? "" : rh.sub, right: rh.right, back, backAct: rh.backAct }) + html_(R);
   } else right = `<div class="pce"><div class="empty"><b>왼쪽에서 골라 주세요</b><span>고른 항목이 여기에 자세히 보여요.</span></div></div>`;
-  const mark = d ? sp.mark(d).replace(/a\[href=/g, "[data-href=") : "";
-  return `${head}<div class="pcsplit2"><div class="pcl2" data-p="${esc(sp.list.slice(1) || "home")}">${html_(L)}</div><section class="pcr2" data-p="${esc((d || "").split("/")[1] || "")}" aria-label="자세히">${right}</section></div>${mark ? `<style>.pcl2 ${mark}:not(.tcs){transform:translate(-3px,-3px)!important;box-shadow:7px 7px 0 var(--ink)!important;position:relative;z-index:1}.pcl2 ${mark}.tcs{background:var(--sec3)}</style>` : ""}`;
+  const mark = d ? sp.mark(d).replace(/a\[href=/g, "[data-href=") : ""; pcMarkSel = mark;
+  return `${head}<div class="pcsplit2"><div class="pcl2" data-p="${esc(sp.list.slice(1) || "home")}">${html_(L)}</div><section class="pcr2" data-p="${esc((d || "").split("/")[1] || "")}" aria-label="자세히">${right}</section></div>`;
 }

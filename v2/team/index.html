@@ -463,15 +463,18 @@ html.pc .toast{bottom:40px}
 .pcm>span:last-child{font-size:12px;color:var(--sub);line-height:1.5}
 .pcm.dg{background:#F6E9E2}
 .pcm.dg b{color:#8C3B28}
-html.pc .evform{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));column-gap:16px;row-gap:14px;align-items:start}
-html.pc .evform>*{grid-column:span 6}
-html.pc .evform>.ef-date{grid-column:span 2}
-html.pc .evform>.ef-time{grid-column:span 4}
-html.pc .evform>.ef-place,html.pc .evform>.ef-opp,html.pc .evform>.ef-kit1,html.pc .evform>.ef-kit2{grid-column:span 3}
+html.pc .evform{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:24px;row-gap:16px;align-items:start;align-content:start}
+html.pc .evform>*{grid-column:auto;min-width:0}
+html.pc .evform>.ef-opp,html.pc .evform>.ef-bot{grid-column:1 / -1}
 html.pc .evform .tbk{display:flex!important;gap:8px;padding:0!important}
 html.pc .evform .tbk .box{flex:none;min-width:88px;padding:8px 16px!important;border-radius:20px!important;transform:none!important;box-shadow:none!important;font-size:14px}
-html.pc .evform>.ef-bot{display:grid!important;grid-template-columns:1fr 1fr;column-gap:16px}
-html.pc .evform>.ef-bot>.dlbox,html.pc .evform>.ef-bot>.note{grid-column:1 / -1}
+html.pc .evform>.ef-bot{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:24px;row-gap:14px;align-items:center}
+html.pc .evform>.ef-bot>*{grid-column:1 / -1;min-width:0}
+html.pc .evform>.ef-bot>.ef-cap{grid-column:1;grid-row:1}
+html.pc .evform>.ef-bot>.ef-cb{grid-column:2;grid-row:1}
+html.pc .evform>.ef-bot:not(:has(.ef-cap))>.ef-cb{grid-column:1}
+html.pc .evform>.ef-bot>.dlbox{grid-column:1 / -1}
+html.pc .evform>.ef-bot .row>span:last-child{white-space:nowrap}
 html.pc .rrow{grid-template-columns:1fr 1.4fr 120px 46px!important}
 .ptbl{width:100%;border-collapse:separate;border-spacing:0;border:2px solid var(--ink);border-radius:12px;overflow:hidden;background:var(--white);font-size:13px}
 .ptbl th{background:var(--ink);color:var(--bg);text-align:left;font-size:12px;padding:8px 10px}
@@ -495,10 +498,12 @@ html.pc .rrow{grid-template-columns:1fr 1.4fr 120px 46px!important}
 .dues3>span>span{font-size:12px;font-weight:700}
 .dues3 b{font-size:32px;line-height:1}
 .dues3 small{font-size:14px}
-html.pc .pcr2[data-p="settings"] .body{display:grid!important;grid-template-columns:1fr 1fr;column-gap:24px;align-items:start;grid-auto-flow:row dense}
+html.pc .pcr2[data-p="settings"] .body{display:grid!important;grid-template-columns:1fr 1fr;column-gap:24px;align-items:start;align-content:start;grid-auto-flow:row dense}
 html.pc .pcr2[data-p="settings"] .body>*{grid-column:1}
 html.pc .pcr2[data-p="settings"] .body>.sc2{grid-column:2}
 html.pc .pcr2[data-p="settings"] .body>:not(.sc2){grid-column:1}
+html.pc .pcr2[data-p="settings"] .body>.scc{display:flex;flex-direction:column;gap:16px;min-width:0}
+html.pc .pcr2[data-p="settings"] .body>.scc+.scc{grid-column:2}
 html.pc .pcr2[data-p="season"] .body .punch{border-radius:4px!important;width:100%!important;height:28px!important;box-sizing:border-box}
 html.pc .pcr2[data-p="season"] .body .pdate{display:none}
 html.pc .pcr2[data-p="season"] .body .punch[data-off]{border-style:dashed!important}
@@ -572,17 +577,19 @@ html.pc .pcr2[data-p="season"] .body .punch[data-off]{border-style:dashed!import
 .pnl>.body{padding:0!important;max-width:none}
 .pnd>.body{padding:20px 24px!important;max-width:none;border:2px solid var(--ink);border-radius:12px;background:var(--white)}
 /* PC 두 열 칸 (시안): 수칙 | 벌금, 금액과 계좌 | 낼 돈과 낸 돈, 팀 성적 | 내 출석, 골 기록 | 이날 온 사람 */
-.pcr2[data-p="rules"]>.body,.pcr2[data-p="money"]>.body,.pcr2[data-p="season"]>.body,.pcr2[data-p="game"]>.body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:24px;row-gap:16px;align-items:start;grid-auto-flow:row dense}
+.pcr2[data-p="rules"]>.body,.pcr2[data-p="money"]>.body,.pcr2[data-p="season"]>.body,.pcr2[data-p="game"]>.body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:24px;row-gap:16px;align-items:start;align-content:start;grid-auto-flow:row dense}
 .pcr2[data-p="money"]>.body>.mcol{display:flex;flex-direction:column;gap:16px;min-width:0}
 /* 주소가 왼쪽 아래에 뜨지 않게 링크는 data-href로 바꿔서 눌러요 */
 a[data-href]{cursor:pointer}
-/* PC 목록: 마우스를 올리면 살짝 들리고, 고른 칸은 더 들려 있어요 (챕터 메뉴와 같은 느낌) */
-html.pc .pcl2 .lr,html.pc .pcl2 a[data-href].box,html.pc .pcl2 [data-tk],html.pc .pcl2 .rtk{transition:transform .15s ease,box-shadow .15s ease}
-html.pc .pcl2 .lr:hover,html.pc .pcl2 a[data-href].box:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--ink)}
-html.pc .pcl2 [data-tk]:hover,html.pc .pcl2 a[data-href]:not(.lr):not(.box):not(.tcs):hover{transform:translate(-2px,-2px)}
-html.pc .pcl2 .tcs{transition:background .15s ease}
-html.pc .pcl2 .tcs:hover{background:rgba(255,255,255,.55)}
-@media (prefers-reduced-motion: reduce){html.pc .pcl2 *{transition:none!important}}
+/* PC: 마우스를 올리면 살짝 들리고, 고른 칸은 들린 채로 (챕터 메뉴와 같은 느낌). 모양별로 그림자를 따로 줘요 */
+html.pc .pk-card,html.pc .pk-tk,html.pc .pk-row{transition:transform .15s ease,box-shadow .15s ease,filter .15s ease,background-color .15s ease}
+html.pc .pk-card:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--ink)!important}
+html.pc .pk-card.pk-on{transform:translate(-3px,-3px);box-shadow:7px 7px 0 var(--ink)!important;position:relative;z-index:1}
+html.pc .pk-tk:hover{transform:translate(-2px,-2px);filter:drop-shadow(3px 3px 0 rgba(18,17,16,.55))}
+html.pc .pk-tk.pk-on{transform:translate(-3px,-3px);filter:drop-shadow(5px 5px 0 #121110);position:relative;z-index:1}
+html.pc .pk-row:hover{background-color:rgba(18,17,16,.04)}
+html.pc .pk-row.pk-on{background-color:var(--sec3)}
+@media (prefers-reduced-motion: reduce){html.pc .pk-card,html.pc .pk-tk,html.pc .pk-row{transition:none}}
 .pcr2[data-p="season"]>.body>section,.pcr2[data-p="game"]>.body>:not(section){grid-column:1 / -1}
 .pcr2[data-p="season"]>.body>.spread:first-child{flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:12px;border:2px solid var(--ink)!important;border-radius:12px;background:var(--white);padding:16px!important;align-self:stretch}
 .pcr2[data-p="season"] section[aria-label="경기별 내 출석"]{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:24px}
@@ -612,13 +619,10 @@ html.pc .pcl2 .tcs:hover{background:rgba(255,255,255,.55)}
 .pcr2[data-p="dues"]>.body>div:last-child{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
 .pcr2[data-p="dues"]>.body>div:last-child>.row{border:2px solid var(--ink)!important;border-radius:10px;background:var(--white);padding:0 8px 0 4px;min-height:48px!important}
 /* PC 기본 운영 규칙, 팀 설정 (시안): 두 열 */
-.pcr2[data-p="policy"]>.body,.pcr2[data-p="settings"]>.body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:24px;align-items:start}
+.pcr2[data-p="policy"]>.body,.pcr2[data-p="settings"]>.body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:24px;align-items:start;align-content:start}
 .pcr2[data-p="policy"]>.body>*,.pcr2[data-p="settings"]>.body>*{min-width:0}
 .pcr2[data-p="policy"]>.body>:first-child,.pcr2[data-p="policy"]>.body>:nth-child(2),.pcr2[data-p="policy"]>.body>:last-child{grid-column:1 / -1}
 /* PC 입력 화면 (시안): 일정 올리기와 고치기는 두 열, 아래 버튼은 오른쪽 */
-.pcr2[data-p="new"]>.body,.pcr2[data-p="edit"]>.body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:24px;row-gap:16px;align-items:start}
-.pcr2[data-p="new"]>.body>*,.pcr2[data-p="edit"]>.body>*{grid-column:1 / -1;min-width:0}
-.pcr2[data-p="new"]>.body>label.fld,.pcr2[data-p="edit"]>.body>label.fld,.pcr2[data-p="new"]>.body>.grid2,.pcr2[data-p="edit"]>.body>.grid2,.pcr2[data-p="new"]>.body>.fld:has(input[data-bind="opponent"]),.pcr2[data-p="edit"]>.body>.fld:has(input[data-bind="opponent"]){grid-column:auto}
 .pcr2>.cta{display:flex;flex-direction:row;justify-content:flex-end;align-items:center;gap:12px;padding:16px 24px;background:var(--white);border-top:2px solid var(--line)}
 .pcr2>.cta .btn.block{width:auto;min-width:180px;height:48px;padding:0 24px}
 /* PC 로그인 (시안) */
