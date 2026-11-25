@@ -576,6 +576,12 @@ export function memberRoute(r) {
   if (r === "/posreq") return mPosReq();
   if (r === "/schedule") return mSchedule();
   if (r === "/chat") return vChat();
+  // 매칭, 용병 구인, 용병 구직은 PC 전용. 휴대폰에서 주소로 들어오면 홈으로 보내고 알려 준다
+  if (/^\/(match|hire|seek)$/.test(r) && !isPC()) {
+    try { history.replaceState(null, "", location.pathname + location.search + "#/"); } catch (e) {}
+    setTimeout(() => toast("매칭, 용병 구인, 용병 구직은 PC에서 써요"), 0);
+    return mHome();
+  }
   if (r === "/match") return vMatch();
   if (r === "/hire") return vHire();
   if (r === "/seek") return vSeek();
@@ -598,7 +604,7 @@ export function memberForm(r) {
   if (/^\/game\//.test(r)) { MU.mom = ""; MU.momFor = ""; return true; }
   if (/^\/event\//.test(r)) { MU.lq = 1; return true; }
   if (/^\/chat/.test(r)) { chatEnter(); return true; }
-  if (/^\/(match|hire|seek)$/.test(r)) { xEnter(); return true; }
+  if (/^\/(match|hire|seek)$/.test(r) && isPC()) { xEnter(); return true; }
   return false;
 }
 let undoT = 0;
