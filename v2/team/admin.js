@@ -79,7 +79,7 @@ function aOps() {
       ${lrow({ href: "#/dues", icon: IC.card, tone: "clay", title: "회비 관리", sub: feeMode() === "none" ? "회비를 안 받아요" : "달마다 낸 사람 체크", right: dn.text && feeMode() !== "none" ? (isPC() ? `<span class="tag yel">${esc(dn.text)}</span>` : big(dn.text)) : "", big: true })}
       ${lrow({ href: "#/fines", icon: IC.receipt, tone: "orange", title: "벌금 관리", sub: "매기고, 낸 것 체크", right: fineN ? (isPC() ? `<span class="tag yel">안 낸 ${fineN}건</span>` : `<span class="tag ink">안 낸 ${fineN}건</span>`) : "", big: true })}
       ${lrow({ href: "#/policy", icon: IC.shield, tone: "blue", title: "기본 운영 규칙", sub: "정원, 마감, 출석, 내전 기준", big: true })}
-      ${lrow({ href: "#/settings", icon: IC.gear, title: "팀 설정", sub: "초대 링크, 가입 승인제, 팀 지우기", big: true })}
+      ${lrow({ href: "#/settings", icon: IC.gear, title: "팀 설정", sub: "초대 링크, 가입 승인제, 팀 지우기 요청", big: true })}
     </nav>
   </div>${nav("운영")}`;
 }

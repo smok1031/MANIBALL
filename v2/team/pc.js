@@ -130,7 +130,7 @@ export function pcSplit(r, page) {
     const cur = d === "/notices" ? ids[0] : decodeURIComponent(d.slice(8));
     let read = "";
     if (cur) { const RD = frag(page("/notice/" + cur)); takeHd(RD); read = html_(RD); }
-    const sel = cur ? `<style>.pnl a[href="#/notice/${cssq(encodeURIComponent(cur))}"],.pnl a[href="#/notice/${cssq(cur)}"]{background:var(--sec3);margin:0 -12px;padding-left:12px!important;padding-right:12px!important}</style>` : "";
+    const sel = cur ? `<style>.pnl [data-href="#/notice/${cssq(encodeURIComponent(cur))}"],.pnl [data-href="#/notice/${cssq(cur)}"]{background:var(--sec3)}</style>` : "";
     rHtml = `<header class="hd"><h1>${esc(nh.title)}</h1>${nh.right}</header><div class="pnr"><div class="pnl">${html_(LH)}</div><div class="pnd">${read || `<div class="pce">${"<div class=\"empty\"><b>공지가 없어요</b></div>"}</div>`}</div></div>${sel}`;
   }
   if (rHtml) {
@@ -139,6 +139,6 @@ export function pcSplit(r, page) {
     const back = rh.back && rh.back !== "#" + sp.list && rh.back !== "#/" ? rh.back : "";
     right = paneHead({ kind: meta.kind, title: meta.title || rh.title, sub: rh.brand ? "" : rh.sub, right: rh.right, back, backAct: rh.backAct }) + html_(R);
   } else right = `<div class="pce"><div class="empty"><b>왼쪽에서 골라 주세요</b><span>고른 항목이 여기에 자세히 보여요.</span></div></div>`;
-  const mark = d ? sp.mark(d) : "";
-  return `${head}<div class="pcsplit2"><div class="pcl2" data-p="${esc(sp.list.slice(1) || "home")}">${html_(L)}</div><section class="pcr2" data-p="${esc((d || "").split("/")[1] || "")}" aria-label="자세히">${right}</section></div>${mark ? `<style>.pcl2 ${mark}{outline:3px solid var(--ink);outline-offset:4px;border-radius:12px}</style>` : ""}`;
+  const mark = d ? sp.mark(d).replace(/a\[href=/g, "[data-href=") : "";
+  return `${head}<div class="pcsplit2"><div class="pcl2" data-p="${esc(sp.list.slice(1) || "home")}">${html_(L)}</div><section class="pcr2" data-p="${esc((d || "").split("/")[1] || "")}" aria-label="자세히">${right}</section></div>${mark ? `<style>.pcl2 ${mark}:not(.tcs){transform:translate(-3px,-3px)!important;box-shadow:7px 7px 0 var(--ink)!important;position:relative;z-index:1}.pcl2 ${mark}.tcs{background:var(--sec3)}</style>` : ""}`;
 }

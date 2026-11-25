@@ -726,7 +726,7 @@ function noticeCard(n, full) {
   const seen = (D("tally")["seen-" + n.id] || {}).n || 0;
   return `<div class="card">${n.pinned ? `<span class="tag" style="align-self:flex-start">고정</span>` : ""}<b style="font-size:16px">${esc(n.title)}</b>${n.body ? `<div style="white-space:pre-wrap;font-size:14px;color:#374151;line-height:1.6">${esc(full ? n.body : String(n.body).slice(0, 120))}</div>` : ""}
     ${n.poll && n.poll.opts ? `<div class="list">${n.poll.opts.map(o => `<button class="li" style="border:0;border-bottom:1px solid #F3F4F6;background:none;text-align:left;width:100%" data-act="pollVote" data-nid="${esc(n.id)}" data-opt="${esc(o.id)}" ${open ? "" : "disabled"}><span style="flex:1">${my === o.id ? "● " : "○ "}${esc(o.label)}</span><span class="hint">${(t.c || {})[o.id] || 0}명</span></button>`).join("")}</div><span class="hint">${open ? "누르면 투표돼요. 다시 누르면 취소돼요" : "마감된 설문이에요"}, ${t.n || 0}명 참여</span>` : ""}
-    <div class="spread hint"><span>${esc(String(n.at || "").slice(5, 10).replace("-", "."))}</span><span>${seen}명 읽음</span></div>
+    <div class="spread hint"><span>${esc(String(n.at || "").slice(5, 10).replace("-", "."))}</span></div>
     ${isAdmin() && full ? `<div class="row"><button class="btn sm" data-act="noticePin" data-id="${esc(n.id)}">${n.pinned ? "고정 풀기" : "맨 위에 고정"}</button><button class="btn sm danger" data-act="noticeDel" data-id="${esc(n.id)}">지우기</button></div>` : ""}</div>`;
 }
 function vNotices() {
@@ -1171,7 +1171,7 @@ function render() {
   else if (S.flow === "joinWait") html = vJoinWait();
   else if (S.flow === "profile") html = vProfile(false);
   else if (S.flow === "rules") html = vRules();
-  else if (!S.ready) html = `<div class="loading">불러오는 중이에요</div>`;
+  else if (!S.ready) html = `<div class="boot" role="status" aria-live="polite"><span class="bspin" aria-hidden="true"><i></i></span><span>불러오는 중이에요</span></div>`;
   else {
     const r = route();
     // 지금 화면이 속한 탭 색 (탭 첫 화면은 navBar가 다시 맞춤)
@@ -1194,6 +1194,7 @@ function render() {
   const sel = d.bind ? `[data-bind="${d.bind}"]` : d.rule != null ? `[data-rule="${d.rule}"][data-f="${d.f}"]` : d.opt != null ? `[data-opt="${d.opt}"]` : "";
   const pos = sel && "selectionStart" in act ? act.selectionStart : null;
   app.innerHTML = html;
+  hideLinks(app);
   tuneInputs(app);
   askCheck();
   if (sel) { const el = app.querySelector(sel); if (el) { el.focus(); try { if (pos != null) el.setSelectionRange(pos, pos); } catch (e) { /* 날짜 칸 */ } } }
@@ -1424,7 +1425,13 @@ const ACT = {
   logout: () => confirmBox("로그아웃", "이 기기에서 로그아웃할까요?", "로그아웃", async () => { await pushDetach(); try { await sb.auth.signOut(); } catch (e) { /* 그래도 처음으로 */ } ls.set("mb-team", null); picked.clear(); location.replace(APP); }),
 };
 Object.assign(ACT, ACT2, ACT3, ACT4, ACT5, AACT, MACT, CHACT, XACT);
+// 화면 안의 링크는 주소를 data-href로 옮겨서 마우스를 올려도 브라우저 왼쪽 아래에 주소가 뜨지 않게 해요
+function hideLinks(root) {
+  root.querySelectorAll('a[href^="#"]').forEach(a => { if (a.dataset.act) return; const h = a.getAttribute("href"); if (h === "#") return; a.dataset.href = h; a.removeAttribute("href"); a.setAttribute("role", a.getAttribute("role") || "link"); if (!a.hasAttribute("tabindex")) a.tabIndex = 0; });
+}
+document.addEventListener("keydown", ev => { if (ev.key !== "Enter" && ev.key !== " ") return; const a = ev.target.closest && ev.target.closest("a[data-href]"); if (!a) return; ev.preventDefault(); a.click(); });
 document.addEventListener("click", ev => {
+  const g = ev.target.closest("a[data-href]"); if (g && !ev.target.closest("[data-act]")) { ev.preventDefault(); const h = g.dataset.href; if (location.hash === h) render(); else location.hash = h; return; }
   const t = ev.target.closest("[data-act]"); if (!t) return;
   const f = ACT[t.dataset.act]; if (!f) return;
   if (t.tagName === "A") ev.preventDefault();
