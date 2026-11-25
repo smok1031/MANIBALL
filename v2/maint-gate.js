@@ -5,6 +5,12 @@
 // 점검이 아닐 때 새 버전이 올라와 있으면, 보내던 저장을 끝낸 뒤 한 번 새로 고친다.
 // 테스트 사이트는 ?maint=preview(&left=분) 로 DB 없이 그 탭에서만 안내 화면을 미리 볼 수 있다. ?maint=off 로 끝냄.
 (function () {
+  // 다른 사이트가 매니볼을 몰래 안에 띄워 누르게 하는 것(클릭재킹) 막기: 안에 띄워졌으면 화면을 감추고 매니볼로 바로 나간다
+  if (window.top !== window.self) {
+    try { document.documentElement.style.display = "none"; } catch (e) {}
+    try { window.top.location.replace(window.location.href); } catch (e) {}
+    return;
+  }
   var CFG = window.MB_CFG || {}, KEY = "mb-maint-sim";
   var path = location.pathname, isTest = /\/test\//.test(path), onMaint = /maint\.html$/.test(path);
   var v2 = path.replace(/\/v2\/.*$/, "/v2/"); if (!/\/v2\/$/.test(v2)) v2 = path.replace(/\/[^/]*$/, "/") + "v2/";
