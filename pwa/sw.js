@@ -1,5 +1,5 @@
 // 매니볼 알림 받기 전용 서비스 워커. 화면 파일은 저장(캐시)하지 않는다.
-// 알림이 오면 띄우고, 누르면 그 팀의 해당 화면을 연다.
+// 알림이 오면 소리와 진동 없이 띄우고, 누르면 그 팀의 해당 화면을 연다.
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil(self.clients.claim()));
 
@@ -11,6 +11,8 @@ self.addEventListener("push", e => {
   u.hash = String(d.url || "#/").replace(/^#?/, "");
   e.waitUntil(self.registration.showNotification(d.title || "매니볼", {
     body: d.body || "", tag: d.tag || undefined, icon: "icon-192.png", badge: "badge-96.png", data: { url: u.href },
+    // 매니볼 알림은 늘 무음: 소리와 진동 없이 화면에만 띄운다
+    silent: true,
   }));
 });
 
