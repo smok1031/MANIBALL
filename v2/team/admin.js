@@ -648,7 +648,7 @@ async function lineImg(e) {
   g.font = "30px 'Black Han Sans', sans-serif"; g.fillText("라인업", PAD, PAD + 50);
   const when = `${md(e.date)} ${wd(e.date)}${e.time ? " " + e.time : ""}`; const what = e.type === "match" ? (e.opponent ? "vs " + e.opponent : "상대 미정") : kindOf(e);
   g.font = "400 13px 'IBM Plex Sans KR', sans-serif"; g.fillText(fit([when, what, e.place || "", e.type === "training" ? "" : `${kitSideOf(e, side).toUpperCase()} ${teamKit()[kitSideOf(e, side)]} 유니폼`].filter(Boolean).join("   "), W - PAD * 2 - 130), PAD, PAD + 72);
-  const fx = fs ? `${fl.length}대${fl.length}` : fkey; g.font = "700 22px 'Barlow Condensed', sans-serif"; const fw = g.measureText(fx).width + 28;
+  const fx = fs ? `${fl.length}대${fl.length}` : fkey; g.font = "700 22px 'Barlow Condensed','IBM Plex Sans KR',sans-serif"; const fw = g.measureText(fx).width + 28;
   box(W - PAD - fw - 4, PAD + 30, fw, 38, 12, C.white, 4); g.fillStyle = C.ink; g.textAlign = "center"; g.fillText(fx, W - PAD - 4 - fw / 2, PAD + 57);
   g.fillRect(PAD, PAD + HEAD - 8, W - PAD * 2, 2);
   const SEC = (css.getPropertyValue("--sec") || "").trim() || "#14BBC2", SEC3 = (css.getPropertyValue("--sec3") || "").trim() || "#E2F7F8", SECT = (css.getPropertyValue("--sect") || "").trim() || "#005459";
@@ -668,7 +668,7 @@ async function lineImg(e) {
     const col = (k - 1) % COLS, row = Math.floor((k - 1) / COLS); const x0 = PAD + col * (PW + GAP), y0 = PAD + HEAD + row * (QH + PH + 4 + GAP);
     const q = (L.q || {})[k] || {}; const rest = ps.filter(p => !Object.values(q).includes(p.uid)).length;
     // 쿼터 카드
-    g.font = "700 20px 'Barlow Condensed', sans-serif"; box(x0, y0, 56, 30, 10, SEC2, 3); g.fillStyle = C.ink; g.textAlign = "center"; g.fillText(`${k}Q`, x0 + 28, y0 + 22);
+    g.font = "700 20px 'Barlow Condensed','IBM Plex Sans KR',sans-serif"; box(x0, y0, 56, 30, 10, SEC2, 3); g.fillStyle = C.ink; g.textAlign = "center"; g.fillText(`${k}Q`, x0 + 28, y0 + 22);
     g.font = "700 12px 'IBM Plex Sans KR', sans-serif"; g.textAlign = "right"; g.fillText(`쉬는 사람 ${rest}명`, x0 + PW, y0 + 21);
     // 경기장: 그림자, 줄무늬, 테두리, 선
     const py = y0 + QH; g.fillStyle = C.ink; rr(x0 + 4, py + 4, PW, PH, 12); g.fill();
@@ -684,7 +684,7 @@ async function lineImg(e) {
       const pin = !!u && pins.some(x => x.u === u && x.pos === pos && (x.qs || []).includes(k)); const off = u && !pin && !canPlay(pOf(u), pos); const guest = !!u && String(u).startsWith("g:");
       const hex = isKeeper(pos) ? kitHex(u && !guest ? gkKitOf(u) : "회색") : hexT; const top = cy - 40, jx = cx - 28;
       jersey(jx, top, u ? hex : "rgba(251,247,239,.45)", !u);
-      g.font = "700 16px 'Barlow Condensed', sans-serif"; g.textAlign = "center"; g.fillStyle = u ? onKit(hex) : C.ink; g.fillText(pos, cx, top + 39);
+      g.font = "700 16px 'Barlow Condensed','IBM Plex Sans KR',sans-serif"; g.textAlign = "center"; g.fillStyle = u ? onKit(hex) : C.ink; g.fillText(pos, cx, top + 39);
       if (pin) pinAt(jx, top);
       g.font = "700 12px 'IBM Plex Sans KR', sans-serif"; const label = fit(u ? nm(u) : "빈자리", 64); const gw = guest ? 20 : 0; const cw = Math.max(g.measureText(label).width + 20 + gw, 36), ch = 24, ty = top + 50;
       g.fillStyle = !u ? "rgba(251,247,239,.55)" : pin ? SEC2 : off ? OFFPOS : C.bg; rr(cx - cw / 2, ty, cw, ch, 12); g.fill();
