@@ -40,7 +40,7 @@ export function pcShell(html) {
     : `<span class="off" aria-disabled="true">${sv(ic)}<span>${l}</span><i>준비 중</i></span>`).join("");
   const p = myProfile() || {};
   const me = p.name || nameOf(S.uid);
-  const role = { owner: "Admin", admin: "운영진", member: "팀원" }[S.role] || "";
+  const role = { owner: "운영진", admin: "운영진", member: "팀원" }[S.role] || "";
   return `<div class="pcw"><aside class="pcs" aria-label="팀과 메뉴">${BRAND_()}
     <button type="button" class="pct" data-act="switchTeam" aria-label="${esc((S.team && S.team.name) || "")}, 팀 바꾸기"><span class="pctl">${teamLogo(40)}</span><span class="pctx"><b>${esc((S.team && S.team.name) || "")}</b><span>${sport() === "soccer" ? "축구팀" : "풋살팀"}  ${role}</span></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${C.ink}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"></path></svg></button>
     <nav class="pnv" aria-label="메뉴">${nav}</nav>

@@ -61,7 +61,7 @@ const NAVI = {
   대화: `<path d="M4 5h16v11H9l-5 4z"></path><path d="M8 9h8M8 12h5"></path>`,
   기록: `<path d="M3 20h18M6 20v-8M12 20V5M18 20v-5"></path>`,
   팀: `<circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16.5 14.6c2.4.3 4.2 2.1 4.8 5.4"></path>`,
-  운영: `<path d="M12 3l7 3v5c0 4.6-3 8.4-7 10-4-1.6-7-5.4-7-10V6z"></path><path d="M9 12l2 2 4-4"></path>`,
+  운영: `<path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"></path>`,
 };
 let lastTab = "";
 export function navBar(on) {

@@ -69,7 +69,7 @@ const kitPicker = (act, cur, extra = "", off = false) => `<div style="display:gr
 // 2026-11-20 측면 포지션을 하나로 묶음: 윙백은 풀백으로, 측면 미드필더는 윙어로 (예전 값은 posFix가 바꿔 읽는다)
 const SOC_OLD = { LWB: "LB", RWB: "RB", LM: "LW", RM: "RW" };
 const QN = { futsal: 8, soccer: 4 };
-const ROLE = { owner: "Admin", admin: "운영진", member: "팀원" };
+const ROLE = { owner: "운영진", admin: "운영진", member: "팀원" };
 const KIT = [["#164F33", "초록"], ["#111827", "검정"], ["#1E3A8A", "파랑"], ["#991B1B", "빨강"], ["#F5B841", "노랑"], ["#F3F4F6", "흰색"]];
 const numColor = c => ["#F5B841", "#F3F4F6"].includes(c) ? "#111827" : "#FFFFFF";
 
@@ -82,7 +82,7 @@ const viewMode = () => (isAdmin() && !(S.role === "owner" && ss.get("mb-review")
 function setView(v) { ss.set("mb-review", v === "member" ? "member" : null); }
 const isAdmin = () => S.role === "owner" || S.role === "admin";
 // 내보내기: Admin은 운영진과 팀원을, 운영진은 팀원만 (Admin은 아무도 못 내보낸다)
-const canKick = x => !!x && x.uid !== S.uid && x.role !== "owner" && (S.role === "owner" || (S.role === "admin" && x.role === "member"));
+const canKick = x => !!x && x.uid !== S.uid && isAdmin();
 
 /* ---------- 작은 도구 ---------- */
 let toastT = 0;
@@ -208,7 +208,7 @@ function watch(tid) {
     .on("postgres_changes", { event: "INSERT", schema: DB_SCHEMA, table: "members", filter: "team_id=eq." + tid }, refreshMembers)
     .on("postgres_changes", { event: "UPDATE", schema: DB_SCHEMA, table: "members", filter: "team_id=eq." + tid }, refreshMembers)
     .on("postgres_changes", { event: "*", schema: DB_SCHEMA, table: "join_requests", filter: "team_id=eq." + tid }, () => loadReqs().then(render).catch(() => {}))
-    .on("postgres_changes", { event: "*", schema: DB_SCHEMA, table: "chat", filter: "team_id=eq." + tid }, chatOnChange)
+    .on("postgres_changes", { event: "*", schema: DB_SCHEMA, table: "chat" }, chatOnChange) // 읽기 권한(RLS)이 거른다: 우리 팀 방, 매칭 방, 용병으로 간 방
     .subscribe();
 }
 async function refreshMembers() {
@@ -244,7 +244,7 @@ async function patchDoc(c, id, patch) {
   if (error) { restore(c, id, old); throw error; } if (data && data.data) put(c, id, data.data); scheduleRender();
 }
 async function delDoc(c, id) { const { error } = await sb.from("docs").delete().eq("team_id", S.tid).eq("coll", c).eq("id", id); if (error) throw error; drop(c, id); }
-const GUARD = { too_fast: "너무 빨리 반복하고 있어요. 잠시 뒤에 다시 해 주세요", event_canceled: "취소된 일정이라 바꿀 수 없어요", maintenance: "점검이 곧 시작돼서 저장되지 않았어요. 다시 열리면 한 번 더 눌러 주세요", not_closed: "아직 벌금 기준 시각 전이에요. 투표에서 바로 바꿔 주세요", need_late_cancel: "벌금 기준 시각이 지나서 사유를 남기고 불참으로 바꿔야 해요", mom_self: "MOM은 다른 사람에게만 줄 수 있어요", mom_not_came: "이날 온 사람만 MOM 투표를 할 수 있어요", guest_closed: "지금은 이 경기 용병 신청을 받지 않아요", event_started: "경기가 시작돼서 바꿀 수 없어요", not_going: "참석이나 늦참일 때만 바꿀 수 있어요", need_agree: "벌금에 동의해야 바꿀 수 있어요", admin_only: "Admin이나 운영진만 할 수 있어요", no_request: "이미 처리된 신청이에요", bad_request: "이름을 확인해 주세요", request_limit: "가입 신청은 한 번에 5팀까지 남길 수 있어요", vote_closed: "투표가 마감돼서 바꿀 수 없어요", no_event: "지워진 일정이에요", bad_vote: "저장할 수 없는 응답이에요", team_limit: "팀은 한 사람당 5개까지 만들 수 있어요", bad_code: "초대 링크가 바뀌었거나 잘못됐어요. 운영진에게 새 링크를 받아 주세요", mom_locked: "MOM 투표는 한 번만 낼 수 있어요", mom_closed: "MOM 투표 시간이 아니에요", no_player: "팀에 없는 사람이에요", poll_closed: "마감된 설문이에요", no_option: "없는 보기예요", no_poll: "지워진 설문이에요", owner_only: "Admin만 할 수 있어요", bad_inquiry: "평가 내용을 확인해 주세요", kick_denied: "운영진은 팀원만 내보낼 수 있어요", next_not_admin: "다음 Admin은 운영진 중에서 골라 주세요", owner_cannot_leave: "Admin은 다음 Admin을 정해야 나갈 수 있어요", not_self: "나에게는 할 수 없어요", not_allowed: "운영진만 할 수 있어요", owner_has_members: "팀원이 남아 있어요. 팀 설정에서 다음 Admin을 정하고 팀을 나가 주세요" };
+const GUARD = { last_admin: "마지막 운영진은 다음 운영진을 정해야 나갈 수 있어요", ask_maniball: "팀 지우기는 매니볼에 요청해 주세요", admin_only: "운영진만 할 수 있어요", slot_taken: "다른 사람이 먼저 자리를 잡았어요", no_ask: "물어본 자리가 없어요. 이미 지났을 수 있어요", too_fast: "너무 빨리 반복하고 있어요. 잠시 뒤에 다시 해 주세요", event_canceled: "취소된 일정이라 바꿀 수 없어요", maintenance: "점검이 곧 시작돼서 저장되지 않았어요. 다시 열리면 한 번 더 눌러 주세요", not_closed: "아직 벌금 기준 시각 전이에요. 투표에서 바로 바꿔 주세요", need_late_cancel: "벌금 기준 시각이 지나서 사유를 남기고 불참으로 바꿔야 해요", mom_self: "MOM은 다른 사람에게만 줄 수 있어요", mom_not_came: "이날 온 사람만 MOM 투표를 할 수 있어요", guest_closed: "지금은 이 경기 용병 신청을 받지 않아요", event_started: "경기가 시작돼서 바꿀 수 없어요", not_going: "참석이나 늦참일 때만 바꿀 수 있어요", need_agree: "벌금에 동의해야 바꿀 수 있어요", admin_only: "운영진만 할 수 있어요", no_request: "이미 처리된 신청이에요", bad_request: "이름을 확인해 주세요", request_limit: "가입 신청은 한 번에 5팀까지 남길 수 있어요", vote_closed: "투표가 마감돼서 바꿀 수 없어요", no_event: "지워진 일정이에요", bad_vote: "저장할 수 없는 응답이에요", team_limit: "팀은 한 사람당 5개까지 만들 수 있어요", bad_code: "초대 링크가 바뀌었거나 잘못됐어요. 운영진에게 새 링크를 받아 주세요", mom_locked: "MOM 투표는 한 번만 낼 수 있어요", mom_closed: "MOM 투표 시간이 아니에요", no_player: "팀에 없는 사람이에요", poll_closed: "마감된 설문이에요", no_option: "없는 보기예요", no_poll: "지워진 설문이에요", owner_only: "운영진만 할 수 있어요", bad_inquiry: "평가 내용을 확인해 주세요", kick_denied: "운영진은 팀원만 내보낼 수 있어요", next_not_admin: "다음 운영진은 팀원 중에서 골라 주세요", owner_cannot_leave: "운영진은 다음 운영진을 정해야 나갈 수 있어요", not_self: "나에게는 할 수 없어요", not_allowed: "운영진만 할 수 있어요", owner_has_members: "팀원이 남아 있어요. 팀 설정에서 다음 운영진을 정하고 팀을 나가 주세요" };
 function fail(e) { const m = errMsg(e); const k = Object.keys(GUARD).find(x => m.includes(x)); toast(k ? GUARD[k] : /JWT|fetch|network/i.test(m) ? "연결이 끊겼어요. 잠시 후 다시 해 주세요" : "저장하지 못했어요. 잠시 후 다시 해 주세요"); console.error(e); }
 
 /* ---------- 사람과 참석 ---------- */
@@ -280,10 +280,14 @@ const myVote = e => { const v = (((S.rsvp[S.uid] || {}).ev || {})[e.id]) || {}; 
 // 투표 마감: 경기 전날 정한 시각(eve, voteTime) 또는 경기 시작 전까지. 예전 값(eve21, day06)도 읽는다
 // 마감 뒤 경기 시작 전까지는 본인이 불참 변경 신청(late_cancel)으로만 바꾼다. 열림 예약(openAt) 전에는 누를 수 없다
 const voteTimeOf = e => e.voteClose === "eve21" ? "21:00" : /^\d\d:\d\d$/.test(e.voteTime || "") ? e.voteTime : "21:00";
+// days: 경기 N일 전(0이면 당일) 정한 시각 (2026-11-25 시안). 경기 시작보다 늦을 수는 없다 (서버 vote_deadline과 같다)
+const voteDaysOf = e => { const n = Number(e.voteDays); return e.voteDays === "" || e.voteDays == null || !Number.isFinite(n) ? 1 : Math.max(0, Math.min(14, Math.round(n))); };
 function closeAt(e) {
-  if (e.voteClose === "eve" || e.voteClose === "eve21") return new Date(e.date + "T" + voteTimeOf(e) + ":00+09:00").getTime() - 864e5;
-  if (e.voteClose === "day06") return new Date(e.date + "T06:00:00+09:00").getTime();
-  return evStart(e).getTime();
+  const st = evStart(e).getTime();
+  if (e.voteClose === "days") return Math.min(st, new Date(e.date + "T" + (/^\d\d:\d\d$/.test(e.voteTime || "") ? e.voteTime : "21:00") + ":00+09:00").getTime() - voteDaysOf(e) * 864e5);
+  if (e.voteClose === "eve" || e.voteClose === "eve21") return Math.min(st, new Date(e.date + "T" + voteTimeOf(e) + ":00+09:00").getTime() - 864e5);
+  if (e.voteClose === "day06") return Math.min(st, new Date(e.date + "T06:00:00+09:00").getTime());
+  return st;
 }
 // 불참 벌금 기준 시각 (기본 운영 규칙, Admin이 정함): 투표 마감 뒤, 경기 당일 0시, 직접 정하기(경기 N일 전 오전/오후 H시). 마감보다 늦을 수는 없다
 function fineAt(e) {
@@ -316,7 +320,7 @@ function promotedAt(e, u) {
   if (going.findIndex(x => x.uid === u) < cap) return "";
   return ids.map(k => lc[k].t || "").sort().pop() || "";
 }
-const closeText = e => (e.voteClose === "eve" || e.voteClose === "eve21" ? `경기 전날 ${ampm(voteTimeOf(e))} 마감` : e.voteClose === "day06" ? "경기 당일 06:00 마감" : "경기 시작 전까지");
+const closeText = e => (e.voteClose === "days" ? `경기 ${voteDaysOf(e) ? voteDaysOf(e) + "일 전" : "당일"} ${ampm(/^\d\d:\d\d$/.test(e.voteTime || "") ? e.voteTime : "21:00")} 마감` : e.voteClose === "eve" || e.voteClose === "eve21" ? `경기 전날 ${ampm(voteTimeOf(e))} 마감` : e.voteClose === "day06" ? "경기 당일 06:00 마감" : "경기 시작 전까지");
 // 동그라미 안 글자: 괄호 같은 기호는 건너뛴다
 const ini = n => (String(n || "").replace(/[^0-9A-Za-z\uAC00-\uD7A3]/g, "")[0] || "?");
 const upcoming = () => Object.values(S.events).filter(e => !started(e) || (Date.now() - evStart(e)) < 3 * 3600e3).sort((a, b) => evStart(a) - evStart(b));
@@ -390,7 +394,7 @@ function vLoginPC(err, tag, li) {
     </div>
     <ul class="lgli">${li("참석 투표는 티켓 한 장으로", C.white)}${li("내 자리와 쉬는 쿼터를 바로 확인", C.white)}${li("내가 낼 돈과 계좌를 한 화면에서", C.white)}</ul></div>
     <div class="lgr"><h2 class="bh">카카오로 들어와요</h2><span style="font-size:14px;line-height:1.6">휴대폰에서 쓰던 그 계정이에요. 같은 계정이면 팀과 기록이 그대로 보여요.</span>
-      ${err ? ERRBOX : ""}${KKB("카카오 로그인")}${STAGE ? `<button class="btn" data-act="demo" style="height:52px;border-radius:12px;background:${C.white};border:2px solid ${C.ink};box-shadow:4px 4px 0 ${C.ink};font-size:16px">로그인 없이 체험하기</button><span class="note" style="font-size:12px">테스트 사이트에서만 보여요. 나만의 체험 팀에서 Admin으로 모든 기능을 써 볼 수 있고, 하루 뒤 지워져요.</span>` : ""}
+      ${err ? ERRBOX : ""}${KKB("카카오 로그인")}${STAGE ? `<button class="btn" data-act="demo" style="height:52px;border-radius:12px;background:${C.white};border:2px solid ${C.ink};box-shadow:4px 4px 0 ${C.ink};font-size:16px">로그인 없이 체험하기</button><span class="note" style="font-size:12px">테스트 사이트에서만 보여요. 나만의 체험 팀에서 운영진으로 모든 기능을 써 볼 수 있고, 하루 뒤 지워져요.</span>` : ""}
       <span class="note" style="font-size:12px;line-height:1.6">카카오 창이 새로 열려요. 로그인하면 ${PRIV}에 동의하는 것으로 봐요.</span></div></div>
   </div>`;
 }
@@ -407,7 +411,7 @@ function vLogin(err) {
       <span aria-hidden="true" style="position:absolute;right:18px;top:-26px;width:70px;height:70px;border-radius:50%;border:2.5px solid ${C.ink};background:${C.bg};transform:rotate(12deg);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1"><b style="font-size:20px">입장</b></span>
     </div>
     <ul style="list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:12px">${li("참석 투표는 티켓 한 장으로", C.white)}${li("내 자리와 쉬는 쿼터를 바로 확인", C.white)}${li("내가 낼 돈과 계좌를 한 화면에서", C.white)}</ul>
-    <div style="margin-top:auto;display:flex;flex-direction:column;gap:12px">${err ? ERRBOX : ""}${KKB("카카오 로그인")}${STAGE ? `<button class="btn" data-act="demo" style="height:52px;border-radius:12px;background:${C.white};border:2px solid ${C.ink};box-shadow:4px 4px 0 ${C.ink};font-weight:700">로그인 없이 체험하기</button><span class="note" style="text-align:center;font-size:12px">테스트 사이트에서만 보여요. 나만의 체험 팀에서 Admin으로 모든 기능을 써 볼 수 있고, 하루 뒤 지워져요.</span>` : ""}
+    <div style="margin-top:auto;display:flex;flex-direction:column;gap:12px">${err ? ERRBOX : ""}${KKB("카카오 로그인")}${STAGE ? `<button class="btn" data-act="demo" style="height:52px;border-radius:12px;background:${C.white};border:2px solid ${C.ink};box-shadow:4px 4px 0 ${C.ink};font-weight:700">로그인 없이 체험하기</button><span class="note" style="text-align:center;font-size:12px">테스트 사이트에서만 보여요. 나만의 체험 팀에서 운영진으로 모든 기능을 써 볼 수 있고, 하루 뒤 지워져요.</span>` : ""}
       <span class="note" style="text-align:center;font-size:12px">처음 한 번만 로그인하면 다음부터 바로 들어와요. 앱 설치는 필요 없어요.<br>로그인하면 ${PRIV}에 동의하는 것으로 봐요.</span>
       <a href="../../" style="text-align:center;font-size:14px;padding:12px 8px;min-height:44px;box-sizing:border-box">매니볼 둘러보기</a></div>
   </div>`;
@@ -527,7 +531,7 @@ function vCreate() {
     <section style="display:flex;flex-direction:column;gap:8px"><b style="font-size:14px;border-bottom:2px solid ${C.ink};padding-bottom:8px">벌금 <span style="font-weight:500;color:${C.sub}">금액을 적은 것만 매겨져요</span></b>
       ${(f.rules || []).map((r, i) => `<div style="display:grid;grid-template-columns:1fr 104px 46px;gap:8px"><input class="inp" data-rule="${i}" data-f="label" value="${esc(r.label)}" placeholder="예: 지각" maxlength="40" aria-label="벌금 ${i + 1} 이름"><input class="inp" data-rule="${i}" data-f="amount" value="${esc(r.amount || "")}" inputmode="numeric" placeholder="금액" aria-label="벌금 ${i + 1} 금액" style="text-align:right;font-weight:700"><button type="button" class="btn c" data-act="ruleDel" data-i="${i}" aria-label="벌금 ${i + 1} 지우기" style="padding:0;height:52px">✕</button></div>`).join("")}
       <button type="button" data-act="ruleAdd" style="height:52px;border:2px dashed ${C.ink};border-radius:12px;background:transparent;font-weight:700;font-size:16px">벌금 항목 더하기</button></section>
-    <span class="note">정원, 투표 마감, 출석 시간, 불참 벌금 기준 같은 기본 운영 규칙은 만든 뒤 운영 탭에서 Admin이 바꿔요.</span>
+    <span class="note">정원, 투표 마감, 출석 시간, 불참 벌금 기준 같은 기본 운영 규칙은 만든 뒤 운영 탭에서 운영진이 바꿔요.</span>
   </div><div class="cta"><button class="btn o block" data-act="createTeam">팀 만들기</button></div>`;
 }
 
@@ -546,30 +550,30 @@ function vProfile(editing) {
   </div><div class="cta"><button class="btn o block" data-act="saveProfile">${editing ? "저장하기" : "다음"}</button></div>`;
 }
 // 팀 기본 운영 규칙 (팀 만들 때 정하고, 팀 설정에서 Admin만 바꿈): 일정 만들 때 기본값, 지각 기준, 내전 기준
-export const POLICY_DEF = { voteClose: "eve", voteTime: "21:00", waitCap: 0, checkBefore: 10, scrimMin: 20, scrimDays: 3 };
+export const POLICY_DEF = { voteClose: "days", voteDays: 1, voteTime: "21:00", waitCap: 0, checkBefore: 10, scrimMin: 20, scrimDays: 3 };
 export const pol = k => { const v = (S.settings || {})[k]; if (k === "cap") return Number(v) || (sport() === "soccer" ? 22 : 12); if (v === undefined || v === null || v === "") return POLICY_DEF[k]; return typeof POLICY_DEF[k] === "number" ? (Number.isFinite(Number(v)) ? Number(v) : POLICY_DEF[k]) : v; };
-const PBOUND = { pCap: [2, 40], pWait: [0, 30], pScrimMin: [4, 40], pScrimDays: [1, 7] };
+const PBOUND = { pVoteDays: [0, 14], pCap: [2, 40], pWait: [0, 30], pScrimMin: [4, 40], pScrimDays: [1, 7] };
 const capDef = f => f.sport === "soccer" ? 22 : 12;
-export const policyFormInit = st => ({ pVoteClose: st.voteClose === "start" ? "start" : "eve", pVoteTime: st.voteTime || POLICY_DEF.voteTime, pCap: Number(st.cap) ? String(st.cap) : "", pWait: String(Number(st.waitCap) || 0), pCheck: String(st.checkBefore === undefined || st.checkBefore === "" ? POLICY_DEF.checkBefore : Number(st.checkBefore) || 0), pScrimMin: String(Number(st.scrimMin) || POLICY_DEF.scrimMin), pScrimDays: String(Number(st.scrimDays) || POLICY_DEF.scrimDays) });
+export const policyFormInit = st => ({ pVoteDays: String(st.voteClose === "days" ? voteDaysOf(st) : 1), pVoteTime: st.voteTime || POLICY_DEF.voteTime, pCap: Number(st.cap) ? String(st.cap) : "", pWait: String(Number(st.waitCap) || 0), pCheck: String(st.checkBefore === undefined || st.checkBefore === "" ? POLICY_DEF.checkBefore : Number(st.checkBefore) || 0), pScrimMin: String(Number(st.scrimMin) || POLICY_DEF.scrimMin), pScrimDays: String(Number(st.scrimDays) || POLICY_DEF.scrimDays) });
 export function policyFromForm(f) {
   const cl = (v, [a, b], d) => { const n = Number(v); return Number.isFinite(n) && String(v) !== "" ? Math.max(a, Math.min(b, Math.round(n))) : d; };
-  return { voteClose: f.pVoteClose === "start" ? "start" : "eve", voteTime: /^\d\d:\d\d$/.test(f.pVoteTime || "") ? f.pVoteTime : POLICY_DEF.voteTime, cap: cl(f.pCap, PBOUND.pCap, capDef(f)), waitCap: cl(f.pWait, PBOUND.pWait, 0), checkBefore: cl(f.pCheck, [0, 60], POLICY_DEF.checkBefore), scrimMin: cl(f.pScrimMin, PBOUND.pScrimMin, POLICY_DEF.scrimMin), scrimDays: cl(f.pScrimDays, PBOUND.pScrimDays, POLICY_DEF.scrimDays) };
+  return { voteClose: "days", voteDays: cl(f.pVoteDays, PBOUND.pVoteDays, 1), voteTime: /^\d\d:\d\d$/.test(f.pVoteTime || "") ? f.pVoteTime : POLICY_DEF.voteTime, cap: cl(f.pCap, PBOUND.pCap, capDef(f)), waitCap: cl(f.pWait, PBOUND.pWait, 0), checkBefore: cl(f.pCheck, [0, 60], POLICY_DEF.checkBefore), scrimMin: cl(f.pScrimMin, PBOUND.pScrimMin, POLICY_DEF.scrimMin), scrimDays: cl(f.pScrimDays, PBOUND.pScrimDays, POLICY_DEF.scrimDays) };
 }
 const hm12 = t => { const [h, m] = String(t).split(":").map(Number); return (h < 12 ? "오전 " : "오후 ") + (h % 12 || 12) + (m ? ":" + String(m).padStart(2, "0") : "시"); };
 export function policyLines(p) {
-  return [["투표 마감", p.voteClose === "start" ? "경기 시작 전까지" : "경기 전날 " + hm12(p.voteTime), "마감 뒤에 불참으로 바꾸면 수칙의 불참 벌금이 붙어요"],
+  return [["투표 마감", p.voteClose === "start" ? "경기 시작 전까지" : `경기 ${p.voteClose === "days" ? (Number(p.voteDays) ? p.voteDays + "일 전" : "당일") : "전날"} ` + hm12(p.voteTime), "마감 뒤에 불참으로 바꾸면 수칙의 불참 벌금이 붙어요"],
     ["정원과 대기", `${p.cap}명, 대기 ${p.waitCap ? p.waitCap + "명까지" : "제한 없음"}`, "일정 만들 때 기본으로 들어가요"],
     ["지각 기준", p.checkBefore ? `킥오프 ${p.checkBefore}분 전` : "킥오프 시간", "현장 출석에서 이 시간 뒤에 오면 지각이에요"],
     ["내전 기준", `${p.scrimDays}일 전까지 ${p.scrimMin}명 이상`, "상대팀이 미정일 때 참석과 대기를 합친 인원이에요"]];
 }
 export function policyForm(f, canEdit) {
   const p = policyFromForm(f);
-  if (!canEdit) return `<div class="card"><div class="spread"><span class="lab">기본 운영 규칙</span><span class="hint">Admin만 바꿀 수 있어요</span></div><div class="list">${policyLines(p).map(([a, b, c]) => `<div class="li"><span style="flex:1">${a}<br><span class="hint">${c}</span></span><b>${esc(b)}</b></div>`).join("")}</div></div>`;
+  if (!canEdit) return `<div class="card"><div class="spread"><span class="lab">기본 운영 규칙</span><span class="hint">운영진만 바꿀 수 있어요</span></div><div class="list">${policyLines(p).map(([a, b, c]) => `<div class="li"><span style="flex:1">${a}<br><span class="hint">${c}</span></span><b>${esc(b)}</b></div>`).join("")}</div></div>`;
   const ch = (k, v, l) => `<button class="chip sm ${String(f[k] || "") === String(v) ? "on" : ""}" data-act="pick" data-k="${k}" data-v="${v}">${l}</button>`;
   const step = (k, val, unit, zero) => `<div class="row" style="gap:8px"><button class="btn sm" data-act="pStep" data-k="${k}" data-d="-1" aria-label="줄이기">−</button><b style="min-width:76px;text-align:center">${zero && !Number(val) ? zero : val + unit}</b><button class="btn sm" data-act="pStep" data-k="${k}" data-d="1" aria-label="늘리기">+</button></div>`;
   return `<div class="card"><div class="spread"><span class="lab">기본 운영 규칙</span><span class="hint">일정마다 바꿀 수도 있어요</span></div>
-    <div class="field"><span class="lab">투표 마감</span><div class="chips">${ch("pVoteClose", "eve", "경기 전날")}${ch("pVoteClose", "start", "경기 시작 전까지")}</div>
-      ${p.voteClose === "eve" ? `<div class="row" style="gap:8px"><span>경기 전날</span><input class="inp" type="time" data-bind="pVoteTime" value="${esc(p.voteTime)}" aria-label="투표 마감 시간" style="width:140px;flex:none"><span>까지</span></div>` : ""}
+    <div class="field"><span class="lab">투표 마감</span><div class="spread"><span>경기</span>${step("pVoteDays", p.voteDays, "일 전", "당일")}</div>
+      <div class="row" style="gap:8px"><input class="inp" type="time" data-bind="pVoteTime" value="${esc(p.voteTime)}" aria-label="투표 마감 시간" style="width:140px;flex:none"><span>까지</span></div>
       <span class="hint">마감 뒤에는 투표를 못 바꾸고, 불참으로 바꾸면 수칙의 불참 벌금이 붙어요</span></div>
     <div class="spread"><span class="lab">정원</span>${step("pCap", p.cap, "명")}</div>
     <div class="spread"><span class="lab">대기</span>${step("pWait", p.waitCap, "명", "제한 없음")}</div>
@@ -596,10 +600,10 @@ export function rulesForm(f) {
 // 편집 칸 값으로 저장할 수칙 글과 벌금 목록
 export function rulesFromForm(f) {
   const rulesText = String(f.rulesText || "").replace(/\r/g, "").replace(/\n{3,}/g, "\n\n").trim().slice(0, 2000);
-  const rules = (f.rules || []).map(r => { const label = String(r.label || "").trim().slice(0, 40); const kind = r.kind && r.klabel === label ? r.kind : ruleKind({ label }); return { label, amount: Number(String(r.amount || "").replace(/\D/g, "")) || 0, ...(kind ? { kind } : {}) }; }).filter(r => r.label && r.amount > 0);
+  const rules = (f.rules || []).map(r => { const label = String(r.label || "").trim().slice(0, 40); const kind = r.kind && r.klabel === label ? r.kind : ruleKind({ label }); const desc = String(r.desc || "").replace(/\s+/g, " ").trim().slice(0, 60); return { label, amount: Number(String(r.amount || "").replace(/\D/g, "")) || 0, ...(kind ? { kind } : {}), ...(desc ? { desc } : {}) }; }).filter(r => r.label && r.amount > 0);
   return { rulesText, rules };
 }
-export const rulesFormInit = st => ({ rulesText: rulesTextOf(st), rules: fineRulesOf(st).map(r => ({ label: r.label, amount: String(r.amount), kind: r.kind || "", klabel: r.label })) });
+export const rulesFormInit = st => ({ rulesText: rulesTextOf(st), rules: fineRulesOf(st).map(r => ({ label: r.label, desc: r.desc || "", amount: String(r.amount), kind: r.kind || "", klabel: r.label })) });
 function vRules() {
   const st = S.settings; const bk = st.bank || {}; const txt = rulesTextOf(st).trim(); const fines = fineRulesOf(st);
   return `${uiHd("팀 수칙 2/2", "", { sub: S.team ? S.team.name : "" })}<div class="body">
@@ -625,9 +629,9 @@ function vInviteMsg() {
 function delSheet() {
   const ads = S.members.filter(m => m.role === "admin"); const pick = S.delNext && ads.some(m => m.user_id === S.delNext) ? S.delNext : "";
   const radio = on => `<span style="width:22px;height:22px;border-radius:50%;box-sizing:border-box;flex:none;border:${on ? "7px solid #15803D" : "2px solid #D1D5DB"}"></span>`;
-  sheet(`<h3>팀 지우기</h3><span class="hint">Admin은 다음 Admin을 지정한 뒤에 팀에서 나갈 수 있어요.</span>
-    <div class="card" style="background:#F9FAFB"><b>다음 Admin 지정</b><span class="hint">운영진 중에서만 고를 수 있어요</span>${ads.length ? `<div class="list">${ads.map(m => `<button class="li" style="border:0;background:none;text-align:left;width:100%" data-act="delPick" data-u="${esc(m.user_id)}"><span class="av">${esc(ini(nameOf(m.user_id)))}</span><span style="flex:1"><b>${esc(nameOf(m.user_id))}</b> <span class="tag gray">운영진</span></span>${radio(pick === m.user_id)}</button>`).join("")}</div>` : `<span class="hint" style="color:#B45309">운영진이 없어요. 먼저 선수 탭에서 운영진을 지정해 주세요.</span>`}
-    <button class="btn block" data-act="delLeave" style="background:${pick ? "#DC2626" : "#E5E7EB"};color:${pick ? "#FFFFFF" : "#9CA3AF"}" ${pick ? "" : "disabled"}>${pick ? esc(nameOf(pick)) + " 님을 Admin으로 지정하고 나가기" : "다음 Admin을 골라 주세요"}</button></div>
+  sheet(`<h3>팀 지우기</h3><span class="hint">마지막 운영진은 다음 운영진을 정한 뒤에 팀에서 나갈 수 있어요.</span>
+    <div class="card" style="background:#F9FAFB"><b>다음 운영진 정하기</b><span class="hint">운영진 중에서만 고를 수 있어요</span>${ads.length ? `<div class="list">${ads.map(m => `<button class="li" style="border:0;background:none;text-align:left;width:100%" data-act="delPick" data-u="${esc(m.user_id)}"><span class="av">${esc(ini(nameOf(m.user_id)))}</span><span style="flex:1"><b>${esc(nameOf(m.user_id))}</b> <span class="tag gray">운영진</span></span>${radio(pick === m.user_id)}</button>`).join("")}</div>` : `<span class="hint" style="color:#B45309">운영진이 없어요. 먼저 선수 탭에서 운영진을 지정해 주세요.</span>`}
+    <button class="btn block" data-act="delLeave" style="background:${pick ? "#DC2626" : "#E5E7EB"};color:${pick ? "#FFFFFF" : "#9CA3AF"}" ${pick ? "" : "disabled"}>${pick ? esc(nameOf(pick)) + " 님을 운영진으로 정하고 나가기" : "다음 운영진을 골라 주세요"}</button></div>
     <div class="card" style="background:#F9FAFB"><b>팀을 아예 없애려면</b><span class="hint">매니볼에 평가를 남기면 팀을 지울 수 있어요. 일정, 참석, 회비, 기록이 모두 지워지고 되돌릴 수 없어요.</span><button class="btn" data-act="inqOpen">매니볼에 평가 후 지우기</button></div>
     <button class="btn" data-act="closeSheet">닫기</button>`);
 }
@@ -1104,6 +1108,56 @@ async function refreshTally() { const { data } = await sb.from("docs").select("i
 function route() { return (location.hash || "#/").slice(1); }
 // 여러 번 바뀌어도 한 번만 다시 그린다. 투표 카드가 움직이는 동안(freezeUntil)은 다시 그리지 않는다
 let rq = 0, frT = 0;
+
+/* ---------- 대기에서 자리가 났어요 (2026-11-25 시안 4-1-6): 서버가 먼저 묻고, 어느 화면에서든 바로 뜬다 ---------- */
+const ASK = { shown: "", busy: false };
+function myAsk() {
+  if (!S.ready || S.flow) return null;
+  for (const e of Object.values(S.events)) {
+    const v = (((S.rsvp[S.uid] || {}).ev || {})[e.id]) || {};
+    if (v.ask && v.ask.until && Date.parse(v.ask.until) > Date.now() && !isCanceled(e) && Date.now() < evStart(e).getTime()) return { e, v, key: e.id + ":" + (v.ask.at || "") };
+  }
+  return null;
+}
+function askRank(e) { // 대기였을 때의 순서 (자리를 물어본 사람 중 먼저 낸 순서)
+  const ws = people().map(x => ({ uid: x.uid, v: (((S.rsvp[x.uid] || {}).ev || {})[e.id]) || {} })).filter(x => x.v.w && (x.v.s === "yes" || x.v.s === "late")).sort((a, b) => (a.v.at || "~") < (b.v.at || "~") ? -1 : 1);
+  const i = ws.findIndex(x => x.uid === S.uid); return i < 0 ? 1 : i + 1;
+}
+function askCheck() {
+  const a = myAsk(); if (!a) return;
+  if (ss.get("mb-ask-later") === a.key || ASK.shown === a.key) return;
+  const L = $("#layer"); if (!L || L.innerHTML.trim()) return;
+  ASK.shown = a.key; askSheet(a);
+}
+function askUntil(a) { return a.v.ask.race ? "먼저 누른 사람이 들어가요" : hmK(Date.parse(a.v.ask.until)).slice(-5) + "까지"; }
+export function askCard(a, inSheet) {
+  const e = a.e; const race = !!a.v.ask.race; const until = hmK(Date.parse(a.v.ask.until));
+  const tk = `<div class="asktk"><span class="l"><b>${md(e.date)} ${wd(e.date)} ${esc(evName(e))}</b><span>${esc(e.time || "")}${e.end ? " ~ " + esc(e.end) : ""}, ${esc(e.place || "장소 미정")}</span><span class="n">앞사람이 불참으로 바꿔서 자리가 났어요</span></span><span class="st"><b>${md(e.date)}</b><span>${wd(e.date)}</span></span></div>`;
+  const txt = race ? "경기 1시간 전이라 대기자 모두에게 한꺼번에 물어요. 먼저 '갈게요'를 누른 사람이 참석이 되고 그 경기 대화방에 들어가요. 못 가요를 눌러도 벌금은 없어요."
+    : `갈게요를 누르면 바로 참석이 되고 그 경기 대화방에 들어가요. ${until.slice(-5)}까지 답하지 않으면 다음 대기자에게 넘어가요. 못 가요를 눌러도 벌금은 없어요.`;
+  return `<div class="askp${inSheet ? "" : " card"}"><div class="spread"><span class="tag ink">대기 ${askRank(e)}번</span><b class="bc" style="font-size:20px">${esc(askUntil(a))}</b></div><h3 class="bh">자리가 났어요,<br>올 수 있나요?</h3>${tk}<span class="t">${txt}</span>${inSheet ? `<span class="rule">답 기한은 경기까지 남은 시간에 따라 달라요. 하루보다 전이면 12시간, 하루 안쪽이면 4시간(경기 2시간 전까지), 4시간 안쪽이면 1시간이에요. 1시간 전부터는 대기자 모두에게 한꺼번에 물어요.</span>` : ""}<div class="grid12"><button class="btn" data-act="askAns" data-eid="${esc(e.id)}" data-v="no">못 가요</button><button class="btn ink" data-act="askAns" data-eid="${esc(e.id)}" data-v="yes">갈게요, 참석할게요</button></div>${inSheet ? `<button type="button" class="lnk" data-act="askLater" style="align-self:center">나중에 답할게요 (홈 위에 계속 보여요)</button>` : ""}</div>`;
+}
+function askSheet(a) { $("#layer").innerHTML = `<div class="scrim"><div class="sheet askw" role="alertdialog" aria-modal="true" aria-label="자리가 났어요">${askCard(a, true)}</div></div>`; }
+export { myAsk };
+const ACT5 = {
+  askLater: () => { const a = myAsk(); if (a) ss.set("mb-ask-later", a.key); closeSheet(); render(); },
+  askAns: async t => {
+    const eid = t.dataset.eid; const yes = t.dataset.v === "yes"; const e = S.events[eid]; if (!e || ASK.busy) return;
+    if (maintLocked()) { fail(MAINT_ERR()); return; }
+    ASK.busy = true; t.disabled = true;
+    const { data, error } = await sb.rpc("wait_answer", { p_team: S.tid, p_eid: eid, p_yes: yes });
+    ASK.busy = false;
+    if (error) { t.disabled = false; closeSheet(); fail(error); return; }
+    const r = S.rsvp[S.uid] || {}; const v = ((r.ev || {})[eid]) || {};
+    const nv = data === "in" ? (() => { const x = { ...v }; delete x.ask; delete x.w; return x; })() : { ...v, s: "no", at: "", ask: undefined, w: undefined };
+    put("rsvp", S.uid, { ...r, ev: { ...(r.ev || {}), [eid]: JSON.parse(JSON.stringify(nv)) } });
+    const nm = `${md(e.date)} ${wd(e.date)} ${evName(e)}`;
+    $("#layer").innerHTML = `<div class="dlg"><div role="alertdialog" aria-modal="true">${data === "in"
+      ? `<span class="tag ink" style="align-self:center">참석</span><h3 style="text-align:center">참석으로 바뀌었어요</h3><span style="font-size:14px;line-height:1.6;text-align:center">${esc(nm)} 대화방에 들어갔어요. 운영진에게도 알렸어요.</span><div class="grid2"><button class="btn" data-act="closeSheet">닫기</button><button class="btn ink" data-act="goTo" data-h="#/chat/${encodeURIComponent(eid)}">대화방으로 가기</button></div>`
+      : `<h3 style="text-align:center">대기에서 빠졌어요</h3><span style="font-size:14px;line-height:1.6;text-align:center">벌금은 없어요. 다음 대기자에게 물어볼게요. 운영진에게도 알렸어요.</span><button class="btn block" data-act="closeSheet">닫기</button>`}</div></div>`;
+    render();
+  },
+};
 function scheduleRender() { if (rq) return; rq = requestAnimationFrame(() => { rq = 0; render(); }); }
 function render() {
   const wait = (S.freezeUntil || 0) - Date.now();
@@ -1141,6 +1195,7 @@ function render() {
   const pos = sel && "selectionStart" in act ? act.selectionStart : null;
   app.innerHTML = html;
   tuneInputs(app);
+  askCheck();
   if (sel) { const el = app.querySelector(sel); if (el) { el.focus(); try { if (pos != null) el.setSelectionRange(pos, pos); } catch (e) { /* 날짜 칸 */ } } }
 }
 let lastRoute = "";
@@ -1177,10 +1232,10 @@ document.addEventListener("input", ev => {
     S.form[t.dataset.bind] = t.type === "checkbox" ? t.checked : t.value;
     if (t.dataset.liveSrc) document.querySelectorAll(`[data-live="${t.dataset.liveSrc}"]`).forEach(el => { el.textContent = t.value || (t.dataset.liveSrc === "name" ? "이름" : ""); });
   } else if (t.dataset.rule != null) { const r = (S.form.rules || [])[Number(t.dataset.rule)]; if (r) r[t.dataset.f] = t.value; }
-  else if (t.dataset.opt != null) { const o = (S.form.opts || [])[Number(t.dataset.opt)]; if (o) o.label = t.value; }
+  else if (t.dataset.opt != null) { const o = (S.form.opts || [])[Number(t.dataset.opt)]; if (o) o[t.dataset.f || "label"] = t.value; }
 });
 // 일정 날짜와 시작 시간을 바꾸면 투표 마감 안내 문장도 다시 그린다
-document.addEventListener("change", ev => { const t = ev.target; if ((t.dataset.bind === "date" || t.dataset.bind === "time") && /^\/(new|edit\/.+)$/.test(route())) render();
+document.addEventListener("change", ev => { const t = ev.target; if (["date", "time", "voteH", "openDate"].includes(t.dataset.bind) && /^\/(new|edit\/.+)$/.test(route())) render();
   if (t.dataset.bind === "xtotal") render(); }); // 구인 글 구장비를 적으면 한 명당 용병비를 다시 계산
 const ACT = {
   closeSheet: (t, ev) => { if (ev.target === t || t.tagName === "BUTTON") closeSheet(); },
@@ -1347,7 +1402,7 @@ const ACT = {
   // 팀 지우기 (Admin만): 다음 Admin을 지정하고 나가거나, 매니볼에 평가를 남기고 팀을 지운다 (평가는 매니볼을 고치는 데 쓴다)
   delTeam: () => { S.delNext = ""; delSheet(); },
   delPick: t => { S.delNext = t.dataset.u; delSheet(); },
-  delLeave: () => { const u = S.delNext; if (!u) { toast("다음 Admin을 골라 주세요"); return; } closeSheet(); confirmBox("Admin을 지정하고 나갈까요?", `${nameOf(u)} 님이 다음 Admin이 되고, 나는 ${S.team.name}에서 나가요. 다시 들어오려면 초대 링크가 필요해요. 되돌릴 수 없어요.`, "지정하고 나가기", async () => {
+  delLeave: () => { const u = S.delNext; if (!u) { toast("다음 운영진을 골라 주세요"); return; } closeSheet(); confirmBox("운영진을 정하고 나갈까요?", `${nameOf(u)} 님이 다음 운영진이 되고, 나는 ${S.team.name}에서 나가요. 다시 들어오려면 초대 링크가 필요해요. 되돌릴 수 없어요.`, "지정하고 나가기", async () => {
     const { error } = await sb.rpc("leave_team_as_owner", { p_team: S.tid, p_next: u }); if (error) { fail(error); return; }
     ls.set("mb-team", null); toast("팀에서 나왔어요"); setTimeout(() => location.replace(APP), 600);
   }, true); },
@@ -1368,7 +1423,7 @@ const ACT = {
   kakaoMsgOff: () => confirmBox("카카오톡 알림 끄기", "카카오톡 나와의 채팅으로 오던 알림을 끌까요? 카카오 메시지 동의도 함께 거둬요.", "끄기", () => kakaoOff()),
   logout: () => confirmBox("로그아웃", "이 기기에서 로그아웃할까요?", "로그아웃", async () => { await pushDetach(); try { await sb.auth.signOut(); } catch (e) { /* 그래도 처음으로 */ } ls.set("mb-team", null); picked.clear(); location.replace(APP); }),
 };
-Object.assign(ACT, ACT2, ACT3, ACT4, AACT, MACT, CHACT, XACT);
+Object.assign(ACT, ACT2, ACT3, ACT4, ACT5, AACT, MACT, CHACT, XACT);
 document.addEventListener("click", ev => {
   const t = ev.target.closest("[data-act]"); if (!t) return;
   const f = ACT[t.dataset.act]; if (!f) return;
@@ -1505,4 +1560,4 @@ function vRest(id) {
 
 // member.js와 admin.js가 같이 쓰는 것
 onPCChange(() => render());
-export { MBRAND, held, attended, checkTaken, KITS, isKit, kitHex, onKit, teamKit, kitClash, recKitFor, kitSideOf, gkKitOf, JPATH, jerseyIcon, kitPicker, PICK, fitOf, isCanceled, isDemo, maintLocked, scheduleRender, backHref, delDoc, FUTSAL_N, loadReqs, ls, APP, route, viewMode, fineAt, fineNow, fineText, lateCancel, spotXY, delSheet, curLineup, lineupPlayers, draftOf, formOf, autoLineup, FORMS, FORM_DESC, applyFix, qText, rowsOf, loadTeam, enter, showTeams, inviteUrl, policyFromForm as polFromForm, posFix, profileOf, refreshTally, hmK, promotedAt, ampm, closeAt, voteTimeOf, $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };
+export { MBRAND, held, attended, checkTaken, KITS, isKit, kitHex, onKit, teamKit, kitClash, recKitFor, kitSideOf, gkKitOf, JPATH, jerseyIcon, kitPicker, PICK, fitOf, isCanceled, isDemo, maintLocked, scheduleRender, backHref, delDoc, FUTSAL_N, loadReqs, ls, APP, route, viewMode, fineAt, fineNow, fineText, lateCancel, spotXY, delSheet, curLineup, lineupPlayers, draftOf, formOf, autoLineup, FORMS, FORM_DESC, applyFix, qText, rowsOf, loadTeam, enter, showTeams, inviteUrl, policyFromForm as polFromForm, posFix, profileOf, refreshTally, hmK, promotedAt, ampm, closeAt, voteTimeOf, voteDaysOf, $, D, KIT, LOGO, POS, QN, ROLE, S, UI, att, cameTo, canKick, closeSheet, closeText, confirmBox, dotDate, esc, evName, evStart, eventCard, fail, feeMode, finesOf, guestReqs, guestsOf, ini, isAdmin, isPlay, jersey, joinedOf, lateRow, mLabel, md, momClosed, momDeadline, momOpen, momWinners, monthsList, myProfile, myUv, myVote, nameOf, nav, noticeCard, noticesList, paidOf, parseRoster, past, patchDoc, people, qs, refreshMembers, remindInfo, render, ruleAmt, ruleKind, sb, scrimReady, setDoc, setView, sheet, sport, started, syncMyDues, toast, todayStr, top, uid36, unclaimed, upcoming, voteRow, voteState, wd, won, ym };
