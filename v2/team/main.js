@@ -550,7 +550,7 @@ function vProfile(editing) {
   </div><div class="cta"><button class="btn o block" data-act="saveProfile">${editing ? "저장하기" : "다음"}</button></div>`;
 }
 // 팀 기본 운영 규칙 (팀 만들 때 정하고, 팀 설정에서 Admin만 바꿈): 일정 만들 때 기본값, 지각 기준, 내전 기준
-export const POLICY_DEF = { voteClose: "days", voteDays: 1, voteTime: "21:00", waitCap: 0, checkBefore: 10, scrimMin: 20, scrimDays: 3 };
+export const POLICY_DEF = { voteClose: "days", voteDays: 1, voteTime: "21:00", waitCap: 0, checkBefore: 10, scrimMin: 20, scrimDays: 5 };
 export const pol = k => { const v = (S.settings || {})[k]; if (k === "cap") return Number(v) || (sport() === "soccer" ? 22 : 12); if (v === undefined || v === null || v === "") return POLICY_DEF[k]; return typeof POLICY_DEF[k] === "number" ? (Number.isFinite(Number(v)) ? Number(v) : POLICY_DEF[k]) : v; };
 const PBOUND = { pVoteDays: [0, 14], pCap: [2, 40], pWait: [0, 30], pScrimMin: [4, 40], pScrimDays: [1, 7] };
 const capDef = f => f.sport === "soccer" ? 22 : 12;
