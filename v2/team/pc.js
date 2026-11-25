@@ -102,7 +102,7 @@ const SPL = [
     mark: d => { const e = evOf(d); return e ? `a[href="#/game/${cssq(e.id)}"]` : d === "/season" ? `a[href="#/season"]` : ""; },
     pane: (d, h) => { const e = evOf(d); if (/^\/game\//.test(d) && e) return { kind: KIND(e), title: `${md(e.date)} ${wd(e.date)} ${e.type === "match" ? (e.opponent ? "vs " + e.opponent : "상대 미정") : KIND(e)}` }; return { kind: d === "/season" ? "시즌" : KIND(e), title: h.title }; } },
   { list: "/team", det: /^\/(notices|notice\/.+|rules|money|members|notice-new|notice-edit\/.+|rules-edit|stats\/(mom|att))$/, def: () => "/notices", sub: "공지, 수칙, 돈, 팀원",
-    mark: d => `a[href="#${/^\/notice/.test(d) ? "/notices" : /^\/rules/.test(d) ? "/rules" : d}"]`,
+    mark: d => /^\/rules/.test(d) ? `a[href^="#/rules"]` : `a[href="#${/^\/notice/.test(d) ? "/notices" : d}"]`,
     pane: (d, h) => ({ kind: /^\/notice/.test(d) ? "공지" : /^\/rules/.test(d) ? "수칙" : d === "/money" ? "돈" : /^\/stats/.test(d) ? "팀 기록" : "팀원", title: h.title }) },
   { list: "/ops", det: /^\/(requests|posreqs|dues|fines|policy|settings)$/, def: () => "/requests", admin: true,
     mark: d => `a[href="#${d}"]`, pane: (d, h) => ({ kind: "운영", title: h.title }) },
@@ -144,6 +144,6 @@ export function pcSplit(r, page) {
     const back = rh.back && rh.back !== "#" + sp.list && rh.back !== "#/" ? rh.back : "";
     right = paneHead({ kind: meta.kind, title: meta.title || rh.title, sub: rh.brand ? "" : rh.sub, right: rh.right, back, backAct: rh.backAct }) + html_(R);
   } else right = `<div class="pce"><div class="empty"><b>왼쪽에서 골라 주세요</b><span>고른 항목이 여기에 자세히 보여요.</span></div></div>`;
-  const mark = d ? sp.mark(d).replace(/a\[href=/g, "[data-href=") : ""; pcMarkSel = mark;
+  const mark = d ? sp.mark(d).replace(/a\[href(\^?)=/g, "[data-href$1=") : ""; pcMarkSel = mark;
   return `${head}<div class="pcsplit2"><div class="pcl2" data-p="${esc(sp.list.slice(1) || "home")}">${html_(L)}</div><section class="pcr2" data-p="${esc((d || "").split("/")[1] || "")}" aria-label="자세히">${right}</section></div>`;
 }
