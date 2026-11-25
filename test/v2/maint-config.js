@@ -1,1 +1,1 @@
-window.MB_CFG = {"url":"https://vlaiziklxvpykzsuvinn.supabase.co","key":"sb_publishable_IZ5eqaUkNri2D1vKDud40g_XU_n6RsU","schema":"maniball","ver":"4ca132a"};
+window.MB_CFG = {"url":"https://vlaiziklxvpykzsuvinn.supabase.co","key":"sb_publishable_IZ5eqaUkNri2D1vKDud40g_XU_n6RsU","schema":"maniball","ver":"af02b4f"};

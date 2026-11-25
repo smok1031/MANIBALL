@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<script src="../maint-config.js?v=4ca132a"></script>
-<script src="../maint-gate.js?v=4ca132a"></script>
+<script src="../maint-config.js?v=af02b4f"></script>
+<script src="../maint-gate.js?v=af02b4f"></script>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://vlaiziklxvpykzsuvinn.supabase.co wss://vlaiziklxvpykzsuvinn.supabase.co https://kauth.kakao.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -60,8 +60,8 @@ input,textarea,select{font:inherit;color:var(--ink)}
 .ib{width:44px;height:44px;flex:none;border:0;background:transparent;padding:0;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;position:relative}
 .brand{flex:1;min-height:44px;display:flex;align-items:center;gap:8px;padding-left:8px;text-decoration:none;min-width:0}
 .brand b{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mng{flex:none;height:40px;margin-right:8px;padding:0 12px;border:2px solid var(--ink);border-radius:10px;background:var(--ink);color:var(--bg);font:700 14px 'IBM Plex Sans KR',sans-serif;display:inline-flex;align-items:center;gap:8px;text-decoration:none}
-.mng svg{stroke:var(--bg)}
+.mng{flex:none;width:44px;height:44px;margin-right:8px;padding:0;box-sizing:border-box;border:2px solid var(--ink);border-radius:10px;background:var(--ink);color:var(--bg);display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+.mng svg{stroke:var(--bg);width:22px;height:22px}
 .body{flex:1;padding:4px 24px 32px;display:flex;flex-direction:column;gap:16px}
 .body.tight{gap:16px}
 /* 아래 탭 (54번 B): 떠 있는 칸 묶음. 지금 탭 칸은 그 탭 색으로 왼쪽 위로 살짝 올라온다 */
@@ -346,12 +346,13 @@ html.pc .page{max-width:none;background-image:var(--grid)}
 .pch1 .s{font-size:14px;color:var(--sub)}
 .pch1 .r{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
 .pch1 .r .mng,.pch1 .r .btn,.pch1 .r .tag.bc{height:44px;padding:0 16px;font-size:14px;border-radius:10px;box-shadow:3px 3px 0 var(--ink)}
+.pch1 .r .mng{width:44px;padding:0}
 .pbtn{height:44px;padding:0 16px;box-sizing:border-box;border:2px solid var(--ink);border-radius:10px;background:var(--white);box-shadow:3px 3px 0 var(--ink);font:700 14px 'IBM Plex Sans KR',sans-serif;color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:8px;cursor:pointer;white-space:nowrap}
 .pbtn.o{background:var(--yel)}
 .pdot{width:10px;height:10px;border-radius:50%;background:var(--ink)}
 .pbtn svg{width:16px;height:16px;stroke-width:2.8}
-.pbk{flex:none;height:40px;padding:0 12px 0 8px;box-sizing:border-box;border:2px solid var(--ink);border-radius:8px;background:var(--bg);font:700 14px 'IBM Plex Sans KR',sans-serif;color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:4px}
-.pbk svg{width:18px;height:18px}
+.pbk{flex:none;width:40px;height:40px;padding:0;box-sizing:border-box;border:2px solid var(--ink);border-radius:8px;background:var(--bg);color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.pbk svg{width:20px;height:20px}
 html.pc .pcc>.body{padding:0 0 32px;width:100%;max-width:760px;box-sizing:border-box}
 html.pc .pcc>.cta{width:100%;max-width:760px;box-sizing:border-box;margin:0}
 html.pc .scrim{align-items:center;padding:24px}
@@ -567,7 +568,8 @@ html.pc .pcr2[data-p="season"] .body .punch[data-off]{border-style:dashed!import
 .pkd{flex:none;font-size:12px;font-weight:700;background:var(--sec);border:2px solid var(--ink);border-radius:5px;padding:2px 8px}
 .pdh h2{flex:1;min-width:0;margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .psub{flex:none;font-size:12px;color:var(--sub);max-width:40%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pdh .mng{height:40px;padding:0 16px;border-radius:8px;background:var(--ink);color:var(--bg)}
+.pdh .mng{width:40px;height:40px;padding:0;border-radius:8px;background:var(--ink);color:var(--bg)}
+.pdh .mng svg{width:20px;height:20px}
 .pdh .mng svg{stroke:var(--bg)}
 .pdh .btn{height:40px;font-size:14px;border-radius:8px;margin:0!important}
 .pcr2>.body{padding:24px;max-width:none;width:100%;box-sizing:border-box;background:transparent}
@@ -824,7 +826,7 @@ html.pcwide .page{max-width:none}
 .xmine .big{font-size:18px;font-weight:700}
 .xmine .note{font-size:12px}
 </style>
-  <script type="module" crossorigin src="../../assets/team-Dz-ro-5w.js"></script>
+  <script type="module" crossorigin src="../../assets/team-aONmBgnE.js"></script>
   <link rel="modulepreload" crossorigin href="../../assets/modulepreload-polyfill-B5Qt9EMX.js">
 </head>
 <body>
