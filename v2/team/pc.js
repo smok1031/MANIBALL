@@ -76,10 +76,10 @@ const evOf = r => { const m = r.match(/^\/(?:event|manage|check|roster|lineup|me
 const BACKL = h => /^#\/(event|manage)\//.test(h) ? "일정" : /^#\/game\//.test(h) ? "기록" : /^#\/(team|notices)$/.test(h) ? "팀" : /^#\/ops$/.test(h) ? "운영" : /^#\/schedule$/.test(h) ? "일정" : /^#\/records$/.test(h) ? "기록" : "뒤로";
 // PC 제목줄 (시안: 큰 제목, 숫자, 설명, 오른쪽 버튼)
 export const pcHead = ({ title, num = "", sub = "", right = "", back = "", backAct = "" }) =>
-  `<header class="pch1">${back ? `<a class="pbk" href="${esc(back)}"${backAct ? ` data-act="${esc(backAct)}"` : ""}>${IC.back}${BACKL(back)}</a>` : ""}<span class="t"><h1>${esc(title)}</h1>${num ? `<b class="n">${esc(num)}</b>` : ""}${sub ? `<span class="s">${esc(sub)}</span>` : ""}</span>${right ? `<span class="r">${right}</span>` : ""}</header>`;
+  `<header class="pch1">${back ? `<a class="pbk" href="${esc(back)}" aria-label="뒤로 가기, ${BACKL(back)}" title="${BACKL(back)}"${backAct ? ` data-act="${esc(backAct)}"` : ""}>${IC.back}</a>` : ""}<span class="t"><h1>${esc(title)}</h1>${num ? `<b class="n">${esc(num)}</b>` : ""}${sub ? `<span class="s">${esc(sub)}</span>` : ""}</span>${right ? `<span class="r">${right}</span>` : ""}</header>`;
 // 오른쪽 칸 머리 (시안: 뒤로, 종류 표, 제목, 오른쪽 버튼)
 const paneHead = ({ kind, title, sub = "", right = "", back = "", backAct = "" }) =>
-  `<header class="pdh">${back ? `<a class="pbk" href="${esc(back)}"${backAct ? ` data-act="${esc(backAct)}"` : ""}>${IC.back}${BACKL(back)}</a>` : ""}${kind ? `<span class="pkd">${esc(kind)}</span>` : ""}<h2>${esc(title)}</h2>${sub ? `<span class="psub">${esc(sub)}</span>` : ""}${right}</header>`;
+  `<header class="pdh">${back ? `<a class="pbk" href="${esc(back)}" aria-label="뒤로 가기, ${BACKL(back)}" title="${BACKL(back)}"${backAct ? ` data-act="${esc(backAct)}"` : ""}>${IC.back}</a>` : ""}${kind ? `<span class="pkd">${esc(kind)}</span>` : ""}<h2>${esc(title)}</h2>${sub ? `<span class="psub">${esc(sub)}</span>` : ""}${right}</header>`;
 // 한 칸짜리 화면: 휴대폰 머리를 PC 제목줄로
 const PAGE = { "/": { title: "홈", sub: "내 사물함" }, "/chat": { sub: "일정마다 방이 하나씩 생겨요" } };
 function pcPage(html) {
