@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<script src="../maint-config.js?v=3489ef0"></script>
-<script src="../maint-gate.js?v=3489ef0"></script>
+<script src="../maint-config.js?v=4ca132a"></script>
+<script src="../maint-gate.js?v=4ca132a"></script>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://vlaiziklxvpykzsuvinn.supabase.co wss://vlaiziklxvpykzsuvinn.supabase.co https://kauth.kakao.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -295,7 +295,7 @@ textarea.inp{height:auto;min-height:120px;padding:8px 12px;line-height:1.7;resiz
 .chc .hint{font-size:11px;line-height:1.5;color:var(--sub)}
 .chclosed{position:sticky;bottom:0;z-index:5;border-top:2px solid var(--ink);background:var(--sec3);padding:14px 16px calc(14px + env(safe-area-inset-bottom));font-size:13px;line-height:1.5;display:flex;gap:10px;align-items:center}
 /* 테스트 사이트 표시: 휴대폰은 위 가운데, PC는 오른쪽 아래 (제목줄과 겹치지 않게) */
-.stg{position:fixed;top:6px;left:50%;transform:translateX(-50%);z-index:9999;pointer-events:none;background:#B45309;color:#FFFFFF;font-size:12px;font-weight:700;padding:4px 8px;border-radius:999px;opacity:.9}
+.stg{position:fixed;top:auto;bottom:92px;right:8px;z-index:9999;pointer-events:none;background:#B45309;color:#FFFFFF;font-size:12px;font-weight:700;padding:4px 8px;border-radius:999px;opacity:.9}
 html.pc .stg{top:auto;left:auto;right:12px;bottom:12px;transform:none}
 /* PC (가로 1024px 이상): 왼쪽 메뉴와 넓은 본문 (PC 시안 A안). 휴대폰은 그대로 */
 html.pc body{background:var(--bg)}
@@ -467,11 +467,11 @@ html.pc .toast{bottom:40px}
 .dlrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .tag.dsh{border-style:dashed}
 .pcmg{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.pcm{display:flex;flex-direction:column;gap:6px;min-height:78px;padding:12px 14px;border:2px solid var(--ink);border-radius:12px;background:var(--white);box-shadow:4px 4px 0 var(--ink);color:var(--ink);text-decoration:none;text-align:left;font:inherit}
-.pcm b{font-size:15px;display:inline-flex;align-items:center;gap:6px}
-.pcm>span:last-child{font-size:12px;color:var(--sub);line-height:1.5}
-.pcm.dg{background:#F6E9E2}
-.pcm.dg b{color:#8C3B28}
+.pcmc{display:flex;flex-direction:column;gap:6px;min-height:78px;padding:12px 14px;border:2px solid var(--ink);border-radius:12px;background:var(--white);box-shadow:4px 4px 0 var(--ink);color:var(--ink);text-decoration:none;text-align:left;font:inherit}
+.pcmc b{font-size:15px;display:inline-flex;align-items:center;gap:6px}
+.pcmc>span:last-child{font-size:12px;color:var(--sub);line-height:1.5}
+.pcmc.dg{background:#F6E9E2}
+.pcmc.dg b{color:#8C3B28}
 html.pc .evform{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:24px;row-gap:16px;align-items:start;align-content:start}
 html.pc .evform>*{grid-column:auto;min-width:0}
 html.pc .evform>.ef-opp,html.pc .evform>.ef-bot{grid-column:1 / -1}
@@ -492,7 +492,8 @@ html.pc .rrow{grid-template-columns:1fr 1.4fr 120px 46px!important}
 .pcq{display:grid;gap:12px}
 .pcqi{display:flex;flex-direction:column;gap:6px;min-width:0}
 .pcqi>b{font-size:20px}
-.pcqw{width:100%;overflow:hidden;border-radius:10px}
+html.pc .bcr>b.bc{font-size:20px!important}
+.pcqw{width:216px;max-width:100%;border-radius:10px}
 .pcqw>.pitch{zoom:.6;max-width:none!important}
 .fch{display:inline-flex;flex-direction:column;align-items:flex-start;gap:2px;padding:6px 10px;border:2px solid var(--ink);border-radius:10px;background:var(--white);font:inherit;color:var(--ink)}
 .fch b{font-size:16px;line-height:1}
@@ -526,6 +527,7 @@ html.pc .pcr2[data-p="season"] .body .punch[data-off]{border-style:dashed!import
 .chr.chops .chd.ic{background:#B093E5}
 .chr.chops .cht>span{color:#4A3F5C}
 .chtag.ink{background:var(--ink);color:var(--bg)}
+.chopsbar+.chlog{margin-top:0;border-top:0}
 .chopsbar{flex:none;display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:2px solid var(--ink);background:#E3D7FB;font-size:12px;line-height:1.5}
 .chopsbar .ic{flex:none;width:32px;height:32px;box-sizing:border-box;border:2px solid var(--ink);border-radius:8px;background:#B093E5;display:flex;align-items:center;justify-content:center}
 .chopsbar .ic svg{width:18px;height:18px}
@@ -822,7 +824,7 @@ html.pcwide .page{max-width:none}
 .xmine .big{font-size:18px;font-weight:700}
 .xmine .note{font-size:12px}
 </style>
-  <script type="module" crossorigin src="../../assets/team-C-Nz3A9y.js"></script>
+  <script type="module" crossorigin src="../../assets/team-Dz-ro-5w.js"></script>
   <link rel="modulepreload" crossorigin href="../../assets/modulepreload-polyfill-B5Qt9EMX.js">
 </head>
 <body>
