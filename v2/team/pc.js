@@ -28,15 +28,19 @@ export const OTHER_ON = { on: true };
 
 const BRAND_ = () => MBRAND(32);
 
+let lastPcKey = "";
 export function pcShell(html) {
   const sec = document.documentElement.dataset.sec || "home";
+  // 챕터가 바뀐 첫 그림에서만 고른 칸이 톡 올라온다 (휴대폰 아래 메뉴와 같은 움직임)
+  const hash0 = location.hash || "#/"; const key = sec !== "other" ? "m:" + sec : "o:" + hash0;
+  const lift = lastPcKey && lastPcKey !== key; lastPcKey = key; const lc = lift ? ' class="lift"' : "";
   const adm = isAdmin() && viewMode() === "admin";
   const items = MENU.filter(m => adm || m[2] !== "ops");
   const cu = chatUnread();
-  const nav = items.map(([h, l, k, col, ic]) => `<a href="${h}"${k === sec && sec !== "other" ? ` aria-current="page"` : ""} style="--c:${col}">${sv(ic)}<span>${l}</span>${k === "chat" && cu ? `<i class="pcn" aria-label="안 읽은 글 ${cu}개">${cu > 99 ? "99+" : cu}</i>` : ""}</a>`).join("");
+  const nav = items.map(([h, l, k, col, ic]) => `<a href="${h}"${k === sec && sec !== "other" ? ` aria-current="page"${lc}` : ""} style="--c:${col}">${sv(ic)}<span>${l}</span>${k === "chat" && cu ? `<i class="pcn" aria-label="안 읽은 글 ${cu}개">${cu > 99 ? "99+" : cu}</i>` : ""}</a>`).join("");
   const hash = location.hash || "#/";
   const other = OTHER.map(([h, l, k, ic]) => OTHER_ON.on
-    ? `<a href="${h}"${hash === h ? ` aria-current="page"` : ""} style="--c:#F2A65A">${sv(ic)}<span>${l}</span></a>`
+    ? `<a href="${h}"${hash === h ? ` aria-current="page"${lc}` : ""} style="--c:#F2A65A">${sv(ic)}<span>${l}</span></a>`
     : `<span class="off" aria-disabled="true">${sv(ic)}<span>${l}</span><i>준비 중</i></span>`).join("");
   const p = myProfile() || {};
   const me = p.name || nameOf(S.uid);
