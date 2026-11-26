@@ -316,7 +316,8 @@ textarea.inp{height:auto;min-height:120px;padding:8px 12px;line-height:1.7;resiz
 .chclosed{position:sticky;bottom:0;z-index:5;border-top:2px solid var(--ink);background:var(--sec3);padding:14px 16px calc(14px + env(safe-area-inset-bottom));font-size:13px;line-height:1.5;display:flex;gap:10px;align-items:center}
 .chclosed b{font-weight:700}
 .chclosed>svg{flex:none}
-/* 대화 시안 승인분 (2026-11-26): 방마다 알림 종, 방 메뉴와 대화상대 초대, 사진, 사라지는 시각 */
+/* 대화 시안 승인분 (2026-11-26): 방마다 알림 종, 방 메뉴와 대화상대 초대, 사진, 사라지는 시각
+   덮개(36~38)는 확인 창(덮개 40, 창 45)과 알림 띠(60)보다 아래에 둔다 */
 .chhr{display:flex;align-items:center;gap:8px;margin-left:auto;padding-right:8px}
 .chbell,.chmore{flex:none;width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid var(--ink);border-radius:10px;background:#F3EEE4;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .chbell.on{background:var(--yel);box-shadow:2px 2px 0 var(--ink)}
@@ -346,8 +347,8 @@ textarea.inp{height:auto;min-height:120px;padding:8px 12px;line-height:1.7;resiz
 .chpk .hint{font-size:12px;color:var(--sub)}
 .chphb{flex:none;position:relative;width:48px;height:48px;box-sizing:border-box;border:2px solid var(--ink);border-radius:12px;background:var(--white);display:flex;align-items:center;justify-content:center;cursor:pointer}
 .chphb:focus-within{outline:3px solid var(--ink);outline-offset:2px}
-.chov{position:fixed;inset:0;z-index:60;border:0;padding:0;background:rgba(18,17,16,.45);cursor:default}
-.chsheet{position:fixed;left:0;right:0;bottom:0;z-index:61;max-height:86dvh;display:flex;flex-direction:column;gap:12px;padding:20px 16px calc(24px + env(safe-area-inset-bottom));box-sizing:border-box;border-top:2px solid var(--ink);border-radius:16px 16px 0 0;background:var(--bg)}
+.chov{position:fixed;inset:0;z-index:36;border:0;padding:0;background:rgba(18,17,16,.45);cursor:default}
+.chsheet{position:fixed;left:0;right:0;bottom:0;z-index:37;max-height:86dvh;display:flex;flex-direction:column;gap:12px;padding:20px 16px calc(24px + env(safe-area-inset-bottom));box-sizing:border-box;border-top:2px solid var(--ink);border-radius:16px 16px 0 0;background:var(--bg)}
 html.pc .chsheet{left:50%;right:auto;bottom:auto;top:50%;transform:translate(-50%,-50%);width:min(480px,calc(100vw - 48px));border:2px solid var(--ink);border-radius:16px;box-shadow:4px 4px 0 var(--ink);padding:24px}
 .chsheet .hw{display:flex;flex-direction:column;gap:4px}
 .chsheet h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:20px}
@@ -363,7 +364,7 @@ html.pc .chsheet{left:50%;right:auto;bottom:auto;top:50%;transform:translate(-50
 .chine{font-size:13px;padding:12px 0}
 .chinvs{flex:none;height:52px;border:2px solid var(--ink);border-radius:12px;background:var(--yel);font:700 16px 'IBM Plex Sans KR',sans-serif;color:var(--ink);box-shadow:3px 3px 0 var(--ink);cursor:pointer}
 .chinvs[aria-disabled="true"]{opacity:.35;box-shadow:none}
-.chpv{position:fixed;inset:0;z-index:70;background:var(--ink);color:var(--bg);display:flex;flex-direction:column}
+.chpv{position:fixed;inset:0;z-index:38;background:var(--ink);color:var(--bg);display:flex;flex-direction:column}
 .chpv header{flex:none;height:60px;display:flex;align-items:center;gap:8px;padding:0 12px}
 .chpv .x{flex:none;width:44px;height:44px;padding:0;border:0;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .chpv .w{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.chpv .w b{font-size:14px}.chpv .w span{font-size:11px;color:#C9C2B6}
