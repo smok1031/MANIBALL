@@ -162,7 +162,7 @@ for j, (eid, dd, typ, opp, us, them) in enumerate(PAST):
 
 # ===== 오늘 경기: 1시간 전에 끝남. 결과와 MOM 투표 중, 라인업 있음, 대화방은 1~2시간 뒤 사라짐
 pool = rot(P, 3)
-e = ev("sp6", type="match", date="{{D:-3}}", time="{{h:-3}}", end="{{h:-1}}", place="상암 월드컵 보조구장", opponent="노을 FC", cap=14, voteClose="eve", voteTime="21:00",
+e = ev("sp6", type="match", date="{{D:-3}}", time="{{h:-3}}", end="{{h:-1}}", place="상암 월드컵 보조구장", opponent="청운 FC", cap=14, voteClose="eve", voteTime="21:00",
        createdAt="{{T:-6:10:00}}", _day=0)
 going, waiting = event("sp6", e, pool[:15], late={pool[6]: 2}, no=pool[15:18], vote_day=-3)
 ck = {u: "in" for u in going}; ck[going[9]] = "late"   # 늦참(2쿼터부터)은 고른 쿼터에 맞춰 와서 지각이 아니다. 지각은 다른 사람
