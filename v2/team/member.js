@@ -4,7 +4,7 @@ import { C, IC, navBar, hd, hdTab, hdBrand, mngBtn, lrow, dlg, empty, initial, s
 import { afeed, adminHomeRows } from "./admin.js";
 import { isKeeper } from "./lineup-core.js";
 import { pushBusy } from "./push.js";
-import { vChat, vChatRoom, chatEnter } from "./chat.js";
+import { vChat, vChatRoom, chatEnter, rateBox, rateLeft } from "./chat.js";
 import { vMatch, vHire, vSeek, xEnter } from "./xteam.js";
 import { isPC } from "./pc.js";
 
@@ -310,7 +310,11 @@ function mEvent(id) {
   const can = id => vs === "open" || (vs === "closed" && id === "no" && seat);
   const cards = opts.map(([k, l]) => { const on = v.s === k; const lab = k !== "no" && asWait ? (k === "yes" ? "대기" : "늦참 대기") : l; return `<button type="button" class="qc${on ? " on " + (k !== "no" && (w || asWait) ? "wait" : k) : !can(k) ? " lock" : v.s ? " dim" : ""}" data-act="mVote" data-eid="${esc(e.id)}" data-v="${k}" aria-pressed="${on}" ${can(k) ? "" : "disabled"}>${lab}<em class="qs">${k === "no" ? "이번엔 못 가요" : asWait ? "자리가 나면 들어가요" : k === "late" ? "늦게 와요" : "처음부터 뛰어요"}</em></button>`; }).join("");
   const qn = QN[sport()];
-  const quarters = v.s === "late" && vs === "open" ? `<div style="display:flex;align-items:center;gap:8px"><span style="flex:none;font-size:12px;font-weight:700">몇 쿼터부터?</span><div style="flex:1;display:grid;grid-template-columns:repeat(${qn - 1},minmax(0,1fr));gap:8px">${Array.from({ length: qn - 1 }, (_, i) => i + 2).map(q => `<button type="button" class="qq${Number(v.q) === q ? " on" : ""}" data-act="mLateQ" data-eid="${esc(e.id)}" data-q="${q}" aria-pressed="${Number(v.q) === q}">${q}Q</button>`).join("")}</div></div>` : "";
+  // 늦참 쿼터 띠: 1Q는 빗금이라 못 골라요(처음부터 오면 참석), 고른 쿼터는 노랑과 아래 굵은 줄, 뒤 쿼터는 연노랑, 칸 아래 글씨는 없어요
+  const cq = Number(v.q) || 0;
+  const qb = n => { const first = n === 1, on = cq === n; const cls = first ? " off" : on ? " on" : cq && n > cq ? " play" : cq && n < cq ? " off" : "";
+    return first ? `<button type="button" class="qq off" aria-disabled="true" aria-label="1쿼터는 고를 수 없어요. 처음부터 오면 참석이에요">1Q</button>` : `<button type="button" class="qq${cls}" data-act="mLateQ" data-eid="${esc(e.id)}" data-q="${n}" aria-pressed="${on}" aria-label="${n}쿼터부터 와요${on ? ", 고름" : ""}">${n}Q</button>`; };
+  const quarters = v.s === "late" && vs === "open" ? `<div class="qband" role="group" aria-label="몇 쿼터부터 와요"><span class="qbt">몇 쿼터부터 와요? 도착하는 쿼터를 눌러요</span><div class="qbr" style="grid-template-columns:repeat(${qn},minmax(0,1fr))">${Array.from({ length: qn }, (_, i) => qb(i + 1)).join("")}</div></div>` : "";
   const waitBox = w ? `<div role="status" class="box teal" style="flex-direction:row;align-items:center;gap:16px;border-radius:12px;padding:8px 16px"><span style="flex:none;display:flex;flex-direction:column;align-items:center;line-height:1;gap:4px"><span style="font-size:12px;font-weight:700">대기</span><b class="bc" style="font-size:36px;line-height:.9">${w}</b><span style="font-size:12px;font-weight:700">번</span></span><span style="display:flex;flex-direction:column;gap:4px"><b style="font-size:16px">아직 참석이 아니라 대기예요</b><span style="font-size:12px;line-height:1.5">정원 ${a.cap}명이 다 차서 대기 ${w}번으로 기다리고 있어요.</span></span></div>` : "";
   return `${hdBrand(adm ? `<a class="mng" href="#/manage/${esc(e.id)}" aria-label="일정 관리" title="일정 관리">${IC.sliders}</a>` : "", "#/schedule")}<div class="body tight">
     ${bigTicket(e, a)}${isPC() ? strip(a) : ""}
@@ -393,7 +397,7 @@ function recTicket(e) {
     : `<span style="font-size:12px;color:${C.sub}">${e.score ? "" : isPlay(e) ? "결과를 기다려요" : ""}</span>`;
   return `<a class="ru" href="#/game/${esc(e.id)}" aria-label="${esc(md(e.date) + " " + vsText(e) + (e.score ? " " + scoreText(e) : "") + ", " + me + (meSub ? " " + meSub : ""))} 기록 보기"><span class="ru-b">
     <span class="ru-m">
-      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px"><span class="row" style="gap:8px"><span class="ktag">${kindOf(e)}</span><b class="bc" style="font-size:20px">${md(e.date)} ${wd(e.date)}</b></span><b style="font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(vsText(e))}</b>${mom}</span>
+      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px"><span class="row" style="gap:8px"><span class="ktag">${kindOf(e)}</span><b class="bc" style="font-size:20px">${md(e.date)} ${wd(e.date)}</b></span><b style="font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(vsText(e))}</b>${(n => n ? `<span style="display:flex;flex-wrap:wrap;gap:6px">${mom}<span class="tag" style="align-self:flex-start;background:${C.yel};color:${C.ink}">용병 평가 ${n}명</span></span>` : mom)(isAdmin() && viewMode() === "admin" && isPlay(e) ? rateLeft(e) : 0)}</span>
       ${e.score ? `<span style="flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:4px"><b class="bc" style="font-size:36px;line-height:.9">${esc(scoreText(e))}</b><span style="font-size:12px;font-weight:700;background:${C.ink};color:${C.bg};border-radius:4px;padding:0 8px">${resultWord(e)}</span></span>` : ""}
       <span style="flex:none;width:58px;display:flex;justify-content:center"><span class="ru-st${came ? "" : " no"}"><b style="font-size:${meSub ? 14 : 16}px">${me}</b>${meSub ? `<span style="font-size:12px">${meSub}</span>` : ""}</span></span>
     </span>
@@ -444,6 +448,7 @@ function mGame(id) {
     </div>
     ${momOpen(e) ? `<div class="box" style="border-radius:12px;padding:16px 16px 16px"><span class="spread"><b class="bs">MOM 투표</b><span class="bc" style="font-size:16px;background:${C.ink};color:${C.bg};border-radius:6px;padding:1px 8px">${left <= 0 ? "오늘" : "D-" + left}</span></span><span style="font-size:14px">${md(e.date)} ${esc(vsText(e))}, ${whenText(dl.getTime())}까지</span>${adm ? `<b style="font-size:12px">투표한 사람 ${t.n || 0} / ${came.length}명 (운영진만 보여요)</b>` : ""}
       ${!iCame ? `<span style="font-size:14px">${held(e) ? "현장 출석에서 왔음이나 지각으로 체크된 사람만 투표할 수 있어요." : "운영진이 현장 출석을 받으면 투표할 수 있어요."}</span>` : my ? `<span style="display:flex;align-items:center;gap:8px;background:${C.bg};border:2px solid ${C.ink};border-radius:12px;padding:8px 12px;font-size:14px">${IC.check}<span><b>${esc(nameOf(my))}</b>에게 투표했어요. 결과는 마감 뒤에 나와요.</span></span>` : `<button class="btn pri" data-act="mMomOpen" data-eid="${esc(e.id)}" style="height:48px;border-radius:12px">투표하기${IC.arrow}</button>`}</div>` : ""}
+    ${adm && isPlay(e) ? rateBox(e.id, e) : ""}
     ${isPlay(e) && e.score ? `<section style="display:flex;flex-direction:column" aria-label="골 기록"><span class="spread" style="align-items:baseline;border-bottom:2px solid ${C.ink};padding-bottom:8px"><b style="font-size:16px">골 기록</b><span style="font-size:12px;color:${C.sub}">넣은 사람과 도운 사람</span></span>
       ${goals.length ? goals.map(g => `<div style="display:flex;align-items:center;gap:12px;min-height:56px;border-bottom:2px solid ${C.line}"><span style="flex:none;width:12px;height:12px;border-radius:50%;background:${g.uid === u ? C.orange : C.ink}" aria-hidden="true"></span><span style="flex:1;display:flex;flex-direction:column;gap:1px"><b style="font-size:16px${g.uid === u ? ";text-decoration:underline" : ""}">${esc(gn(g.uid) || "모름")}</b><span style="font-size:12px;color:${C.sub}">${g.assist ? "도움 " + esc(gn(g.assist)) : "도움 없음"}</span></span>${e.type === "scrim" && g.side ? `<span class="tag">${esc(g.side)}팀</span>` : ""}</div>`).join("") : `<span class="note" style="padding:16px 0">이 경기는 우리 골이 없어요.</span>`}</section>` : ""}
     ${win.length ? `<div class="box" style="flex-direction:row;align-items:center;gap:16px;border-radius:18px"><span style="flex:none;width:64px;height:64px;border-radius:50%;border:2.5px solid ${C.ink};background:${C.sec2};transform:rotate(-12deg);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1" class="bc"><span style="font-size:20px">MOM</span><span style="font-size:12px">${(t.c || {})[win[0]] || 0}표</span></span><span style="display:flex;flex-direction:column;gap:4px"><span class="note">이 경기 MOM</span><b class="bs" style="font-size:20px">${esc(win.map(nameOf).join(", "))}</b></span></div>` : ""}
@@ -724,7 +729,7 @@ export const MACT = {
     pressCard(t, toWait ? "wait" : v);
     saveVote(e, next, { back: true });
   },
-  mLateQ: t => { const e = S.events[t.dataset.eid]; if (!e) return; t.parentElement.querySelectorAll(".qq").forEach(b => b.classList.toggle("on", b === t)); saveVote(e, { ...myVote(e), s: "late", q: Number(t.dataset.q) }, { back: true, delay: 700 }); },
+  mLateQ: t => { const e = S.events[t.dataset.eid]; if (!e) return; const n = Number(t.dataset.q); t.parentElement.querySelectorAll(".qq[data-q]").forEach(b => { const k = Number(b.dataset.q); b.classList.toggle("on", k === n); b.classList.toggle("play", k > n); b.classList.toggle("off", k < n); b.setAttribute("aria-pressed", String(k === n)); }); saveVote(e, { ...myVote(e), s: "late", q: Number(t.dataset.q) }, { back: true, delay: 700 }); },
   mLq: t => { MU.lq = Number(t.dataset.q) || 1; render(); },
   mGuest: t => guestSheet(t.dataset.eid),
   mGuestCancel: t => confirmBox("용병 신청 취소", "보낸 용병 신청을 취소할까요?", "취소하기", async () => { try { await patchDoc("guestreq", S.uid, { items: { [t.dataset.k]: { status: "cancel", doneAt: new Date().toISOString() } } }); render(); } catch (err) { fail(err); } }),

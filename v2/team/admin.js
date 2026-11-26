@@ -48,9 +48,9 @@ export function afeed() {
       if (v.ask && v.ask.at && !started(e)) add(v.ask.at, "일정", v.ask.race ? `${nm} 자리가 나서 대기자 모두에게 물어봤어요. 먼저 누른 사람이 들어가요` : `${nm} 대기 ${x.name}님에게 자리가 났다고 물어봤어요. ${hmK(Date.parse(v.ask.until))}까지 답을 기다려요`, "#/manage/" + e.id);
       if (v.upAt) add(v.upAt, "일정", `${nm} ${x.name}님이 대기에서 참석으로 올라왔어요`, "#/manage/" + e.id);
       if (v.waitOut) add(v.waitOut, "일정", `${nm} ${x.name}님이 대기에서 빠졌어요 (벌금 없음)`, "#/manage/" + e.id); });
-    // 용병 평가: 다른 팀에서 온 용병이 있던 경기, 경기 다음 날부터 7일 안
+    // 용병 평가: 다른 팀에서 온 용병이 있던 경기, 경기 다음 날부터 7일 안 (기록의 경기 상세에서 한다)
     const ext = Object.values(e.guests || {}).filter(g => g && g.ext && g.ext.uid).length;
-    if (ext && e.date < todayStr()) { const last = new Date(Date.parse(e.date + "T00:00:00Z") + 7 * 864e5).toISOString().slice(0, 10); if (todayStr() <= last) add(new Date(evStart(e).getTime() + 3 * 3600e3).toISOString(), "대화", `${nm} 경기에 온 용병 ${ext}명을 평가해 주세요. ${md(last)}까지 할 수 있어요`, "#/chat/" + e.id); } });
+    if (ext && e.date < todayStr()) { const last = new Date(Date.parse(e.date + "T00:00:00Z") + 7 * 864e5).toISOString().slice(0, 10); if (todayStr() <= last) add(new Date(evStart(e).getTime() + 3 * 3600e3).toISOString(), "기록", `${nm} 경기에 온 용병 ${ext}명을 평가해 주세요. 기록의 이 경기에서 ${md(last)}까지 할 수 있어요`, "#/game/" + e.id); } });
   // 회비: 이번 달 안 낸 사람 (달마다 받을 때)
   if (feeMode() === "monthly") { const key = "m-" + ym(); const un = S.members.filter(m => !paidOf(key, m.user_id)).length; if (un) add(new Date(ym() + "-01T09:00:00+09:00").toISOString(), "회비", `${mLabel(ym())} 회비를 안 낸 사람이 ${un}명이에요`, "#/dues"); }
   // 대화: 욕설을 가린 글

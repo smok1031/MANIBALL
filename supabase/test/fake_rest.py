@@ -2,7 +2,7 @@
 supabase-js가 웹 앱에서 쓰는 요청 모양만 흉내 낸다. 서명 검증이 없으니 시험에만 쓰세요.
 Usage: python3 fake_rest.py PORT "host=/var/tmp/pgt port=5499 user=postgres dbname=t2"
 """
-import sys, json, re, base64
+import sys, json, re, base64, uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qsl
 import psycopg2, psycopg2.extras
@@ -12,8 +12,9 @@ COLS = {"join_requests": {"team_id", "user_id", "team_name", "display_name", "ka
         "members": {"team_id", "user_id", "role", "display_name", "joined_at", "admin_req"},
         "teams": {"id", "name", "invite_code", "created_by", "created_at"},
         "maint": {"id", "state", "start_at", "end_at", "note", "updated_at"},
-        "chat": {"id", "team_id", "room", "user_id", "name", "body", "masked", "hidden", "kind", "created_at"}}
-FNS = {"create_team", "team_by_code", "join_team", "set_my_name", "set_member_role", "remove_member", "new_invite_code", "doc_patch", "my_name", "team_invite_code", "leave_team_as_owner", "delete_my_account", "delete_team", "submit_inquiry", "delete_team_with_review", "request_join", "answer_join", "cancel_join", "late_cancel", "maint_status", "push_subscribe", "push_unsubscribe", "push_mine", "push_conf_get", "push_conf_init", "push_take", "push_done", "push_subs_of", "push_kakao_put", "push_kakao_get", "push_kakao_del", "push_kakao_ok", "push_kakao_mine", "demo_start", "chat_send", "chat_hide", "x_list", "x_inbox", "x_my", "x_post_match", "x_post_hire", "x_post_state", "x_apply_match", "x_apply_hire", "x_cancel", "x_answer", "x_rate", "x_paid", "x_pay_ok", "x_rate_team", "x_rates_of", "chat_merc_rooms", "wait_answer", "poll_remind"}
+        "chat": {"id", "team_id", "room", "user_id", "name", "body", "masked", "hidden", "kind", "photos", "created_at"}}
+FNS = {"create_team", "team_by_code", "join_team", "set_my_name", "set_member_role", "remove_member", "new_invite_code", "doc_patch", "my_name", "team_invite_code", "leave_team_as_owner", "delete_my_account", "delete_team", "submit_inquiry", "delete_team_with_review", "request_join", "answer_join", "cancel_join", "late_cancel", "maint_status", "push_subscribe", "push_unsubscribe", "push_mine", "push_conf_get", "push_conf_init", "push_take", "push_done", "push_subs_of", "push_kakao_put", "push_kakao_get", "push_kakao_del", "push_kakao_ok", "push_kakao_mine", "demo_start", "chat_send", "chat_hide", "chat_invite", "x_list", "x_inbox", "x_my", "x_post_match", "x_post_hire", "x_post_state", "x_apply_match", "x_apply_hire", "x_cancel", "x_answer", "x_rate", "x_paid", "x_pay_ok", "x_rate_team", "x_rates_of", "chat_merc_rooms", "wait_answer", "poll_remind"}
+BLOB, TOK = {}, {}
 IDENT = re.compile(r"^[a-z_][a-z0-9_]*$")
 
 def claims(h):
@@ -66,6 +67,38 @@ class H(BaseHTTPRequestHandler):
         finally:
             conn.close()
 
+    # 저장소 흉내: 올리기, 서명 주소 받기, 서명 주소로 받기 (권한은 storage.objects의 RLS가 거른다)
+    def storage(self, method):
+        u = urlparse(self.path); parts = u.path.strip("/").split("/"); q = dict(parse_qsl(u.query))
+        if parts[:3] != ["storage", "v1", "object"]: return False
+        rest = parts[3:]
+        if method == "GET" and rest[:1] == ["sign"]:
+            name = "/".join(rest[2:]); tok = q.get("token", "")
+            if TOK.get(tok) != (rest[1], name): self.reply(400, {"error": "bad token"}); return True
+            raw = BLOB.get((rest[1], name), b"")
+            self.send_response(200); self.cors(); self.send_header("Content-Type", "image/jpeg"); self.send_header("Content-Length", str(len(raw))); self.end_headers(); self.wfile.write(raw); return True
+        if method == "POST" and rest[:1] == ["sign"]:
+            b = self.body() or {}; bucket = rest[1]
+            names = b.get("paths") or ["/".join(rest[2:])]
+            ok = self.run(lambda cur: (cur.execute("select name from storage.objects where bucket_id = %s and name = any(%s)", (bucket, names)), [r["name"] for r in cur.fetchall()])[1])
+            if ok is None: return True
+            out = []
+            for n in names:
+                if n in ok:
+                    t = uuid.uuid4().hex; TOK[t] = (bucket, n)
+                    out.append({"path": n, "signedURL": f"/object/sign/{bucket}/{n}?token={t}", "error": None})
+                else: out.append({"path": n, "signedURL": None, "error": "Either the object does not exist or you do not have access to it"})
+            self.reply(200, out if b.get("paths") else (out[0] if out[0]["signedURL"] else {"statusCode": "404", "error": "not_found", "message": out[0]["error"]}))
+            return True
+        if method == "POST":
+            bucket = rest[0]; name = "/".join(rest[1:])
+            n = int(self.headers.get("Content-Length") or 0); raw = self.rfile.read(n) if n else b""
+            res = self.run(lambda cur: (cur.execute("insert into storage.objects (bucket_id, name) values (%s, %s) returning id", (bucket, name)), cur.fetchall())[1])
+            if res is None: return True
+            BLOB[(bucket, name)] = raw
+            self.reply(200, {"Key": f"{bucket}/{name}", "Id": str(res[0]["id"])}); return True
+        self.reply(404, {"error": "not_supported"}); return True
+
     def route(self):
         u = urlparse(self.path); parts = u.path.strip("/").split("/")
         q = parse_qsl(u.query, keep_blank_values=True)
@@ -112,6 +145,7 @@ class H(BaseHTTPRequestHandler):
         self.reply(200, rows)
 
     def do_GET(self):
+        if self.storage("GET"): return
         r = self.route()
         if not r: return
         path, q = r; t = path[0]
@@ -121,6 +155,7 @@ class H(BaseHTTPRequestHandler):
         if rows is not None: self.shape(rows)
 
     def do_POST(self):
+        if self.storage("POST"): return
         r = self.route()
         if not r: return
         path, q = r; b = self.body()
@@ -128,8 +163,8 @@ class H(BaseHTTPRequestHandler):
             fn = path[1]
             if fn not in FNS: return self.reply(404, {"message": "no fn"})
             keys = list((b or {}).keys()); assert all(IDENT.match(k) for k in keys)
-            call = f"select * from {self.schema()}.{fn}(" + ", ".join(f"{k} => %s" for k in keys) + ")"
-            vals = [b[k] if isinstance(b[k], list) and fn in ("push_done", "x_rate", "x_rate_team") else json.dumps(b[k]) if isinstance(b[k], (dict, list)) else b[k] for k in keys]
+            call = f"select * from {self.schema()}.{fn}(" + ", ".join(f"{k} => %s" + ("::uuid[]" if k == "p_users" else "") for k in keys) + ")"
+            vals = [b[k] if isinstance(b[k], list) and (fn in ("push_done", "x_rate", "x_rate_team") or k in ("p_photos", "p_users")) else json.dumps(b[k]) if isinstance(b[k], (dict, list)) else b[k] for k in keys]
             def go(cur):
                 cur.execute(call, vals); rows = cur.fetchall()
                 if fn == "team_by_code": return ("ok", [dict(x) for x in rows])

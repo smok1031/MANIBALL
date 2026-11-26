@@ -13,7 +13,7 @@ const CSP = [
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com data:",
-  "img-src 'self' data: blob: https:",
+  `img-src 'self' data: blob: https: ${sbUrl}`, // 대화 사진: Supabase 저장소의 서명 주소
   `connect-src 'self' ${sbUrl} ${sbWs} https://kauth.kakao.com`,
   "object-src 'none'", "base-uri 'self'", "form-action 'self'",
 ].join("; ");
