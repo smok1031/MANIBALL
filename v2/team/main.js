@@ -77,11 +77,11 @@ const S = { d: {}, session: null, uid: "", teams: [], tid: "", role: "", team: n
 // 운영진 화면과 팀원 화면은 따로 그린다. 운영진도 "팀원 화면 보기"로 자기 참석과 카드를 본다
 // 운영진은 운영진 화면만 쓴다. 팀원 화면 검토용 주소(?view=member)로 들어올 때만 이 창에서 팀원 화면을 보여 준다
 const ss = { get: k => { try { return sessionStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { v == null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch (e) { /* 없어도 된다 */ } } };
-// 팀원 화면 검토(?view=member)는 Admin만 한다
+// 팀원 화면 검토(?view=member)는 운영진만 한다
 const viewMode = () => (isAdmin() && !(S.role === "owner" && ss.get("mb-review") === "member")) ? "admin" : "member";
 function setView(v) { ss.set("mb-review", v === "member" ? "member" : null); }
 const isAdmin = () => S.role === "owner" || S.role === "admin";
-// 내보내기: Admin은 운영진과 팀원을, 운영진은 팀원만 (Admin은 아무도 못 내보낸다)
+// 내보내기: 운영진은 운영진과 팀원을 내보낼 수 있다 (권한은 운영진과 팀원 둘, 2026-11-25)
 const canKick = x => !!x && x.uid !== S.uid && isAdmin();
 
 /* ---------- 작은 도구 ---------- */
@@ -169,7 +169,7 @@ async function loadTeam(tid) {
   watch(tid);
   chatLoad().then(scheduleRender).catch(() => {});
 }
-// 가입 신청 (Admin, 운영진만 볼 수 있다. 서버 정책도 같다)
+// 가입 신청 (운영진만 볼 수 있다. 서버 정책도 같다)
 async function loadReqs() {
   if (!S.tid || !isAdmin()) { S.reqs = []; return; }
   const { data, error } = await sb.from("join_requests").select("user_id,display_name,kakao_name,message,device,created_at").eq("team_id", S.tid).eq("status", "pending").order("created_at");
@@ -289,7 +289,7 @@ function closeAt(e) {
   if (e.voteClose === "day06") return Math.min(st, new Date(e.date + "T06:00:00+09:00").getTime());
   return st;
 }
-// 불참 벌금 기준 시각 (기본 운영 규칙, Admin이 정함): 투표 마감 뒤, 경기 당일 0시, 직접 정하기(경기 N일 전 오전/오후 H시). 마감보다 늦을 수는 없다
+// 불참 벌금 기준 시각 (기본 운영 규칙, 운영진이 정함): 투표 마감 뒤, 경기 당일 0시, 직접 정하기(경기 N일 전 오전/오후 H시). 마감보다 늦을 수는 없다
 function fineAt(e) {
   const st = S.settings || {}; const ca = Number(closeAt(e)); const day0 = Date.parse(e.date + "T00:00:00+09:00");
   let t = ca;
@@ -549,7 +549,7 @@ function vProfile(editing) {
     <div class="fld"><span class="lb">2선호 포지션</span><div class="${g}">${pos.filter(p => p !== f.pos1).map(p => pchip("pos2", p)).join("")}<button type="button" class="chip${!f.pos2 ? " on" : ""}" data-act="pick" data-k="pos2" data-v="" style="height:44px;padding:0 4px">없음</button></div></div>
   </div><div class="cta"><button class="btn o block" data-act="saveProfile">${editing ? "저장하기" : "다음"}</button></div>`;
 }
-// 팀 기본 운영 규칙 (팀 만들 때 정하고, 팀 설정에서 Admin만 바꿈): 일정 만들 때 기본값, 지각 기준, 내전 기준
+// 팀 기본 운영 규칙 (팀 만들 때 정하고, 팀 설정에서 운영진이 바꿈): 일정 만들 때 기본값, 지각 기준, 내전 기준
 export const POLICY_DEF = { voteClose: "days", voteDays: 1, voteTime: "21:00", waitCap: 0, checkBefore: 10, scrimMin: 20, scrimDays: 5 };
 export const pol = k => { const v = (S.settings || {})[k]; if (k === "cap") return Number(v) || (sport() === "soccer" ? 22 : 12); if (v === undefined || v === null || v === "") return POLICY_DEF[k]; return typeof POLICY_DEF[k] === "number" ? (Number.isFinite(Number(v)) ? Number(v) : POLICY_DEF[k]) : v; };
 const PBOUND = { pVoteDays: [0, 14], pCap: [2, 40], pWait: [0, 30], pScrimMin: [4, 40], pScrimDays: [1, 7] };
@@ -625,7 +625,7 @@ function vInviteMsg() {
   </div><div class="cta"><a class="btn o block" href="#/">완료</a></div>`;
 }
 
-// 팀 지우기 팝업: 운영진 중에서 다음 Admin을 고르고 나가기, 또는 매니볼에 평가를 남기고 팀 지우기
+// 팀 지우기 팝업: 다음 운영진을 고르고 나가기, 또는 매니볼에 평가를 남기고 팀 지우기
 function delSheet() {
   const ads = S.members.filter(m => m.role === "admin"); const pick = S.delNext && ads.some(m => m.user_id === S.delNext) ? S.delNext : "";
   const radio = on => `<span style="width:22px;height:22px;border-radius:50%;box-sizing:border-box;flex:none;border:${on ? "7px solid #15803D" : "2px solid #D1D5DB"}"></span>`;
@@ -1401,7 +1401,7 @@ const ACT = {
   createBack: () => { if (S.fromTeams || !(S.ready && S.tid)) showTeams(S.teamsMode || "entry"); else { S.flow = ""; render(); } },
   enterTeam: async t => { closeSheet(); S.ready = false; render(); await enter(t.dataset.id); },
   newTeam: () => { closeSheet(); S.fromTeams = S.flow === "teams"; startCreate(); },
-  // 팀 지우기 (Admin만): 다음 Admin을 지정하고 나가거나, 매니볼에 평가를 남기고 팀을 지운다 (평가는 매니볼을 고치는 데 쓴다)
+  // 팀 지우기 (운영진): 다음 운영진을 지정하고 나가거나, 매니볼에 평가를 남기고 팀을 지운다 (평가는 매니볼을 고치는 데 쓴다)
   delTeam: () => { S.delNext = ""; delSheet(); },
   delPick: t => { S.delNext = t.dataset.u; delSheet(); },
   delLeave: () => { const u = S.delNext; if (!u) { toast("다음 운영진을 골라 주세요"); return; } closeSheet(); confirmBox("운영진을 정하고 나갈까요?", `${nameOf(u)} 님이 다음 운영진이 되고, 나는 ${S.team.name}에서 나가요. 다시 들어오려면 초대 링크가 필요해요. 되돌릴 수 없어요.`, "지정하고 나가기", async () => {
