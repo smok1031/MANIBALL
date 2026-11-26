@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<script src="../maint-config.js?v=af02b4f"></script>
-<script src="../maint-gate.js?v=af02b4f"></script>
+<script src="../maint-config.js?v=05b80df"></script>
+<script src="../maint-gate.js?v=05b80df"></script>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://vlaiziklxvpykzsuvinn.supabase.co wss://vlaiziklxvpykzsuvinn.supabase.co https://kauth.kakao.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https: https://vlaiziklxvpykzsuvinn.supabase.co; connect-src 'self' https://vlaiziklxvpykzsuvinn.supabase.co wss://vlaiziklxvpykzsuvinn.supabase.co https://kauth.kakao.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>매니볼</title>
 <meta name="theme-color" content="#FBF7EF">
@@ -167,6 +167,21 @@ textarea.inp{height:auto;min-height:120px;padding:8px 12px;line-height:1.7;resiz
 .pt-bc span{font-size:12px;writing-mode:vertical-rl;color:var(--sub);line-height:1}
 .pt-n{position:absolute;right:82px;width:22px;height:12px;background:var(--bg);z-index:1;pointer-events:none}
 .pt-n.t{top:0;border-radius:0 0 11px 11px}.pt-n.b{bottom:0;border-radius:11px 11px 0 0}.pt-n.r8{right:8px}
+/* 티켓 홈 (시안 2026-11-26): 바탕색 반원을 덧칠하지 않고 진짜로 뚫는다. 그림자도 뚫린 모양대로 떨어진다.
+   :has()나 마스크를 못 쓰는 옛 브라우저는 예전처럼 바탕색 반원을 그린다 */
+@supports ((mask:radial-gradient(#000,#000)) or (-webkit-mask:radial-gradient(#000,#000))) and selector(:has(+ *)){
+  .pt-b{background:transparent;box-shadow:none;filter:drop-shadow(0 1px 0 rgba(18,17,16,.08)) drop-shadow(0 6px 7px rgba(18,17,16,.14))}
+  .pt-in{--nx:93px;--nr:11px;background:var(--white);-webkit-mask:radial-gradient(circle var(--nr) at calc(100% - var(--nx)) 0,#0000 calc(var(--nr) - .5px),#000 var(--nr)),radial-gradient(circle var(--nr) at calc(100% - var(--nx)) 100%,#0000 calc(var(--nr) - .5px),#000 var(--nr));-webkit-mask-composite:source-in;mask:radial-gradient(circle var(--nr) at calc(100% - var(--nx)) 0,#0000 calc(var(--nr) - .5px),#000 var(--nr)),radial-gradient(circle var(--nr) at calc(100% - var(--nx)) 100%,#0000 calc(var(--nr) - .5px),#000 var(--nr));mask-composite:intersect}
+  .pt-b>.pt-n{display:none}
+  .bigt,.pass,.paper:has(>.pcut){--nr:12px;-webkit-background-clip:text!important;background-clip:text!important;box-shadow:none!important;filter:drop-shadow(0 1px 0 rgba(18,17,16,.08)) drop-shadow(0 6px 7px rgba(18,17,16,.14))}
+  .bigt,.pass{overflow:hidden}
+  .bigt>:not(.cxst),.pass>*,.paper:has(>.pcut)>:not(span){background-color:inherit}
+  .paper>:has(+.pcut){border-radius:12px 12px 0 0}.paper>.pcut+*{border-radius:0 0 12px 12px}
+  .bigt>.top,.pass>:has(+.pcut),.paper>:has(+.pcut){-webkit-mask:radial-gradient(circle var(--nr) at 0 100%,#0000 calc(var(--nr) - .5px),#000 var(--nr)),radial-gradient(circle var(--nr) at 100% 100%,#0000 calc(var(--nr) - .5px),#000 var(--nr));-webkit-mask-composite:source-in;mask:radial-gradient(circle var(--nr) at 0 100%,#0000 calc(var(--nr) - .5px),#000 var(--nr)),radial-gradient(circle var(--nr) at 100% 100%,#0000 calc(var(--nr) - .5px),#000 var(--nr));mask-composite:intersect}
+  .bigt>.bot,.pass>.pcut+*,.paper>.pcut+*{-webkit-mask:radial-gradient(circle var(--nr) at 0 0,#0000 calc(var(--nr) - .5px),#000 var(--nr)),radial-gradient(circle var(--nr) at 100% 0,#0000 calc(var(--nr) - .5px),#000 var(--nr));-webkit-mask-composite:source-in;mask:radial-gradient(circle var(--nr) at 0 0,#0000 calc(var(--nr) - .5px),#000 var(--nr)),radial-gradient(circle var(--nr) at 100% 0,#0000 calc(var(--nr) - .5px),#000 var(--nr));mask-composite:intersect}
+  .bigt>.cut,.pcut{-webkit-mask:linear-gradient(90deg,#0000 var(--nr),#000 var(--nr) calc(100% - var(--nr)),#0000 calc(100% - var(--nr)));mask:linear-gradient(90deg,#0000 var(--nr),#000 var(--nr) calc(100% - var(--nr)),#0000 calc(100% - var(--nr)))}
+  .bigt .cut::after,.pcut::after{display:none}
+}
 /* 투표한 답: 도장처럼 톡 찍힘 */
 .pstamp{animation:pstamp .34s cubic-bezier(.3,1.6,.5,1) .15s both}
 @keyframes pstamp{from{transform:scale(1.5) rotate(-8deg);opacity:0}to{transform:none;opacity:1}}
@@ -212,8 +227,13 @@ textarea.inp{height:auto;min-height:120px;padding:8px 12px;line-height:1.7;resiz
 .qc.on.no{background:var(--ink);color:var(--bg);box-shadow:4px 4px 0 #14BBC2}
 .qc.dim{color:#6B655D}
 .qc.lock{border-style:dashed;background:transparent;color:#6B655D;cursor:default}
-.qq{height:34px;border:2px solid var(--ink);border-radius:7px;background:var(--white);font:700 16px/1 'Barlow Condensed','IBM Plex Sans KR',sans-serif}
-.qq.on{background:var(--ink);color:var(--bg);transform:rotate(-4deg)}
+.qband{display:flex;flex-direction:column;gap:6px}.qbt{font-size:12px;font-weight:700}
+.qbr{display:grid;border:2px solid var(--ink);border-radius:10px;overflow:hidden;background:var(--ink);gap:2px}
+.pc .qband{max-width:420px}
+.qq{min-height:48px;padding:0;border:0;border-radius:0;display:flex;align-items:center;justify-content:center;background:var(--white);color:var(--ink);font:700 18px/1 'Barlow Condensed','IBM Plex Sans KR',sans-serif;cursor:pointer}
+.qq.play{background:#FDEB8C}.qq.on{background:var(--yel);box-shadow:inset 0 -4px 0 var(--ink)}
+.qq.off{background:repeating-linear-gradient(135deg,#F3EEE4 0 6px,#E4DCCD 6px 8px)}.qq[aria-disabled="true"]{color:var(--mute);cursor:default}
+.qq:focus-visible{outline:3px solid var(--ink);outline-offset:-5px}
 .strip{border:2px solid var(--ink);border-radius:12px;background:var(--white);box-shadow:var(--sh);padding:16px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
 .strip>span{display:flex;flex-direction:column;gap:4px;text-decoration:none}
 .strip b{font-family:'Barlow Condensed','IBM Plex Sans KR',sans-serif;font-size:32px;line-height:1}
@@ -250,7 +270,9 @@ textarea.inp{height:auto;min-height:120px;padding:8px 12px;line-height:1.7;resiz
 .chn{min-width:22px;height:22px;box-sizing:border-box;padding:0 6px;border-radius:11px;background:var(--ink);color:var(--bg);font:700 12px/22px 'Barlow Condensed','IBM Plex Sans KR',sans-serif;text-align:center}
 .cha{width:22px;height:22px;box-sizing:border-box;border:2px solid var(--ink);border-radius:50%;background:var(--white);color:var(--ink);font:700 11px/18px 'IBM Plex Sans KR',sans-serif;text-align:center}
 .chx{font-size:11px;font-weight:700;border:2px solid var(--ink);border-radius:5px;padding:0 6px;background:var(--white);color:var(--ink)}
-.chtk{margin:4px 16px 0;display:flex;align-items:stretch;min-height:72px;border-radius:10px;background:var(--white);overflow:hidden;box-shadow:0 1px 0 rgba(18,17,16,.08),0 6px 14px rgba(18,17,16,.14)}
+.chtkw{flex:none;padding:12px 16px;border-bottom:2px solid var(--ink);background:#F6EEDD}
+.chtkw+.chlog,.chgone+.chlog{margin-top:0;border-top:0}
+.chtk{margin:0;display:flex;align-items:stretch;min-height:72px;border-radius:10px;background:var(--white);overflow:hidden;box-shadow:0 1px 0 rgba(18,17,16,.08),0 6px 14px rgba(18,17,16,.14)}
 .chtk .l{flex:1;min-width:0;padding:10px 14px;display:flex;flex-direction:column;justify-content:center;gap:4px;font-size:12px}
 .chtk .l b{font-size:14px;line-height:1.4}
 .chtk .pf{flex:none;width:2px;margin:8px 0;background-image:radial-gradient(circle,var(--ink) 1.2px,transparent 1.4px);background-size:2px 6px;background-repeat:repeat-y}
@@ -294,6 +316,72 @@ textarea.inp{height:auto;min-height:120px;padding:8px 12px;line-height:1.7;resiz
 .chs[aria-disabled="true"]{opacity:.35;box-shadow:none}
 .chc .hint{font-size:11px;line-height:1.5;color:var(--sub)}
 .chclosed{position:sticky;bottom:0;z-index:5;border-top:2px solid var(--ink);background:var(--sec3);padding:14px 16px calc(14px + env(safe-area-inset-bottom));font-size:13px;line-height:1.5;display:flex;gap:10px;align-items:center}
+.chclosed b{font-weight:700}
+.chclosed>svg{flex:none}
+/* 대화 시안 승인분 (2026-11-26): 방마다 알림 종, 방 메뉴와 대화상대 초대, 사진, 사라지는 시각 */
+.chhr{display:flex;align-items:center;gap:8px;margin-left:auto;padding-right:8px}
+.chbell,.chmore{flex:none;width:44px;height:44px;padding:0;box-sizing:border-box;border:2px solid var(--ink);border-radius:10px;background:#F3EEE4;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.chbell.on{background:var(--yel);box-shadow:2px 2px 0 var(--ink)}
+.chmore{background:var(--white)}
+.chmw{position:relative;flex:none}
+.chmenu{position:absolute;top:52px;right:0;z-index:30;min-width:200px;box-sizing:border-box;padding:4px;border:2px solid var(--ink);border-radius:12px;background:var(--white);box-shadow:4px 4px 0 var(--ink)}
+.chmenu button{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:0 12px;border:0;border-radius:8px;background:transparent;font:700 15px 'IBM Plex Sans KR',sans-serif;color:var(--ink);text-align:left;cursor:pointer}
+.chmenu button:hover,.chmenu button:focus-visible{background:var(--bg)}
+.chmu{flex:none}
+.cht .chl{display:flex;align-items:center;gap:6px;min-width:0}
+.cht .chl>span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chgo{display:inline-flex!important;align-items:center;gap:4px;flex:none;font-size:11px!important;font-weight:700;color:var(--ink)!important;border:2px dashed var(--ink);border-radius:5px;padding:0 5px;background:var(--white);overflow:visible!important}
+.chgone{flex:none;display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:2px solid var(--ink);background:var(--white);font-size:12px;line-height:1.5}
+.chgone .ic{flex:none;width:32px;height:32px;box-sizing:border-box;border:2px solid var(--ink);border-radius:50%;background:var(--yel);display:flex;align-items:center;justify-content:center}
+.pcr .chgone{padding:12px 24px;font-size:14px}
+.cph{display:grid;gap:6px;grid-template-columns:auto}
+.cph.n2{grid-template-columns:repeat(2,auto)}
+.cphb{display:block;padding:0;width:220px;height:165px;box-sizing:border-box;border:2px solid var(--ink);border-radius:12px;background:#F3EEE4;box-shadow:3px 3px 0 var(--ink);overflow:hidden;cursor:pointer}
+.cph.n2 .cphb{width:112px;height:112px}
+.cphb img{display:block;width:100%;height:100%;object-fit:cover}
+.cphl{display:block;width:100%;height:100%;background:repeating-linear-gradient(135deg,#F3EEE4 0 6px,#E4DCCD 6px 8px)}
+.chpk{display:flex;flex-direction:column;gap:6px}
+.chpkl{display:flex;gap:10px;padding:6px 0 0;flex-wrap:wrap}
+.chpki{position:relative;flex:none;width:64px;height:64px}
+.chpki img{display:block;width:64px;height:64px;box-sizing:border-box;border:2px solid var(--ink);border-radius:12px;object-fit:cover;background:#F3EEE4}
+.chpki button{position:absolute;top:-8px;right:-8px;width:28px;height:28px;padding:0;border:2px solid var(--white);border-radius:50%;background:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.chpk .hint{font-size:12px;color:var(--sub)}
+.chphb{flex:none;position:relative;width:48px;height:48px;box-sizing:border-box;border:2px solid var(--ink);border-radius:12px;background:var(--white);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.chphb:focus-within{outline:3px solid var(--ink);outline-offset:2px}
+.chov{position:fixed;inset:0;z-index:60;border:0;padding:0;background:rgba(18,17,16,.45);cursor:default}
+.chsheet{position:fixed;left:0;right:0;bottom:0;z-index:61;max-height:86dvh;display:flex;flex-direction:column;gap:12px;padding:20px 16px calc(24px + env(safe-area-inset-bottom));box-sizing:border-box;border-top:2px solid var(--ink);border-radius:16px 16px 0 0;background:var(--bg)}
+html.pc .chsheet{left:50%;right:auto;bottom:auto;top:50%;transform:translate(-50%,-50%);width:min(480px,calc(100vw - 48px));border:2px solid var(--ink);border-radius:16px;box-shadow:4px 4px 0 var(--ink);padding:24px}
+.chsheet .hw{display:flex;flex-direction:column;gap:4px}
+.chsheet h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:20px}
+.chsheet .hw>span{font-size:12px;line-height:1.5;color:var(--sub)}
+.chinl{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:2px 4px 4px 0;margin-right:-4px}
+.chinv{display:flex;align-items:center;gap:12px;min-height:60px;box-sizing:border-box;padding:8px 12px;border:2px solid var(--line);border-radius:12px;background:transparent;font-family:inherit;color:var(--ink);text-align:left;cursor:pointer}
+.chinv.on{border-color:var(--ink);background:var(--white);box-shadow:3px 3px 0 var(--ink)}
+.chinv .cav{width:36px;height:36px;font-size:14px}
+.chinv .t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.chinv .t b{font-size:15px}.chinv .t span{font-size:12px;color:var(--sub)}
+.chinv .bx{flex:none;width:26px;height:26px;box-sizing:border-box;border:2px solid var(--ink);border-radius:6px;background:var(--white);display:flex;align-items:center;justify-content:center}
+.chinv.on .bx{background:var(--yel)}
+.chine{font-size:13px;padding:12px 0}
+.chinvs{flex:none;height:52px;border:2px solid var(--ink);border-radius:12px;background:var(--yel);font:700 16px 'IBM Plex Sans KR',sans-serif;color:var(--ink);box-shadow:3px 3px 0 var(--ink);cursor:pointer}
+.chinvs[aria-disabled="true"]{opacity:.35;box-shadow:none}
+.chpv{position:fixed;inset:0;z-index:70;background:var(--ink);color:var(--bg);display:flex;flex-direction:column}
+.chpv header{flex:none;height:60px;display:flex;align-items:center;gap:8px;padding:0 12px}
+.chpv .x{flex:none;width:44px;height:44px;padding:0;border:0;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.chpv .w{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.chpv .w b{font-size:14px}.chpv .w span{font-size:11px;color:#C9C2B6}
+.chpv .c{flex:none;font:700 16px 'Barlow Condensed','IBM Plex Sans KR',sans-serif}
+.chpv .m{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center}
+.chpv .m img{display:block;max-width:100%;max-height:100%;object-fit:contain}
+.chpv .m .loading{color:var(--bg)}
+.chpv .nv{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;padding:0;border:2px solid var(--bg);border-radius:50%;background:rgba(18,17,16,.6);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.chpv .nv.p{left:8px}.chpv .nv.n{right:8px}
+.chpv .f{flex:none;padding:16px 16px calc(28px + env(safe-area-inset-bottom));display:flex;gap:8px}
+.chpv .sv{flex:1;height:48px;border:2px solid var(--bg);border-radius:12px;background:var(--yel);font:700 15px 'IBM Plex Sans KR',sans-serif;color:var(--ink);display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+.chpv .hd2{flex:none;height:48px;padding:0 16px;border:2px solid var(--bg);border-radius:12px;background:transparent;font:700 15px 'IBM Plex Sans KR',sans-serif;color:var(--bg);cursor:pointer}
+html.pc .chpv .f{justify-content:center}html.pc .chpv .sv{flex:none;padding:0 24px}
+.xrt{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.xdue{flex:none;font-size:12px;font-weight:700;border:2px solid var(--ink);border-radius:5px;padding:0 8px;background:var(--bg)}
+.xdue.on{background:var(--yel)}
 /* 테스트 사이트 표시: 휴대폰은 위 가운데, PC는 오른쪽 아래 (제목줄과 겹치지 않게) */
 .stg{position:fixed;top:auto;bottom:92px;right:8px;z-index:9999;pointer-events:none;background:#B45309;color:#FFFFFF;font-size:12px;font-weight:700;padding:4px 8px;border-radius:999px;opacity:.9}
 html.pc .stg{top:auto;left:auto;right:12px;bottom:12px;transform:none}
@@ -549,11 +637,12 @@ html.pc .pcr2[data-p="season"] .body .punch[data-off]{border-style:dashed!import
 .tag.mc{background:var(--sec2)}
 .chr.on{background:var(--sec3);box-shadow:6px 6px 0 var(--ink);transform:translate(-2px,-2px)}
 .pcr{position:sticky;top:16px;height:calc(100dvh - 120px);min-height:520px;display:flex;flex-direction:column;background:var(--white);border:2px solid var(--ink);border-radius:16px;box-shadow:4px 4px 0 var(--ink);overflow:hidden}
-.pcr .pch{flex:none;display:flex;align-items:center;gap:12px;min-height:64px;padding:0 24px;border-bottom:2px solid var(--ink)}
+.pcr .pch{flex:none;display:flex;align-items:center;flex-wrap:wrap;gap:12px;min-height:64px;padding:8px 16px 8px 24px;box-sizing:border-box;border-bottom:2px solid var(--ink)}
 .pcr .pch .tag{background:var(--sec);color:var(--ink)}
-.pcr .pch b{flex:1;min-width:0;font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pcr .pch>span:last-child{font-size:12px;color:var(--sub)}
-.pcr .chtk{margin:16px 24px 0}
+.pcr .pch .chpt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.pcr .pch .chpt b{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:22px;line-height:1.2;overflow-wrap:anywhere}
+.pcr .pch .chpt span{font-size:13px;color:var(--sub)}
+.pcr .chtkw{padding:16px 24px}
 .pcr .chlkw{margin:12px 24px 0}
 .pcr .chlog{flex:1;overflow-y:auto;padding:16px 24px 24px;background-color:var(--bg);background-image:var(--grid);background-size:16px 16px;scrollbar-width:thin}
 .pcr .ccol{max-width:72%}
@@ -576,7 +665,8 @@ html.pc .pcr2[data-p="season"] .body .punch[data-off]{border-style:dashed!import
 .pcr2>.cta{position:sticky;bottom:0;margin:0;max-width:none;border-radius:0 0 14px 14px}
 .pcr2 .navw{display:none}
 /* PC 일정 자세히 (시안): 흰 칸 위 큰 시각, 위로 올린 5칸 수, 설명이 붙은 큰 투표 카드 */
-.pcr2[data-p="event"] .bigt{background:transparent;box-shadow:none;border-radius:0}
+.pcr2[data-p="event"] .bigt{background:transparent;box-shadow:none;border-radius:0;filter:none}
+.pcr2[data-p="event"] .bigt>*{-webkit-mask:none!important;mask:none!important}
 .pcr2[data-p="event"] .bigt .top{padding:0;gap:6px}
 .pcr2[data-p="event"] .bigt .cut{display:none}
 .pcr2[data-p="event"] .bigt .bot{padding:16px 0 0}
@@ -690,10 +780,12 @@ html.pcwide .page{max-width:none}
 .pbtn[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
 /* 다른 팀과 (PC): 매칭, 용병 구인, 용병 구직 */
 /* 용병 평가 (대화, 끝난 방, 운영진) */
-.xrv{flex:none;max-height:62%;overflow-y:auto;border-top:2px solid var(--ink);padding:16px 24px;background:var(--white);display:flex;flex-direction:column;gap:12px}
-.xrv .hw{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
-.xrv .h{font-size:16px}
-.xrv .n{flex:1 1 320px;font-size:12px;line-height:1.5;color:var(--sub)}
+/* 용병 평가: 기록의 경기 상세 (시안 2026-11-26, 끝난 경기 방은 2시간 뒤 사라져서 여기로 옮김) */
+.xrv{flex:none;border:2px solid var(--ink);border-radius:12px;box-shadow:4px 4px 0 var(--ink);padding:16px;background:var(--white);display:flex;flex-direction:column;gap:10px}
+.xrv .hw{display:flex;flex-direction:column;gap:6px}
+.xrv .h{font-size:18px}
+.xrv .n{font-size:12px;line-height:1.5;color:var(--sub)}
+.xrc{padding:10px 12px!important;border-radius:10px!important}
 .xrc{display:flex;flex-direction:column;gap:10px;padding:12px 16px;border:2px solid var(--ink);border-radius:12px;background:var(--white)}
 .xrc.open{background:var(--sec3)}
 .xrc.no{background:var(--bg)}
@@ -826,7 +918,7 @@ html.pcwide .page{max-width:none}
 .xmine .big{font-size:18px;font-weight:700}
 .xmine .note{font-size:12px}
 </style>
-  <script type="module" crossorigin src="../../assets/team-aONmBgnE.js"></script>
+  <script type="module" crossorigin src="../../assets/team-Dj8_Qr0k.js"></script>
   <link rel="modulepreload" crossorigin href="../../assets/modulepreload-polyfill-B5Qt9EMX.js">
 </head>
 <body>
