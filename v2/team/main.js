@@ -1500,6 +1500,8 @@ async function kakaoFinish() {
   }
 }
 async function boot() {
+  // 테스트 사이트: 체험 링크(?demo)로 오면 소개 페이지부터 보여 준다. 거기서 '로그인 없이 체험하기'를 누르면 ?demo&go로 돌아와 체험 팀으로 들어간다 (2026-11-26)
+  if (STAGE && qs.has("demo") && !qs.has("go")) { location.replace(new URL("../?demo", location.href).href); return; }
   // 테스트 사이트 표시 (운영 사이트에는 없다)
   if (STAGE) document.body.insertAdjacentHTML("beforeend", `<div class="stg" aria-hidden="true">테스트 사이트</div>`);
   if (qs.get("state") && (qs.get("code") || qs.get("error"))) {

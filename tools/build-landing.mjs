@@ -1,6 +1,6 @@
 // 디자인 시안 A(design/home/Main.dc.html)에 실제 앱 화면 사진 5장을 넣어 한 장짜리 정적 페이지로 묶는다.
 // 결과: public/v2/index.html (vite가 dist/v2/로 복사)
-import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync, rmSync } from "node:fs";
 import { execSync } from "node:child_process";
 
 // 점검 문지기와 새 버전 확인에 쓰는 값: 이 빌드의 버전(git 짧은 번호)과 Supabase 공개 주소, 공개 키, 스키마
@@ -25,7 +25,7 @@ const html = `<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="maint-config.js?v=${VER}"></script>
 <script src="maint-gate.js?v=${VER}"></script>
-<title>매니볼 | 축구팀, 풋살팀 관리를 편하게</title>
+${process.env.VITE_STAGE === "test" ? `<script src="landing-demo.js?v=${VER}" defer></script>\n` : ""}<title>매니볼 | 축구팀, 풋살팀 관리를 편하게</title>
 <meta name="description" content="참석 투표, 라인업, 현장 출석과 벌금, 회비, 경기 기록과 MOM까지. 우리 팀 링크 하나에서 자동으로 정리돼요. 카카오로 한 번 로그인하면 끝, 앱 설치는 필요 없어요.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="매니볼 | 축구팀, 풋살팀 관리를 편하게">
@@ -56,6 +56,9 @@ console.log("public/v2/index.html", html.length, "bytes");
 
 // 점검 안내 화면과 문지기 (원본은 maint/). 캐시에 옛 파일이 남지 않게 주소에 버전을 붙인다
 writeFileSync(new URL("../public/v2/maint-config.js", import.meta.url), `window.MB_CFG = ${JSON.stringify(MB_CFG)};\n`);
+// 체험 링크(?demo)용 조각은 테스트 서버에만 둔다. 운영 빌드에서는 남은 파일까지 지운다 (2026-11-26)
+if (process.env.VITE_STAGE === "test") writeFileSync(new URL("../public/v2/landing-demo.js", import.meta.url), readFileSync(new URL("../maint/landing-demo.js", import.meta.url), "utf8"));
+else rmSync(new URL("../public/v2/landing-demo.js", import.meta.url), { force: true });
 for (const f of ["maint.html", "maint.js", "maint-gate.js"]) writeFileSync(new URL(`../public/v2/${f}`, import.meta.url), readFileSync(new URL(`../maint/${f}`, import.meta.url), "utf8").replaceAll("__VER__", VER));
 
 // 휴대폰 알림과 홈 화면 추가 (원본은 pwa/). 앱 주소(v2/team/) 바로 아래에 둔다
