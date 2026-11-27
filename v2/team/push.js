@@ -16,7 +16,6 @@ const same = (a, b) => { if (!a || !b) return false; const x = new Uint8Array(a)
 // 상태: on, off, denied(브라우저에서 막음), install(아이폰, 홈 화면 추가 필요), unsupported
 export async function pushInit(client) {
   sb = client; S.push = S.push || "off";
-  kakaoState();
   if (isIOS && !standalone()) { S.push = "install"; return; }
   if (!supported()) { S.push = "unsupported"; return; }
   try { reg = await navigator.serviceWorker.register("sw.js", { scope: "./" }); } catch (e) { S.push = "unsupported"; return; }
@@ -85,16 +84,6 @@ export async function pushToggle() {
   finally { busy = false; render(); }
 }
 export const pushBusy = () => busy;
-
-// 카카오톡 나와의 채팅으로 받기 (메시지 전송 동의 + 서버가 보관한 토큰)
-export async function kakaoState() {
-  try { const { data } = await sb.rpc("push_kakao_mine"); const st = data ? "on" : "off"; if (st !== S.kakao) { S.kakao = st; render(); } } catch (e) { /* 그대로 */ }
-}
-export async function kakaoOff() {
-  try { const { error } = await sb.functions.invoke("push", { body: { action: "kakao_off" } }); if (error) throw error; S.kakao = "off"; toast("카카오톡 알림을 껐어요"); }
-  catch (e) { toast("카카오톡 알림을 끄지 못했어요. 잠시 뒤 다시 해 주세요"); }
-  render();
-}
 
 // 로그아웃할 때 이 기기 알림을 끊는다 (다른 사람이 같은 기기를 쓸 때 내 알림이 가지 않게)
 export async function pushDetach() {

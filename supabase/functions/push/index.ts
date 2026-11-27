@@ -1,10 +1,9 @@
 // 매니볼 휴대폰 알림 발송 함수 (Supabase Edge Function "push", JWT 확인은 끄고 아래에서 직접 확인)
 //  - 앱: { action: "key" }  로그인한 사람에게 구독용 공개 키를 준다 (키가 없으면 여기서 처음 만든다)
 //  - 앱: { action: "test" } 로그인한 사람의 기기에 "알림을 켰어요"를 보낸다
-//  - 앱: { action: "kakao_save", access_token, refresh_token, ... } 카카오톡 메시지 전송에 동의한 본인 카카오 토큰을 확인하고 보관한다
-//  - 앱: { action: "kakao_off" } 카카오톡으로 받기를 끈다 (동의 철회, 토큰 지움)
 //  - DB: 헤더 x-cron-key 가 맞으면 쌓인 알림(push_outbox)을 보낸다 (pg_net이 깨움)
 // 발송 키(VAPID)는 이 함수가 처음 한 번 만들어 DB(push_conf)에만 둔다. 밖으로 나가지 않는다.
+// 카카오톡 알림은 없앴다 (2026-11-27): 알림은 앱(웹 푸시)으로만 보낸다.
 // 외부 라이브러리 없이 WebCrypto로 웹 푸시 암호화(RFC 8291, aes128gcm)와 VAPID 서명(RFC 8292)을 한다.
 
 const SB_URL = Deno.env.get("SUPABASE_URL") ?? "";
@@ -90,58 +89,14 @@ async function sendOne(sub: Sub, msg: Record<string, unknown>, c: Conf): Promise
   } catch (e) { console.log("push error", String(e)); return "retry"; }
 }
 
-// 카카오톡 나에게 보내기 -------------------------------------------------------------
-const KAKAO_KEY = "e5c9ffdb309018215f5fcbc89eddb201"; // REST API 키 (앱 화면에도 있는 공개 값)
-const APP_URL = SCHEMA === "maniball" ? "https://smok1031.github.io/MANIBALL/test/v2/team/" : "https://smok1031.github.io/MANIBALL/v2/team/";
-const KAPI = "https://kapi.kakao.com", KAUTH = "https://kauth.kakao.com";
-type Kk = { access: string; refresh: string | null; exp: string };
-type Msg = { title: string; body: string; url?: string; team?: string };
-const iso = (sec: unknown, def: number) => new Date(Date.now() + (Number(sec) || def) * 1000).toISOString();
-
-async function kakaoRefresh(uid: string, k: Kk): Promise<Kk | "gone" | "retry"> {
-  if (!k.refresh) return "gone";
-  try {
-    const r = await fetch(`${KAUTH}/oauth/token`, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" }, body: new URLSearchParams({ grant_type: "refresh_token", client_id: KAKAO_KEY, refresh_token: k.refresh }) });
-    const t = await r.json().catch(() => ({}));
-    if (!r.ok || !t.access_token) { console.log("kakao refresh failed", r.status, t.error_code ?? t.error ?? ""); return r.status >= 500 ? "retry" : "gone"; }
-    const n: Kk = { access: t.access_token, refresh: t.refresh_token ?? k.refresh, exp: iso(t.expires_in, 3600) };
-    await rpc("push_kakao_put", { p_user: uid, p_kakao_id: "", p_access: n.access, p_refresh: t.refresh_token ?? null, p_access_exp: n.exp, p_refresh_exp: t.refresh_token_expires_in ? iso(t.refresh_token_expires_in, 0) : null });
-    return n;
-  } catch (e) { console.log("kakao refresh error", String(e)); return "retry"; }
-}
-
-// 결과: ok(보냄), gone(동의 철회나 토큰 만료, 보관한 토큰을 지움), retry(잠시 문제)
-async function sendKakao(uid: string, k: Kk, m: Msg): Promise<"ok" | "gone" | "retry"> {
-  let kk: Kk = k;
-  if (!kk.exp || Date.parse(kk.exp) < Date.now() + 60000) { const n = await kakaoRefresh(uid, kk); if (typeof n === "string") return n; kk = n; }
-  const link = APP_URL + (/^[0-9a-f-]{36}$/.test(m.team ?? "") ? `?team=${m.team}` : "") + (m.url || "#/");
-  const tpl = { object_type: "text", text: `[${m.title}]\n${m.body}`.slice(0, 200), link: { web_url: link, mobile_web_url: link }, button_title: "매니볼에서 보기" };
-  const post = (tok: string) => fetch(`${KAPI}/v2/api/talk/memo/default/send`, { method: "POST", headers: { Authorization: `Bearer ${tok}`, "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" }, body: new URLSearchParams({ template_object: JSON.stringify(tpl) }) });
-  try {
-    let r = await post(kk.access);
-    if (r.status === 401) { await r.body?.cancel(); const n = await kakaoRefresh(uid, kk); if (typeof n === "string") return n; kk = n; r = await post(kk.access); }
-    const b = await r.json().catch(() => ({}));
-    if (r.ok && b.result_code === 0) return "ok";
-    console.log("kakao memo failed", r.status, b.code ?? "", b.msg ?? "");
-    if (r.status === 401 || r.status === 403 || [-401, -402, -101].includes(Number(b.code))) return "gone";
-    return r.status >= 500 || r.status === 429 ? "retry" : "gone";
-  } catch (e) { console.log("kakao memo error", String(e)); return "retry"; }
-}
-
-async function kakaoResult(uid: string, r: "ok" | "gone" | "retry") {
-  if (r === "ok") await rpc("push_kakao_ok", { p_user: uid });
-  if (r === "gone") await rpc("push_kakao_del", { p_user: uid });
-}
-
 async function drain(c: Conf) {
   const t0 = Date.now(); let sent = 0;
   while (Date.now() - t0 < 25000) {
-    const items: { id: number; team: string; user: string; title: string; body: string; url: string; tag: string; subs: Sub[]; kakao: Kk | null }[] = await rpc("push_take", { p_limit: 50 });
+    const items: { id: number; team: string; user: string; title: string; body: string; url: string; tag: string; subs: Sub[] }[] = await rpc("push_take", { p_limit: 50 });
     if (!items.length) break;
     const done: number[] = [], gone: string[] = [], ok: string[] = [];
     await Promise.all(items.map(async it => {
       const res = await Promise.all(it.subs.map(s => sendOne(s, { title: it.title, body: it.body, url: it.url, tag: it.tag, team: it.team }, c).then(r => { if (r === "gone") gone.push(s.endpoint); if (r === "ok") ok.push(s.endpoint); return r; })));
-      if (it.kakao) { const kr = await sendKakao(it.user, it.kakao, it); await kakaoResult(it.user, kr); res.push(kr); }
       if (!res.length || res.some(r => r !== "retry")) done.push(it.id);
       sent += res.filter(r => r === "ok").length;
     }));
@@ -159,8 +114,6 @@ async function userOf(req: Request): Promise<AuthUser | null> {
   if (!r.ok) return null;
   const u = await r.json(); return typeof u?.id === "string" ? u as AuthUser : null;
 }
-// 이 매니볼 계정에 연결된 카카오 회원번호
-const kakaoIdOf = (u: AuthUser) => { const i = (u.identities ?? []).find(x => x.provider === "kakao"); const d = (i?.identity_data ?? {}) as Record<string, unknown>; return String(d.sub ?? d.provider_id ?? i?.provider_id ?? i?.id ?? ""); };
 
 async function mySubs(uid: string): Promise<Sub[]> { return (await rpc("push_subs_of", { p_user: uid })) ?? []; }
 
@@ -185,34 +138,7 @@ Deno.serve(async req => {
       const subs = await mySubs(uid); const gone: string[] = [], ok: string[] = [];
       const res = await Promise.all(subs.map(s => sendOne(s, { title: "매니볼", body: "알림을 켰어요. 매니볼 소식이 여기로 와요", url: "#/", tag: "test" }, c).then(r => { if (r === "gone") gone.push(s.endpoint); if (r === "ok") ok.push(s.endpoint); return r; })));
       if (gone.length || ok.length) await rpc("push_done", { p_ids: [], p_gone: gone, p_ok: ok });
-      const kk: Kk | null = await rpc("push_kakao_get", { p_user: uid });
-      let kakao = "";
-      if (kk) { const kr = await sendKakao(uid, kk, { title: "매니볼", body: "알림을 켰어요. 매니볼 소식이 여기로 와요" }); await kakaoResult(uid, kr); kakao = kr; }
-      return json({ sent: res.filter(r => r === "ok").length, devices: subs.length, kakao });
-    }
-    if (action === "kakao_save") {
-      const t = String(body.access_token ?? "");
-      if (!/^[\w.~+/=-]{20,500}$/.test(t)) return json({ error: "bad_token" }, 400);
-      const h = { Authorization: `Bearer ${t}` };
-      const me = await fetch(`${KAPI}/v2/user/me`, { headers: h }).then(r => r.ok ? r.json() : null).catch(() => null);
-      const mine = kakaoIdOf(user);
-      if (!me?.id || !mine || String(me.id) !== mine) return json({ error: "not_mine" }, 403); // 남의 카카오 토큰은 받지 않는다
-      const sc = await fetch(`${KAPI}/v2/user/scopes?scopes=${encodeURIComponent('["talk_message"]')}`, { headers: h }).then(r => r.ok ? r.json() : null).catch(() => null);
-      if (!(sc?.scopes ?? []).some((x: { id: string; agreed: boolean }) => x.id === "talk_message" && x.agreed)) return json({ error: "no_consent" }, 400);
-      const k: Kk = { access: t, refresh: typeof body.refresh_token === "string" ? body.refresh_token : null, exp: iso(body.expires_in, 3600) };
-      await rpc("push_kakao_put", { p_user: uid, p_kakao_id: mine, p_access: k.access, p_refresh: k.refresh, p_access_exp: k.exp, p_refresh_exp: body.refresh_token_expires_in ? iso(body.refresh_token_expires_in, 0) : null });
-      const kr = await sendKakao(uid, k, { title: "매니볼", body: "카카오톡으로 알림을 받아요. 라인업, 투표 마감, 벌금 소식이 이 채팅방으로 와요" });
-      await kakaoResult(uid, kr);
-      return json({ ok: kr !== "gone", sent: kr === "ok" });
-    }
-    if (action === "kakao_off") {
-      const kk: Kk | null = await rpc("push_kakao_get", { p_user: uid });
-      if (kk) {
-        // 카카오 쪽 메시지 동의도 거둔다 (실패해도 토큰은 지움)
-        await fetch(`${KAPI}/v2/user/revoke/scopes`, { method: "POST", headers: { Authorization: `Bearer ${kk.access}`, "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" }, body: new URLSearchParams({ scopes: '["talk_message"]' }) }).then(r => r.body?.cancel()).catch(() => {});
-        await rpc("push_kakao_del", { p_user: uid });
-      }
-      return json({ ok: true });
+      return json({ sent: res.filter(r => r === "ok").length, devices: subs.length });
     }
     return json({ error: "action" }, 400);
   } catch (e) {
