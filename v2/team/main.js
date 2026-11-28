@@ -1423,7 +1423,7 @@ const ACT = {
     }, true);
   },
   pushToggle: () => pushToggle(),
-  pushGateGo: () => pushToggle(), pushGateCheck: () => pushGateCheck(), pushGateOut: () => pushGateOut(), pushGateCopy: () => pushGateCopy(), pushGateInstall: () => pushGateInstall(),
+  pushGateGo: () => pushToggle(), pushGateCheck: () => pushGateCheck(), pushGateOut: () => pushGateOut(), pushGateCopy: () => pushGateCopy(), pushGateInstall: () => pushGateInstall(), pushGateReload: () => location.reload(),
   logout: () => confirmBox("로그아웃", "이 기기에서 로그아웃할까요?", "로그아웃", async () => { await pushDetach(); try { await sb.auth.signOut(); } catch (e) { /* 그래도 처음으로 */ } ls.set("mb-team", null); picked.clear(); location.replace(APP); }),
 };
 Object.assign(ACT, ACT2, ACT3, ACT4, ACT5, AACT, MACT, CHACT, XACT);
