@@ -6,7 +6,7 @@ import { memberRoute, memberForm, MACT } from "./member.js";
 import { planLineup, canPlay, FIELD, isKeeper, fitOf } from "./lineup-core.js";
 import { adminRoute, adminForm, AACT, eventFormInit, remindLeft, remindSheet, playerSheet, rosterSheet } from "./admin.js";
 import { hd as uiHd, navBar, C, IC, teamLogo, setSec } from "./ui.js";
-import { pushInit, pushToggle, pushDetach } from "./push.js";
+import { pushInit, pushToggle, pushDetach, pushGateOn, vPushGate, pushGateCheck, pushGateOut, pushGateCopy, pushGateInstall } from "./push.js";
 import { chatLoad, chatOnChange, CHACT } from "./chat.js";
 import { isPC, onPCChange, pcShell, pcSplit, pcMarkSel } from "./pc.js";
 import { XACT } from "./xteam.js";
@@ -1171,6 +1171,8 @@ function render() {
   else if (S.flow === "joinWait") html = vJoinWait();
   else if (S.flow === "profile") html = vProfile(false);
   else if (S.flow === "rules") html = vRules();
+  // 알림 관문: 어느 기기에서도 알림을 안 켠 계정은 알림을 켜야 팀으로 들어간다 (push.js, 시안 6-7)
+  else if (S.ready && pushGateOn()) html = vPushGate();
   else if (!S.ready) html = `<div class="boot" role="status" aria-live="polite"><span class="bspin" aria-hidden="true"><i></i></span><span>불러오는 중이에요</span></div>`;
   else {
     const r = route();
@@ -1185,9 +1187,9 @@ function render() {
     }
   }
   // PC(가로 1024px 이상): 같은 화면을 왼쪽 메뉴로 감싼다 (로그인, 팀 고르기 같은 흐름은 그대로)
-  const pcOn = isPC() && S.ready && !S.flow;
+  const pcOn = isPC() && S.ready && !S.flow && !/^<div class="pg/.test(html);
   document.documentElement.classList.toggle("pc", pcOn);
-  document.documentElement.classList.toggle("pcwide", !pcOn && /class="lgp"/.test(html.slice(0, 40)));
+  document.documentElement.classList.toggle("pcwide", !pcOn && /class="(lgp|pg pgpc)"/.test(html.slice(0, 40)));
   if (pcOn) html = pcShell(html);
   // 입력 중인 칸은 그대로 두려고, 같은 화면이면 포커스와 커서를 되돌린다
   const act = document.activeElement; const d = (act && act.dataset) || {};
@@ -1421,6 +1423,7 @@ const ACT = {
     }, true);
   },
   pushToggle: () => pushToggle(),
+  pushGateGo: () => pushToggle(), pushGateCheck: () => pushGateCheck(), pushGateOut: () => pushGateOut(), pushGateCopy: () => pushGateCopy(), pushGateInstall: () => pushGateInstall(),
   logout: () => confirmBox("로그아웃", "이 기기에서 로그아웃할까요?", "로그아웃", async () => { await pushDetach(); try { await sb.auth.signOut(); } catch (e) { /* 그래도 처음으로 */ } ls.set("mb-team", null); picked.clear(); location.replace(APP); }),
 };
 Object.assign(ACT, ACT2, ACT3, ACT4, ACT5, AACT, MACT, CHACT, XACT);

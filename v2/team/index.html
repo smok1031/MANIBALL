@@ -737,6 +737,45 @@ html.pc .pk-row.pk-on{background-color:var(--sec3)}
 .pcr2>.cta .btn.block{width:auto;min-width:180px;height:48px;padding:0 24px}
 /* PC 로그인 (시안) */
 html.pcwide .page{max-width:none}
+
+/* 알림 관문 (시안 6-7, PC 6-7): 알림을 켜야 팀으로 들어가요 */
+.pg{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;background-color:var(--bg);background-image:linear-gradient(rgba(18,17,16,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(18,17,16,.06) 1px,transparent 1px);background-size:16px 16px;color:var(--ink);word-break:keep-all}
+.pghd{min-height:80px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 48px;border-bottom:2px solid var(--ink)}
+.pghd>span:last-child{font-size:14px;color:var(--sub)}
+.pgm{flex:1;display:flex;flex-direction:column}
+.pgcard{flex:1;display:flex;flex-direction:column;gap:16px;padding:24px 24px calc(24px + env(safe-area-inset-bottom));box-sizing:border-box;text-align:center}
+.pgpc .pgm{align-items:center;justify-content:center;padding:48px}
+.pgpc .pgcard{flex:none;width:100%;max-width:560px;align-items:center;gap:18px;padding:40px 48px 32px;border:2px solid var(--ink);border-radius:16px;background:#fff;box-shadow:4px 4px 0 var(--ink)}
+.pgtop{display:flex;align-items:center;gap:8px;align-self:flex-start}
+.pgpc .pgtop{align-self:center}
+.pglb{font-size:12px;font-weight:700;border:2px solid var(--ink);border-radius:5px;padding:1px 8px;background:var(--ink);color:var(--bg)}
+.pgtm{font-size:12px;color:var(--sub)}
+.pgbell{align-self:center;margin-top:4px;width:88px;height:88px;box-sizing:border-box;border:2px solid var(--ink);border-radius:22px;background:var(--yel);box-shadow:4px 4px 0 var(--ink);display:flex;align-items:center;justify-content:center}
+.pgpc .pgbell{width:96px;height:96px;border-radius:24px}
+.pgbell.off{background:#F2A7C3}
+.pgbell.ding svg{animation:pgding 1.6s ease-in-out infinite;transform-origin:50% 10%}
+@keyframes pgding{0%,60%,100%{transform:rotate(0)}10%{transform:rotate(14deg)}20%{transform:rotate(-12deg)}30%{transform:rotate(8deg)}40%{transform:rotate(-4deg)}}
+.pgt{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:30px;line-height:1.2;white-space:pre-line}
+.pgpc .pgt{font-size:36px}
+.pgl{font-size:15px;line-height:1.6}
+.pgpc .pgl{font-size:16px;color:#2B2926}
+.pgcs{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+.pgc{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:4px 10px;border:2px solid var(--ink);border-radius:8px;background:#fff}
+.pgc i{flex:none;width:10px;height:10px;box-sizing:border-box;border:2px solid var(--ink);border-radius:3px}
+.pgh{align-self:stretch;display:flex;flex-direction:column;gap:10px;text-align:left;border:2px dashed var(--ink);border-radius:12px;padding:14px 16px;background:#fff}
+.pgpc .pgh{background:var(--bg)}
+.pgh>b{font-size:14px}
+.pgh>span{display:flex;align-items:center;gap:10px;font-size:14px}
+.pgn{flex:none;width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--bg);display:inline-flex;align-items:center;justify-content:center;font:700 14px 'Barlow Condensed','IBM Plex Sans KR',sans-serif}
+.pgb{margin-top:auto;align-self:stretch;display:flex;flex-direction:column;gap:10px}
+.pgpc .pgb{margin-top:8px}
+.pgb>b{font-size:14px}
+.pgbtn{height:64px;border:2px solid var(--ink);border-radius:14px;background:var(--yel);box-shadow:3px 3px 0 var(--ink);font:700 19px 'IBM Plex Sans KR',sans-serif;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;animation:pgpulse 1.8s ease-in-out infinite}
+.pgbtn:disabled{opacity:.6;animation:none}
+@keyframes pgpulse{0%,100%{box-shadow:3px 3px 0 var(--ink),0 0 0 0 rgba(252,208,26,0)}50%{box-shadow:3px 3px 0 var(--ink),0 0 0 8px rgba(252,208,26,.45)}}
+.pgnote{font-size:12px;line-height:1.5;color:var(--sub)}
+.pgleft .pgcard{text-align:left}
+@media (prefers-reduced-motion:reduce){.pgbtn,.pgbell.ding svg{animation:none}}
 .lgp{flex:1;display:flex;flex-direction:column;min-height:100dvh}
 .lgt{display:flex;align-items:center;justify-content:space-between;height:80px;padding:0 48px;border-bottom:2px solid var(--ink);flex:none}
 .lgt a{font-size:14px;color:var(--ink)}
